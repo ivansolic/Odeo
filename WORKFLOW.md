@@ -635,6 +635,7 @@ trusting auto-invocation.
 | Set up the design system | `/setup-design` (once, after PM, before building UI) |
 | Switch to building | `/dev-handoff` |
 | Build a story | Plan mode + "Implement story docs/stories/USR-NNN..." |
+| Build stories with agents | `/sprint` (single or parallel, you approve at the gate) |
 | Check it's really done | "Walk through every acceptance criterion" |
 | Review code | "Invoke code-reviewer on these changes" |
 | Review UI | "Invoke design-reviewer on these changes" (states, a11y, tokens, heuristics) |
@@ -644,5 +645,8 @@ trusting auto-invocation.
 | Record a decision | "Create an ADR for this decision" |
 | Teach Claude a lesson | "Update lessons.md so you don't repeat this" |
 | Wrap up a session / capture learnings | `/retro` |
+| Capture a reusable solved problem | `/compound` (verified + non-trivial only) |
+| Keep the knowledge base current | `/compound-refresh` |
+| Check a shipped feature's outcome | `/pulse` (about a week after shipping, real data only) |
 | Resume yesterday's session | `claude --continue` |
 | Claude is stuck/looping | "Stop. Enter plan mode. Reinvestigate from scratch." |

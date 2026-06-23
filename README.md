@@ -2,13 +2,13 @@
 
 **The workflow system that turns one person into a product team.**
 
-Spec it → build it → test it → secure it → ship it, by directing Claude as your developer. **Built for PMs and builders.**
+The whole product lifecycle, with you directing Claude: idea → discovery → PRD → design → build → test → secure → ship → measure → learn. **Built for PMs and builders.**
 
 ---
 
 ## What is this?
 
-Claude Cofounder is an opinionated workflow system for [Claude Code](https://claude.com/claude-code). It takes you from a rough idea all the way to shipped, tested, secure software, by directing Claude as your developer instead of writing code by hand. It bundles the global instructions, project scaffolding, PM workflow, a test-driven-development habit, a security baseline, and an end-to-end daily process into one install.
+Claude Cofounder is an opinionated workflow system for [Claude Code](https://claude.com/claude-code). It covers the **whole product lifecycle**, from first idea and discovery, through PRD, design, build, test, and security, to ship, and then measuring the outcome and feeding what you learn back in. You direct Claude as your developer instead of writing code by hand. It bundles the global instructions, project scaffolding, PM workflow, a test-driven-development habit, a security baseline, and an end-to-end daily process into one install.
 
 You bring the *what* and *why* (the product thinking). The system makes Claude deliver the *how* (the code), with guardrails so the result is actually solid.
 
@@ -47,15 +47,20 @@ claude-cofounder/
 │   ├── CLAUDE.md             ← per-project config incl. a Security & Data section
 │   ├── commands/             ← slash commands (you type /name)
 │   │   ├── setup-project.md  ← /setup-project onboarding interview
-│   │   ├── setup-design.md   ← /setup-design design-system/tokens setup
+│   │   ├── setup-design.md   ← /setup-design design-system/tokens setup (UI projects)
+│   │   ├── sprint.md         ← /sprint build stories with agents (single or parallel, you approve)
 │   │   ├── dev-handoff.md    ← /dev-handoff PM→Dev transition
 │   │   ├── commit-push.md    ← /commit-push with secret-scan + safety checks
+│   │   ├── compound.md       ← /compound capture a verified solved problem
+│   │   ├── compound-refresh.md ← /compound-refresh audit/refresh the knowledge base
+│   │   ├── pulse.md          ← /pulse post-ship outcome check
 │   │   └── retro.md          ← /retro end-of-session learning capture
 │   ├── agents/               ← subagents (separate-context reviewers)
 │   │   ├── code-reviewer.md          ← code, functions, security
 │   │   ├── architecture-reviewer.md
-│   │   └── design-reviewer.md        ← UI: heuristics, states, a11y, tokens
-│   ├── design/               ← tokens.json (DTCG) + README, design-system source of truth
+│   │   └── design-reviewer.md        ← UI: heuristics, states, a11y, tokens (UI projects)
+│   ├── knowledge/            ← compound: reusable solved problems (consulted before non-trivial work)
+│   ├── design/               ← tokens.json (DTCG) + README, design-system source of truth (UI projects)
 │   ├── tasks/                ← working files: todo.md, lessons.md
 │   ├── docs/                 ← document templates: ADR-TEMPLATE.md
 │   └── presets/              ← example filled stacks (e.g. angular-nest-mysql.md)
@@ -77,7 +82,10 @@ claude-cofounder/
 - **`/setup-project`**, interviews you about your stack, commands, and data, then fills the project config. Run once per project.
 - **PM workflow via [pm-skills](https://github.com/phuryn/pm-skills)**, brainstorm, PRDs, critique, user stories (a separate plugin you install once; see Quick start).
 - **TDD skill**, auto-applies test-first to backend logic, stays out of the way on UI.
-- **Design layer**, a `ux-design` skill (usability heuristics, UX laws, UI states, accessibility) that auto-applies to UI; **design tokens** (`design/tokens.json`, DTCG) as the styling source of truth, set up by `/setup-design` and compiled to your stack; a `design-reviewer` subagent for UI review.
+- **Design layer**, a `ux-design` skill (usability heuristics, UX laws, UI states, accessibility) that auto-applies to UI; **design tokens** (`design/tokens.json`, DTCG) as the styling source of truth, set up by `/setup-design` and compiled to your stack; a `design-reviewer` subagent for UI review. Optional per project (`init-project.sh --no-ui` skips it).
+- **Hybrid agentic build** (`/sprint`), you pick single or parallel agents and how much oversight; each agent takes a story end-to-end (plan, TDD build, verify, review) in its own worktree and presents for your approval before merge. Agents do the work, you hold the gates.
+- **Compounding knowledge** (`/compound`, `/compound-refresh`, `knowledge/`), verified solved problems become a reusable, maintained knowledge base that Claude consults before non-trivial work, so the system gets smarter per story.
+- **Post-ship outcome loop** (`/pulse`), about a week after shipping, compares the real outcome against the PRD's intended outcome and verdicts keep/iterate/kill. Never on fabricated data.
 - **Three docs**, `INSTALL.md` (setup), `BEGINNERS-GUIDE.md` (concepts), `WORKFLOW.md` (daily use).
 
 ## Quick start
@@ -165,6 +173,7 @@ PRDs and user stories are generated by the pm-skills plugins and saved as `PRD-N
 
 - **PM workflow** is powered by [**pm-skills**](https://github.com/phuryn/pm-skills) by phuryn, a separate plugin, installed as a dependency (not bundled here).
 - The **test-driven-development** skill is adapted from the TDD skill in [**obra/superpowers**](https://github.com/obra/superpowers) by Jesse Vincent.
+- The **compounding knowledge** design (`/compound`, `/compound-refresh`) is adapted from the compound-engineering plugin by [**EveryInc**](https://github.com/EveryInc/compound-engineering-plugin) (MIT).
 - **`/security-review`** is a built-in command of Claude Code (Anthropic).
 
 ## License
