@@ -47,6 +47,8 @@ REQUIRED_TEMPLATES=(
   "agents/code-reviewer.md"
   "agents/architecture-reviewer.md"
   "agents/design-reviewer.md"
+  "agents/story-builder.md"
+  "agents/debugger.md"
   "commands/commit-push.md"
   "commands/dev-handoff.md"
   "commands/setup-project.md"
@@ -107,6 +109,8 @@ cp "$TEMPLATES_DIR/tasks/todo.md" .claude/tasks/todo.md
 cp "$TEMPLATES_DIR/tasks/lessons.md" .claude/tasks/lessons.md
 cp "$TEMPLATES_DIR/agents/code-reviewer.md" .claude/agents/code-reviewer.md
 cp "$TEMPLATES_DIR/agents/architecture-reviewer.md" .claude/agents/architecture-reviewer.md
+cp "$TEMPLATES_DIR/agents/story-builder.md" .claude/agents/story-builder.md
+cp "$TEMPLATES_DIR/agents/debugger.md" .claude/agents/debugger.md
 cp "$TEMPLATES_DIR/commands/commit-push.md" .claude/commands/commit-push.md
 cp "$TEMPLATES_DIR/commands/dev-handoff.md" .claude/commands/dev-handoff.md
 cp "$TEMPLATES_DIR/commands/setup-project.md" .claude/commands/setup-project.md
@@ -178,10 +182,10 @@ echo "  $PROJECT_NAME/"
 echo "  ├── CLAUDE.md"
 echo "  ├── .claude/"
 if $HAS_UI; then
-  echo "  │   ├── agents/     (code-reviewer, architecture-reviewer, design-reviewer)"
+  echo "  │   ├── agents/     (story-builder, debugger, code-reviewer, architecture-reviewer, design-reviewer)"
   echo "  │   ├── commands/   (setup-project, setup-design, sprint, compound, compound-refresh, pulse, commit-push, dev-handoff, retro)"
 else
-  echo "  │   ├── agents/     (code-reviewer, architecture-reviewer)"
+  echo "  │   ├── agents/     (story-builder, debugger, code-reviewer, architecture-reviewer)"
   echo "  │   ├── commands/   (setup-project, sprint, compound, compound-refresh, pulse, commit-push, dev-handoff, retro)"
 fi
 echo "  │   └── tasks/      (todo.md, lessons.md)"

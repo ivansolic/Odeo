@@ -15,6 +15,14 @@ Inspect whether the chosen stories touch overlapping files/modules. If they
 overlap, WARN and recommend sequential (parallel risks merge conflicts). Parallel
 is only safe for independent stories.
 
+## 2b. Propose a build order (by dependency)
+Order the chosen stories by **technical dependency**: what must exist first (for
+example a data model before a feature that uses it, an API before the UI that
+calls it). Present the proposed order and let the user adjust. This is build
+sequencing, not feature prioritization (priority/value is a PM decision, done
+earlier with pm-skills). In sequential mode the order is the build queue; in
+parallel mode, dependent stories must not run at the same time.
+
 ## 3. Dial 1, how many agents
 Ask:
 > "One agent (sequential, one story at a time) or parallel (one agent per story)?"
@@ -25,16 +33,18 @@ Ask:
 Default to plan-gated when the user is unsure or the work is risky.
 
 ## 5. Dispatch
-For each story, work in an **isolated git worktree + branch** (use Claude Code's
-built-in agent worktree isolation; for parallel, dispatch background agents, one
-per story). Each agent runs the full per-story pipeline:
-1. Read the story fully. Consult `knowledge/` (compound) for documented solutions to reuse.
-2. If plan-gated: draft the implementation plan in `todo.md` and wait for approval. If autonomous: proceed.
-3. Build: TDD for logic (the `test-driven-development` skill), `ux-design` skill + design tokens for UI. Follow CLAUDE.md (stack, conventions, security baseline).
-4. Verify every acceptance criterion, one by one.
-5. Run `code-reviewer` (and `design-reviewer` if the change has UI) on the result. Fix Critical and Important findings.
+Dispatch the **`story-builder` agent**, one instance per story, each in its own
+**git worktree + branch** (Claude Code's built-in agent worktree isolation; for
+parallel, run them as background agents). The `story-builder` agent runs the full
+per-story pipeline: read story, consult `knowledge/`, confirm a green baseline,
+plan (gated or autonomous), TDD build + ux-design for UI, verify every acceptance
+criterion, return a result.
 
-(Reviewers run on each agent's result before it is presented. Keep nesting shallow: an agent builds and self-verifies, then the reviewers run on its diff.)
+Then run `code-reviewer` (and `design-reviewer` if the change has UI) on each
+returned result. Fix Critical and Important findings.
+
+(Reviewers run on each result before it is presented. Keep nesting shallow: the
+story-builder builds and self-verifies, then the reviewers run on its diff.)
 
 ## 6. Present back (per story)
 For each finished story, present:
