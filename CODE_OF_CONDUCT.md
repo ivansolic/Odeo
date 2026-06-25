@@ -29,11 +29,12 @@ representing the project in public.
 
 ## Enforcement
 
-Report unacceptable behavior to the maintainer at **ivan.solic@movec.com**. All
-reports will be reviewed and handled confidentially. Maintainers may remove,
-edit, or reject contributions and comments that violate this code, and may
-temporarily or permanently ban any contributor for behavior they deem
-inappropriate.
+Report unacceptable behavior through GitHub: open a private report via the
+repository's **Security Advisories**, or contact the maintainer through their
+**GitHub profile**. All reports will be reviewed and handled confidentially.
+Maintainers may remove, edit, or reject contributions and comments that violate
+this code, and may temporarily or permanently ban any contributor for behavior
+they deem inappropriate.
 
 ## Attribution
 
