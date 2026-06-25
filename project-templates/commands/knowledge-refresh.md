@@ -1,5 +1,5 @@
 ---
-description: Audit and refresh the knowledge/ base against the current codebase. Detects stale, misleading, or redundant entries and Keeps / Updates / Consolidates / Replaces / Deletes them, keeping documented solutions current and trustworthy. Run periodically. Adapted from compound-engineering (EveryInc, MIT).
+description: Audit and refresh the knowledge/ base against the current codebase. Detects stale, misleading, or redundant entries and Keeps / Updates / Consolidates / Replaces / Deletes them, keeping documented solutions current and trustworthy. Run periodically.
 ---
 
 Keep `knowledge/` accurate as the code evolves. A stale knowledge base is worse

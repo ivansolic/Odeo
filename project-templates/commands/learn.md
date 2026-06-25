@@ -1,5 +1,5 @@
 ---
-description: Capture a solved, verified, non-trivial problem into the project knowledge base (knowledge/) so it can be reused. Run after solving something worth preserving. Quality-gated. Adapted from the compound-engineering idea (EveryInc, MIT).
+description: Capture a solved, verified, non-trivial problem into the project knowledge base (knowledge/) so it can be reused. Run after solving something worth preserving. Quality-gated.
 ---
 
 Turn a solved problem into reusable knowledge. The goal: first time costs research,
