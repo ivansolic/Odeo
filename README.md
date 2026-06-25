@@ -22,15 +22,17 @@ PMs and builders who want to ship real software with Claude Code and don't want 
         🎩 PM HAT                    switch            🛠️ DEV HAT
   (decide what & why)                 hats           (build & ship)
                                         │
- brainstorm → PRD → critique →  ──/dev-handoff──→  plan → build → verify
+ brainstorm → PRD → critique →  ─────/build─────→  plan → build → verify
  (optional) user stories                          → code-review
         │                                          → /security-review (sensitive)
-   saved in docs/                                  → /commit-push → ship → /retro
+   saved in docs/                                  → /merge → ship → /retro
+                                                            │
+                                          /outcome (post-ship) → /learn (capture)
                                                             │
                                                        lives on GitHub
 ```
 
-You run each step; nothing fires blindly. The two automatic guardrails: a TDD skill writes tests first for backend logic, and a security baseline applies to all code.
+You run each step; nothing fires blindly. The two automatic guardrails: a TDD skill writes tests first for backend logic, and a security baseline applies to all code. `/build` runs human-first or dispatches `developer` agents (one per story, in isolated worktrees); you approve at every gate.
 
 ## Repo structure
 
@@ -48,18 +50,21 @@ claude-cofounder/
 │   ├── commands/             ← slash commands (you type /name)
 │   │   ├── setup-project.md  ← /setup-project onboarding interview
 │   │   ├── setup-design.md   ← /setup-design design-system/tokens setup (UI projects)
-│   │   ├── sprint.md         ← /sprint build stories with agents (single or parallel, you approve)
-│   │   ├── dev-handoff.md    ← /dev-handoff PM→Dev transition
+│   │   ├── build.md          ← /build stories: human-first or developer agents (you approve)
+│   │   ├── merge.md          ← /merge rebase onto main, test, merge PR, cleanup
 │   │   ├── commit-push.md    ← /commit-push with secret-scan + safety checks
-│   │   ├── compound.md       ← /compound capture a verified solved problem
-│   │   ├── compound-refresh.md ← /compound-refresh audit/refresh the knowledge base
-│   │   ├── pulse.md          ← /pulse post-ship outcome check
+│   │   ├── learn.md          ← /learn capture a verified solved problem (shows draft first)
+│   │   ├── knowledge-refresh.md ← /knowledge-refresh audit/refresh the knowledge base
+│   │   ├── outcome.md        ← /outcome post-ship outcome check
+│   │   ├── contribute-lesson.md ← /contribute-lesson opt-in share to community knowledge
 │   │   └── retro.md          ← /retro end-of-session learning capture
-│   ├── agents/               ← subagents (separate-context reviewers)
+│   ├── agents/               ← subagents (separate-context)
+│   │   ├── developer.md              ← builds one story end-to-end in its own worktree
 │   │   ├── code-reviewer.md          ← code, functions, security
+│   │   ├── debugger.md
 │   │   ├── architecture-reviewer.md
 │   │   └── design-reviewer.md        ← UI: heuristics, states, a11y, tokens (UI projects)
-│   ├── knowledge/            ← compound: reusable solved problems (consulted before non-trivial work)
+│   ├── knowledge/            ← reusable solved problems (consulted before non-trivial work)
 │   ├── design/               ← tokens.json (DTCG) + README, design-system source of truth (UI projects)
 │   ├── tasks/                ← working files: todo.md, lessons.md
 │   ├── docs/                 ← document templates: ADR-TEMPLATE.md
@@ -83,10 +88,11 @@ claude-cofounder/
 - **PM workflow via [pm-skills](https://github.com/phuryn/pm-skills)**, brainstorm, PRDs, critique, user stories (a separate plugin you install once; see Quick start).
 - **TDD skill**, auto-applies test-first to backend logic, stays out of the way on UI.
 - **Design layer**, a `ux-design` skill (usability heuristics, UX laws, UI states, accessibility) that auto-applies to UI; **design tokens** (`design/tokens.json`, DTCG) as the styling source of truth, set up by `/setup-design` and compiled to your stack; a `design-reviewer` subagent for UI review. Optional per project (`init-project.sh --no-ui` skips it).
-- **Hybrid agentic build** (`/sprint`), you pick single or parallel agents and how much oversight; each agent takes a story end-to-end (plan, TDD build, verify, review) in its own worktree and presents for your approval before merge. Agents do the work, you hold the gates.
-- **Compounding knowledge** (`/compound`, `/compound-refresh`, `knowledge/`), verified solved problems become a reusable, maintained knowledge base that Claude consults before non-trivial work, so the system gets smarter per story.
-- **Post-ship outcome loop** (`/pulse`), about a week after shipping, compares the real outcome against the PRD's intended outcome and verdicts keep/iterate/kill. Never on fabricated data.
-- **Three docs**, `INSTALL.md` (setup), `BEGINNERS-GUIDE.md` (concepts), `WORKFLOW.md` (daily use).
+- **Hybrid agentic build** (`/build`), one entry, two modes. Human-first: branch, seed todo, open editor, plan and build with you step by step. Agents: dispatch a `developer` per story, each end-to-end (plan, TDD build, verify, review) in its own git worktree, single or parallel, with the oversight you pick. Either way you hold the gates. **`/merge`** then integrates an approved branch with a clean linear history (rebase onto main, tests, merge, cleanup).
+- **Compounding knowledge** (`/learn`, `/knowledge-refresh`, `knowledge/`), verified solved problems become a reusable, maintained knowledge base that Claude consults before non-trivial work, so the system gets smarter per story. `/learn` shows the draft before writing.
+- **Community knowledge** (`/contribute-lesson`), opt-in, share a sanitized, generalized lesson with the shared knowledge base so the whole system gets smarter; on update you get back the curated knowledge of all contributors. Approval-gated, nothing leaves your machine without your OK.
+- **Post-ship outcome loop** (`/outcome`), about a week after shipping, compares the real outcome against the PRD's intended outcome and verdicts keep/iterate/kill. Never on fabricated data.
+- **Three docs**, `INSTALL.md` (setup), `BEGINNERS-GUIDE.md` (concepts), `WORKFLOW.md` (daily use). Plus `CONTRIBUTING.md` for contributing back (code and beyond).
 
 ## Quick start
 
@@ -139,8 +145,9 @@ my-app/
 ├── CLAUDE.md                 ← project config (stack, commands, conventions, Security & Data)
 ├── .gitignore
 ├── .claude/
-│   ├── agents/               ← code-reviewer, architecture-reviewer
-│   ├── commands/             ← setup-project, dev-handoff, commit-push, retro
+│   ├── agents/               ← developer, code-reviewer, debugger, architecture-reviewer
+│   ├── commands/             ← setup-project, build, merge, learn, knowledge-refresh,
+│   │                           outcome, contribute-lesson, commit-push, retro
 │   │                           (+ Claude Code's built-in /security-review for sensitive changes)
 │   └── tasks/                ← todo.md (active task), lessons.md (corrections)
 └── docs/
@@ -173,8 +180,12 @@ PRDs and user stories are generated by the pm-skills plugins and saved as `PRD-N
 
 - **PM workflow** is powered by [**pm-skills**](https://github.com/phuryn/pm-skills) by phuryn, a separate plugin, installed as a dependency (not bundled here).
 - The **test-driven-development** skill is adapted from the TDD skill in [**obra/superpowers**](https://github.com/obra/superpowers) by Jesse Vincent.
-- The **compounding knowledge** design (`/compound`, `/compound-refresh`) is adapted from the compound-engineering plugin by [**EveryInc**](https://github.com/EveryInc/compound-engineering-plugin) (MIT).
+- The **compounding knowledge** design (`/learn`, `/knowledge-refresh`) is adapted from the compound-engineering plugin by [**EveryInc**](https://github.com/EveryInc/compound-engineering-plugin) (MIT).
 - **`/security-review`** is a built-in command of Claude Code (Anthropic).
+
+## Contributing
+
+Contributions are welcome, and not just code. Better docs, a clearer beginner explanation, a new preset, a workflow improvement, or a generalizable lesson via `/contribute-lesson` all count. See [`CONTRIBUTING.md`](CONTRIBUTING.md) and the [code of conduct](CODE_OF_CONDUCT.md).
 
 ## License
 

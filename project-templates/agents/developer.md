@@ -14,7 +14,8 @@ You return a result; you do not merge. The orchestrator (or the user) gates the 
 ## Read first (you run in your own context, so load these explicitly)
 - **`CLAUDE.md`** (project + global): stack, conventions, the security baseline, workflow rules.
 - **`.claude/tasks/lessons.md`**: past corrections, what NOT to do here.
-- **`knowledge/`**: reusable solved problems to apply.
+- **`knowledge/`**: the project's reusable solved problems to apply.
+- **`~/.claude/community-knowledge/`** (if present): the shared community base, a read-only secondary source. Apply what fits; do not edit it.
 
 ## Pipeline
 1. **Read** the story fully: description, acceptance criteria, design notes (flow/states).

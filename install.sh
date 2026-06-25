@@ -62,6 +62,26 @@ else
   cp "$REPO_DIR/global/CLAUDE.md" ~/.claude/CLAUDE.md
 fi
 
+# 4b. Community knowledge base (shared, read-only secondary source)
+#     Pulled into ~/.claude/community-knowledge so Claude can consult it alongside
+#     each project's local knowledge/. Opt-in by nature: contribute with
+#     /contribute-lesson. Graceful if the repo is not reachable yet.
+COMMUNITY_KNOWLEDGE_REPO="${COMMUNITY_KNOWLEDGE_REPO:-https://github.com/ivansolic/claude-cofounder-knowledge.git}"
+COMMUNITY_DIR="$HOME/.claude/community-knowledge"
+echo "  → community knowledge → $COMMUNITY_DIR"
+if [[ -d "$COMMUNITY_DIR/.git" ]]; then
+  git -C "$COMMUNITY_DIR" pull --ff-only -q 2>/dev/null \
+    && echo "    refreshed." \
+    || echo "    ! could not refresh (offline?), kept the existing copy."
+else
+  if git clone -q "$COMMUNITY_KNOWLEDGE_REPO" "$COMMUNITY_DIR" 2>/dev/null; then
+    echo "    cloned."
+  else
+    echo "    ! community knowledge repo not reachable yet, skipped (set up later)."
+    echo "      It will populate on the next install.sh once the repo is published."
+  fi
+fi
+
 # 5. Shell profile, PATH + auto-verify (idempotent)
 PROFILE="$HOME/.bash_profile"; [[ "${SHELL:-}" == *zsh* ]] && PROFILE="$HOME/.zshrc"
 echo "  → shell profile → $PROFILE"

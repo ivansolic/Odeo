@@ -73,17 +73,18 @@ IDEA (fresh or imported)
 │ (all powered by pm-skills)                  │
 └──────────────────┬──────────────────────────┘
                    ▼
-            /dev-handoff
+               /build
                    │
                    ▼
 ┌─────────────────────────────────────────────┐
 │ PHASE 2: DEVELOPMENT (one story at a time)  │
-│ plan → implement → verify → review → commit │
+│ /build → plan → implement → verify → review │
+│   Mode A human-first  ·  Mode B agents      │
 └──────────────────┬──────────────────────────┘
                    ▼
 ┌─────────────────────────────────────────────┐
 │ PHASE 3: CLOSE (per story)                  │
-│ PR → merge → cleanup → lessons              │
+│ /merge (rebase, test, PR) → /outcome → /learn │
 └─────────────────────────────────────────────┘
 ```
 
@@ -299,7 +300,7 @@ never goes away, it always holds the implementation plan for whatever you're
 building right now. A story is just an optional spec *above* todo.md, never a
 replacement for it.
 
-- **With stories:** PRD → stories → `/dev-handoff` (per story) seeds the plan
+- **With stories:** PRD → stories → `/build` (per story) seeds the plan
   into `todo.md` → build
 - **Without stories:** PRD → plan mode drafts the plan straight into `todo.md`
   → build
@@ -331,7 +332,7 @@ generating 40 stories at once. Instead, scope the PRD to a **thin vertical slice
 /pm-execution:user-stories                        → decompose the slice,
                                                      order by dependency
    USR-001 data model  →  USR-002 auth  →  USR-003 core flow  → ...
-/dev-handoff (per story) → build → review → PR → merge → next story
+/build (per story) → review → /merge → next story
 ```
 
 Each merged PR is one visible step toward the MVP.
@@ -343,7 +344,7 @@ For a typo, a copy tweak, a one-line fix, skip the PRD and stories entirely:
 ```
 git checkout -b fix/<short-description>
 # make the change → "Invoke code-reviewer" (still worth it) → /commit-push
-gh pr create --fill → merge
+/merge   # rebase onto main, test, open + merge PR, cleanup
 ```
 
 The one rule that always holds, in every track: **never batch multiple stories
@@ -367,26 +368,40 @@ your product context, then wires token compilation to your stack. One-time per
 project. (Skip for API-only/backend projects.) Tokens become the styling source
 of truth; the `ux-design` skill applies them when you build.
 
-### /dev-handoff
+### /build
 
-When stories are ready and you're switching to building:
+When stories are ready and you're switching to building, `/build` is the single
+entry. It has two modes; you pick at the start:
+
+- **Mode A, human-first.** You and Claude build one story together, step by step,
+  with you reviewing at each stage. This folds in the old PM→Dev handoff: it
+  verifies the spec, creates the branch, seeds `todo.md`, and opens the editor
+  before you plan and build. Best while you're learning the rhythm.
+- **Mode B, agents.** Claude dispatches a `developer` agent per story, each in its
+  own isolated git worktree, builds the story end-to-end (plan, TDD, verify,
+  review), then presents the result for your approval. Single or parallel, and you
+  choose how much oversight (plan-gated vs autonomous). Optionally open the
+  worktree(s) in your editor to watch. Best once you trust the flow.
 
 ```
-/dev-handoff
+/build
 ```
 
-> ⚠️ **Run `/dev-handoff` in normal mode, not plan mode.** It creates the branch
-> and writes `todo.md`, actions that plan mode (read-only) would block. Enter
-> plan mode (`Shift+Tab` twice) only *after* it finishes, for step 2.1. Order:
-> **dev-handoff (do) → plan mode (think) → exit plan mode (build).**
+> ⚠️ **Run `/build` in normal mode, not plan mode.** It creates branches and
+> writes `todo.md`, actions that plan mode (read-only) would block. In Mode A,
+> enter plan mode (`Shift+Tab` twice) only *after* it sets up, for step 2.1.
+> Order: **build setup (do) → plan mode (think) → exit plan mode (build).**
 
-This will:
+In Mode A it will:
 1. Ask which spec you're implementing
 2. Verify the spec is actually ready (problem, outcome, scope all filled)
 3. Write a handoff summary into `.claude/tasks/todo.md` (so context survives
    even if you start a fresh session later)
 4. Create the feature branch from up-to-date main
 5. Open VS Code (as editor, your Claude session stays in this terminal)
+
+Then continue with 2.1 below. In Mode B the agents run that pipeline for you and
+you jump to reviewing their results (2.3 onward) before `/merge`.
 
 ---
 
@@ -520,30 +535,51 @@ this is yours, the same gate for every story before it's "done":
 - [ ] No new `pnpm audit` criticals/highs, required if dependencies changed
 - [ ] No PII or secrets in logs, commits, or error messages introduced by this story
 
-### 3.1 Pull Request
+### 3.1 Integrate with /merge
 
-After the final push, open the PR on GitHub:
-```bash
-gh pr create --fill
+When the story is reviewed and you approve it, run:
+
 ```
-Or use the link GitHub prints after push.
-
-Even solo, read your own PR diff on GitHub once. You'll catch things.
-Then merge (squash-merge keeps main history clean).
-
-### 3.2 Cleanup
-
-```bash
-git checkout main
-git pull
-git branch -d feature/<name>
-git push origin --delete feature/<name>
+/merge
 ```
 
-### 3.3 Close the loop in the project
+It does the git mechanics for you, on a clean linear history:
+1. Fetches the latest `origin/main`
+2. Rebases your branch on top of it (resolving conflicts by intent + tests, asking
+   you if genuinely ambiguous; it never weakens a test to resolve)
+3. Runs tests + typecheck, must be green
+4. Updates the branch with `--force-with-lease` if it was already pushed
+5. Opens and squash-merges the PR
+6. Cleans up: back to main, pulls, deletes the branch local + remote
+
+Even solo, read your own PR diff once before approving the merge. You'll catch
+things. With multiple stories in flight, `/merge` integrates them one at a time so
+conflicts surface and resolve cleanly.
+
+### 3.2 Close the loop in the project
 
 > "Mark story USR-003 as Done. Add the Review section to todo.md:
 > what shipped, what was harder than expected, any follow-ups."
+
+### 3.3 Capture reusable knowledge (if you solved something worth keeping)
+
+If the story involved solving a non-trivial, verified problem that is likely to
+recur, capture it so the system reuses it next time:
+
+```
+/learn
+```
+
+It quality-gates (verified + non-trivial + reusable), shows you the drafted entry,
+and writes it to `knowledge/` only after you approve. Periodically, run
+`/knowledge-refresh` to audit that base against the current code and prune dead
+weight.
+
+If a lesson is **universal** (not specific to this project), Claude may offer
+`/contribute-lesson`, an opt-in way to share a sanitized, generalized version with
+the community knowledge base. You see exactly what would be shared and approve
+before anything leaves your machine; in return, future updates bring back the
+curated knowledge of all contributors.
 
 ### 3.4 Lessons (only if corrections happened)
 
@@ -575,6 +611,32 @@ every session." Over weeks, `lessons.md` and your CLAUDE.md files quietly become
 a record of how *you* like to work, and Claude stops repeating the same misses.
 
 ### Then: next story. Back to 2.1.
+
+---
+
+## POST-SHIP: Did it actually work? (about a week later)
+
+Shipping is not the finish line, the question the PRD asked was whether this
+*solves the problem*. About a week after a feature is live (enough time for real
+data), run:
+
+```
+/outcome
+```
+
+It reads the PRD's intended outcome and success criteria, gathers **real** signals
+only (analytics you provide or a connector, error logs, your own observations),
+compares actual vs intended, and gives a verdict: **keep / iterate / kill /
+need-more-data**.
+
+> ⚠️ It never fabricates data. If the feature isn't shipped, or there's no real
+> data yet, the honest output is "need-more-data, here's what to instrument," not
+> invented numbers. Fake outcomes would poison `knowledge/`.
+
+With your approval, the result feeds `/learn` (what worked or failed in
+production) and promotes or demotes related `knowledge/` entries, so the knowledge
+base is judged by real outcomes, not just whether code matched. This closes the
+loop: idea → ship → measure → learn → better next story.
 
 ---
 
@@ -633,20 +695,20 @@ trusting auto-invocation.
 | Challenge a PRD | `/pm-execution:strategy-red-team` then `/pm-execution:pre-mortem` |
 | Create stories | `/pm-execution:user-stories` |
 | Set up the design system | `/setup-design` (once, after PM, before building UI) |
-| Switch to building | `/dev-handoff` |
-| Build a story | Plan mode + "Implement story docs/stories/USR-NNN..." |
-| Build stories with agents | `/sprint` (single or parallel, you approve at the gate) |
+| Switch to building / build a story | `/build` (Mode A human-first, or Mode B agents; you approve at the gate) |
 | Check it's really done | "Walk through every acceptance criterion" |
 | Review code | "Invoke code-reviewer on these changes" |
 | Review UI | "Invoke design-reviewer on these changes" (states, a11y, tokens, heuristics) |
 | Security-check a sensitive change | `/security-review` (auth, input, uploads, payments, data access) |
 | Audit dependencies | `pnpm audit` after adding/updating packages |
 | Commit + push | `/commit-push` |
+| Integrate an approved branch | `/merge` (rebase onto main, test, merge PR, cleanup) |
 | Record a decision | "Create an ADR for this decision" |
 | Teach Claude a lesson | "Update lessons.md so you don't repeat this" |
 | Wrap up a session / capture learnings | `/retro` |
-| Capture a reusable solved problem | `/compound` (verified + non-trivial only) |
-| Keep the knowledge base current | `/compound-refresh` |
-| Check a shipped feature's outcome | `/pulse` (about a week after shipping, real data only) |
+| Capture a reusable solved problem | `/learn` (verified + non-trivial only; shows draft first) |
+| Keep the knowledge base current | `/knowledge-refresh` |
+| Share a lesson with the community | `/contribute-lesson` (opt-in, sanitized, approval-gated) |
+| Check a shipped feature's outcome | `/outcome` (about a week after shipping, real data only) |
 | Resume yesterday's session | `claude --continue` |
 | Claude is stuck/looping | "Stop. Enter plan mode. Reinvestigate from scratch." |

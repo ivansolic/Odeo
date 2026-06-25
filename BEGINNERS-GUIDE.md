@@ -18,7 +18,7 @@ hats, and the whole process is just *knowing which hat you're wearing*.
 - 🛠️ **Dev hat**, *build and ship* it. Planning, code, tests, review, merge.
   You don't type code, **Claude is your developer**; you direct and approve.
 
-`/dev-handoff` is the literal moment you **switch hats**: PM work is done, time to
+`/build` is the literal moment you **switch hats**: PM work is done, time to
 build. Everything before it is PM; everything after is Dev.
 
 And remember the relationship with Claude:
@@ -55,8 +55,8 @@ starting from zero; you're adding a delivery half to skills you already have.
         🎩 PM HAT                    switch         🛠️ DEV HAT
   (decide what & why)                 hats        (build & ship)
                                         │
- brainstorm → PRD → critique →  ──/dev-handoff──→  plan → build → verify
- (optional) user stories                          → review → PR → merge
+ brainstorm → PRD → critique →  ─────/build─────→  plan → build → verify
+ (optional) user stories                          → review → /merge
         │                                                        │
    saved in docs/                                          lives on GitHub
 ```
@@ -104,12 +104,12 @@ Don't memorize these. They stick after a week of use.
 You'll see two kinds of capabilities. The difference is simple, **who decides to
 use it:**
 
-| | **Command** (e.g. `/setup-project`, `/dev-handoff`, `/retro`) | **Skill** (e.g. the TDD skill, the pm-skills) |
+| | **Command** (e.g. `/setup-project`, `/build`, `/retro`) | **Skill** (e.g. the TDD skill, the pm-skills) |
 |---|---|---|
 | Who starts it | **You**, by typing the `/name` | **Claude**, automatically, when the work matches |
 | Trigger | Explicit: you choose the moment | Contextual: Claude reads the skill's description and engages when it fits |
 | Good for | Deliberate actions you run at a specific point | Background expertise that should "just apply" |
-| Example | You type `/dev-handoff` when ready to build | You build a backend rule → the TDD skill kicks in on its own |
+| Example | You type `/build` when ready to build | You build a backend rule → the TDD skill kicks in on its own |
 
 Think of it as: **commands are buttons you press; skills are reflexes Claude has.**
 (The pm-skills are a special case, they're skills bundled in a plugin, and you
@@ -135,13 +135,13 @@ Claude can edit files, run commands, create branches, commit, actually act.
 
 **Why this matters (the question every beginner hits):** some commands need to
 *do* things, so they must run in **normal mode**. The clearest case is
-`/dev-handoff`, it creates a branch and writes a file; plan mode (read-only)
+`/build`, it creates a branch and writes a file; plan mode (read-only)
 would block it.
 
 > **The golden order:** set the stage first (normal mode), *then* think (plan
 > mode), *then* build (normal mode).
 >
-> `/dev-handoff` (DO) → `Shift+Tab` to plan mode (THINK) → approve → `Shift+Tab`
+> `/build` (DO) → `Shift+Tab` to plan mode (THINK) → approve → `Shift+Tab`
 > back (BUILD)
 
 If you remember one thing: **set the stage in normal mode, plan in plan mode,
@@ -151,7 +151,7 @@ build in normal mode.**
 
 ## 8. VS Code, your window into the code (and where to keep working)
 
-When you run `/dev-handoff`, it **opens VS Code automatically**. VS Code is just
+When you run `/build`, it **opens VS Code automatically**. VS Code is just
 the **editor where you can *see* the code**, your Claude session stays in the
 terminal regardless. The moment it opens, you choose where to work:
 
@@ -164,7 +164,7 @@ terminal regardless. The moment it opens, you choose where to work:
 
 > ⚠️ Don't run the *same* session in two terminals at once, one at a time.
 
-**No VS Code installed?** No problem, `/dev-handoff` notices, skips opening it,
+**No VS Code installed?** No problem, `/build` notices, skips opening it,
 and tells you. The branch and checklist are still created; you work terminal-only.
 
 ---
@@ -205,12 +205,13 @@ Full chain for a **bigger feature or a project built from scratch**:
 | 3 | 🎩 Critique | `/pm-execution:strategy-red-team` + `:pre-mortem` | weak spots & risks | (in chat) |
 | 4 | 🎩 Stories **+ acceptance criteria** | `/pm-execution:user-stories` | each story **with its acceptance criteria** | `docs/stories/USR-NNN-<slug>.md` |
 | 5 | 🎩 Pick a story | *(you decide)* |, |, |
-| 6 | switch hats | `/dev-handoff` | branch + starting checklist | `.claude/tasks/todo.md` |
+| 6 | switch hats + build | `/build` | branch + checklist, then plan & build | `.claude/tasks/todo.md` |
 | 7 | 🛠️ Plan | plan mode → "implement USR-NNN" | the step-by-step plan | `todo.md` |
 | 8 | 🛠️ Verify | "walk through each acceptance criterion" | proof each criterion passes | (in chat) |
 | 9 | 🛠️ Review | "invoke code-reviewer" | findings to fix | (in chat) |
-| 10 | 🛠️ Ship | `/commit-push`, then `gh pr create --fill` | commit + PR | GitHub |
+| 10 | 🛠️ Ship | `/commit-push`, then `/merge` | commit + PR merged, cleaned up | GitHub |
 | 11 | 🎩 Retro | `/retro` | lessons routed to the right file | `lessons.md` / CLAUDE.md |
+| 12 | 🎩 Capture / measure | `/learn` now, `/outcome` ~a week later | knowledge entry, real outcome verdict | `knowledge/` |
 
 **Key points beginners miss:**
 
@@ -326,16 +327,20 @@ times. Stop it, send it back to plan mode, make it rethink.
 5. 🎩 Run `/pm-execution:strategy-red-team` to poke holes. Fix the PRD.
 6. 🎩 (Bigger feature only) `/pm-execution:user-stories` → Claude writes stories
    and acceptance criteria. Review them.
-7. **switch hats.** Plan mode OFF. Run `/dev-handoff`, it makes your branch and
-   checklist, and opens VS Code (Section 8, choose where to work).
+7. **switch hats.** Plan mode OFF. Run `/build`, it makes your branch and
+   checklist, and opens VS Code (Section 8, choose where to work). (This is Mode A,
+   human-first. Once you trust the flow, Mode B lets Claude run a `developer` agent
+   per story and present the result for your approval.)
 8. 🛠️ Plan mode ON. Ask Claude to plan the build. Read it. Approve it.
 9. 🛠️ Plan mode OFF. Let Claude build (it writes tests + code).
 10. 🛠️ "Walk through every acceptance criterion." Then "invoke code-reviewer."
     If the change touches login, personal data, payments, or uploads: also run
     `/security-review` (Section 13).
-11. 🛠️ Run `/commit-push`, then `gh pr create --fill`, look on GitHub, merge.
-12. 🎩 Before you stop: run `/retro`, capture what you learned.
-13. You shipped something. 🎉 Next piece: back to step 7.
+11. 🛠️ Run `/commit-push`, then `/merge` (rebase onto main, test, merge PR, clean up).
+12. 🎩 Before you stop: run `/retro`, capture what you learned. If you solved
+    something reusable, `/learn` it.
+13. You shipped something. 🎉 About a week later, run `/outcome` to see if it
+    actually solved the problem. Next piece: back to step 7.
 
 ---
 

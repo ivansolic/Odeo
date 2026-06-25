@@ -162,6 +162,14 @@ For any non-trivial task in a project:
 5. Add a `## Review` section at the end describing what actually shipped
 6. Update `.claude/tasks/lessons.md` if any corrections occurred during the task
 
+## Knowledge Base (local + community)
+- **Before non-trivial work, search for an existing solution.** Check two sources, in order:
+  1. The project's local `knowledge/` (project-specific, highest priority).
+  2. `~/.claude/community-knowledge/` if it exists, the shared community base (generalized, read-only secondary source). Don't re-solve what is already documented.
+- **Community knowledge is read-only here.** Never edit `~/.claude/community-knowledge/` directly; it is synced from a shared repo by `install.sh`. Contribute to it only through `/contribute-lesson` (opt-in, sanitized, approval-gated).
+- **Freshness check (session start, only if relevant work is happening):** if `~/.claude/community-knowledge/` is a git repo and looks stale (last commit weeks old), mention it once and suggest re-running `install.sh` (or `git pull` there) to refresh, the user gets back the curated knowledge of all contributors. Don't pull automatically and don't nag every session.
+- Capture new local lessons with `/learn` (shows the draft before writing); prune with `/knowledge-refresh`.
+
 ## Subagent and Command Usage
 
 **PM work (Phase 1, discovery & specification) is powered by the `pm-skills` plugins, never by custom commands or subagents:**
