@@ -1,6 +1,6 @@
 ---
 name: debugger
-description: Systematic root-cause investigation when something breaks. Reproduces the failure, isolates it, finds the underlying cause (not the symptom), and proposes a minimal fix plus a regression test. Invoke when a bug appears, a test fails for unclear reasons, or behavior is wrong. Inspired by systematic debugging (obra/superpowers).
+description: Systematic root-cause investigation when something breaks. Reproduces the failure, isolates it, finds the underlying cause (not the symptom), and proposes a minimal fix plus a regression test. Invoke when a bug appears, a test fails for unclear reasons, or behavior is wrong.
 tools: Read, Grep, Glob, Bash
 ---
 
@@ -26,7 +26,7 @@ propose the exact change).
 ## Proposed fix
 [minimal change, with file + before/after]
 ## Prevention
-[regression test to add; compound entry if it recurs]
+[regression test to add; /learn entry if it recurs]
 ```
 
 ## Rules for yourself

@@ -43,9 +43,18 @@ Order the stories by technical dependency (data model before the feature that
 uses it, API before its UI). Present it; the user adjusts. This is build
 sequencing, not feature prioritization (priority is a PM decision).
 
-### B3. Dials
-- "One agent (sequential) or parallel (one per story)?"
-- "Approve each plan before building, or autonomous to presentation?" (default plan-gated if unsure or risky)
+### B3. Dials (state the default, make parallel easy to ask for)
+Present these as a clear choice, and say what happens if the user just says "go":
+- **Sequential vs parallel.** Default is **one story at a time (sequential)**, the
+  safe choice. Offer parallel explicitly only when 2+ chosen stories passed the B1
+  independence check:
+  > "These N stories are independent, so I can build them in parallel (one agent
+  >  per story, each in its own worktree) instead of one at a time. Default is one
+  >  at a time. Want parallel? Just say 'parallel' (or say 'go' for one at a time)."
+  The user triggers parallel by saying so here, or up front when invoking (e.g.
+  "/build USR-001 USR-002 in parallel"). If the stories overlap (B1), don't offer
+  parallel; explain why and stay sequential.
+- **Oversight.** "Approve each plan before building, or autonomous to presentation?" (default plan-gated if unsure or risky)
 
 ### B4. Watch in the editor? (optional)
 Offer: "Open the worktree(s) in your editor to watch changes live? A multi-root

@@ -379,9 +379,16 @@ entry. It has two modes; you pick at the start:
   before you plan and build. Best while you're learning the rhythm.
 - **Mode B, agents.** Claude dispatches a `developer` agent per story, each in its
   own isolated git worktree, builds the story end-to-end (plan, TDD, verify,
-  review), then presents the result for your approval. Single or parallel, and you
-  choose how much oversight (plan-gated vs autonomous). Optionally open the
-  worktree(s) in your editor to watch. Best once you trust the flow.
+  review), then presents the result for your approval. You choose how much
+  oversight (plan-gated vs autonomous), and optionally open the worktree(s) in your
+  editor to watch. Best once you trust the flow.
+
+  **One story at a time is the default.** Parallel (several agents at once) is
+  opt-in and only offered when the stories you picked are *independent* (Claude
+  runs an overlap check first). To trigger it, either name multiple stories when
+  you invoke (`/build USR-001 USR-002 in parallel`) or just say "parallel" when
+  Claude asks. If you say "go", you get them one at a time. Keep parallel to 2 to 4
+  so your review stays the bottleneck, not a rubber stamp.
 
 ```
 /build
