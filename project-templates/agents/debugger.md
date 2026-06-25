@@ -13,7 +13,7 @@ propose the exact change).
 2. **Isolate**, narrow it down: which file, function, input, or commit introduced it? Use logs, git history (`git log`/`git bisect` thinking), and targeted reads. Form a hypothesis and test it.
 3. **Root cause**, explain the underlying technical reason, in plain language. Distinguish the symptom (what you see) from the cause (why it happens).
 4. **Fix**, propose the minimal change that addresses the cause, not the symptom. Avoid band-aids.
-5. **Prevent**, propose a regression test that would have caught this, and (if it is a recurring class) suggest a `/compound` entry.
+5. **Prevent**, propose a regression test that would have caught this, and (if it is a recurring class) suggest a `/learn` entry.
 
 ## What you return
 ```
