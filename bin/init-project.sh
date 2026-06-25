@@ -47,17 +47,18 @@ REQUIRED_TEMPLATES=(
   "agents/code-reviewer.md"
   "agents/architecture-reviewer.md"
   "agents/design-reviewer.md"
-  "agents/story-builder.md"
+  "agents/developer.md"
   "agents/debugger.md"
   "commands/commit-push.md"
-  "commands/dev-handoff.md"
   "commands/setup-project.md"
   "commands/setup-design.md"
   "commands/retro.md"
-  "commands/sprint.md"
-  "commands/compound.md"
-  "commands/compound-refresh.md"
-  "commands/pulse.md"
+  "commands/build.md"
+  "commands/merge.md"
+  "commands/learn.md"
+  "commands/knowledge-refresh.md"
+  "commands/outcome.md"
+  "commands/contribute-lesson.md"
   "docs/ADR-TEMPLATE.md"
   "design/tokens.json"
   "design/README.md"
@@ -109,16 +110,17 @@ cp "$TEMPLATES_DIR/tasks/todo.md" .claude/tasks/todo.md
 cp "$TEMPLATES_DIR/tasks/lessons.md" .claude/tasks/lessons.md
 cp "$TEMPLATES_DIR/agents/code-reviewer.md" .claude/agents/code-reviewer.md
 cp "$TEMPLATES_DIR/agents/architecture-reviewer.md" .claude/agents/architecture-reviewer.md
-cp "$TEMPLATES_DIR/agents/story-builder.md" .claude/agents/story-builder.md
+cp "$TEMPLATES_DIR/agents/developer.md" .claude/agents/developer.md
 cp "$TEMPLATES_DIR/agents/debugger.md" .claude/agents/debugger.md
 cp "$TEMPLATES_DIR/commands/commit-push.md" .claude/commands/commit-push.md
-cp "$TEMPLATES_DIR/commands/dev-handoff.md" .claude/commands/dev-handoff.md
 cp "$TEMPLATES_DIR/commands/setup-project.md" .claude/commands/setup-project.md
 cp "$TEMPLATES_DIR/commands/retro.md" .claude/commands/retro.md
-cp "$TEMPLATES_DIR/commands/sprint.md" .claude/commands/sprint.md
-cp "$TEMPLATES_DIR/commands/compound.md" .claude/commands/compound.md
-cp "$TEMPLATES_DIR/commands/compound-refresh.md" .claude/commands/compound-refresh.md
-cp "$TEMPLATES_DIR/commands/pulse.md" .claude/commands/pulse.md
+cp "$TEMPLATES_DIR/commands/build.md" .claude/commands/build.md
+cp "$TEMPLATES_DIR/commands/merge.md" .claude/commands/merge.md
+cp "$TEMPLATES_DIR/commands/learn.md" .claude/commands/learn.md
+cp "$TEMPLATES_DIR/commands/knowledge-refresh.md" .claude/commands/knowledge-refresh.md
+cp "$TEMPLATES_DIR/commands/outcome.md" .claude/commands/outcome.md
+cp "$TEMPLATES_DIR/commands/contribute-lesson.md" .claude/commands/contribute-lesson.md
 cp "$TEMPLATES_DIR/docs/ADR-TEMPLATE.md" docs/templates/ADR-TEMPLATE.md
 cp "$TEMPLATES_DIR/knowledge/README.md" knowledge/README.md
 
@@ -182,14 +184,14 @@ echo "  $PROJECT_NAME/"
 echo "  ├── CLAUDE.md"
 echo "  ├── .claude/"
 if $HAS_UI; then
-  echo "  │   ├── agents/     (story-builder, debugger, code-reviewer, architecture-reviewer, design-reviewer)"
-  echo "  │   ├── commands/   (setup-project, setup-design, sprint, compound, compound-refresh, pulse, commit-push, dev-handoff, retro)"
+  echo "  │   ├── agents/     (developer, debugger, code-reviewer, architecture-reviewer, design-reviewer)"
+  echo "  │   ├── commands/   (setup-project, setup-design, build, merge, learn, knowledge-refresh, outcome, contribute-lesson, commit-push, retro)"
 else
-  echo "  │   ├── agents/     (story-builder, debugger, code-reviewer, architecture-reviewer)"
-  echo "  │   ├── commands/   (setup-project, sprint, compound, compound-refresh, pulse, commit-push, dev-handoff, retro)"
+  echo "  │   ├── agents/     (developer, debugger, code-reviewer, architecture-reviewer)"
+  echo "  │   ├── commands/   (setup-project, build, merge, learn, knowledge-refresh, outcome, contribute-lesson, commit-push, retro)"
 fi
 echo "  │   └── tasks/      (todo.md, lessons.md)"
-echo "  ├── knowledge/      (compound: reusable solved problems)"
+echo "  ├── knowledge/      (reusable solved problems)"
 if $HAS_UI; then echo "  ├── design/         (tokens.json, design system source of truth)"; fi
 echo "  └── docs/           (prds, stories, decisions, research, templates)"
 echo ""
@@ -212,6 +214,7 @@ if $HAS_UI; then
   echo "  > /setup-design    (ingest your tokens or generate from PRD/personas → tokens.json)"
 fi
 echo ""
-echo "Build stories with agents:  /sprint   (single or parallel, you approve at the gate)"
-echo "Capture reusable solutions: /compound    ·    Post-ship outcome check: /pulse"
+echo "Build stories:              /build    (human-first, or agents in worktrees, you approve at the gate)"
+echo "Integrate an approved branch: /merge  (rebase onto main, test, merge, cleanup)"
+echo "Capture reusable solutions: /learn    ·    Post-ship outcome check: /outcome"
 echo ""

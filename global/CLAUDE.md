@@ -54,6 +54,7 @@ The first-person voice ("I want…") is intentional, when you adopt this file,
 - Before pushing: run tests and typecheck locally
 - Never commit secrets, `.env` files, credentials, API keys, or large binaries
 - Never `git push --force` to shared branches; use `--force-with-lease` only on branches I haven't shared yet
+- **Integrate with rebase, not merge commits.** Before merging a story branch, rebase it onto the latest `origin/main` so history stays linear; resolve conflicts by understanding intent + tests (never weaken a test), then merge. Rebase only your own unshared branch, never one someone else is working on. This is what `/merge` automates.
 - If I ask you to work on main directly, remind me to create a branch first
 
 ## Code Style
@@ -180,8 +181,15 @@ Do NOT use or recreate any custom PM command (e.g. `/new-prd`) or PM subagent (e
 
 **Workflow slash commands (only invoked explicitly by me, never automatically):**
 
+- **`/build`**, the build entry. Mode A (human-first): verify spec, branch, seed todo.md, open editor, plan and build with you step by step. Mode B (agents): dispatch a `developer` agent per story, each in its own git worktree, then present results for your gate. Folds in the old dev-handoff.
+- **`/merge`**, integrate an approved story branch into main with a clean linear history (fetch, rebase, tests, force-with-lease, merge PR, cleanup).
+- **`/learn`**, capture a solved, verified, non-trivial problem into `knowledge/` (shows the draft before writing).
+- **`/knowledge-refresh`**, audit and refresh `knowledge/` against the current codebase.
+- **`/outcome`**, post-ship outcome check against the PRD success criteria (real signals only, never fabricated).
+- **`/contribute-lesson`**, opt-in, share a sanitized lesson with the community knowledge base (approval-gated; nothing auto-sent).
 - **`/commit-push`**, stage, commit with conventional message, and push to current branch with safety checks.
-- **`/dev-handoff`**, transition from the PM phase to development (verify spec, seed todo.md, create the feature branch, open the editor).
+
+The **`developer`** agent is dispatched by `/build` (one per story, in its own worktree); it is not invoked proactively.
 
 **Rule:** even when I have not explicitly invoked a subagent, if you finish a code change without invoking code-reviewer, remind me. Don't silently skip the review step.
 

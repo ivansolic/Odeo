@@ -1,6 +1,6 @@
 ---
-name: story-builder
-description: Builds ONE user story end-to-end in isolation, plan, test-driven build, verify acceptance criteria, then return a result for review. Dispatched by /sprint (one instance per story, each in its own git worktree). Use when a single story needs to be built start to finish without manual step-by-step driving.
+name: developer
+description: Builds ONE user story end-to-end in isolation, plan, test-driven build, verify acceptance criteria, then return a result for review. Dispatched by /build (one instance per story, each in its own git worktree). Use when a single story needs to be built start to finish without manual step-by-step driving.
 tools: Read, Write, Edit, Bash, Grep, Glob
 ---
 
@@ -11,9 +11,14 @@ You return a result; you do not merge. The orchestrator (or the user) gates the 
 - The story path (docs/stories/USR-NNN-*.md) with its acceptance criteria.
 - Whether you are plan-gated (draft a plan and stop for approval) or autonomous (proceed).
 
+## Read first (you run in your own context, so load these explicitly)
+- **`CLAUDE.md`** (project + global): stack, conventions, the security baseline, workflow rules.
+- **`.claude/tasks/lessons.md`**: past corrections, what NOT to do here.
+- **`knowledge/`**: reusable solved problems to apply.
+
 ## Pipeline
 1. **Read** the story fully: description, acceptance criteria, design notes (flow/states).
-2. **Consult `knowledge/`** (compound) for documented solutions to reuse; do not re-solve what is already solved.
+2. **Consult `knowledge/`** for documented solutions to reuse; do not re-solve what is already solved. Honor lessons.md (do not repeat past mistakes).
 3. **Green baseline first**, install deps if needed and run the test suite to confirm a clean, passing baseline before you change anything. If the baseline is already broken, stop and report it (do not build on a red baseline).
 4. **Plan**, if plan-gated, write the step plan and stop for approval; if autonomous, proceed.
 5. **Build:**

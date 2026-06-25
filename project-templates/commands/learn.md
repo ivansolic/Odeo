@@ -31,9 +31,11 @@ If any fails, say so and stop.
    - **Bug:** Problem · Symptoms · What didn't work · Solution (minimal before/after code) · Why it works · Prevention.
    - **Knowledge:** Context · Guidance · Why it matters · When to apply · Examples.
 5. Keep code examples **minimal and clear**.
-6. Make sure `CLAUDE.md` surfaces `knowledge/` (category layout + frontmatter fields) so future work searches it.
+6. **Show the drafted entry to the user and write it to `knowledge/` only after approval.** Do not write silently.
+7. Make sure `CLAUDE.md` surfaces `knowledge/` (category layout + frontmatter fields) so future work searches it.
 
 ## Safety rules
 - Never store unverified or trivial solutions (garbage in, garbage out).
+- Show the draft and get approval before writing; never write silently.
 - Don't duplicate; check first, consolidate overlaps.
-- `reuse_count` and `provenance` exist so `/compound-refresh` can later prune dead weight and so reuse becomes measurable.
+- `reuse_count` and `provenance` exist so `/knowledge-refresh` can later prune dead weight and so reuse becomes measurable.
