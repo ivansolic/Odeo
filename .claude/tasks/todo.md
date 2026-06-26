@@ -16,10 +16,19 @@ Reference: EveryInc compound-engineering (skill-driven orchestration). Decisions
 - [x] Update `init-project.sh` (scaffolds project-specific only; plugin provides tools)
 - [x] Update `install.sh` (installs skills + agents user-level; still lays baseline)
 - [x] Re-test scaffolding (UI + --no-ui) and the privacy-guard tests, all pass
-- [ ] Embed the security/workflow discipline into skill/agent bodies (hybrid baseline for marketplace users)
-- [ ] Update docs (README/WORKFLOW/BEGINNERS/INSTALL) for plugin install + /namespacing + new structure
-- [ ] Add a marketplace.json / marketplace listing + test `claude --plugin-dir`
-- [ ] Dash-check docs; commit locally (no push)
+- [x] Embed discipline (AGENTS.md canonical + CLAUDE.md shim + rules inline in skill/agent bodies)
+- [x] Update docs (README + INSTALL) for plugin-native layout + AGENTS.md baseline
+- [ ] DEFERRED to the very end (after the whole product is built): marketplace listing
+      (marketplace.json) + `claude --plugin-dir` smoke test + commands->skills namespacing notes in WORKFLOW/BEGINNERS
+
+## Review
+- Restructured into a plugin-native, agent-first layout: skills/ + agents/ at root,
+  .claude-plugin/plugin.json, AGENTS.md as the canonical baseline, CLAUDE.md shim.
+- Commands migrated to skills (explicit-only via disable-model-invocation).
+- init-project scaffolds project-specific only; install.sh delivers tools globally + baseline.
+- Security preserved and strengthened: baseline now in global/CLAUDE.md + AGENTS.md +
+  project-templates/CLAUDE.md + embedded in skill/agent bodies. Privacy guard intact.
+- Scaffolding (UI + --no-ui) and privacy tests green. Nothing pushed.
 
 ## Review
 (to fill in after)
