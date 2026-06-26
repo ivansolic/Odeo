@@ -46,10 +46,30 @@ for skill in "$REPO_DIR"/skills/*/; do
   [[ -d "$skill" ]] && place "$skill" ~/.claude/skills/"$(basename "$skill")"
 done
 
-# 3. Project scaffolder
+# 3. Project scaffolder + privacy guard
 echo "  → init-project.sh → ~/bin/"
 place "$REPO_DIR/bin/init-project.sh" ~/bin/init-project.sh
 chmod +x ~/bin/init-project.sh 2>/dev/null || true
+echo "  → privacy-scan.sh → ~/bin/"
+place "$REPO_DIR/bin/privacy-scan.sh" ~/bin/privacy-scan.sh
+chmod +x ~/bin/privacy-scan.sh 2>/dev/null || true
+
+# 3b. Privacy deny-list (your own private terms; gitignored by living in ~/.claude)
+#     Never overwrite an existing one. Seed a commented sample so it is discoverable.
+if [[ ! -f ~/.claude/privacy-denylist.txt ]]; then
+  echo "  → privacy deny-list sample → ~/.claude/privacy-denylist.txt"
+  mkdir -p ~/.claude
+  cat > ~/.claude/privacy-denylist.txt <<'DENY'
+# Privacy deny-list, one term per line. privacy-scan.sh blocks any of these from
+# being published (e.g. via /contribute-lesson). Case-insensitive. '#' = comment.
+# Add YOUR private terms: employer name, internal product/tool names, etc.
+# This file lives in ~/.claude and is never committed to any repo.
+#
+# Examples (delete and replace with your own):
+# my-employer-name
+# internal-product-codename
+DENY
+fi
 
 # 4. Global baseline, never clobber an existing personal global
 echo "  → global baseline → ~/.claude/CLAUDE.md"

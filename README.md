@@ -72,8 +72,13 @@ claude-cofounder/
 ├── skills/
 │   ├── test-driven-development/   ← user-level skill (auto-applies to logic)
 │   └── ux-design/                 ← user-level skill (auto-applies to UI: heuristics, states, a11y)
-└── bin/
-    └── init-project.sh       ← scaffolds a new Claude-ready project
+├── bin/
+│   ├── init-project.sh       ← scaffolds a new Claude-ready project
+│   └── privacy-scan.sh       ← deterministic privacy guard (blocks leaks before sharing)
+├── tests/
+│   └── privacy-scan.test.sh  ← tests for the privacy guard
+└── docs/
+    └── privacy-guard.md      ← design of the privacy guard
 
 # Security review is handled by Claude Code's built-in /security-review command
 # (ships with Claude Code, not a file in this repo), driven by our Security Baseline.
@@ -91,6 +96,7 @@ claude-cofounder/
 - **Hybrid agentic build** (`/build`), one entry, two modes. Human-first: branch, seed todo, open editor, plan and build with you step by step. Agents: dispatch a `developer` per story, each end-to-end (plan, TDD build, verify, review) in its own git worktree, single or parallel, with the oversight you pick. Either way you hold the gates. **`/merge`** then integrates an approved branch with a clean linear history (rebase onto main, tests, merge, cleanup).
 - **Compounding knowledge** (`/learn`, `/knowledge-refresh`, `knowledge/`), verified solved problems become a reusable, maintained knowledge base that Claude consults before non-trivial work, so the system gets smarter per story. `/learn` shows the draft before writing.
 - **Community knowledge** (`/contribute-lesson`), opt-in, share a sanitized, generalized lesson with the shared knowledge base so the whole system gets smarter; on update you get back the curated knowledge of all contributors. Approval-gated, nothing leaves your machine without your OK.
+- **Privacy guard** (`bin/privacy-scan.sh`), a deterministic scan (emails, secrets/tokens, local paths, IPs, and your own deny-list terms) that runs as a hard gate before anything is shared via `/contribute-lesson`. The safety net under the model's sanitization and your approval, so private data can't leak by accident, including other users' data once this is a product. Your private terms live in a local `~/.claude/privacy-denylist.txt`, never in a repo.
 - **Post-ship outcome loop** (`/outcome`), about a week after shipping, compares the real outcome against the PRD's intended outcome and verdicts keep/iterate/kill. Never on fabricated data.
 - **Three docs**, `INSTALL.md` (setup), `BEGINNERS-GUIDE.md` (concepts), `WORKFLOW.md` (daily use). Plus `CONTRIBUTING.md` for contributing back (code and beyond).
 

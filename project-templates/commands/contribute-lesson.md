@@ -32,13 +32,24 @@ Only for **generalizable** lessons (universal patterns), never project-specific 
    - Remove: real secrets/keys, PII, the project's proprietary code, internal file/class names, business logic specific to them.
    - Keep: the technical pattern, problem to solution, the reasoning, and a **generic** illustrative code example (not their proprietary code).
    - Result: a universal, reusable lesson with a generic example. Concrete, not vague.
-3. **Show the user the exact sanitized version** for review.
-4. **Only after approval**, open a PR to the community knowledge repo:
+3. **Run the deterministic privacy scan (hard gate, do not skip):**
+   - Write the sanitized draft to a temp file and run `privacy-scan.sh <file>`
+     (installed in `~/bin`; falls back to `~/.claude-templates/../bin` if needed).
+   - **Exit 0:** clean, continue.
+   - **Exit 1 (BLOCK):** it found emails, secrets/tokens, local paths, IPs, or the
+     user's deny-list terms. Show the findings. For each, either **redact it** or
+     have the user **explicitly confirm it is a generic example, not real data**
+     (per-item override). Then re-run the scan. Do not continue while it blocks
+     unless the user has overridden each specific finding.
+   - This is a safety net under your sanitization, not a replacement for it.
+4. **Show the user the exact sanitized, scanned version** for review.
+5. **Only after approval**, open a PR to the community knowledge repo:
    `gh repo fork ... ` then PR to `ivansolic/claude-cofounder-knowledge` (or the configured community repo).
-5. Confirm what was submitted and that nothing else left the machine.
+6. Confirm what was submitted and that nothing else left the machine.
 
 ## Safety rules (non-negotiable)
 - **Opt-in only. Never auto-send.** Always the user's explicit approval before the PR.
+- **Run `privacy-scan.sh` and clear/override every finding before the PR.** The scan is a hard gate, not advisory.
 - **Never share private specifics** (secrets, PII, proprietary code, internal names). Share the pattern, not the project.
 - Show the exact sanitized content before submitting.
 - Only generalizable lessons; project-specific ones stay local.
