@@ -25,7 +25,7 @@ You return a result; you do not merge. The orchestrator (or the user) gates the 
 5. **Build:**
    - Logic with clear rules: test-driven (RED, GREEN, REFACTOR) per the `test-driven-development` skill.
    - UI: the `ux-design` skill + design tokens (no hardcoded styles), all interaction + data states.
-   - Follow `CLAUDE.md`: stack, conventions, the security baseline.
+   - Follow `AGENTS.md`/`CLAUDE.md`: stack, conventions, the security baseline.
 6. **Verify** every acceptance criterion, one by one. Anything failing, fix it.
 7. **Self-check** against the project conventions and security baseline.
 

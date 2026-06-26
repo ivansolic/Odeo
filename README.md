@@ -36,59 +36,66 @@ You run each step; nothing fires blindly. The two automatic guardrails: a TDD sk
 
 ## Repo structure
 
+This repo **is** the Claude Code plugin. Agents, skills, and the manifest live at
+the root; the discipline lives in `AGENTS.md`.
+
 ```
 claude-cofounder/
 ├── README.md                 ← you are here
 ├── INSTALL.md                ← full first-time setup (bare machine → ready)
 ├── BEGINNERS-GUIDE.md        ← the concepts, in plain language
 ├── WORKFLOW.md               ← the daily operating manual
-├── install.sh                ← installs the system onto your machine
-├── global/
-│   └── CLAUDE.md             ← baseline instructions + the SECURITY BASELINE (OWASP/GDPR-aware)
-├── project-templates/        ← scaffolded into every new project (organized by type)
+├── AGENTS.md                 ← the operating baseline (security, TDD, git, agent-first); read before CLAUDE.md
+├── CLAUDE.md                 ← shim: @AGENTS.md + "developing this repo" notes
+├── install.sh                ← installs the system (GitHub path; lays the global baseline)
+├── .claude-plugin/
+│   └── plugin.json           ← marketplace manifest
+├── skills/                   ← slash commands (you type /name); each is a SKILL.md
+│   ├── build/                ← /build stories: human-first or developer agents (you approve)
+│   ├── merge/                ← /merge rebase onto main, test, merge PR, cleanup
+│   ├── learn/                ← /learn capture a verified solved problem (shows draft first)
+│   ├── knowledge-refresh/    ← /knowledge-refresh audit/refresh the knowledge base
+│   ├── outcome/              ← /outcome post-ship outcome check
+│   ├── contribute-lesson/    ← /contribute-lesson opt-in share to community knowledge
+│   ├── commit-push/          ← /commit-push with secret-scan + safety checks
+│   ├── retro/                ← /retro end-of-session learning capture
+│   ├── setup-project/        ← /setup-project onboarding interview
+│   ├── setup-design/         ← /setup-design design-system/tokens setup (UI)
+│   ├── test-driven-development/ ← auto-applies to logic (RED-GREEN-REFACTOR)
+│   └── ux-design/            ← auto-applies to UI (heuristics, states, a11y)
+├── agents/                   ← subagents (separate-context executors)
+│   ├── developer.md          ← builds one story end-to-end in its own worktree
+│   ├── code-reviewer.md      ← code, functions, security
+│   ├── debugger.md
+│   ├── architecture-reviewer.md
+│   └── design-reviewer.md    ← UI: heuristics, states, a11y, tokens
+├── bin/
+│   ├── init-project.sh       ← scaffolds the project-specific parts of a new project
+│   └── privacy-scan.sh       ← deterministic privacy guard (blocks leaks before sharing)
+├── project-templates/        ← project-specific scaffolding only (not the tools)
 │   ├── CLAUDE.md             ← per-project config incl. a Security & Data section
-│   ├── commands/             ← slash commands (you type /name)
-│   │   ├── setup-project.md  ← /setup-project onboarding interview
-│   │   ├── setup-design.md   ← /setup-design design-system/tokens setup (UI projects)
-│   │   ├── build.md          ← /build stories: human-first or developer agents (you approve)
-│   │   ├── merge.md          ← /merge rebase onto main, test, merge PR, cleanup
-│   │   ├── commit-push.md    ← /commit-push with secret-scan + safety checks
-│   │   ├── learn.md          ← /learn capture a verified solved problem (shows draft first)
-│   │   ├── knowledge-refresh.md ← /knowledge-refresh audit/refresh the knowledge base
-│   │   ├── outcome.md        ← /outcome post-ship outcome check
-│   │   ├── contribute-lesson.md ← /contribute-lesson opt-in share to community knowledge
-│   │   └── retro.md          ← /retro end-of-session learning capture
-│   ├── agents/               ← subagents (separate-context)
-│   │   ├── developer.md              ← builds one story end-to-end in its own worktree
-│   │   ├── code-reviewer.md          ← code, functions, security
-│   │   ├── debugger.md
-│   │   ├── architecture-reviewer.md
-│   │   └── design-reviewer.md        ← UI: heuristics, states, a11y, tokens (UI projects)
-│   ├── knowledge/            ← reusable solved problems (consulted before non-trivial work)
-│   ├── design/               ← tokens.json (DTCG) + README, design-system source of truth (UI projects)
+│   ├── knowledge/            ← README for the project knowledge base
+│   ├── design/               ← tokens.json (DTCG) + README (UI projects)
 │   ├── tasks/                ← working files: todo.md, lessons.md
 │   ├── docs/                 ← document templates: ADR-TEMPLATE.md
 │   └── presets/              ← example filled stacks (e.g. angular-nest-mysql.md)
-├── skills/
-│   ├── test-driven-development/   ← user-level skill (auto-applies to logic)
-│   └── ux-design/                 ← user-level skill (auto-applies to UI: heuristics, states, a11y)
-├── bin/
-│   ├── init-project.sh       ← scaffolds a new Claude-ready project
-│   └── privacy-scan.sh       ← deterministic privacy guard (blocks leaks before sharing)
+├── global/
+│   └── CLAUDE.md             ← user-global baseline laid into ~/.claude by install.sh
 ├── tests/
 │   └── privacy-scan.test.sh  ← tests for the privacy guard
 └── docs/
     └── privacy-guard.md      ← design of the privacy guard
 
-# Security review is handled by Claude Code's built-in /security-review command
-# (ships with Claude Code, not a file in this repo), driven by our Security Baseline.
+# Commands, agents, and skills are provided by the installed plugin (or install.sh),
+# so they are available in EVERY project automatically, no per-project copies.
+# Security review uses Claude Code's built-in /security-review, driven by our baseline.
 ```
 
 ## What's inside
 
-- **Global instructions**, communication, git discipline, TDD, and workflow orchestration that shape every session.
-- **Security, built in**, a comprehensive, OWASP-aligned **Security Baseline** (ours, in `global/CLAUDE.md`) applied to all code; a per-project **Security & Data** section (PII inventory, auth model, GDPR); a security pre-mortem at the PRD stage; and Claude Code's **built-in `/security-review`** command for sensitive changes. The baseline loads every session, so it informs both `/security-review` and code review automatically.
-- **Project scaffolding** (`init-project.sh`), one command creates a Claude-ready project: docs structure, task files, review subagents, and workflow commands.
+- **Agent-first, plugin-native**, the repo is a Claude Code plugin: skills orchestrate, agents execute. The operating baseline lives in `AGENTS.md` (read before `CLAUDE.md`); the tools (commands, agents, skills) install once and are available in every project.
+- **Security, built in**, a comprehensive, OWASP-aligned **Security Baseline** (in `AGENTS.md` and `global/CLAUDE.md`) applied to all code; a per-project **Security & Data** section (PII inventory, auth model, GDPR); a security pre-mortem at the PRD stage; the discipline is also embedded in the skill/agent bodies so it holds for plugin-only installs; and Claude Code's **built-in `/security-review`** for sensitive changes.
+- **Project scaffolding** (`init-project.sh`), one command creates the project-specific parts (config, docs structure, task files, knowledge base, design tokens). The commands/agents/skills come from the installed plugin, so there are no per-project copies to drift.
 - **`/setup-project`**, interviews you about your stack, commands, and data, then fills the project config. Run once per project.
 - **PM workflow via [pm-skills](https://github.com/phuryn/pm-skills)**, brainstorm, PRDs, critique, user stories (a separate plugin you install once; see Quick start).
 - **TDD skill**, auto-applies test-first to backend logic, stays out of the way on UI.
@@ -151,11 +158,9 @@ my-app/
 ├── CLAUDE.md                 ← project config (stack, commands, conventions, Security & Data)
 ├── .gitignore
 ├── .claude/
-│   ├── agents/               ← developer, code-reviewer, debugger, architecture-reviewer
-│   ├── commands/             ← setup-project, build, merge, learn, knowledge-refresh,
-│   │                           outcome, contribute-lesson, commit-push, retro
-│   │                           (+ Claude Code's built-in /security-review for sensitive changes)
 │   └── tasks/                ← todo.md (active task), lessons.md (corrections)
+├── knowledge/                ← reusable solved problems for this project
+├── design/                   ← tokens.json + README (UI projects only)
 └── docs/
     ├── prds/                 ← Product Requirements Documents
     ├── stories/              ← user stories
@@ -163,7 +168,9 @@ my-app/
     ├── research/             ← user research notes
     └── templates/            ← ADR template
 
-# The Security Baseline (from your global CLAUDE.md) applies to all code here automatically.
+# The commands (/build, /merge, ...), agents (developer, code-reviewer, ...), and
+# auto-skills (TDD, ux-design) come from the installed plugin, available here without
+# per-project copies. The Security Baseline applies to all code automatically.
 ```
 
 PRDs and user stories are generated by the pm-skills plugins and saved as `PRD-NNN-<slug>.md` / `USR-NNN-<slug>.md`.

@@ -106,10 +106,15 @@ cd claude-cofounder
 
 `install.sh` puts everything where Claude Code reads it:
 - `~/.claude/CLAUDE.md`, global baseline instructions + the Security Baseline
-- `~/.claude-templates/`, project templates + `presets/`
-- `~/.claude/skills/test-driven-development/`, the auto-applying TDD skill
-- `~/bin/init-project.sh`, the project scaffolder
+- `~/.claude/skills/`, all skills, available in every project: the workflow commands (`/build`, `/merge`, `/learn`, ...) and the auto-applying skills (TDD, ux-design)
+- `~/.claude/agents/`, the subagents (`developer`, `code-reviewer`, ...), available everywhere
+- `~/.claude-templates/`, project-specific scaffolding templates + `presets/`
+- `~/bin/init-project.sh` and `~/bin/privacy-scan.sh`
 - your shell profile, adds `~/bin` to PATH and sets `CLAUDE_CODE_AUTO_VERIFY=1`
+
+> This is the GitHub install path. The same repo is also a Claude Code plugin
+> (`.claude-plugin/plugin.json`); a marketplace listing comes later. Either way the
+> operating baseline lives in `AGENTS.md` (read before `CLAUDE.md`).
 
 It will NOT overwrite an existing `~/.claude/CLAUDE.md` (it saves the baseline to
 `~/.claude/claude-cofounder-baseline.md` instead, so your personal global is safe).
@@ -229,27 +234,31 @@ gh repo delete test-setup --yes
 │   └── claude-cofounder/      ← the cloned repo (source you can `git pull` to update)
 ├── .claude/
 │   ├── CLAUDE.md              ← global instructions (auto-loads everywhere)
-│   ├── skills/                ← user-level skills, e.g. test-driven-development (Step 6)
+│   ├── skills/                ← all skills: /build /merge /learn ... + TDD, ux-design (Step 6)
+│   ├── agents/                ← subagents: developer, code-reviewer, ... (Step 6)
+│   ├── community-knowledge/   ← shared knowledge base (if reachable)
 │   └── plugins/               ← pm-skills plugins install here (Step 7)
-├── .claude-templates/         ← templates for init-project.sh (agents/ commands/
-│                                 tasks/ docs/ presets/ + CLAUDE.md)
+├── .claude-templates/         ← project-specific scaffolding for init-project.sh
+│                                 (CLAUDE.md, tasks/, docs/, design/, knowledge/, presets/)
 ├── .bash_profile              ← contains PATH + CLAUDE_CODE_AUTO_VERIFY
 └── bin/
-    └── init-project.sh        ← your project scaffolder
+    ├── init-project.sh        ← scaffolds the project-specific parts of a project
+    └── privacy-scan.sh        ← deterministic privacy guard
 ```
 
 Everything under `~/.claude*` and `~/bin` is installed by `install.sh` from the
 cloned repo, re-run it (or use `--link`) after a `git pull` to update.
 
-Per project (created by init-project.sh):
+Per project (created by init-project.sh, project-specific files only; the
+commands/agents/skills come from the install above and work in every project):
 ```
 my-project/
-├── CLAUDE.md                  ← project config (stack, conventions, git rules)
+├── CLAUDE.md                  ← project config (stack, conventions, Security & Data)
 ├── .gitignore
 ├── .claude/
-│   ├── agents/                ← code-reviewer, architecture-reviewer
-│   ├── commands/              ← setup-project, commit-push, dev-handoff, retro
 │   └── tasks/                 ← todo.md (active task), lessons.md (corrections)
+├── knowledge/                 ← reusable solved problems for this project
+├── design/                    ← tokens.json + README (UI projects only)
 └── docs/
     ├── prds/                  ← Product Requirements Documents
     ├── stories/               ← user stories
