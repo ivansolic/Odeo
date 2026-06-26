@@ -7,8 +7,12 @@ Thumbs.db
 !.vscode/extensions.json
 .idea/
 
-# Personal layer — never commit personal global instructions or accumulated
-# lessons into this public repo. Those live in the private claude-cofounder-personal repo.
+# Personal layer, never commit personal global instructions, memory, or
+# accumulated lessons into this public repo. Those live in the private
+# claude-cofounder-personal repo.
 CLAUDE.local.md
 personal/
 *.local.md
+# Memory (Claude Code personal memory): never belongs in the public product repo.
+memory/
+MEMORY.md
