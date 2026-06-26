@@ -1,5 +1,6 @@
 ---
 description: Set up the project's design system (tokens) after the PM phase. Ingest the user's existing tokens/Figma export, or propose a starter from the PRD + personas + strategy. Wires token compilation to the project's frontend stack. Run once per project, before building UI.
+disable-model-invocation: true
 ---
 
 Goal: establish `design/tokens.json` as the styling source of truth and compile

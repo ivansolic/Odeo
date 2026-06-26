@@ -1,5 +1,6 @@
 ---
 description: Stage, commit with conventional commit message, and push to the current branch. Runs safety checks first, refuses to push to main, checks for secrets, runs tests and typecheck.
+disable-model-invocation: true
 ---
 
 Execute the following steps in order. **If any step fails or reveals a problem, STOP and report to the user. Do not continue to the next step.**

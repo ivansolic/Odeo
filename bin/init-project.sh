@@ -1,11 +1,16 @@
 #!/usr/bin/env bash
 #
-# init-project.sh, Initialize a new Claude-ready project from your templates
+# init-project.sh, initialize a new Claude-ready project.
+#
+# Scaffolds only the PROJECT-SPECIFIC parts (CLAUDE.md, docs/, tasks/, knowledge/,
+# design/). The commands, agents, and skills come from the installed
+# claude-cofounder plugin (or `install.sh`), so they are available in every
+# project automatically, no per-project copies to drift.
 #
 # Usage:
-#   init-project.sh <project-name>
+#   init-project.sh <project-name> [--no-ui]
 #
-# Requires templates in ~/.claude-templates/ (see INSTALL.md, Step 7)
+# Requires project templates in ~/.claude-templates/ (see INSTALL.md).
 
 set -euo pipefail
 
@@ -36,29 +41,15 @@ fi
 
 if [[ ! -d "$TEMPLATES_DIR" ]]; then
   echo "Error: Templates directory not found at $TEMPLATES_DIR"
-  echo "See INSTALL.md Step 7 for first-time setup."
+  echo "Run the system install first (see INSTALL.md)."
   exit 1
 fi
 
+# Project-specific templates only. Commands/agents/skills ship via the plugin.
 REQUIRED_TEMPLATES=(
   "CLAUDE.md"
   "tasks/todo.md"
   "tasks/lessons.md"
-  "agents/code-reviewer.md"
-  "agents/architecture-reviewer.md"
-  "agents/design-reviewer.md"
-  "agents/developer.md"
-  "agents/debugger.md"
-  "commands/commit-push.md"
-  "commands/setup-project.md"
-  "commands/setup-design.md"
-  "commands/retro.md"
-  "commands/build.md"
-  "commands/merge.md"
-  "commands/learn.md"
-  "commands/knowledge-refresh.md"
-  "commands/outcome.md"
-  "commands/contribute-lesson.md"
   "docs/ADR-TEMPLATE.md"
   "design/tokens.json"
   "design/README.md"
@@ -100,35 +91,21 @@ git commit --allow-empty -m "chore: initial commit" -q
 git branch -M main
 
 echo "  → creating folder structure"
-mkdir -p .claude/tasks .claude/agents .claude/commands
+mkdir -p .claude/tasks
 mkdir -p docs/prds docs/stories docs/decisions docs/research docs/templates
 mkdir -p knowledge
 
-echo "  → copying templates"
+echo "  → copying project templates"
 cp "$TEMPLATES_DIR/CLAUDE.md" CLAUDE.md
 cp "$TEMPLATES_DIR/tasks/todo.md" .claude/tasks/todo.md
 cp "$TEMPLATES_DIR/tasks/lessons.md" .claude/tasks/lessons.md
-cp "$TEMPLATES_DIR/agents/code-reviewer.md" .claude/agents/code-reviewer.md
-cp "$TEMPLATES_DIR/agents/architecture-reviewer.md" .claude/agents/architecture-reviewer.md
-cp "$TEMPLATES_DIR/agents/developer.md" .claude/agents/developer.md
-cp "$TEMPLATES_DIR/agents/debugger.md" .claude/agents/debugger.md
-cp "$TEMPLATES_DIR/commands/commit-push.md" .claude/commands/commit-push.md
-cp "$TEMPLATES_DIR/commands/setup-project.md" .claude/commands/setup-project.md
-cp "$TEMPLATES_DIR/commands/retro.md" .claude/commands/retro.md
-cp "$TEMPLATES_DIR/commands/build.md" .claude/commands/build.md
-cp "$TEMPLATES_DIR/commands/merge.md" .claude/commands/merge.md
-cp "$TEMPLATES_DIR/commands/learn.md" .claude/commands/learn.md
-cp "$TEMPLATES_DIR/commands/knowledge-refresh.md" .claude/commands/knowledge-refresh.md
-cp "$TEMPLATES_DIR/commands/outcome.md" .claude/commands/outcome.md
-cp "$TEMPLATES_DIR/commands/contribute-lesson.md" .claude/commands/contribute-lesson.md
 cp "$TEMPLATES_DIR/docs/ADR-TEMPLATE.md" docs/templates/ADR-TEMPLATE.md
 cp "$TEMPLATES_DIR/knowledge/README.md" knowledge/README.md
 
-# Design layer (only for UI projects)
+# Design layer (only for UI projects). The design-reviewer agent and /setup-design
+# come from the plugin; here we only seed the project's token source of truth.
 if $HAS_UI; then
   mkdir -p design
-  cp "$TEMPLATES_DIR/agents/design-reviewer.md" .claude/agents/design-reviewer.md
-  cp "$TEMPLATES_DIR/commands/setup-design.md" .claude/commands/setup-design.md
   cp "$TEMPLATES_DIR/design/tokens.json" design/tokens.json
   cp "$TEMPLATES_DIR/design/README.md" design/README.md
 fi
@@ -179,21 +156,19 @@ git commit -m "chore: scaffold Claude-ready project structure" -q
 echo ""
 echo "✅ Project '$PROJECT_NAME' initialized."
 echo ""
-echo "Structure:"
+echo "Structure (project-specific files; commands/agents/skills come from the plugin):"
 echo "  $PROJECT_NAME/"
-echo "  ├── CLAUDE.md"
-echo "  ├── .claude/"
-if $HAS_UI; then
-  echo "  │   ├── agents/     (developer, debugger, code-reviewer, architecture-reviewer, design-reviewer)"
-  echo "  │   ├── commands/   (setup-project, setup-design, build, merge, learn, knowledge-refresh, outcome, contribute-lesson, commit-push, retro)"
-else
-  echo "  │   ├── agents/     (developer, debugger, code-reviewer, architecture-reviewer)"
-  echo "  │   ├── commands/   (setup-project, build, merge, learn, knowledge-refresh, outcome, contribute-lesson, commit-push, retro)"
-fi
-echo "  │   └── tasks/      (todo.md, lessons.md)"
-echo "  ├── knowledge/      (reusable solved problems)"
-if $HAS_UI; then echo "  ├── design/         (tokens.json, design system source of truth)"; fi
-echo "  └── docs/           (prds, stories, decisions, research, templates)"
+echo "  ├── CLAUDE.md            (project config: stack, commands, conventions, Security & Data)"
+echo "  ├── .claude/tasks/       (todo.md, lessons.md)"
+echo "  ├── knowledge/           (reusable solved problems)"
+if $HAS_UI; then echo "  ├── design/              (tokens.json, design system source of truth)"; fi
+echo "  └── docs/                (prds, stories, decisions, research, templates)"
+echo ""
+echo "Available everywhere from the claude-cofounder plugin:"
+echo "  commands: /build /merge /learn /knowledge-refresh /outcome /contribute-lesson"
+echo "            /commit-push /retro /setup-project$( $HAS_UI && echo ' /setup-design' )"
+echo "  agents:   developer, code-reviewer, architecture-reviewer, debugger$( $HAS_UI && echo ', design-reviewer' )"
+echo "  skills:   test-driven-development, ux-design (auto-apply)"
 echo ""
 echo "PM work (PRDs, critique, stories) is driven by the pm-skills plugins:"
 echo "  /pm-product-discovery:brainstorm-ideas-new   → explore the idea"
@@ -213,8 +188,4 @@ if $HAS_UI; then
   echo "After the PM phase, before building UI, set up the design system:"
   echo "  > /setup-design    (ingest your tokens or generate from PRD/personas → tokens.json)"
 fi
-echo ""
-echo "Build stories:              /build    (human-first, or agents in worktrees, you approve at the gate)"
-echo "Integrate an approved branch: /merge  (rebase onto main, test, merge, cleanup)"
-echo "Capture reusable solutions: /learn    ·    Post-ship outcome check: /outcome"
 echo ""

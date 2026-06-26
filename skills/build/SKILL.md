@@ -1,5 +1,6 @@
 ---
 description: Build one or more ready user stories. Two modes you choose: build it yourself (human-first, Claude prepares the branch and you drive), or dispatch agents (each story end-to-end in its own git worktree, you approve before merge). Name several stories to build them in parallel, e.g. "/build USR-001 USR-002 in parallel". Hybrid agentic build, you hold the gates.
+disable-model-invocation: true
 ---
 
 The single entry to building. You pick the mode; the system prepares everything.

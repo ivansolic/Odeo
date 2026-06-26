@@ -1,5 +1,6 @@
 ---
 description: First-run onboarding. Interviews the user about their stack, commands, and conventions, then fills in the project CLAUDE.md. Offers to start from a preset. Use once per new project, before any building.
+disable-model-invocation: true
 ---
 
 Goal: turn the placeholder `CLAUDE.md` into a real, project-specific config by

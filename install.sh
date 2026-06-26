@@ -30,8 +30,8 @@ place() { # place <src> <dest>
 echo "Installing Claude Cofounder from: $REPO_DIR"
 [[ "$LINK" == true ]] && echo "  (symlink mode, git pull will update live)"
 
-# 1. Templates (organized into agents/ commands/ tasks/ docs/ presets/)
-echo "  → templates → ~/.claude-templates/"
+# 1. Project templates (project-specific scaffolding: CLAUDE.md, tasks, docs, design, knowledge)
+echo "  → project templates → ~/.claude-templates/"
 rm -rf ~/.claude-templates
 if $LINK; then
   ln -s "$REPO_DIR/project-templates" ~/.claude-templates
@@ -39,11 +39,20 @@ else
   cp -R "$REPO_DIR/project-templates" ~/.claude-templates
 fi
 
-# 2. User-level skills
+# 2. Skills, user-level (the plugin-equivalent for the GitHub install path).
+#    Includes the workflow skills (build, merge, learn, ...) and the auto-apply
+#    skills (test-driven-development, ux-design). Available in every project.
 echo "  → skills → ~/.claude/skills/"
 mkdir -p ~/.claude/skills
 for skill in "$REPO_DIR"/skills/*/; do
   [[ -d "$skill" ]] && place "$skill" ~/.claude/skills/"$(basename "$skill")"
+done
+
+# 2b. Agents, user-level (developer, reviewers, debugger). Available everywhere.
+echo "  → agents → ~/.claude/agents/"
+mkdir -p ~/.claude/agents
+for agent in "$REPO_DIR"/agents/*.md; do
+  [[ -f "$agent" ]] && place "$agent" ~/.claude/agents/"$(basename "$agent")"
 done
 
 # 3. Project scaffolder + privacy guard

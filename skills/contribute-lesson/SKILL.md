@@ -1,5 +1,6 @@
 ---
 description: Opt-in. Share a local knowledge/ lesson with the community knowledge base so the whole system gets smarter. Sanitizes and generalizes it, shows you exactly what would be shared, and only opens a PR after your approval. Never sends anything automatically.
+disable-model-invocation: true
 ---
 
 Turn a local lesson into a community contribution, safely. You give, and in return

@@ -1,5 +1,6 @@
 ---
 description: Integrate a finished, reviewed story branch into main, safely and with a clean linear history. Rebases onto the latest main, runs tests, then merges the PR and cleans up. Run once per story when it is approved and ready. Claude does the git mechanics; you approve.
+disable-model-invocation: true
 ---
 
 The integration step. Brings an approved branch into main with a clean, linear

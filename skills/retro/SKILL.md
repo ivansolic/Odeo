@@ -1,5 +1,6 @@
 ---
 description: End-of-session retro. Captures what was learned this session and routes each lesson to the right place, project-specific lessons to .claude/tasks/lessons.md, general rules as a proposed global CLAUDE.md update. Run before wrapping up a working session.
+disable-model-invocation: true
 ---
 
 A short retrospective so learnings get captured while fresh, not only when a
