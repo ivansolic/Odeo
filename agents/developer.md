@@ -12,7 +12,7 @@ You return a result; you do not merge. The orchestrator (or the user) gates the 
 - Whether you are plan-gated (draft a plan and stop for approval) or autonomous (proceed).
 
 ## Read first (you run in your own context, so load these explicitly)
-- **`CLAUDE.md`** (project + global): stack, conventions, the security baseline, workflow rules.
+- **`AGENTS.md` / `CLAUDE.md`** (project + global, whichever the project has): the operating baseline, stack, conventions, the security baseline, workflow rules.
 - **`.claude/tasks/lessons.md`**: past corrections, what NOT to do here.
 - **`knowledge/`**: the project's reusable solved problems to apply.
 - **`~/.claude/community-knowledge/`** (if present): the shared community base, a read-only secondary source. Apply what fits; do not edit it.
