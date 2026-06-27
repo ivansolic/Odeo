@@ -119,26 +119,17 @@ grep -q 'CLAUDE_CODE_AUTO_VERIFY' "$PROFILE" 2>/dev/null || echo 'export CLAUDE_
 
 cat <<'DONE'
 
-✅ Claude Cofounder installed.
+✅ Claude Cofounder installed (commands, agents, skills, and the PM skills).
 
-ONE more step, install the PM skills (these are a separate plugin you fetch
-once; you always get the maintained version). Start Claude, then paste:
-
-  /plugin marketplace add phuryn/pm-skills
-  /plugin install pm-execution@pm-skills
-  /plugin install pm-product-discovery@pm-skills
-  /plugin install pm-product-strategy@pm-skills
-  /plugin install pm-market-research@pm-skills
-  /plugin install pm-data-analytics@pm-skills
-  /plugin install pm-marketing-growth@pm-skills
-  /plugin install pm-go-to-market@pm-skills
-  /plugin install pm-toolkit@pm-skills
-  /reload-plugins
-
-Then reload your shell:  source ~/.bash_profile   (or ~/.zshrc)
+Reload your shell:  source ~/.bash_profile   (or ~/.zshrc)
 
 Start a project:  init-project.sh my-app && cd my-app && claude
-Inside Claude:    /setup-project
+Inside Claude:    /setup-project   then  /brainstorm  or  /prd
+
+The PM phase uses our first-party skills (/brainstorm /prd /critique /stories ...).
+OPTIONAL: prefer the pm-skills plugin instead? Start Claude and run
+  /plugin marketplace add phuryn/pm-skills
+  /plugin install pm-execution@pm-skills   (+ other pm-* packages)  then  /reload-plugins
 
 Full guide: INSTALL.md   ·   Concepts: BEGINNERS-GUIDE.md   ·   Daily use: WORKFLOW.md
 DONE

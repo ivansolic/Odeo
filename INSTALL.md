@@ -128,59 +128,39 @@ source ~/.bash_profile     # or ~/.zshrc if you use zsh
 ```
 
 **✓ CHECK 1:** `cat ~/.claude/CLAUDE.md | head -3` (or the baseline file) shows the global instructions.
-**✓ CHECK 2:** `ls ~/.claude-templates/` shows the template folders: `agents/`, `commands/`, `tasks/`, `docs/`, `presets/`, and `CLAUDE.md`.
+**✓ CHECK 2:** `ls ~/.claude-templates/` shows the project-specific templates: `tasks/`, `docs/`, `design/`, `knowledge/`, `presets/`, and `CLAUDE.md`.
 **✓ CHECK 3:** `init-project.sh` (no arguments) prints the usage message.
 **✓ CHECK 4:** `echo $CLAUDE_CODE_AUTO_VERIFY` prints `1`.
-**✓ CHECK 5:** `cat ~/.claude/skills/test-driven-development/SKILL.md | head -2` shows the skill's frontmatter.
+**✓ CHECK 5:** `ls ~/.claude/skills/` shows the skills (including `prd`, `stories`, `brainstorm`, `test-driven-development`, ...); `ls ~/.claude/agents/` shows `developer`, `code-reviewer`, ...
 
-_PM work, commands, critique, and the PRD/story format, is owned by the
-pm-skills plugins (Step 7), not custom files. The TDD skill auto-applies to
-backend logic and stays out of the way for UI/prototype work; you never invoke it._
+_The PM skills, the workflow commands, the agents, and the TDD skill are all
+installed by `install.sh` and available in every project. The TDD and ux-design
+skills auto-apply; the rest you invoke._
 
 ---
 
-## Step 7, PM plugins (pm-skills), the source of all PM commands
+## Step 7, (Optional) the pm-skills plugin
 
-All Phase 1 PM work (brainstorm, PRD, critique, user stories) is powered by the
-**pm-skills** marketplace. These plugins replace any custom PM command or
-subagent, there is no `/new-prd` or `product-critic` in this setup.
+The PM phase runs on our **first-party PM skills** (installed in Step 6), so this
+step is **optional**. Install the [pm-skills](https://github.com/phuryn/pm-skills)
+plugin only if you'd rather use it for the PM phase.
 
-### Where plugins live
-Plugins install into `~/.claude/plugins/`. They do NOT touch your
-`~/.claude/CLAUDE.md`, your global instructions and the plugins are separate
-layers that work together.
-
-### How to install
-Plugin commands run **inside a Claude session**, not from the shell. Start
-`claude`, then add the marketplace and install the packs:
+Plugin commands run **inside a Claude session**, not the shell. Start `claude`, then:
 
 ```
 /plugin marketplace add phuryn/pm-skills
 /plugin install pm-execution@pm-skills
 /plugin install pm-product-discovery@pm-skills
-/plugin install pm-product-strategy@pm-skills
-/plugin install pm-market-research@pm-skills
-/plugin install pm-data-analytics@pm-skills
-/plugin install pm-marketing-growth@pm-skills
-/plugin install pm-go-to-market@pm-skills
-/plugin install pm-toolkit@pm-skills
+# ...and any other pm-* packages you want, then:
 /reload-plugins
 ```
 
-`pm-execution` and `pm-product-discovery` are the two you'll use most, they
-cover PRDs, user stories, critique (red-team, pre-mortem), brainstorming, and
-feature triage. The rest are situational (see the bonus table in WORKFLOW.md).
+Its namespaced `/pm-*` commands then work alongside ours. Save outputs into the
+same `docs/` convention either way (`docs/prds/PRD-NNN-<slug>.md`,
+`docs/stories/USR-NNN-<slug>.md`).
 
-### Good habits
-1. **Read before you lean on it.** Open `~/.claude/plugins/<name>/` and skim the
-   SKILL.md files. You're installing instructions that shape Claude's behavior, 
-   know what they say. This is also how you learn to write your own.
-2. **Save outputs into your `docs/` structure.** The skills generate content;
-   you keep the folder convention, drop PRDs into `docs/prds/PRD-NNN-<slug>.md`
-   and stories into `docs/stories/USR-NNN-<slug>.md`.
-
-**✓ CHECK:** inside a Claude session, type `/pm-` and the pm-skills commands
-(`pm-execution:create-prd`, `pm-execution:user-stories`, …) appear in the list.
+**✓ CHECK (only if you installed it):** type `/pm-` in a Claude session and the
+pm-skills commands appear.
 
 ---
 
@@ -208,11 +188,10 @@ claude
 
 Inside Claude, verify each piece:
 
-1. Type `/`, you should see `setup-project`, `commit-push`, and `dev-handoff` (your workflow commands)
-2. Type `/pm-`, you should see the pm-skills commands (`pm-execution:create-prd`, `pm-execution:user-stories`, …)
-3. Ask: *"What does my global CLAUDE.md say about git discipline?"*, Claude should quote your rules (proves global file loads)
-4. Run `/setup-project`, Claude should interview you about your stack (or offer a preset) and fill in CLAUDE.md (proves onboarding works). On a fresh scaffold, CLAUDE.md starts with `[...]` placeholders until you do this.
-5. Ask: *"List the subagents available in this project"*, should mention code-reviewer and architecture-reviewer (PM critique now lives in pm-skills, not a subagent)
+1. Type `/`, you should see `setup-project`, `build`, `merge`, `commit-push` (workflow) and `prd`, `brainstorm`, `stories`, `critique` (PM skills)
+2. Ask: *"What does my global CLAUDE.md say about git discipline?"*, Claude should quote your rules (proves global file loads)
+3. Run `/setup-project`, Claude should interview you about your stack (or offer a preset) and fill in CLAUDE.md (proves onboarding works). On a fresh scaffold, CLAUDE.md starts with `[...]` placeholders until you do this.
+4. Ask: *"List the subagents available in this project"*, should mention `developer`, `code-reviewer`, and `architecture-reviewer` (PM critique is the `/critique` skill)
 6. Press `Shift+Tab` twice, bottom of screen should show plan mode is on
 
 If all 6 pass: **your setup is complete.**
@@ -237,7 +216,7 @@ gh repo delete test-setup --yes
 │   ├── skills/                ← all skills: /build /merge /learn ... + TDD, ux-design (Step 6)
 │   ├── agents/                ← subagents: developer, code-reviewer, ... (Step 6)
 │   ├── community-knowledge/   ← shared knowledge base (if reachable)
-│   └── plugins/               ← pm-skills plugins install here (Step 7)
+│   └── plugins/               ← optional pm-skills plugin installs here (Step 7)
 ├── .claude-templates/         ← project-specific scaffolding for init-project.sh
 │                                 (CLAUDE.md, tasks/, docs/, design/, knowledge/, presets/)
 ├── .bash_profile              ← contains PATH + CLAUDE_CODE_AUTO_VERIFY
@@ -264,7 +243,7 @@ my-project/
     ├── stories/               ← user stories
     ├── decisions/             ← Architecture Decision Records
     ├── research/              ← user research notes
-    └── templates/             ← ADR template (PRD/story format comes from pm-skills)
+    └── templates/             ← ADR template (PRD/story format comes from /prd, /stories)
 ```
 
 ---
