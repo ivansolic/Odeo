@@ -9,16 +9,16 @@ Keep this open until the rhythm becomes muscle memory (~2-3 weeks).
 > language. This file is the *what to type*; that file is the *why*.
 
 The workflow (the phases, the discipline, the rhythm) is yours and stays fixed.
-The PM thinking inside Phase 1 is now powered entirely by the **pm-skills**
-plugins, you don't use any custom PM commands or subagents for that work.
+The PM thinking inside Phase 1 runs on our **first-party PM skills** (`/brainstorm`,
+`/prd`, `/critique`, `/stories`, ...); the **pm-skills** plugin is an optional alternative.
 
 ---
 
 ## Returning to Work (day 2 and beyond)
 
-Your setup is installed once and stays, global `CLAUDE.md`, templates,
-`init-project.sh`, and the pm-skills plugins are all permanent. You do NOT
-reinstall any of that to start working again. You just open a project.
+Your setup is installed once and stays, global `CLAUDE.md`, the skills and agents
+(including the PM skills), templates, and `init-project.sh` are all permanent. You
+do NOT reinstall any of that to start working again. You just open a project.
 
 ### Start a brand-new project
 ```bash
@@ -48,13 +48,13 @@ fresh `claude` picks up where you left off.
 
 ### You do NOT need to redo
 - ❌ Copy CLAUDE.md / templates
-- ❌ Re-run `/plugin install` (pm-skills stay installed)
+- ❌ Re-run `install.sh` (the skills/agents stay installed)
 - ❌ Touch `~/.bash_profile`
 
 ### If commands seem missing in a session
 ```
-/plugin list pm-skills    # should show your pm-* plugins, enabled
-/reload-plugins           # if they show but don't respond
+# our skills/agents live in ~/.claude/skills and ~/.claude/agents; re-run install.sh if missing.
+/reload-plugins           # if you also use the optional pm-skills plugin and it doesn't respond
 ```
 
 For first-time machine setup (or troubleshooting an install), see `INSTALL.md`.
@@ -69,8 +69,8 @@ IDEA (fresh or imported)
  ▼
 ┌─────────────────────────────────────────────┐
 │ PHASE 1: PM (discovery & specification)     │
-│ brainstorm → PRD → critique → user stories  │
-│ (all powered by pm-skills)                  │
+│ /brainstorm → /prd → /critique → /stories   │
+│ (first-party PM skills)                     │
 └──────────────────┬──────────────────────────┘
                    ▼
                /build
@@ -122,51 +122,50 @@ After importing, continue normally, usually jump to step **1.3 (critique)** or
 ### External feature requests or user feedback
 
 ```
-/pm-product-discovery:analyze-feature-requests
+/interview-synthesis
 ```
-Paste the list, Claude triages, groups, and prioritizes them.
+Paste the list, Claude extracts opportunities and themes; then `/prioritize` to triage.
 
 ### External interview notes or research
 
 ```
-/pm-product-discovery:summarize-interview
+/interview-synthesis
 ```
-or
-```
-/pm-market-research:sentiment-analysis
-```
+Paste the notes; Claude turns them into structured insights and opportunities.
 
 ---
 
 ## PHASE 1: PM, From Idea to Stories
 
-All PM content here is produced by pm-skills. You keep the `docs/` folder
-structure as the home for the output, when a skill produces a PRD or stories,
-save them into `docs/prds/PRD-NNN-<slug>.md` and `docs/stories/USR-NNN-<slug>.md`
-so the rest of the workflow (handoff, branching, reviews) still lines up.
+PM here is driven by our **first-party PM skills** (built from public frameworks,
+credited by name). You keep the `docs/` folder as the home for the output, save
+PRDs and stories into `docs/prds/PRD-NNN-<slug>.md` and
+`docs/stories/USR-NNN-<slug>.md` so the rest of the workflow lines up.
+
+> **Optional alternative:** the [pm-skills](https://github.com/phuryn/pm-skills)
+> plugin (phuryn) covers the same ground; if you install it, its namespaced
+> `/pm-execution:*`, `/pm-product-discovery:*`, etc. commands work too. Ours is the
+> default; use whichever you prefer.
 
 ### 1.1 Brainstorm
 
 Start Claude in your project, plan mode ON (`Shift+Tab` twice).
 
 ```
-/pm-product-discovery:brainstorm-ideas-new
+/brainstorm
 ```
 
-For an existing product (adding a feature to something that ships already):
-```
-/pm-product-discovery:brainstorm-ideas-existing
-```
-
-The skill diverges to multiple distinct options before converging. Push back,
-combine options, iterate until the idea has shape.
+It diverges into many distinct options before converging, problem-first. Push
+back, combine options, iterate until the idea has shape. (For discovery support:
+`/personas`, `/interview-synthesis`, `/competitor-analysis`, `/market-segments`;
+for direction: `/vision`, `/strategy`.)
 
 ### 1.2 Write the PRD
 
 When the idea has shape:
 
 ```
-/pm-execution:create-prd
+/prd
 ```
 
 Walk through, in this order:
@@ -183,18 +182,13 @@ hyphenated slug) so the folder convention stays intact.
 ### 1.3 Critique it
 
 ```
-/pm-execution:strategy-red-team
+/critique
 ```
 
-Attacks the assumptions, hunts for holes in the logic, challenges the scope.
-
-Then:
-```
-/pm-execution:pre-mortem
-```
-
-"It's 6 months later and this failed, why?" Top 3 failure modes ranked by
-likelihood, with the leading signal you'd see for each.
+Two passes in one skill: a **red-team** that attacks the assumptions, logic, and
+scope, then a **pre-mortem**, "it's 6 months later and this failed, why?", giving
+the top 3 failure modes ranked by likelihood, each with the leading signal you'd
+see early.
 
 **Security pre-mortem (required for sensitive features).** If the feature
 touches authentication, personal data (PII), payments, file uploads, or anything
@@ -215,7 +209,7 @@ Revise the PRD based on the findings. Re-run if the changes were large.
 ### 1.4 Break into user stories
 
 ```
-/pm-execution:user-stories
+/stories
 ```
 
 > "Order them by dependency, what must be built first. Save them into
@@ -264,25 +258,26 @@ on a `docs/` branch if you're on main).
 
 ---
 
-### Bonus PM skills (when the situation calls for it)
+### The rest of the PM set (when the situation calls for it)
 
 | Situation | Skill |
 |---|---|
-| Understand your users | `/pm-market-research:user-personas` |
-| Segment the market | `/pm-market-research:market-segments` |
-| Competitor analysis | `/pm-market-research:competitor-analysis` |
-| Prioritize features | `/pm-product-discovery:prioritize-features` |
-| Metrics / north star | `/pm-product-discovery:metrics-dashboard` |
-| Value proposition | `/pm-product-strategy:value-proposition` |
-| Product strategy / vision | `/pm-product-strategy:product-strategy` |
-| OKRs | `/pm-execution:brainstorm-okrs` |
-| Sprint plan | `/pm-execution:sprint-plan` |
-| GTM / launch | `/pm-go-to-market:gtm-strategy` |
-| Release notes | `/pm-execution:release-notes` |
-| Retrospective | `/pm-execution:retro` |
+| Understand your users | `/personas` (Jobs-to-be-Done) |
+| Make sense of research/feedback | `/interview-synthesis` |
+| Competitor landscape + your wedge | `/competitor-analysis` |
+| Segment the market, pick a beachhead | `/market-segments` |
+| Product vision (north star) | `/vision` |
+| Product strategy (focus + bets) | `/strategy` |
+| Sharpen the value proposition | `/value-proposition` |
+| Set goals | `/okrs` |
+| Prioritize | `/prioritize` (RICE) |
+| Metrics / north-star metric | `/metrics` |
+| Positioning | `/positioning` |
+| Go-to-market / launch | `/gtm` |
+| Release notes | `/release-notes` |
 
-Browse the full list with `/`, every pm-skills plugin namespaces its commands
-(e.g. `pm-execution:`, `pm-market-research:`).
+Browse everything with `/`. These are first-party; the optional pm-skills plugin
+adds its own namespaced `/pm-*` equivalents if you prefer it.
 
 ---
 
@@ -325,12 +320,11 @@ generating 40 stories at once. Instead, scope the PRD to a **thin vertical slice
 (the MVP)** and let stories sequence that slice:
 
 ```
-/pm-product-discovery:brainstorm-ideas-new      → shape the concept
-/pm-product-strategy:product-vision (optional)   → the north star
-/pm-execution:create-prd                          → PRD for the MVP slice ONLY
-/pm-execution:strategy-red-team + :pre-mortem    → pull it apart
-/pm-execution:user-stories                        → decompose the slice,
-                                                     order by dependency
+/brainstorm                → shape the concept
+/vision (optional)         → the north star
+/prd                       → PRD for the MVP slice ONLY
+/critique                  → red-team + pre-mortem, pull it apart
+/stories                   → decompose the slice, order by dependency
    USR-001 data model  →  USR-002 auth  →  USR-003 core flow  → ...
 /build (per story) → review → /merge → next story
 ```
@@ -528,7 +522,7 @@ Future-you (and future teammates) will thank you for the WHY being written down.
 
 ### Definition of Done (every story)
 
-pm-skills stories carry their own acceptance criteria but not a DoD checklist, 
+`/stories` gives each story its own acceptance criteria, but not a DoD checklist,
 this is yours, the same gate for every story before it's "done":
 
 - [ ] Code merged to main via PR
@@ -679,8 +673,8 @@ senior's job: "How do you know it works?" / "Did you actually run it?"
 
 ### Skill & subagent invocation (your current level)
 Invoke explicitly, every time:
-- PM thinking (Phase 1) → the `pm-skills` commands above (`/pm-execution:*`,
-  `/pm-product-discovery:*`, `/pm-market-research:*`, …)
+- PM thinking (Phase 1) → our PM skills (`/brainstorm`, `/prd`, `/critique`,
+  `/stories`, `/prioritize`, ...); the optional pm-skills plugin works too if installed
 - `code-reviewer` subagent → before every commit
 - `architecture-reviewer` subagent → any decision touching multiple modules
 
@@ -696,11 +690,12 @@ trusting auto-invocation.
 | Start a new project | `init-project.sh <name>` → `gh repo create ...` → `claude` |
 | Configure a new project (stack, commands) | `/setup-project` (once per project, first thing) |
 | Import an existing PRD | Paste it, or "Read docs/prds/... and evaluate it" |
-| Triage external requests | `/pm-product-discovery:analyze-feature-requests` |
-| Explore an idea | `/pm-product-discovery:brainstorm-ideas-new` |
-| Write a PRD | `/pm-execution:create-prd` |
-| Challenge a PRD | `/pm-execution:strategy-red-team` then `/pm-execution:pre-mortem` |
-| Create stories | `/pm-execution:user-stories` |
+| Triage external requests | `/interview-synthesis` then `/prioritize` |
+| Explore an idea | `/brainstorm` |
+| Write a PRD | `/prd` |
+| Challenge a PRD | `/critique` (red-team + pre-mortem) |
+| Create stories | `/stories` |
+| Prioritize | `/prioritize` (RICE) |
 | Set up the design system | `/setup-design` (once, after PM, before building UI) |
 | Switch to building / build a story | `/build` (Mode A human-first, or Mode B agents; you approve at the gate) |
 | Check it's really done | "Walk through every acceptance criterion" |

@@ -146,10 +146,10 @@ This system is built for a PM/builder. When working on product topics (not just 
 - When asked to implement something, FIRST check if a PRD or story exists in `/docs/` and read it
 - When proposing implementation, link back to the spec it implements
 
-### Templates
-- PRD and user-story **format is owned by the pm-skills plugins** (`/pm-execution:create-prd`, `/pm-execution:user-stories`), there is no local PRD/story template to copy
-- The only local template is the ADR template in `/docs/templates/` (architecture decisions have no pm-skills equivalent)
-- Whatever pm-skills generates, save it into the `/docs/` structure with the project's naming convention (`PRD-NNN-<slug>.md`, `USR-NNN-<slug>.md`)
+### PM skills (first-party, the default)
+- The PM work is driven by **our own PM skills** (built from public frameworks, credited by name): `/brainstorm`, `/personas`, `/interview-synthesis`, `/competitor-analysis`, `/market-segments`, `/vision`, `/strategy`, `/value-proposition`, `/okrs`, `/prd`, `/critique`, `/stories`, `/prioritize`, `/metrics`, `/positioning`, `/gtm`, `/release-notes`.
+- Save their output into the `/docs/` structure with the naming convention (`PRD-NNN-<slug>.md`, `USR-NNN-<slug>.md`); the ADR template lives in `/docs/templates/`.
+- **pm-skills (phuryn) remains an optional alternative**, if installed, its namespaced `/pm-execution:*`, `/pm-product-discovery:*`, etc. commands still work. Use whichever you prefer; ours is the documented default.
 
 ## Task Management
 For any non-trivial task in a project:
@@ -172,15 +172,15 @@ For any non-trivial task in a project:
 
 ## Subagent and Command Usage
 
-**PM work (Phase 1, discovery & specification) is powered by the `pm-skills` plugins, never by custom commands or subagents:**
+**PM work (Phase 1, discovery & specification) uses our first-party PM skills (the default):**
 
-- **Brainstorm:** `/pm-product-discovery:brainstorm-ideas-new` (or `:brainstorm-ideas-existing`)
-- **Write a PRD:** `/pm-execution:create-prd`
-- **Critique a PRD / direction:** `/pm-execution:strategy-red-team` then `/pm-execution:pre-mortem`
-- **Break into user stories:** `/pm-execution:user-stories`
-- Save the output into the project's `docs/` structure (`docs/prds/`, `docs/stories/`).
+- **Discover:** `/brainstorm`, `/personas`, `/interview-synthesis`, `/competitor-analysis`, `/market-segments`
+- **Strategy:** `/vision`, `/strategy`, `/value-proposition`, `/okrs`
+- **Specify:** `/prd`, then `/critique`, then `/stories`; sequence with `/prioritize`
+- **Measure & launch:** `/metrics`, `/positioning`, `/gtm`, `/release-notes`
+- Save output into the project's `docs/` structure (`docs/prds/`, `docs/stories/`, `docs/research/`).
 
-Do NOT use or recreate any custom PM command (e.g. `/new-prd`) or PM subagent (e.g. `product-critic`). They are retired in favor of pm-skills.
+These are built from public frameworks, credited by name. **pm-skills (phuryn) stays an optional alternative**, its `/pm-*` commands work if installed; ours is the default.
 
 **Dev subagents (invoke proactively when context fits, but I will also invoke explicitly):**
 
