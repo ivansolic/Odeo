@@ -1,34 +1,66 @@
-# Task: make Claude Cofounder a marketplace plugin (agent-first)
+# Task: Phase 2, first-party PM set (own the PM layer)
 
-Reference: EveryInc compound-engineering (skill-driven orchestration). Decisions:
-- Baseline delivery = HYBRID (GitHub install.sh ships global CLAUDE.md; marketplace
-  ships skills/agents with discipline embedded + optional setup step).
-- Migrate commands -> skills NOW (preserve /names; deliberate ones get
-  disable-model-invocation: true to stay explicit).
+Goal/outcome: the system owns its full discovery->spec flow with our own skills,
+built from PUBLIC frameworks in our own words (credited by name), so there is no
+hard dependency on pm-skills. Human-in-command positioning throughout.
 
-## Plan
-- [x] Add `.claude-plugin/plugin.json` manifest
-- [x] CONFIRM end-state repo layout (agents/ + skills/ at root; init-project's reduced role)
-- [x] Migrate `project-templates/commands/*.md` -> `skills/<name>/SKILL.md`
-      (all got disable-model-invocation: true to stay explicit)
-- [x] Consolidate agents to plugin root `agents/`
-- [x] Update dogfood symlinks (.claude/agents -> ../agents; .claude/skills -> ../skills; commands removed)
-- [x] Update `init-project.sh` (scaffolds project-specific only; plugin provides tools)
-- [x] Update `install.sh` (installs skills + agents user-level; still lays baseline)
-- [x] Re-test scaffolding (UI + --no-ui) and the privacy-guard tests, all pass
-- [x] Embed discipline (AGENTS.md canonical + CLAUDE.md shim + rules inline in skill/agent bodies)
-- [x] Update docs (README + INSTALL) for plugin-native layout + AGENTS.md baseline
-- [ ] DEFERRED to the very end (after the whole product is built): marketplace listing
-      (marketplace.json) + `claude --plugin-dir` smoke test + commands->skills namespacing notes in WORKFLOW/BEGINNERS
+Integrity rule: build from public frameworks (Cagan, Torres, ProductCompass-style
+PRD, 3 C's / Jeffries, INVEST / Wake, RICE / Intercom) in OUR words; credit each by
+name; never copy/reword pm-skills text.
 
-## Review
-- Restructured into a plugin-native, agent-first layout: skills/ + agents/ at root,
-  .claude-plugin/plugin.json, AGENTS.md as the canonical baseline, CLAUDE.md shim.
-- Commands migrated to skills (explicit-only via disable-model-invocation).
-- init-project scaffolds project-specific only; install.sh delivers tools globally + baseline.
-- Security preserved and strengthened: baseline now in global/CLAUDE.md + AGENTS.md +
-  project-templates/CLAUDE.md + embedded in skill/agent bodies. Privacy guard intact.
-- Scaffolding (UI + --no-ui) and privacy tests green. Nothing pushed.
+## Proposed scope, core-first in batches
+Batch 1 (the spine WORKFLOW Phase 1 already uses):
+- [ ] brainstorm , divergent discovery; Torres opportunity framing; problem-before-solution
+- [ ] prd , problem-first, measurable outcomes, ProductCompass-style sections
+- [ ] critique , strategy red-team + pre-mortem (incl. security pre-mortem for sensitive features)
+- [ ] stories , INVEST + 3 C's + testable acceptance criteria (UI states folded in)
+- [ ] prioritize , RICE
+Batch 2 (supporting, common): personas, metrics/north-star, vision/strategy (Cagan)
+Batch 3 (later, optional): GTM, release-notes, market/competitor, OKRs, sprint-plan
+
+## Format
+- Each = skills/<name>/SKILL.md in the plugin, explicit (disable-model-invocation: true).
+- Our own prose; each cites its public framework by name in the body.
+- Plain names now (/brainstorm /prd /critique /stories /prioritize); auto-namespaced
+  as claude-cofounder:* when plugin-installed.
+- Outputs save to docs/prds/PRD-NNN, docs/stories/USR-NNN (unchanged convention).
+
+## Integration
+- Update WORKFLOW.md Phase 1 + global CLAUDE.md PM section to use our skills.
+- pm-skills handling: TBD (see decisions) , default to ours; keep pm-skills optional + credited, or remove.
+
+## Decisions (confirmed)
+- Scope: FULL set now (build in batches, depth over shallow stubs).
+- pm-skills: default to OURS; keep pm-skills optional + credited (no big-bang removal).
+- Format: skills/<name>/SKILL.md, disable-model-invocation: true, each cites its public framework by name.
+
+## Full catalog (build order)
+Batch A , Discovery & research:
+- [ ] brainstorm (divergent; Torres opportunity framing; problem-before-solution)
+- [ ] personas (Jobs-to-be-Done, Christensen)
+- [ ] interview-synthesis (continuous discovery, Torres)
+- [ ] competitor-analysis
+- [ ] market-segments (segmentation, TAM/SAM/SOM, ICP)
+Batch B , Strategy:
+- [ ] vision (Cagan)
+- [ ] strategy (insight-driven; Cagan)
+- [ ] value-proposition (Value Proposition Canvas, Osterwalder)
+- [ ] okrs (Doerr)
+Batch C , Specification:
+- [ ] prd (problem-first; ProductCompass-style sections)
+- [ ] critique (strategy red-team + pre-mortem incl. security)
+- [ ] stories (INVEST/Wake + 3 C's/Jeffries + acceptance criteria)
+- [ ] prioritize (RICE; note MoSCoW, value/effort)
+Batch D , Metrics & GTM:
+- [ ] metrics (North Star + AARRR/HEART)
+- [ ] gtm (go-to-market plan)
+- [ ] positioning (April Dunford framework)
+- [ ] release-notes
+
+## Integration (after skills built)
+- [ ] WORKFLOW.md Phase 1 + global CLAUDE.md PM section point at our skills (pm-skills optional/credited)
+- [ ] install.sh / scaffold unaffected (skills ship with plugin); re-run install; scaffold test
+- [ ] dash-check; commit per batch (no push)
 
 ## Review
 (to fill in after)
