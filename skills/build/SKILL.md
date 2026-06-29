@@ -17,6 +17,15 @@ Ask:
 >  - **Myself (human-first):** I prepare the branch + todo and open the editor; you and I build it together, step by step.
 >  - **Agents:** I dispatch a developer agent per story (each in its own worktree); they build end-to-end and present for your approval."
 
+**Plan-first is the default in BOTH modes.** Never build real work without an approved
+plan: Mode A enters plan mode and you approve before building; Mode B has the agent draft
+a plan that you approve before it runs autonomously. Skipping the plan ("straight to
+build") is an explicit opt-in, and only sensible for a trivial fix (which can skip `/build`
+entirely and just be made).
+
+**Editor:** Mode A opens the editor by default (you watch and steer live). Mode B opens
+the worktree(s) only if you ask (you mainly review the finished result), see B4.
+
 ---
 
 ## MODE A: human-first (you build, hands-on)
@@ -56,7 +65,7 @@ Present these as a clear choice, and say what happens if the user just says "go"
   The user triggers parallel by saying so here, or up front when invoking (e.g.
   "/build USR-001 USR-002 in parallel"). If the stories overlap (B1), don't offer
   parallel; explain why and stay sequential.
-- **Oversight.** "Approve each plan before building, or autonomous to presentation?" (default plan-gated if unsure or risky)
+- **Oversight.** **Plan-gated is the default:** the agent drafts a plan, you approve it, THEN it builds autonomously to the success-signal. "Straight to presentation" (skip the plan gate) is an explicit opt-in for trusted/trivial work, never the silent default.
 
 ### B4. Watch in the editor? (optional)
 Offer: "Open the worktree(s) in your editor to watch changes live? A multi-root
