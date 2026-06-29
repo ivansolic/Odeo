@@ -10,7 +10,7 @@ you're valuable and better. Based on April Dunford's framework (Obviously Awesom
 position relative to a chosen market category and the alternatives, not in a vacuum.
 
 ## When to use
-- Before `/gtm` or launch; when prospects misunderstand or undervalue the product.
+- Before `/gtm-plan` or launch; when prospects misunderstand or undervalue the product.
 
 ## Process (Dunford's components)
 1. **Competitive alternatives:** what would the customer use if you didn't exist
@@ -25,7 +25,7 @@ position relative to a chosen market category and the alternatives, not in a vac
 6. **(Optional) trend:** a relevant shift that makes you timely, without overshadowing the value.
 
 ## Output
-A positioning statement + the underlying components, saved under `docs/`. Feeds `/gtm`,
+A positioning statement + the underlying components, saved under `docs/`. Feeds `/gtm-plan`,
 `/release-notes`, and marketing copy.
 
 ## Quality rules

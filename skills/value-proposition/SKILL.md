@@ -27,7 +27,7 @@ Canvas, paired with Jobs-to-be-Done.
    [alternative]." Make it falsifiable, not fluff.
 
 ## Output
-A value-prop canvas + a sharp one-liner, saved under `docs/`. Feeds `/prd`, `/positioning`, `/gtm`.
+A value-prop canvas + a sharp one-liner, saved under `docs/`. Feeds `/prd`, `/positioning`, `/gtm-plan`.
 
 ## Quality rules
 - Map to the **ranked** pains/gains; relieving a trivial pain is not value.

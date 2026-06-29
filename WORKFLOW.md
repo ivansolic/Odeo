@@ -273,7 +273,7 @@ on a `docs/` branch if you're on main).
 | Prioritize | `/prioritize` (RICE) |
 | Metrics / north-star metric | `/metrics` |
 | Positioning | `/positioning` |
-| Go-to-market / launch | `/gtm` |
+| Go-to-market / launch | `/gtm-plan` |
 | Release notes | `/release-notes` |
 
 Browse everything with `/`. These are first-party; the optional pm-skills plugin

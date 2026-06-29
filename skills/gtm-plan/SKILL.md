@@ -1,13 +1,14 @@
 ---
-description: Build a focused go-to-market plan, who you're launching to, the message, the channels, and how you'll know it worked. Use ahead of a launch or a new segment push. Pulls positioning, segments, and metrics together into an action plan.
+description: Build a focused go-to-market PLAN, who you're launching to, the message, the channels, the motion, and how you'll know it worked. Use ahead of a launch or a new segment push. The single GTM artifact; the /go-to-market orchestrator runs the whole launch phase around it.
 disable-model-invocation: true
 ---
 
-# Go-to-market
+# GTM plan
 
 A GTM plan turns a good product into reached customers. It's a **focused** plan for one
 beachhead, not a blast to everyone. Pulls together `/market-segments`, `/positioning`,
-`/value-proposition`, and `/metrics`.
+`/value-proposition`, and `/metrics`. (This is the plan *artifact*; the `/go-to-market`
+orchestrator sequences the full launch phase: positioning -> marketing -> this -> release-notes.)
 
 ## When to use
 - Ahead of a launch, a new feature with audience impact, or entering a new segment.
