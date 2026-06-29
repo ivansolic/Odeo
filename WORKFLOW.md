@@ -488,8 +488,9 @@ Skipping the review or ignoring Criticals = removing your own safety net.
 
 `code-reviewer` covers logic/security; `design-reviewer` covers UI only, 
 usability heuristics, all states (loading/empty/error + hover/focus/disabled),
-accessibility, and design-token adherence (no hardcoded styles). Same Critical →
-Important → Nitpicks rule. Skip it for backend-only changes.
+accessibility, design-token adherence (no hardcoded styles), and **microcopy**
+(button/link labels, error and empty-state copy, the `ux-writing` standards). Same
+Critical → Important → Nitpicks rule. Skip it for backend-only changes.
 
 ### 2.4b Security review (for sensitive changes)
 

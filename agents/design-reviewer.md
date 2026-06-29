@@ -37,6 +37,13 @@ Read the changed UI files and the project's `design/tokens.json`, `CLAUDE.md`
 - Spacing on the scale (no arbitrary values); type scale + hierarchy; alignment;
   touch targets ≥44px; consistent radius/elevation.
 
+### 6. Microcopy / UX writing (apply the `ux-writing` skill's standards)
+- **Buttons/links** name the outcome ("Send invoice"), not "Submit / OK / Learn more / Click here".
+- **Error messages** are plain, blame-free, and say how to fix; **no codes/stack traces/internals** leaked to the user.
+- **Empty/loading/success** states have copy that says what's happening + the next action.
+- **Plain language**, no jargon; scannable (meaning front-loaded); consistent terms (not "project" here, "workspace" there).
+- Tone fits the moment (calm in errors); meaningful link text for screen readers.
+
 ## Output format
 ```
 ## Summary

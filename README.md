@@ -62,7 +62,8 @@ claude-cofounder/
 │   ├── setup-project/        ← /setup-project onboarding interview
 │   ├── setup-design/         ← /setup-design design-system/tokens setup (UI)
 │   ├── test-driven-development/ ← auto-applies to logic (RED-GREEN-REFACTOR)
-│   └── ux-design/            ← auto-applies to UI (heuristics, states, a11y)
+│   ├── ux-design/            ← auto-applies to UI (heuristics, states, a11y)
+│   └── ux-writing/           ← auto-applies to UI copy (microcopy, errors, NN/g)
 ├── agents/                   ← subagents (separate-context executors)
 │   ├── developer.md          ← builds one story end-to-end in its own worktree
 │   ├── code-reviewer.md      ← code, functions, security
@@ -99,7 +100,7 @@ claude-cofounder/
 - **`/setup-project`**, interviews you about your stack, commands, and data, then fills the project config. Run once per project.
 - **First-party PM skills**, a full set built from public frameworks (credited by name), spanning the lifecycle: **discovery** (`/brainstorm`, `/personas`, `/interview-synthesis`, `/competitor-analysis`, `/market-segments`, `/opportunity-solution-tree`, `/customer-journey-map`, `/experiments`), **strategy & viability** (`/vision`, `/strategy`, `/value-proposition`, `/okrs`, `/business-model`, `/pricing`), **planning** (`/prioritize`, `/roadmap`, `/stakeholder-map`), **spec** (`/prd`, `/critique`, `/stories`), **metrics & analytics** (`/metrics`, `/ab-test`, `/cohorts`, `/query`), and **launch & growth** (`/positioning`, `/marketing`, `/gtm-plan`, `/release-notes`, `/growth-loops`, `/battlecard`, `/product-name`). Four **orchestrators** chain them with human gates: **`/discover` -> `/plan` -> `/spec` -> `/go-to-market`**. The [pm-skills](https://github.com/phuryn/pm-skills) plugin is an optional alternative.
 - **TDD skill**, auto-applies test-first to backend logic, stays out of the way on UI.
-- **Design layer**, a `ux-design` skill (usability heuristics, UX laws, UI states, accessibility) that auto-applies to UI; **design tokens** (`design/tokens.json`, DTCG) as the styling source of truth, set up by `/setup-design` and compiled to your stack; a `design-reviewer` subagent for UI review. Optional per project (`init-project.sh --no-ui` skips it).
+- **Design layer**, two auto-applying skills, `ux-design` (usability heuristics, UX laws, UI states, accessibility) and `ux-writing` (microcopy: button/link labels, error and empty-state copy, voice and tone, NN/g-based); **design tokens** (`design/tokens.json`, DTCG) as the styling source of truth, set up by `/setup-design`; a `design-reviewer` subagent that reviews layout, states, a11y, tokens, and microcopy. Optional per project (`init-project.sh --no-ui` skips it).
 - **Hybrid agentic build** (`/build`), one entry, two modes. Human-first: branch, seed todo, open editor, plan and build with you step by step. Agents: dispatch a `developer` per story, each end-to-end (plan, TDD build, verify, review) in its own git worktree, single or parallel, with the oversight you pick. Either way you hold the gates. **`/merge`** then integrates an approved branch with a clean linear history (rebase onto main, tests, merge, cleanup).
 - **Compounding knowledge** (`/learn`, `/knowledge-refresh`, `knowledge/`), verified solved problems become a reusable, maintained knowledge base that Claude consults before non-trivial work, so the system gets smarter per story. `/learn` shows the draft before writing.
 - **Community knowledge** (`/contribute-lesson`), opt-in, share a sanitized, generalized lesson with the shared knowledge base so the whole system gets smarter; on update you get back the curated knowledge of all contributors. Approval-gated, nothing leaves your machine without your OK.
