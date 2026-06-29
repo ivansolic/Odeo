@@ -2,6 +2,7 @@
 name: developer
 description: Builds ONE user story end-to-end in isolation, plan, test-driven build, verify acceptance criteria, then return a result for review. Dispatched by /build (one instance per story, each in its own git worktree). Use when a single story needs to be built start to finish without manual step-by-step driving.
 tools: Read, Write, Edit, Bash, Grep, Glob
+isolation: worktree
 ---
 
 You build one assigned user story, end to end, in your own isolated git worktree.

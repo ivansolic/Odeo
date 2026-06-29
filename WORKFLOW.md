@@ -423,6 +423,44 @@ you jump to reviewing their results (2.3 onward) before `/merge`.
 
 ---
 
+## Parallel work (the agent fleet)
+
+The principle the Claude Code team converged on: **one focused, isolated context per
+task beats one session juggling everything** (Cat Wu's "context minimalism"; Boris
+Cherny's isolated worktrees). Boris's single biggest productivity tip: *"spin up 3 to 5
+git worktrees at once, each running its own Claude session in parallel."* A **git
+worktree** is one repo checked out into several separate folders, each on its own branch,
+so agents never trample each other's files.
+
+You can run a fleet two ways (both give the same win, focused + isolated agents):
+
+```
+Way 1, ONE session, background agents (Mode B parallel, easiest):
+  [tab: claude]
+      ├─ dispatches → developer A → worktree (background)   (developer has isolation: worktree)
+      ├─ dispatches → developer B → worktree (background)
+      └─ you watch + approve results in one place (Claude Code's "agent view")
+
+Way 2, MANY sessions, one per task (hands-on; Boris's original "6 tabs" setup):
+  [tab 1: claude --worktree  → feature/auth]
+  [tab 2: claude --worktree  → feature/billing]
+  (you drive each; --worktree gives each its own isolated checkout)
+```
+
+Built-in tools (use these, don't rebuild them): `claude --worktree` (own checkout),
+`--tmux` (own session), the **agent view** (one screen: running / needs input / ready /
+done), and `/batch` (fan out to many worktree agents). Our `developer` agent has
+`isolation: worktree`, so dispatched agents are isolated automatically.
+
+**When to parallelize, and the gotchas:**
+- Only **independent** tasks (different files/modules). `/build` runs an independence check first; coupled work stays sequential (one agent), or you get merge conflicts.
+- Each worktree needs its **own `node_modules` and `.env`** (not shared); don't run two dev servers on the **same port**.
+- Integrate **serially**: `/merge` rebases each branch onto an up-to-date main, one at a time, so conflicts surface cleanly.
+- Keep each agent's context **lean**, let it pull from `knowledge/` on demand rather than front-loading everything (context minimalism).
+- The human floor holds: every branch still merges only with your approval.
+
+---
+
 ## PHASE 2: DEVELOPMENT, One Story at a Time
 
 ### The iron rule
