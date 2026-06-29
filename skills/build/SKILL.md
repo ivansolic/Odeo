@@ -25,9 +25,10 @@ For one story at a time. The safest mode and the right default while learning.
 2. `git checkout main && git pull`, then `git checkout -b feature/<slug>`.
 3. Seed `.claude/tasks/todo.md` with the task, context, and key decisions.
 4. Open the editor: `code .` (if `code` is missing, say so and skip).
-5. Enter plan mode (Shift+Tab twice), draft the implementation plan, you approve, then build together (TDD for logic, ux-design for UI, follow CLAUDE.md + security baseline).
-6. Verify every acceptance criterion. Then `code-reviewer` (and `design-reviewer` if UI).
-7. Integrate with `/merge` (rebase onto main, tests, merge PR, cleanup).
+5. **Agree the success-signal (the loop's stop condition):** what "done" means here, every acceptance criterion + tests/lint/typecheck green + any quality targets (in plain language: "loads fast", "works for keyboard/screen-reader users"). Default is just the acceptance criteria + tests; add targets only if they matter.
+6. Enter plan mode (Shift+Tab twice), draft the implementation plan, you approve, then build together (TDD for logic, ux-design + ux-writing for UI, follow CLAUDE.md + security baseline). Loop build -> check the success-signal -> fix -> repeat; stop and report if stuck after a few tries.
+7. Verify every success-signal item. Then `code-reviewer` (and `design-reviewer` if UI).
+8. Integrate with `/merge` (rebase onto main, tests, merge PR, cleanup).
 
 ---
 
@@ -65,10 +66,11 @@ the terminal." If yes, open the worktree folders with `code`.
 ### B5. Dispatch
 Dispatch the **`developer` agent**, one instance per story, each in its own git
 worktree + branch (built-in agent worktree isolation; parallel = background
-agents). Each `developer` runs the full pipeline: read story, consult `knowledge/`,
-confirm a green baseline, plan (gated or autonomous), TDD + ux-design build,
-verify acceptance criteria, return a result. Then run `code-reviewer` (plus
-`design-reviewer` if UI) on each result.
+agents). Each `developer` runs the full pipeline: read story, define its
+**success-signal**, consult `knowledge/`, confirm a green baseline, plan (gated or
+autonomous), TDD + ux-design/ux-writing build, then **loop to the success-signal**
+(stop and report if stuck after a few tries), and return a result with a pass/fail
+checklist. Then run `code-reviewer` (plus `design-reviewer` if UI) on each result.
 
 ### B6. Present per story
 Summary + diff, acceptance-criteria walkthrough, reviewer verdicts (Critical /
