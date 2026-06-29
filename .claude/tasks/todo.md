@@ -63,4 +63,15 @@ Batch D , Metrics & GTM:
 - [ ] dash-check; commit per batch (no push)
 
 ## Review
-(to fill in after)
+Shipped the full first-party PM set (17 skills) built from public frameworks, each
+credited by name (Torres, JTBD/Christensen, Cagan, Osterwalder, Doerr/Grove, Wake,
+Jeffries, RICE/Intercom, McClure, Google HEART, Dunford):
+- Discovery: brainstorm, personas, interview-synthesis, competitor-analysis, market-segments
+- Strategy: vision, strategy, value-proposition, okrs
+- Spec: prd, critique, stories, prioritize
+- Metrics/GTM: metrics, positioning, gtm, release-notes
+All plugin skills (disable-model-invocation). Integration: global CLAUDE.md, WORKFLOW,
+README, INSTALL, install.sh, project-CLAUDE + preset all default to OUR skills; pm-skills
+kept as a credited optional alternative (its install step is now optional). install.sh
+ships them user-level; scaffold + privacy tests green. Did NOT copy pm-skills text.
+Deferred (very end): marketplace listing; the end-to-end dogfood test.
