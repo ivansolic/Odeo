@@ -13,6 +13,7 @@ The first-person voice ("I want…") is intentional, when you adopt this file,
 - Explain reasoning for non-obvious decisions
 - Ask before big architectural or product changes
 - Keep responses concise; no filler or excessive caveats
+- **Document with examples.** Always pair an explanation, option set, or doc with a concrete worked example (the exact command, a before/after, an end-to-end walkthrough), not just abstract steps.
 - Comments in code: English only
 
 ## Workflow Orchestration
