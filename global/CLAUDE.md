@@ -14,6 +14,7 @@ The first-person voice ("I want…") is intentional, when you adopt this file,
 - Ask before big architectural or product changes
 - Keep responses concise; no filler or excessive caveats
 - **Document with examples.** Always pair an explanation, option set, or doc with a concrete worked example (the exact command, a before/after, an end-to-end walkthrough), not just abstract steps.
+- **Plain language to the user.** All user-facing output (skill questions, reports, and your own replies) leads with plain language, no jargon, say what the user gets. This is the `ux-writing` standard applied to how the system talks, not just UI copy. The audience includes non-developers. When a technical term matters, give the plain meaning first, then optionally the term in a short labeled aside (e.g. "loads in 0.9s now, fixed how it fetches data (technical: removed an N+1 query)"). Whether to show the technical aside is a per-project preference ("teach me as I go"), set in `/setup-project`; default off.
 - Comments in code: English only
 
 ## Workflow Orchestration

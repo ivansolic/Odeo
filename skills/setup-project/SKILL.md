@@ -77,6 +77,14 @@ add a recommendation there unless the user asked for one.
 - If they have none yet, say you'll fill in sensible defaults for the stack and
   they can refine later.
 
+**F2. How should I talk to you? (plain language preference)**
+> "I always explain things in plain language. Do you also want me to teach you the
+>  technical terms as we go, the plain explanation first, then the technical name in
+>  a short aside (e.g. 'fixed how it fetches data (technical: removed an N+1 query)')?
+>  - **Teach me as I go:** I add the technical term so you learn it.
+>  - **Just keep it plain:** I skip the technical aside."
+Record this as `teach_me_as_i_go: yes|no` in the CLAUDE.md Conventions section (default no).
+
 **G. Security & Data** (do not skip, fills the Security & Data section):
 First tell the user:
 
