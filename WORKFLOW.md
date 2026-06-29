@@ -721,6 +721,7 @@ trusting auto-invocation.
 | Take it to market (launch) | `/go-to-market` (positioning -> marketing -> gtm-plan -> release-notes) |
 | Price it / model the business | `/pricing` · `/business-model` |
 | Analyze a test / retention | `/ab-test` · `/cohorts` · `/query` |
+| Speed up something slow | `/optimize` (measure -> change -> re-measure; never guess) |
 | Set up the design system | `/setup-design` (once, after PM, before building UI) |
 | Switch to building / build a story | `/build` (Mode A human-first, or Mode B agents; you approve at the gate) |
 | Check it's really done | "Walk through every acceptance criterion" |

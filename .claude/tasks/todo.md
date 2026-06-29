@@ -62,6 +62,22 @@ Batch D , Metrics & GTM:
 - [ ] install.sh / scaffold unaffected (skills ship with plugin); re-run install; scaffold test
 - [ ] dash-check; commit per batch (no push)
 
+## Review (loops + plain-language, calibrated to leaders)
+Researched how leaders do autonomy (Cherny/Wu loop engineering + verifiers; Steinberger
+"a loop that can't stop is just expensive"; Claire Vo's oversight warnings; consensus
+"orchestration > autonomy", DORA: more autonomy without guardrails = more bugs). We were
+already aligned on the orchestration/verifier/human-floor side; iterated lightly:
+- Plain-language-to-user rule system-wide (ux-writing applied to all system output + replies),
+  plain first + optional labeled technical aside; "teach me as I go" preference in /setup-project
+  (default off). Ivan's personal pref = ON (saved to memory).
+- AGENTS.md principle: every loop has a verifier + explicit stop (done-signal + max iterations).
+- Option 1: developer + /build define an explicit success-signal and loop to it with a bounded
+  stop + pass/fail checklist (default = acceptance criteria + tests; quality targets opt-in).
+- Option 4: /outcome auto-drafts a /learn entry (approval-gated), proposes knowledge promote/
+  demote, suggests next step (e.g. /optimize); nothing auto-runs across a gate.
+- Option 2: /optimize, grounded performance loop (measure -> change -> re-measure -> keep if better).
+51 skills installed; scaffold + privacy tests green; nothing pushed.
+
 ## Review (expansion, full set)
 Expanded to the full PM catalog (34 skills + 4 orchestrators). Added: Batch E
 (opportunity-solution-tree, roadmap, customer-journey-map, pricing, business-model,
