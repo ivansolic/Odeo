@@ -10,10 +10,19 @@ rules are also embedded in their bodies so they hold even when this file is abse
 - **Commands/skills orchestrate; agents execute.** A skill is the entry point; it
   dispatches specialized agents (e.g. `developer`, `code-reviewer`) that do the
   heavy work in isolation and return a result. The human holds the gates.
-- The lifecycle: discovery, PRD, design, `/build`, review, `/merge`, `/outcome`,
-  `/learn`. Each step is explicit; nothing fires blindly.
+- The lifecycle, top-down by altitude, each step explicit, nothing fires blindly:
+  **`/discover` -> `/plan` (prioritize -> roadmap) -> `/spec` (prd -> critique -> stories)
+  -> `/build` -> `/merge` -> `/outcome` -> `/go-to-market`** (loop back to `/plan`).
+  Incremental feature: skip to `/spec`. Trivial fix: just `/build`. These orchestrators
+  chain the first-party PM skills; each is also runnable standalone.
+- **Two altitudes of prioritization:** `/prioritize` + `/roadmap` rank *which epics*
+  (value, portfolio level); `/stories` orders *which stories within an epic* (by
+  dependency). Never conflate them.
 - `/build` runs human-first (Mode A) or dispatches `developer` agents in isolated
-  git worktrees (Mode B, one per story, single or parallel). You approve every gate.
+  git worktrees (Mode B, one per story, single or parallel).
+- **Autonomy is a dial; the human holds the gates.** Agents can work autonomously up
+  to a gate, but **merge-to-main, ship, and sending data out always require human
+  approval.** Human-in-command leverage, never a zero-human autonomous loop.
 
 ## Security baseline (applies to ALL code, non-negotiable)
 - Validate all input at the boundary; allowlist over blocklist.
@@ -50,10 +59,13 @@ rules are also embedded in their bodies so they hold even when this file is abse
 ## Knowledge (local + community)
 - Before non-trivial work, search the project's `knowledge/` (and
   `~/.claude/community-knowledge/` if present) and reuse a documented solution.
-- Capture verified, non-trivial, reusable solutions with `/learn` (shows the draft
-  before writing); maintain with `/knowledge-refresh`.
-- `~/.claude/community-knowledge/` is read-only; contribute only via
-  `/contribute-lesson` (opt-in, sanitized, approval-gated).
+- The knowledge family: **`/learn`** (write a verified lesson to local `knowledge/`,
+  shows the draft first) · **`/knowledge-refresh`** (audit/prune local) ·
+  **`/contribute-lesson`** (send a sanitized lesson OUT, opt-in, privacy-scanned,
+  approval-gated) · **`/sync-community`** (pull the shared base IN; read-only).
+- `~/.claude/community-knowledge/` is read-only here; only `/contribute-lesson` writes
+  to it (via PR + maintainer curation). What's private vs shared: your memory and local
+  `knowledge/` stay on your machine; only an approved, sanitized lesson ever leaves.
 
 ## Privacy
 - Nothing private leaves the machine without explicit approval. `/contribute-lesson`

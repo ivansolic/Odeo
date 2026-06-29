@@ -62,7 +62,21 @@ Batch D , Metrics & GTM:
 - [ ] install.sh / scaffold unaffected (skills ship with plugin); re-run install; scaffold test
 - [ ] dash-check; commit per batch (no push)
 
-## Review
+## Review (expansion, full set)
+Expanded to the full PM catalog (34 skills + 4 orchestrators). Added: Batch E
+(opportunity-solution-tree, roadmap, customer-journey-map, pricing, business-model,
+experiments, stakeholder-map), analytics (ab-test, cohorts, query), marketing/growth
+(marketing, product-name, growth-loops, battlecard), /sync-community, and orchestrators
+/discover, /plan, /spec, /go-to-market. Renamed /gtm -> /gtm-plan (freed /go-to-market).
+Each skill cites a named public framework + a worked example. Two-altitude prioritization
+(epics via /prioritize+/roadmap; stories via dependency in /stories) and the autonomy
+floor (merge/ship/send-out always human-gated) wired in. Docs integrated: README ("your
+data: private vs shared" + full catalog + orchestrators), WORKFLOW (full PM set by phase,
+order-at-a-glance + freelancer worked example, quick-ref rows), AGENTS (lifecycle order,
+two-altitude, autonomy floor, knowledge family). 49 skills installed; scaffold + privacy
+tests green; nothing pushed.
+
+## Review (original core)
 Shipped the full first-party PM set (17 skills) built from public frameworks, each
 credited by name (Torres, JTBD/Christensen, Cagan, Osterwalder, Doerr/Grove, Wake,
 Jeffries, RICE/Intercom, McClure, Google HEART, Dunford):

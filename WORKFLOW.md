@@ -258,26 +258,43 @@ on a `docs/` branch if you're on main).
 
 ---
 
-### The rest of the PM set (when the situation calls for it)
+### The full PM set (by lifecycle phase)
 
-| Situation | Skill |
-|---|---|
-| Understand your users | `/personas` (Jobs-to-be-Done) |
-| Make sense of research/feedback | `/interview-synthesis` |
-| Competitor landscape + your wedge | `/competitor-analysis` |
-| Segment the market, pick a beachhead | `/market-segments` |
-| Product vision (north star) | `/vision` |
-| Product strategy (focus + bets) | `/strategy` |
-| Sharpen the value proposition | `/value-proposition` |
-| Set goals | `/okrs` |
-| Prioritize | `/prioritize` (RICE) |
-| Metrics / north-star metric | `/metrics` |
-| Positioning | `/positioning` |
-| Go-to-market / launch | `/gtm-plan` |
-| Release notes | `/release-notes` |
+**Discovery & research:** `/brainstorm` · `/personas` (JTBD) · `/interview-synthesis` · `/competitor-analysis` · `/market-segments` · `/opportunity-solution-tree` (Torres) · `/customer-journey-map` · `/experiments` (assumption tests, Ries + Cagan's 4 risks)
+**Strategy & viability:** `/vision` · `/strategy` (Cagan) · `/value-proposition` · `/okrs` · `/business-model` (Lean/Business Model Canvas) · `/pricing` (value-based)
+**Planning (portfolio):** `/prioritize` (RICE) · `/roadmap` (now/next/later) · `/stakeholder-map`
+**Spec (feature):** `/prd` · `/critique` (red-team + pre-mortem) · `/stories` (INVEST + 3 C's)
+**Metrics & analytics:** `/metrics` (North Star) · `/ab-test` · `/cohorts` · `/query` (NL->SQL)
+**Launch & growth:** `/positioning` (Dunford) · `/marketing` · `/gtm-plan` · `/release-notes` · `/growth-loops` · `/battlecard` · `/product-name`
 
-Browse everything with `/`. These are first-party; the optional pm-skills plugin
-adds its own namespaced `/pm-*` equivalents if you prefer it.
+**Orchestrators (chain the above, with a human gate between each step):**
+`/discover` (front funnel) -> `/plan` (prioritize -> roadmap) -> `/spec` (prd -> critique -> stories) -> `/go-to-market` (positioning -> marketing -> gtm-plan -> release-notes).
+
+Browse everything with `/`. All first-party (built from named public frameworks);
+the optional pm-skills plugin adds its own namespaced `/pm-*` equivalents if you prefer it.
+
+### The order, at a glance
+The lifecycle runs top-down by altitude: understand, decide, define, build, measure, launch.
+```
+NEW PRODUCT (full):
+  /discover  ->  strategy (/vision /strategy /market-segments /business-model /pricing)
+            ->  /plan (/prioritize -> /roadmap)
+            ->  per epic in roadmap order: /spec (/prd -> /critique -> /stories)
+            ->  /build -> /merge -> /outcome   (loop to /plan for the next epic)
+            ->  /go-to-market when an epic is ready for users
+INCREMENTAL FEATURE: skip to /spec -> /build -> /outcome
+TRIVIAL FIX:         just /build
+```
+**Worked example (new product: freelancer billable-time tracker):** `/discover` finds the
+opportunity (invoicing is a chore) -> `/plan` ranks epics and roadmaps them (NOW capture
+time, NEXT invoicing) -> `/spec` the MVP "capture time" (`/prd` -> `/critique` -> `/stories`
+ordered by dependency: data model -> timer -> tagging) -> `/build` each -> `/outcome` ->
+loop to `/plan` for invoicing -> `/go-to-market` at launch.
+
+**Two altitudes of prioritization (don't confuse them):** `/prioritize` + `/roadmap` rank
+*which epics* (value, portfolio level); `/stories` orders *which stories within an epic* (by
+dependency, not value). Every step is human-gated; merge-to-main, ship, and send-out always
+need your approval.
 
 ---
 
@@ -691,11 +708,18 @@ trusting auto-invocation.
 | Configure a new project (stack, commands) | `/setup-project` (once per project, first thing) |
 | Import an existing PRD | Paste it, or "Read docs/prds/... and evaluate it" |
 | Triage external requests | `/interview-synthesis` then `/prioritize` |
+| Run the whole discovery cycle | `/discover` (brainstorm -> personas -> journey -> OST -> experiments) |
 | Explore an idea | `/brainstorm` |
+| De-risk before building | `/experiments` (assumption tests) |
+| Plan the portfolio | `/plan` (`/prioritize` -> `/roadmap`) |
+| Spec one feature | `/spec` (`/prd` -> `/critique` -> `/stories`) |
 | Write a PRD | `/prd` |
 | Challenge a PRD | `/critique` (red-team + pre-mortem) |
 | Create stories | `/stories` |
-| Prioritize | `/prioritize` (RICE) |
+| Prioritize epics / roadmap | `/prioritize` (RICE) · `/roadmap` (now/next/later) |
+| Take it to market (launch) | `/go-to-market` (positioning -> marketing -> gtm-plan -> release-notes) |
+| Price it / model the business | `/pricing` · `/business-model` |
+| Analyze a test / retention | `/ab-test` · `/cohorts` · `/query` |
 | Set up the design system | `/setup-design` (once, after PM, before building UI) |
 | Switch to building / build a story | `/build` (Mode A human-first, or Mode B agents; you approve at the gate) |
 | Check it's really done | "Walk through every acceptance criterion" |
@@ -711,6 +735,7 @@ trusting auto-invocation.
 | Capture a reusable solved problem | `/learn` (verified + non-trivial only; shows draft first) |
 | Keep the knowledge base current | `/knowledge-refresh` |
 | Share a lesson with the community | `/contribute-lesson` (opt-in, sanitized, approval-gated) |
+| Pull the latest community knowledge | `/sync-community` (vs `/plugin update` for the tooling) |
 | Check a shipped feature's outcome | `/outcome` (about a week after shipping, real data only) |
 | Resume yesterday's session | `claude --continue` |
 | Claude is stuck/looping | "Stop. Enter plan mode. Reinvestigate from scratch." |
