@@ -9,6 +9,7 @@ The first-person voice ("I want…") is intentional, when you adopt this file,
 # Global Instructions
 
 ## Communication
+- For any non-trivial answer or recommendation, think it through 2-3 times and **challenge your own reasoning before responding** (is it redundant? wrong? is there a cleaner option? what would I push back on?). Self-critique first; don't ship a fast first draft.
 - Explain reasoning for non-obvious decisions
 - Ask before big architectural or product changes
 - Keep responses concise; no filler or excessive caveats
