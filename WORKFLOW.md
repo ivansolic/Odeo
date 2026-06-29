@@ -425,12 +425,11 @@ you jump to reviewing their results (2.3 onward) before `/merge`.
 
 ## Parallel work (the agent fleet)
 
-The principle the Claude Code team converged on: **one focused, isolated context per
-task beats one session juggling everything** (Cat Wu's "context minimalism"; Boris
-Cherny's isolated worktrees). Boris's single biggest productivity tip: *"spin up 3 to 5
-git worktrees at once, each running its own Claude session in parallel."* A **git
-worktree** is one repo checked out into several separate folders, each on its own branch,
-so agents never trample each other's files.
+The principle: **one focused, isolated context per task beats one session juggling
+everything** (less clutter in the agent's head means better work, "context minimalism").
+A widely shared productivity tip: **spin up 3 to 5 git worktrees at once, each running its
+own session in parallel.** A **git worktree** is one repo checked out into several separate
+folders, each on its own branch, so agents never trample each other's files.
 
 You can run a fleet two ways (both give the same win, focused + isolated agents):
 
@@ -441,7 +440,7 @@ Way 1, ONE session, background agents (Mode B parallel, easiest):
       ├─ dispatches → developer B → worktree (background)
       └─ you watch + approve results in one place (Claude Code's "agent view")
 
-Way 2, MANY sessions, one per task (hands-on; Boris's original "6 tabs" setup):
+Way 2, MANY sessions, one per task (hands-on; the classic "several tabs" setup):
   [tab 1: claude --worktree  → feature/auth]
   [tab 2: claude --worktree  → feature/billing]
   (you drive each; --worktree gives each its own isolated checkout)
