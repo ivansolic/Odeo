@@ -11,11 +11,19 @@ Ask which stories to build (paths in `docs/stories/`), or use the ones named.
 For each, confirm it is ready: a description and testable acceptance criteria.
 If a story is not ready, stop and say what is missing.
 
-## 2. Pick the mode
-Ask:
-> "How do you want to build?
->  - **Myself (human-first):** I prepare the branch + todo and open the editor; you and I build it together, step by step.
+## 2. Pick the mode (guided, the user need not know the modes)
+First ask a plain diagnostic and recommend, so a non-expert can choose well:
+> "Is this work clearly defined (clear acceptance criteria, you know what's needed), or
+>  still fuzzy / exploratory (not sure yet how it should look)?
+>  - **Clear + independent** -> I recommend **Agents (Mode B)**: an agent builds it, you review the result. Faster, parallelizable.
+>  - **Fuzzy / you want to steer** -> I recommend **Myself (Mode A)**: we build together, you correct as we go.
+>  (Why: fuzzy work goes better when you steer live, you catch a wrong turn early.)"
+
+Then the modes themselves:
+> "  - **Myself (human-first):** I prepare the branch + todo and open the editor; you and I build it together, step by step.
 >  - **Agents:** I dispatch a developer agent per story (each in its own worktree); they build end-to-end and present for your approval."
+
+The user picks (or names the mode directly); default toward Mode A while learning.
 
 **Plan-first is the default in BOTH modes.** Never build real work without an approved
 plan: Mode A enters plan mode and you approve before building; Mode B has the agent draft
@@ -31,11 +39,15 @@ the worktree(s) only if you ask (you mainly review the finished result), see B4.
 ## MODE A: human-first (you build, hands-on)
 For one story at a time. The safest mode and the right default while learning.
 1. Verify the spec is ready (problem, outcome/acceptance criteria, scope). If gaps, say so and ask to fill or proceed.
-2. `git checkout main && git pull`, then `git checkout -b feature/<slug>`.
+2. **Set up the workspace.** Run `git worktree list`. If OTHER active worktrees exist (you're working in parallel with another session), ask:
+   > "Build in a separate worktree (isolated, recommended when you're working in parallel) or here in the current folder?"
+   - separate -> `git worktree add ../<slug> -b feature/<slug>` and work there (own folder + branch).
+   - here, or no other worktrees -> `git checkout main && git pull`, then `git checkout -b feature/<slug>`.
+   (If other worktrees exist, also run `worktree-parallel-check` first so this story doesn't clash with in-progress work.)
 3. Seed `.claude/tasks/todo.md` with the task, context, and key decisions.
 4. Open the editor: `code .` (if `code` is missing, say so and skip).
 5. **Agree the success-signal (the loop's stop condition):** what "done" means here, every acceptance criterion + tests/lint/typecheck green + any quality targets (in plain language: "loads fast", "works for keyboard/screen-reader users"). Default is just the acceptance criteria + tests; add targets only if they matter.
-6. Enter plan mode (Shift+Tab twice), draft the implementation plan, you approve, then build together (TDD for logic, ux-design + ux-writing for UI, follow CLAUDE.md + security baseline). Loop build -> check the success-signal -> fix -> repeat; stop and report if stuck after a few tries.
+6. **Plan first, I prompt you and I wait.** Tell the user on screen: *"press Shift+Tab twice (plan mode), I'll draft the steps and wait for your OK before writing any code."* In plan mode, draft the step-by-step plan and present it; **write no code until the user approves.** Approving the plan exits plan mode automatically and building starts (if they want changes, revise and re-present). Then build together (TDD for logic, ux-design + ux-writing for UI, follow AGENTS.md/CLAUDE.md + security baseline), looping build -> check the success-signal -> fix; stop and report if stuck after a few tries.
 7. Verify every success-signal item. Then `code-reviewer` (and `design-reviewer` if UI).
 8. Integrate with `/merge` (rebase onto main, tests, merge PR, cleanup).
 
@@ -44,10 +56,12 @@ For one story at a time. The safest mode and the right default while learning.
 ## MODE B: agents (dispatch, you approve)
 For one or several stories.
 
-### B1. Independence check (before parallel)
-Inspect whether the chosen stories touch overlapping files/modules. If they
-overlap, WARN and recommend sequential (parallel risks merge conflicts). Parallel
-is only safe for independent stories. Scope by module, not by task.
+### B1. Overlap check (before parallel), run `worktree-parallel-check`
+Run the `worktree-parallel-check` logic: compare the chosen stories against each other
+AND against any **other active worktrees** (other sessions/agents in progress, via
+`git worktree list` + their changed files). If anything overlaps, WARN and recommend
+sequential or a non-overlapping alternative. Parallel is only safe for independent work.
+It states its limit (estimate + `/merge` as the backstop). Scope by module, not by task.
 
 ### B2. Propose a build order (by dependency)
 Order the stories by technical dependency (data model before the feature that
