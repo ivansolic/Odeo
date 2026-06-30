@@ -141,11 +141,21 @@ would block it.
 > **The golden order:** set the stage first (normal mode), *then* think (plan
 > mode), *then* build (normal mode).
 >
-> `/build` (DO) → `Shift+Tab` to plan mode (THINK) → approve → `Shift+Tab`
-> back (BUILD)
+> `/build` (DO) → `Shift+Tab` twice to plan mode (THINK) → Claude drafts the plan →
+> you **approve** (approving **automatically exits** plan mode) → it BUILDS.
+
+You don't manually switch back: approving the plan exits plan mode for you. And in
+Mode A, `/build` **tells you on screen** to press `Shift+Tab` and **waits**, it won't
+write code before you approve, so you can't forget.
 
 If you remember one thing: **set the stage in normal mode, plan in plan mode,
 build in normal mode.**
+
+### Three things called "plan", don't mix them up
+- **a plan** = the *list of steps* ("1. data model, 2. timer, ..."). Claude writes it; you approve it before code.
+- **plan mode** = the `Shift+Tab` *safety switch* that stops Claude from touching files while you review that list. (Optional lock; in Mode B the background agent doesn't use it, it just shows its plan and waits.)
+- **`/plan`** = a *PM skill* (a different thing): it prioritizes and roadmaps which features to build, way upstream, before any code.
+- (And **`todo.md`** = the saved checklist that carries your task across sessions; `/build` writes it for you.)
 
 ---
 

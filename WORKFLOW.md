@@ -436,26 +436,28 @@ You can run a fleet two ways (both give the same win, focused + isolated agents)
 ```
 Way 1, ONE session, background agents (Mode B parallel, easiest):
   [tab: claude]
-      ├─ dispatches → developer A → worktree (background)   (developer has isolation: worktree)
-      ├─ dispatches → developer B → worktree (background)
-      └─ you watch + approve results in one place (Claude Code's "agent view")
+      ├─ dispatches → developer A → own worktree (background)   (developer has isolation: worktree)
+      ├─ dispatches → developer B → own worktree (background)
+      └─ you watch + approve results in one place (the agent view, see below)
 
 Way 2, MANY sessions, one per task (hands-on; the classic "several tabs" setup):
-  [tab 1: claude --worktree  → feature/auth]
-  [tab 2: claude --worktree  → feature/billing]
-  (you drive each; --worktree gives each its own isolated checkout)
+  [tab 1: claude --worktree feature-auth]      → you drive auth
+  [tab 2: claude --worktree feature-billing]   → you drive billing
+  (each gets its own isolated checkout under .claude/worktrees/<name>/)
 ```
 
-Built-in tools (use these, don't rebuild them): `claude --worktree` (own checkout),
-`--tmux` (own session), the **agent view** (one screen: running / needs input / ready /
-done), and `/batch` (fan out to many worktree agents). Our `developer` agent has
-`isolation: worktree`, so dispatched agents are isolated automatically.
+Built-in Claude Code tools (use these, don't rebuild them; all work in any terminal like Ghostty, no desktop app needed):
+- **`claude agents`** , opens the **agent view**: a full-screen terminal dashboard of your background sessions (which are running / need input / done / their PR status). Enter to attach, Space to peek, type to dispatch a new one. Your main fleet control.
+- **`claude --bg "task"`** , start a background agent from the shell; **`claude --worktree <name>`** , an interactive session in its own isolated worktree; **`claude attach|logs|stop <id>`** , manage a background session.
+- Our `developer` agent has `isolation: worktree`, so dispatched agents are isolated automatically. To check what's safe to parallelize, run **`worktree-parallel-check`** first.
+
+**When Mode A vs Mode B:** clear + independent work -> Mode B (agents, faster, parallel); fuzzy / needs your steering -> Mode A (build together). The isolation benefit ("no context-mixing = better output") holds for both; Mode A just lets you steer live.
 
 **When to parallelize, and the gotchas:**
-- Only **independent** tasks (different files/modules). `/build` runs an independence check first; coupled work stays sequential (one agent), or you get merge conflicts.
+- Only **independent** tasks (different files/modules). `worktree-parallel-check` / the `/build` overlap check warns first; coupled work stays sequential, or you get merge conflicts.
 - Each worktree needs its **own `node_modules` and `.env`** (not shared); don't run two dev servers on the **same port**.
 - Integrate **serially**: `/merge` rebases each branch onto an up-to-date main, one at a time, so conflicts surface cleanly.
-- Keep each agent's context **lean**, let it pull from `knowledge/` on demand rather than front-loading everything (context minimalism).
+- Keep each agent's context **lean** (let it pull from `knowledge/` on demand; context minimalism).
 - The human floor holds: every branch still merges only with your approval.
 
 ---
@@ -751,6 +753,8 @@ trusting auto-invocation.
 | De-risk before building | `/experiments` (assumption tests) |
 | Plan the portfolio | `/plan` (`/prioritize` -> `/roadmap`) |
 | Spec one feature | `/spec` (`/prd` -> `/critique` -> `/stories`) |
+| Check what's safe to build next / in parallel | `worktree-parallel-check` (read-only; recommends + warns on overlap) |
+| Watch the agent fleet (no desktop app) | `claude agents` (terminal dashboard) |
 | Write a PRD | `/prd` |
 | Challenge a PRD | `/critique` (red-team + pre-mortem) |
 | Create stories | `/stories` |
