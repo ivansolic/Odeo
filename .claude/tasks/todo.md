@@ -62,6 +62,21 @@ Batch D , Metrics & GTM:
 - [ ] install.sh / scaffold unaffected (skills ship with plugin); re-run install; scaffold test
 - [ ] dash-check; commit per batch (no push)
 
+## Review (parallel work + worktree-parallel-check + build guidance)
+- worktree-parallel-check (new, read-only): reads dependency order + active git worktrees,
+  recommends the next safe story, warns on overlap, states its heuristic limit (/merge backstop)
+  + runtime reminders. Standalone + called by /build. Does NOT touch PM skills (a la carte).
+- /build: guided mode-pick (clear/fuzzy -> A/B + why); explicit plan-gate (Mode A prompts
+  Shift+Tab, drafts plan, waits, no code before approval; approving auto-exits plan mode);
+  conditional worktree setup in Mode A; B1 overlap check scans other worktrees too.
+- developer agent: isolation: worktree (from earlier).
+- Docs: WORKFLOW parallel section uses verified commands (claude agents terminal fleet dashboard,
+  no desktop; claude --bg / --worktree / attach/logs/stop), when A vs B, quick-ref rows.
+  BEGINNERS: 'three plans' clarified (a plan / plan mode / /plan / todo.md), golden order fixed.
+- 52 skills installed; scaffold + privacy tests green; nothing pushed.
+- Deferred (user's call, after this): PM-setup-loop discussion (how /stories, /prioritize,
+  /roadmap chain / whether a PM orchestration loop). Plus the long-parked: dogfood test, marketplace listing.
+
 ## Review (loops + plain-language, calibrated to leaders)
 Researched how leaders do autonomy (Cherny/Wu loop engineering + verifiers; Steinberger
 "a loop that can't stop is just expensive"; Claire Vo's oversight warnings; consensus
