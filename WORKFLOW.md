@@ -446,7 +446,7 @@ Way 2, MANY sessions, one per task (hands-on; the classic "several tabs" setup):
   (each gets its own isolated checkout under .claude/worktrees/<name>/)
 ```
 
-Built-in Claude Code tools (use these, don't rebuild them; all work in any terminal like Ghostty, no desktop app needed):
+Built-in Claude Code tools (use these, don't rebuild them; all work in any terminal, no desktop app needed):
 - **`claude agents`** , opens the **agent view**: a full-screen terminal dashboard of your background sessions (which are running / need input / done / their PR status). Enter to attach, Space to peek, type to dispatch a new one. Your main fleet control.
 - **`claude --bg "task"`** , start a background agent from the shell; **`claude --worktree <name>`** , an interactive session in its own isolated worktree; **`claude attach|logs|stop <id>`** , manage a background session.
 - Our `developer` agent has `isolation: worktree`, so dispatched agents are isolated automatically. To check what's safe to parallelize, run **`worktree-parallel-check`** first.
