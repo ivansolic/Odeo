@@ -1,5 +1,24 @@
 # Task: Phase 2, first-party PM set (own the PM layer)
 
+## ACTIVE DISCUSSION: loops + evals + guardrails (design, not yet built)
+Order: #1 evals DONE-design, #2 improve DONE-design, #3 signal loop <- HERE, #4 build-first/taste-at-speed, #5 trigger pattern, then GUARDRAILS.
+No attribution to individuals for loop/eval/build-first ideas (generic). Keep METHOD names in existing PM skills (RICE/INVEST/JTBD); person names optional.
+
+Design decided so far (to BUILD after discussion):
+- EVAL FRAMEWORK: rubric (criteria+threshold, lives with each skill = data, not agent) + scorers by domain: deterministic (tests/lint), code-reviewer (code), design-reviewer (UI), NEW `pm-reviewer` (PM docs), human (final gate). Reviewers = evaluators (upgrade them to write score+record; no twin agents). 3 scorer types combine (deterministic + LLM-judge + human). Eval records = small files in `docs/evals/<id>.md`, git = history/baseline, read last+baseline. Community eval contribution from the start (opt-in, sanitized, curated, same infra as /contribute-lesson). Compounding WITH curation + human sample-check, not blind.
+- #2 IMPROVE-THE-ARTIFACT: new skill `/improve` (chosen over extending /knowledge-refresh). Loop: agent finds signal -> proposes change to skill/rubric/knowledge/prompt -> runs eval (old vs new) -> present -> HUMAN approves keep/revert -> commit (versioned). Agents propose+measure; human approves (changing the system = floor). Two scopes: local (this project) + shipped skills/rubrics (via curation/PR, not silent auto-update). Code improves indirectly via lessons/knowledge (repeat low score -> lesson -> developer avoids next time).
+- TRIGGERING (all loops): "nudge + human-run" DEFAULT (system reminds at natural moment, you run it); real cron = opt-in later for advanced. Timing per loop's natural moment: maintenance/signal -> session start (quiet, conditional); learn/retro -> after /merge or when you say end. Intervals: knowledge-refresh ~2-4wk, improve on repeated eval drop (~3-5), signal ~weekly, learn/retro per story.
+- BACKGROUND OPTION: nudge may offer "run maintenance/signal in background while you work" (opt-in, not silent auto-start). Read-only analysis runs parallel safely; APPLYING a change waits for gate + runs in own worktree. Apply changes at a calm moment (after /merge / next session start), not mid-coding.
+- NAMING: /improve (or /refine). pm-reviewer (consistent with code-reviewer/design-reviewer).
+
+## PARKED , GUARDRAILS (build AFTER PM loops #3,#4,#5)
+Make an explicit Guardrails layer: consolidate scattered rules into `## Guardrails` in AGENTS.md, tagged [enforced] (deterministic: privacy-scan, gitignore, worktree isolation, worktree-parallel-check) vs [instructed] (model-followed: bg=read+propose-not-write, own files/port/db/env, apply waits for gate, plan-first, never-weaken-tests). Strengthen enforced where cheap. Irreversible/dangerous (merge/ship/send-out/secrets/delete) must be enforced mechanism. Each skill references relevant guardrails, doesn't repeat.
+
+## PARKED (long) , end-to-end dogfood test; marketplace listing.
+
+---
+
+
 Goal/outcome: the system owns its full discovery->spec flow with our own skills,
 built from PUBLIC frameworks in our own words (credited by name), so there is no
 hard dependency on pm-skills. Human-in-command positioning throughout.
