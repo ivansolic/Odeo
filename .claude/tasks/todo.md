@@ -1,8 +1,22 @@
 # Task: Phase 2, first-party PM set (own the PM layer)
 
 ## ACTIVE DISCUSSION: loops + evals + guardrails (design, not yet built)
-Order: #1 evals DONE-design, #2 improve DONE-design, #3 signal loop <- HERE, #4 build-first/taste-at-speed, #5 trigger pattern, then GUARDRAILS.
+Order: #1 evals DONE, #2 improve DONE, #3 signal DONE, #4 build-first/prototype DONE, #5 trigger pattern <- NEXT, then CATEGORIZATION, then TDD-vs-normal-dev option, then GUARDRAILS.
 No attribution to individuals for loop/eval/build-first ideas (generic). Keep METHOD names in existing PM skills (RICE/INVEST/JTBD); person names optional.
+
+#3 PRODUCT-SIGNAL (decided): new skill `/product-signal` (name chosen over /signal, clearer). Recurring product-feedback loop: gather (tickets/calls/analytics, read-only) -> cluster into themes (needs not features) -> COMPARE vs last memo immediately (new/stronger/faded) -> draft signal memo -> human gate -> save `docs/signals/<date>.md` (git=history/baseline). Feeds /prioritize,/roadmap,/prd,/outcome. ~weekly, nudge+human, background-able (read-only). A la carte; complements /interview-synthesis (recurring+memory layer). Never fabricate data.
+
+#4 PROTOTYPE / taste-at-speed (decided): new skill `/prototype` (orchestrates, dispatches agents). Alternative DISCOVERY method (build-to-learn). Fidelity choice lo-fi(frontend)/hi-fi(full app). N variants, each own worktree + own port + running server + live URL for side-by-side eval (pairwise) -> kill most (mindset not quota). Sharing: default cloudflared quick tunnel (NO account, temp, machine-on) for both lo/hi; durable/multi-stakeholder/days -> preview deploy (Vercel/Netlify frontend, Railway/Render full-stack, needs free account). NEVER real/PII data in shared prototype (seed/fake) -> guardrail. No project? offer to init one (don't force); if declined, scratch worktree + state consequence (promote needs project later). Findings -> `docs/prototypes/<idea>/findings.md` (durable), skills READ it (nothing auto-uploads): /plan reads epics+effort, /prd reads detail. Findings capture: user flow, screens+states, tasks, test-feedback, decisions+why, worked/failed, tech/data-model sketch, edge-cases + security&data notes, kill-rationale, assumptions validated/invalidated, scope-gaps, dependencies, complexity signal, open risks, metrics, provenance.
+  PROMOTE (after validation) rejoins normal flow AT PHASE BY SCOPE (not auto /plan): solo/small -> /spec -> build; real product -> (strategy/business-model, scaled) -> PRODUCT-LEVEL foundation (architecture /setup-project + ADR + architecture-reviewer + high-level critique/pre-mortem incl. product-level security) -> /plan (epics) -> /spec per epic -> build.
+  TWO critiques / two architecture levels: PRODUCT-level (once, before features: foundation+security+"does it hold") and FEATURE-level (/critique inside /spec). Prototype proves DESIRABILITY only; product-level covers VIABILITY+FEASIBILITY/foundation it skipped. Even a good prototype still gets a LIGHTER targeted /critique (build/security risks), not full re-litigation.
+  Promote paths: harden-in-place (clean prototype: refactor+tests+review) OR throwaway-rebuild (dirty prototype: build from findings). Code quality ALWAYS via Staza A. Prototype never ships raw.
+
+## HARD RULES (go to guardrails):
+- PRODUCT-LEVEL FOUNDATION (architecture, data model, security posture, "does the whole thing hold") = NEVER skipped, solo or team. No fast mode that skips it.
+- DEVELOPMENT RIGOR (TDD where rules apply, review, security baseline, tests) = NEVER skipped. No fast mode without it.
+- STRATEGY (#1) = questions ALWAYS asked + a short durable note ALWAYS written; only DOCUMENT DEPTH scales to ambition (full docs vs one structured one-pager). Light != sloppy: same named sections, clarity, evidence-vs-assumption tagged, decision+date. Never "in head, nothing written".
+- Decision: chose (A) foundation+dev mandatory, strategy scales depth only. Rejected (B) light mode that skips product decisions (introduces gaps/debt, no benefit).
+- General UX pattern (adopt everywhere): OFFER the option; if declined, STATE the consequence plainly.
 
 Design decided so far (to BUILD after discussion):
 - EVAL FRAMEWORK: rubric (criteria+threshold, lives with each skill = data, not agent) + scorers by domain: deterministic (tests/lint), code-reviewer (code), design-reviewer (UI), NEW `pm-reviewer` (PM docs), human (final gate). Reviewers = evaluators (upgrade them to write score+record; no twin agents). 3 scorer types combine (deterministic + LLM-judge + human). Eval records = small files in `docs/evals/<id>.md`, git = history/baseline, read last+baseline. Community eval contribution from the start (opt-in, sanitized, curated, same infra as /contribute-lesson). Compounding WITH curation + human sample-check, not blind.
@@ -11,8 +25,12 @@ Design decided so far (to BUILD after discussion):
 - BACKGROUND OPTION: nudge may offer "run maintenance/signal in background while you work" (opt-in, not silent auto-start). Read-only analysis runs parallel safely; APPLYING a change waits for gate + runs in own worktree. Apply changes at a calm moment (after /merge / next session start), not mid-coding.
 - NAMING: /improve (or /refine). pm-reviewer (consistent with code-reviewer/design-reviewer).
 
-## PARKED , GUARDRAILS (build AFTER PM loops #3,#4,#5)
+## PARKED , GUARDRAILS (build AFTER PM loops + categorization + TDD-option)
 Make an explicit Guardrails layer: consolidate scattered rules into `## Guardrails` in AGENTS.md, tagged [enforced] (deterministic: privacy-scan, gitignore, worktree isolation, worktree-parallel-check) vs [instructed] (model-followed: bg=read+propose-not-write, own files/port/db/env, apply waits for gate, plan-first, never-weaken-tests). Strengthen enforced where cheap. Irreversible/dangerous (merge/ship/send-out/secrets/delete) must be enforced mechanism. Each skill references relevant guardrails, doesn't repeat.
+Add to guardrails (from #4 discussion): product-level foundation never skipped; dev rigor never skipped; strategy always-asked+short-note (depth scales); never real/PII data in a shared prototype; sharing/deploy = outward = human-gated.
+
+## PARKED , CATEGORIZATION (after #5): categorize all skills/loops; decide `-loop` suffix vs a "Loops" category (recurring: /product-signal, /improve, /knowledge-refresh). Autofill mitigates length.
+## PARKED , TDD-vs-NORMAL-DEV OPTION (after categorization, before guardrails): discuss offering the user a choice of dev rigor style (full TDD vs a lighter "normal" dev) WITHOUT violating the never-skip-dev-rigor rule. Reference read: obra/superpowers subagent-driven-development = essentially our /build Mode B (per-task fresh implementer+reviewer, isolated context) = confirms our rigorous path; NOT a model for prototype.
 
 ## PARKED (long) , end-to-end dogfood test; marketplace listing.
 
