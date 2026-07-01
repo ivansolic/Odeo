@@ -1,7 +1,9 @@
 # Task: Phase 2, first-party PM set (own the PM layer)
 
 ## ACTIVE DISCUSSION: loops + evals + guardrails (design, not yet built)
-Order: #1 evals DONE, #2 improve DONE, #3 signal DONE, #4 build-first/prototype DONE, #5 trigger pattern <- NEXT, then CATEGORIZATION, then TDD-vs-normal-dev option, then GUARDRAILS.
+Order: #1 evals DONE, #2 improve DONE, #3 signal DONE, #4 prototype DONE, #5 trigger pattern DONE, then TDD-vs-normal-dev option <- NEXT, then CATEGORIZATION, then GUARDRAILS.
+
+#5 TRIGGER (decided): default everywhere = nudge + human-run (system reminds at natural moment, you run). Cron = opt-in later. Trigger per loop's natural moment (table below). Nudge rules: max ONE, short, plain, easy to decline, restrained (only when interval passed / signal built up). DOC TODO: the trigger table must be documented VISUALLY (nice table: loop | natural moment | interval) , knowledge-refresh(session start,quiet | 2-4wk), /improve(repeated eval drop | ~3-5), /product-signal(first session after interval | weekly), /learn+/retro(after /merge or you say end | per story), /outcome(you, ~1wk after ship | per feature). BACKGROUND OPTION: always surface as an option for read-only loops ("run in background while you work?") + document HOW it's done (own worktree, read-only analysis parallel-safe, applying change waits for gate). Honest limit: nudge depends on you opening a session; cron covers "weeks away".
 No attribution to individuals for loop/eval/build-first ideas (generic). Keep METHOD names in existing PM skills (RICE/INVEST/JTBD); person names optional.
 
 #3 PRODUCT-SIGNAL (decided): new skill `/product-signal` (name chosen over /signal, clearer). Recurring product-feedback loop: gather (tickets/calls/analytics, read-only) -> cluster into themes (needs not features) -> COMPARE vs last memo immediately (new/stronger/faded) -> draft signal memo -> human gate -> save `docs/signals/<date>.md` (git=history/baseline). Feeds /prioritize,/roadmap,/prd,/outcome. ~weekly, nudge+human, background-able (read-only). A la carte; complements /interview-synthesis (recurring+memory layer). Never fabricate data.
