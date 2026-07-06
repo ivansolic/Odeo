@@ -69,7 +69,11 @@ NEW AGENT to build: `codebase-analyst` (read-only). NEW skill mode: /setup-proje
 ## RECEIVING-REVIEW DISCIPLINE (decided, fold into builder + /build):
 - Builder must VERIFY each reviewer finding before acting (reviewers can be wrong): confirmed -> fix (Critical/Important mandatory); not confirmed -> push back WITH EVIDENCE, never blind compliance, never blind dismissal. Human arbitrates disputes at the gate.
 
-## PARKED , writing-skills meta-skill (later, with CONTRIBUTING/community): a guide+standard for contributors authoring NEW skills (fits community growth).
+## SKILL-CRAFT TAKEAWAYS (from analyzing obra writing-skills , concepts in OUR words, never copy text):
+1. SUBAGENT-TESTING METHOD for /improve (fills the "how do we eval a skill change" gap): fresh subagent per scenario, control WITHOUT the guidance vs variant WITH it, compare behavior; pressure-scenarios for discipline skills; document exact failure/rationalization patterns at baseline. Full rigor (5+ reps) reserved for discipline-critical skills (guardrails/TDD/merge/privacy) + /improve keep-revert decisions; content PM skills use output rubrics instead (cheaper, already designed).
+2. BULLETPROOFING for GUARDRAILS step: agents under pressure RATIONALIZE around rules ("spirit vs letter") -> instructed guardrails must be pressure-tested, loopholes explicitly closed, rationalization counters written. Feed into guardrails build.
+3. SKILL-AUTHORING STANDARD for ourselves (and later contributors): auto-invoked skills' descriptions start "Use when..." + trigger conditions ONLY (no workflow summary , agents skip reading otherwise), keyword/symptom coverage; one excellent example > many mediocre; token efficiency; flowcharts only for decisions; SKILL.md lean + heavy reference in supporting files. Matters MOST for auto-invoked skills (ux-design, ux-writing, TDD); explicit commands less critical but same standard.
+4. PARKED , contributor-facing writing-skills guide (CONTRIBUTING/community phase) gets this content, our words.
 
 ## PARKED , CATEGORIZATION (NEXT): categorize all skills/loops; decide `-loop` suffix vs a "Loops" category (recurring: /product-signal, /improve, /knowledge-refresh). Autofill mitigates length.
 Reference note (obra/superpowers subagent-driven-development = essentially our /build Mode B; confirms rigorous path; not a prototype model).
