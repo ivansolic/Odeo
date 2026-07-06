@@ -27,9 +27,15 @@ Design decided so far (to BUILD after discussion):
 - BACKGROUND OPTION: nudge may offer "run maintenance/signal in background while you work" (opt-in, not silent auto-start). Read-only analysis runs parallel safely; APPLYING a change waits for gate + runs in own worktree. Apply changes at a calm moment (after /merge / next session start), not mid-coding.
 - NAMING: /improve (or /refine). pm-reviewer (consistent with code-reviewer/design-reviewer).
 
+## DOC-TODO , NESTED LOOPS FRAMING (from The Batch 359 / Ng, write in OUR words, no attribution):
+- Document our loops as NESTED TIMESCALES (one picture explains all): MINUTES = agent inner loop (builder success-signal: build->test->fix) | HOURS = your steering loop (plan gate, review, taste; you direct, you don't QA) | DAYS = users' loop (/outcome, /product-signal, /experiments -> back into /plan) | WEEKS = system learns (/improve, /knowledge-refresh, compounding). Goes in WORKFLOW + BEGINNERS next to Big Picture.
+- POSITIONING language: human "context advantage" , you understand users+constraints the model lacks; that's WHY human-in-command is a permanent advantage, not a temporary brake. Use in README/positioning, our words.
+- Validation note: Ng's 3 loops map 1:1 to what we built (independent confirmation; we also have the weeks layer he doesn't name).
+
 ## PARKED , GUARDRAILS (build AFTER PM loops + categorization + TDD-option)
 Make an explicit Guardrails layer: consolidate scattered rules into `## Guardrails` in AGENTS.md, tagged [enforced] (deterministic: privacy-scan, gitignore, worktree isolation, worktree-parallel-check) vs [instructed] (model-followed: bg=read+propose-not-write, own files/port/db/env, apply waits for gate, plan-first, never-weaken-tests). Strengthen enforced where cheap. Irreversible/dangerous (merge/ship/send-out/secrets/delete) must be enforced mechanism. Each skill references relevant guardrails, doesn't repeat.
 Add to guardrails (from #4 discussion): product-level foundation never skipped; dev rigor never skipped; strategy always-asked+short-note (depth scales); never real/PII data in a shared prototype; sharing/deploy = outward = human-gated.
+Add to guardrails (from architect/builder discussion): architect is STRUCTURALLY read-only (tools frontmatter = enforced, not instructed); builder implements the approved plan as a CONTRACT (no redesign; plan doesn't hold -> STOP and ask, never improvise) [instructed]; story-architect NEVER redecides product-level architecture (change = escalate to human, ADR) [instructed]; DO-NOT-TOUCH boundaries from codebase-map are binding for architect+builder [instructed]; background/maintenance agents = read+propose only, own worktree, apply waits for human gate [instructed + worktree enforced].
 
 ## DEV-RIGOR STYLE (decided): per-project setting in /setup-project, 3 styles (all keep tests+review+security ALWAYS; only test TIMING varies, no gap):
 - `TDD` (test-first everywhere) , highest rigor.
