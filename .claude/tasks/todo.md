@@ -31,8 +31,22 @@ Design decided so far (to BUILD after discussion):
 Make an explicit Guardrails layer: consolidate scattered rules into `## Guardrails` in AGENTS.md, tagged [enforced] (deterministic: privacy-scan, gitignore, worktree isolation, worktree-parallel-check) vs [instructed] (model-followed: bg=read+propose-not-write, own files/port/db/env, apply waits for gate, plan-first, never-weaken-tests). Strengthen enforced where cheap. Irreversible/dangerous (merge/ship/send-out/secrets/delete) must be enforced mechanism. Each skill references relevant guardrails, doesn't repeat.
 Add to guardrails (from #4 discussion): product-level foundation never skipped; dev rigor never skipped; strategy always-asked+short-note (depth scales); never real/PII data in a shared prototype; sharing/deploy = outward = human-gated.
 
-## PARKED , CATEGORIZATION (after #5): categorize all skills/loops; decide `-loop` suffix vs a "Loops" category (recurring: /product-signal, /improve, /knowledge-refresh). Autofill mitigates length.
-## PARKED , TDD-vs-NORMAL-DEV OPTION (after categorization, before guardrails): discuss offering the user a choice of dev rigor style (full TDD vs a lighter "normal" dev) WITHOUT violating the never-skip-dev-rigor rule. Reference read: obra/superpowers subagent-driven-development = essentially our /build Mode B (per-task fresh implementer+reviewer, isolated context) = confirms our rigorous path; NOT a model for prototype.
+## DEV-RIGOR STYLE (decided): per-project setting in /setup-project, 3 styles (all keep tests+review+security ALWAYS; only test TIMING varies, no gap):
+- `TDD` (test-first everywhere) , highest rigor.
+- `TDD-lite` (test-first for logic, test-after for UI) , balanced.
+- `Test-after` (code first, tests after, everywhere) , fastest, still always tested+reviewed. (formal term: test-last)
+- DEFAULT = CONTEXT-AWARE: greenfield(new) -> TDD-lite; brownfield(existing, few/no tests) -> Test-after. User can change. Lives in CLAUDE.md; read by /build + developer. NOT for architecture/epics/strategy. English names + plain explanation in the picker.
+
+## BROWNFIELD / EXISTING-CODEBASE SUPPORT (decided):
+- /setup-project gets an "Existing project" mode (user-facing plain; greenfield/brownfield = technical terms only).
+- It DISPATCHES a NEW read-only agent `codebase-analyst` (isolated context = better result than setup reading in main context, avoids context bloat on big repos). Analyst returns a STRUCTURED map (stack, architecture, modules, conventions, test state, where-things-live, risky areas).
+- /setup-project writes CLAUDE.md + `docs/codebase-map.md` (durable) from the map; developer agents READ the map later (compounding, context minimalism).
+- developer on existing code: read relevant part/map first -> baseline (run existing tests if any; else confirm it builds/runs) -> follow THEIR conventions -> add tests for NEW/changed code (test-after) -> NEVER force-retrofit tests on all legacy. review+security still apply.
+- A la carte: can dispatch developer for one task without onboarding, but onboarding (codebase-map) makes it much better.
+NEW AGENT to build: `codebase-analyst` (read-only). NEW skill mode: /setup-project existing.
+
+## PARKED , CATEGORIZATION (NEXT): categorize all skills/loops; decide `-loop` suffix vs a "Loops" category (recurring: /product-signal, /improve, /knowledge-refresh). Autofill mitigates length.
+Reference note (obra/superpowers subagent-driven-development = essentially our /build Mode B; confirms rigorous path; not a prototype model).
 
 ## PARKED (long) , end-to-end dogfood test; marketplace listing.
 
