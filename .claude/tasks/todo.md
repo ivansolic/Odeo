@@ -60,6 +60,17 @@ NEW AGENT to build: `codebase-analyst` (read-only). NEW skill mode: /setup-proje
 - Mode A unchanged. Trivial fixes still skip /build (fast lane). Parallel fleet unchanged (builders are the parallel worktree agents).
 - DOC TODO: document all of this thoroughly (two agents, always-split pipeline, two architecture levels, plan-mode-vs-architect mapping, invocation a la carte).
 
+## PLAN-FORMAT STANDARD (decided, generic principles in OUR words , this IS the architect's contract):
+- Architect's plan MUST contain: HEADER (goal, architecture, stack, constraints verbatim from spec) -> FILE MAP before tasks (files created/modified + responsibilities = design boundaries upfront) -> TASKS = smallest independently testable units, TDD rhythm (test->fail->implement->pass->commit), each step ~2-5min with EXACT paths, function signatures, commands, expected outputs.
+- NO PLACEHOLDERS rule: "TBD"/"add validation"-style vagueness = plan failure. Explicit consumed/produced interfaces between tasks (builder sees dependencies).
+- Saved to docs/plans/<date>-<feature>.md. QUALITY TEST: a context-free builder (or unfamiliar dev) can execute it alone , that's the bar. Add a PLAN RUBRIC to the eval framework (pm-reviewer or code-reviewer scores plan quality).
+- Applies DRY/YAGNI; frequent commits (each task ends in commit).
+
+## RECEIVING-REVIEW DISCIPLINE (decided, fold into builder + /build):
+- Builder must VERIFY each reviewer finding before acting (reviewers can be wrong): confirmed -> fix (Critical/Important mandatory); not confirmed -> push back WITH EVIDENCE, never blind compliance, never blind dismissal. Human arbitrates disputes at the gate.
+
+## PARKED , writing-skills meta-skill (later, with CONTRIBUTING/community): a guide+standard for contributors authoring NEW skills (fits community growth).
+
 ## PARKED , CATEGORIZATION (NEXT): categorize all skills/loops; decide `-loop` suffix vs a "Loops" category (recurring: /product-signal, /improve, /knowledge-refresh). Autofill mitigates length.
 Reference note (obra/superpowers subagent-driven-development = essentially our /build Mode B; confirms rigorous path; not a prototype model).
 
