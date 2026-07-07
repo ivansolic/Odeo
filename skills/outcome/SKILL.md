@@ -26,6 +26,7 @@ This check reads the PRD's intended outcome and compares it against reality.
    - **Draft a `/learn` entry** from the result ("approach X worked / failed in production for problem Y") and show it; write to `knowledge/` only after the user approves.
    - **Propose promoting or demoting** related `knowledge/` entries based on the real outcome (knowledge is judged by real results, not just code-match).
    - **If the verdict surfaces a fixable problem, suggest the next step**, e.g. slow -> "want me to run `/optimize`?"; missed the metric -> "iterate via `/spec`?". You suggest; the user decides and triggers it (nothing auto-runs across the gate).
+   - **Roadmap-drift check:** if the verdict changes the priority picture (a kill, a surprise win, a bigger problem revealed), offer: "this changes what's worth building next, want to revisit `/roadmap` (or `/plan`)?" Offer only; the user decides.
 
 ## Safety rules
 - Never fabricate or estimate data; only real sources.

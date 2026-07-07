@@ -1,0 +1,66 @@
+---
+description: Build-to-learn discovery, spin up N disposable working prototypes in parallel (each in its own worktree, own port, running server), compare them live, kill the weak ones, and capture the winner's learnings as findings that feed the real build. Use when an idea is concrete enough to touch but you don't know which shape is right. Prototypes prove desirability; they never ship raw.
+disable-model-invocation: true
+---
+
+# Prototype (taste at speed)
+
+Instead of speccing first, build 2-3 cheap working variants, FEEL them, keep the
+best, throw the rest. The prototype's job is LEARNING, not shipping: code quality
+comes later, through the real build pipeline.
+
+## Preconditions
+- A git project. None here? Offer: "want me to init a light project so prototypes
+  and findings have a home?" If declined: work in a scratch worktree, but say the
+  consequence plainly, promoting to a real build will need a project later.
+
+## Process
+1. **Frame the question**: what must these prototypes teach us? (e.g. "which
+   invoicing flow feels effortless?"). One sentence, written down.
+2. **Fidelity choice** (ask plainly):
+   - **lo-fi**, frontend only, fake data: validates flow/looks; easiest to share.
+   - **hi-fi**, full app (backend/db): validates real behavior; heavier.
+3. **Spin up N variants (2-3)**: each gets its own git worktree, its own port,
+   its own `.env`/install, and a RUNNING server. Builders may work in parallel
+   (they're disposable, prototype rigor: no TDD, no review, speed over polish,
+   this is the ONE place that's allowed, because nothing here ships).
+4. **Present live**: "open A: localhost:3001 · B: localhost:3002 · C: :3003",
+   side by side. You click through and compare the real thing.
+5. **Share (optional, always your call, outward = gated)**:
+   - quick, no account: a temporary tunnel (e.g. cloudflared quick tunnel), URL
+     lives while your machine is on;
+   - days/stakeholders: a preview deploy (frontend host for lo-fi; full-stack
+     host for hi-fi; free tiers, needs an account).
+   - **Never real or personal data in a shared prototype**, seed/fake only, and
+     run `privacy-scan.sh` over the prototype's seed/env before exposing it.
+6. **Evaluate and kill**: compare variants against the framing question (pairwise:
+   which is better, why). Expect to kill most, they were cheap on purpose. Record
+   WHY the losers lost.
+7. **Write the findings** to `docs/prototypes/<idea>/findings.md`, the durable
+   handoff (checklist below). Delete or keep the dead worktrees; the findings are
+   what matters.
+8. **Promote gate (your decision)**: the winner rejoins the normal flow AT THE
+   PHASE ITS SCOPE NEEDS:
+   - solo/small feature -> `/spec` (prd -> critique -> stories) -> `/build`;
+   - real product / many epics -> strategy (scaled to ambition) -> product-level
+     foundation (architecture + ADR + high-level critique incl. security), never
+     skipped -> `/plan` -> `/spec` per epic -> `/build`.
+   Two build paths: **harden in place** (clean prototype: add tests, review,
+   refactor to standard) or **rebuild from findings** (dirty prototype: throw the
+   code, keep the learnings). Either way full dev rigor applies from here on.
+
+## Findings checklist (capture ALL of it, nothing gets lost in a rebuild)
+User flow · screens + states · tasks/stories implied · test feedback (what people
+did/said) · decisions + why the winner won · why the killed variants lost ·
+what worked / what didn't · tech approach + data-model sketch · edge cases found ·
+security & data notes (PII/auth touched? feeds the PRD's pre-mortem) · assumptions
+validated/invalidated · what the prototype did NOT cover · dependencies discovered ·
+complexity signal for the real build · open risks · metrics if users touched it ·
+date + the framing question.
+
+## Rules for yourself
+- Prototypes are disposable; say so, act so. NOTHING here ships raw.
+- Prototype rigor exception applies ONLY inside this skill; promotion re-enters
+  full discipline (foundation + dev rigor are never skipped).
+- Sharing is outward: your explicit OK + privacy scan, fake data only.
+- Each variant isolated (worktree, port, env), parallel-safe by construction.

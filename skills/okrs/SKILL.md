@@ -1,5 +1,5 @@
 ---
-description: Set Objectives and Key Results, an ambitious qualitative objective with measurable, outcome-based key results. Use for quarterly/cycle goal-setting that ties work to outcomes. Based on OKRs (John Doerr / Andy Grove).
+description: Set Objectives and Key Results, an ambitious qualitative objective with measurable, outcome-based key results; re-running it over existing OKRs becomes a check-in (actuals vs targets, status per KR). Use for quarterly/cycle goal-setting and periodic reviews. Based on OKRs (John Doerr / Andy Grove).
 disable-model-invocation: true
 ---
 
@@ -23,8 +23,17 @@ Matters" (originating with Andy Grove at Intel).
    really disguised tasks? Are they gameable in a way that hurts users?
 5. **Name the inputs/bets** you believe will move the KRs (these link to strategy/roadmap), but keep them OUT of the KRs themselves.
 
+## Check-in mode (re-run over existing OKRs)
+If OKRs already exist in `docs/`, this run is a CHECK-IN, not a rewrite:
+1. Pull current actuals for each KR (real numbers only, from `/metrics` sources
+   or what the user provides; a metric without data = "not instrumented", never a guess).
+2. Status per KR: on track / at risk / off track, actual vs target, plain one-liner why.
+3. Recommend per KR: keep pushing, change the bet feeding it, or (rarely, explicitly) revise the KR.
+4. Nothing is rewritten without the user's approval; a check-in is a report first.
+
 ## Output
 1 objective + 2 to 4 outcome KRs with baselines/targets, saved under `docs/`. Pairs with `/metrics`.
+Check-in mode: a status report per KR appended/updated in the same document (dated).
 
 ## Quality rules
 - KRs are **outcomes, not tasks/output.** "Shipped X" is never a key result.
