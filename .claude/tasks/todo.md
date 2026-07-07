@@ -4,7 +4,7 @@
 - [x] BATCH 1 , eval framework (2026-07-07): eval-framework.md + skill-authoring-standard.md (+skill rubric) + prd/stories rubrics + NEW pm-reviewer & skill-reviewer + code/design-reviewer upgraded (review=eval, records) + contribute-lesson extended (rubrics/eval learnings) + install (system docs -> ~/.claude/claude-cofounder-docs/) + scaffold docs/evals/. All checks green.
 - [x] BATCH 2 , agent core (2026-07-07): plan-format.md+rubric, architect (read-only), developer->builder (contract+receiving-review), codebase-analyst, /build architect->gate->builders pipeline, /setup-project existing-mode + dev-rigor picker, repo-wide reference update, scaffold docs/plans. All checks green.
 - [x] BATCH 3 , new skills (2026-07-07): system-map.md + /guide (auto-invoked advisor) + /start + /improve (A/B keep/revert) + /product-signal (weekly compare) + /prototype (worktree+port+server per variant, findings, promote gate) + OKR check-in mode + roadmap-drift offers in /outcome & /product-signal. All checks green.
-- [ ] BATCH 4 , guardrails (AGENTS.md section + mechanisms + bulletproofing)
+- [x] BATCH 4 , guardrails (2026-07-07): AGENTS.md ## Guardrails (6 groups, E/I, counters on 4 critical rules) + enforced mechanisms (secret-scan, boundary-check, merge-gate, install-git-guards w/ pre-push+pre-commit hooks) wired into /commit-push, /merge, /build, init-project. 28 test assertions green; live block verified. Live pressure-testing of counters -> dogfood.
 - [ ] BATCH 5 , alignment + docs (51-skill pass, Anthropic checklists, doc overhaul, tests)
 
 ## ACTIVE DISCUSSION: loops + evals + guardrails (design, not yet built)
