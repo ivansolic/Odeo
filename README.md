@@ -32,7 +32,7 @@ PMs and builders who want to ship real software with Claude Code and don't want 
                                                        lives on GitHub
 ```
 
-You run each step; nothing fires blindly. The two automatic guardrails: a TDD skill writes tests first for backend logic, and a security baseline applies to all code. `/build` runs human-first or dispatches `developer` agents (one per story, in isolated worktrees); you approve at every gate.
+You run each step; nothing fires blindly. The two automatic guardrails: a TDD skill writes tests first for backend logic, and a security baseline applies to all code. `/build` runs human-first or runs a plan-first agent pipeline (the architect plans, you approve, builders execute, one per story in isolated worktrees); you approve at every gate.
 
 ## Repo structure
 
@@ -51,7 +51,7 @@ claude-cofounder/
 ├── .claude-plugin/
 │   └── plugin.json           ← marketplace manifest
 ├── skills/                   ← slash commands (you type /name); each is a SKILL.md
-│   ├── build/                ← /build stories: human-first or developer agents (you approve)
+│   ├── build/                ← /build stories: human-first, or architect->builder agents (you approve)
 │   ├── merge/                ← /merge rebase onto main, test, merge PR, cleanup
 │   ├── learn/                ← /learn capture a verified solved problem (shows draft first)
 │   ├── knowledge-refresh/    ← /knowledge-refresh audit/refresh the knowledge base
@@ -65,7 +65,11 @@ claude-cofounder/
 │   ├── ux-design/            ← auto-applies to UI (heuristics, states, a11y)
 │   └── ux-writing/           ← auto-applies to UI copy (microcopy, errors, NN/g)
 ├── agents/                   ← subagents (separate-context executors)
-│   ├── developer.md          ← builds one story end-to-end in its own worktree
+│   ├── architect.md          ← plans a story as a contract (read-only, plan-only)
+│   ├── builder.md            ← executes the approved plan in its own worktree
+│   ├── codebase-analyst.md   ← maps an existing codebase (read-only)
+│   ├── pm-reviewer.md        ← scores PM documents against rubrics
+│   ├── skill-reviewer.md     ← scores skills against the authoring standard
 │   ├── code-reviewer.md      ← code, functions, security
 │   ├── debugger.md
 │   ├── architecture-reviewer.md
@@ -101,7 +105,7 @@ claude-cofounder/
 - **First-party PM skills**, a full set built from public frameworks (credited by name), spanning the lifecycle: **discovery** (`/brainstorm`, `/personas`, `/interview-synthesis`, `/competitor-analysis`, `/market-segments`, `/opportunity-solution-tree`, `/customer-journey-map`, `/experiments`), **strategy & viability** (`/vision`, `/strategy`, `/value-proposition`, `/okrs`, `/business-model`, `/pricing`), **planning** (`/prioritize`, `/roadmap`, `/stakeholder-map`), **spec** (`/prd`, `/critique`, `/stories`), **metrics & analytics** (`/metrics`, `/ab-test`, `/cohorts`, `/query`), and **launch & growth** (`/positioning`, `/marketing`, `/gtm-plan`, `/release-notes`, `/growth-loops`, `/battlecard`, `/product-name`). Four **orchestrators** chain them with human gates: **`/discover` -> `/plan` -> `/spec` -> `/go-to-market`**. The [pm-skills](https://github.com/phuryn/pm-skills) plugin is an optional alternative.
 - **TDD skill**, auto-applies test-first to backend logic, stays out of the way on UI.
 - **Design layer**, two auto-applying skills, `ux-design` (usability heuristics, UX laws, UI states, accessibility) and `ux-writing` (microcopy: button/link labels, error and empty-state copy, voice and tone, NN/g-based); **design tokens** (`design/tokens.json`, DTCG) as the styling source of truth, set up by `/setup-design`; a `design-reviewer` subagent that reviews layout, states, a11y, tokens, and microcopy. Optional per project (`init-project.sh --no-ui` skips it).
-- **Hybrid agentic build** (`/build`), one entry, two modes. Human-first: branch, seed todo, open editor, plan and build with you step by step. Agents: dispatch a `developer` per story, each end-to-end (plan, TDD build, verify, review) in its own git worktree, single or parallel, with the oversight you pick. Either way you hold the gates. **`/merge`** then integrates an approved branch with a clean linear history (rebase onto main, tests, merge, cleanup).
+- **Hybrid agentic build** (`/build`), one entry, two modes. Human-first: branch, seed todo, open editor, plan and build with you step by step. Agents: the `architect` (read-only) plans each story as a written contract, **you approve the plan**, then a `builder` per story executes it exactly in its own git worktree (single or parallel), reviewers score the result, and you gate again. A builder never runs without an approved plan. **`/merge`** then integrates each approved branch with a clean linear history (rebase onto main, tests, merge, cleanup).
 - **Compounding knowledge** (`/learn`, `/knowledge-refresh`, `knowledge/`), verified solved problems become a reusable, maintained knowledge base that Claude consults before non-trivial work, so the system gets smarter per story. `/learn` shows the draft before writing.
 - **Community knowledge** (`/contribute-lesson`), opt-in, share a sanitized, generalized lesson with the shared knowledge base so the whole system gets smarter; on update you get back the curated knowledge of all contributors. Approval-gated, nothing leaves your machine without your OK.
 - **Privacy guard** (`bin/privacy-scan.sh`), a deterministic scan (emails, secrets/tokens, local paths, IPs, and your own deny-list terms) that runs as a hard gate before anything is shared via `/contribute-lesson`. The safety net under the model's sanitization and your approval, so private data can't leak by accident, including other users' data once this is a product. Your private terms live in a local `~/.claude/privacy-denylist.txt`, never in a repo.
@@ -161,7 +165,7 @@ my-app/
     ├── research/             ← user research notes
     └── templates/            ← ADR template
 
-# The commands (/build, /merge, ...), agents (developer, code-reviewer, ...), and
+# The commands (/build, /merge, ...), agents (architect, builder, code-reviewer, ...), and
 # auto-skills (TDD, ux-design) come from the installed plugin, available here without
 # per-project copies. The Security Baseline applies to all code automatically.
 ```

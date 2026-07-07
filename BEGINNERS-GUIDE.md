@@ -339,8 +339,8 @@ times. Stop it, send it back to plan mode, make it rethink.
    and acceptance criteria. Review them.
 7. **switch hats.** Plan mode OFF. Run `/build`, it makes your branch and
    checklist, and opens VS Code (Section 8, choose where to work). (This is Mode A,
-   human-first. Once you trust the flow, Mode B lets Claude run a `developer` agent
-   per story and present the result for your approval.)
+   human-first. Once you trust the flow, Mode B has an architect plan each story,
+   you approve the plan, and builder agents execute it and present the result.)
 8. 🛠️ Plan mode ON. Ask Claude to plan the build. Read it. Approve it.
 9. 🛠️ Plan mode OFF. Let Claude build (it writes tests + code).
 10. 🛠️ "Walk through every acceptance criterion." Then "invoke code-reviewer."

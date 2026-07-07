@@ -388,11 +388,13 @@ entry. It has two modes; you pick at the start:
   with you reviewing at each stage. This folds in the old PM→Dev handoff: it
   verifies the spec, creates the branch, seeds `todo.md`, and opens the editor
   before you plan and build. Best while you're learning the rhythm.
-- **Mode B, agents.** Claude dispatches a `developer` agent per story, each in its
-  own isolated git worktree, builds the story end-to-end (plan, TDD, verify,
-  review), then presents the result for your approval. You choose how much
-  oversight (plan-gated vs autonomous), and optionally open the worktree(s) in your
-  editor to watch. Best once you trust the flow.
+- **Mode B, agents.** A fixed, always-gated pipeline: the `architect` (read-only)
+  plans your stories as a written contract (`docs/plans/`), **you approve the
+  plan**, then a `builder` per story executes it exactly, each in its own isolated
+  git worktree (TDD per your dev-rigor setting, verify, review), and presents the
+  result for your approval. A builder never runs without an approved plan, that
+  gate is structural. Optionally open the worktree(s) in your editor to watch.
+  Best once you trust the flow.
 
   **One story at a time is the default.** Parallel (several agents at once) is
   opt-in and only offered when the stories you picked are *independent* (Claude
@@ -435,9 +437,9 @@ You can run a fleet two ways (both give the same win, focused + isolated agents)
 
 ```
 Way 1, ONE session, background agents (Mode B parallel, easiest):
-  [tab: claude]
-      ├─ dispatches → developer A → own worktree (background)   (developer has isolation: worktree)
-      ├─ dispatches → developer B → own worktree (background)
+  [tab: claude]   (architect planned, you approved the plans)
+      ├─ dispatches → builder A → own worktree (background)   (builder has isolation: worktree)
+      ├─ dispatches → builder B → own worktree (background)
       └─ you watch + approve results in one place (the agent view, see below)
 
 Way 2, MANY sessions, one per task (hands-on; the classic "several tabs" setup):
@@ -449,7 +451,7 @@ Way 2, MANY sessions, one per task (hands-on; the classic "several tabs" setup):
 Built-in Claude Code tools (use these, don't rebuild them; all work in any terminal, no desktop app needed):
 - **`claude agents`** , opens the **agent view**: a full-screen terminal dashboard of your background sessions (which are running / need input / done / their PR status). Enter to attach, Space to peek, type to dispatch a new one. Your main fleet control.
 - **`claude --bg "task"`** , start a background agent from the shell; **`claude --worktree <name>`** , an interactive session in its own isolated worktree; **`claude attach|logs|stop <id>`** , manage a background session.
-- Our `developer` agent has `isolation: worktree`, so dispatched agents are isolated automatically. To check what's safe to parallelize, run **`worktree-parallel-check`** first.
+- Our `builder` agent has `isolation: worktree`, so dispatched agents are isolated automatically. To check what's safe to parallelize, run **`worktree-parallel-check`** first.
 
 **When Mode A vs Mode B:** clear + independent work -> Mode B (agents, faster, parallel); fuzzy / needs your steering -> Mode A (build together). The isolation benefit ("no context-mixing = better output") holds for both; Mode A just lets you steer live.
 

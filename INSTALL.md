@@ -107,7 +107,7 @@ cd claude-cofounder
 `install.sh` puts everything where Claude Code reads it:
 - `~/.claude/CLAUDE.md`, global baseline instructions + the Security Baseline
 - `~/.claude/skills/`, all skills, available in every project: the workflow commands (`/build`, `/merge`, `/learn`, ...) and the auto-applying skills (TDD, ux-design)
-- `~/.claude/agents/`, the subagents (`developer`, `code-reviewer`, ...), available everywhere
+- `~/.claude/agents/`, the subagents (`architect`, `builder`, `code-reviewer`, ...), available everywhere
 - `~/.claude-templates/`, project-specific scaffolding templates + `presets/`
 - `~/bin/init-project.sh` and `~/bin/privacy-scan.sh`
 - your shell profile, adds `~/bin` to PATH and sets `CLAUDE_CODE_AUTO_VERIFY=1`
@@ -131,7 +131,7 @@ source ~/.bash_profile     # or ~/.zshrc if you use zsh
 **✓ CHECK 2:** `ls ~/.claude-templates/` shows the project-specific templates: `tasks/`, `docs/`, `design/`, `knowledge/`, `presets/`, and `CLAUDE.md`.
 **✓ CHECK 3:** `init-project.sh` (no arguments) prints the usage message.
 **✓ CHECK 4:** `echo $CLAUDE_CODE_AUTO_VERIFY` prints `1`.
-**✓ CHECK 5:** `ls ~/.claude/skills/` shows the skills (including `prd`, `stories`, `brainstorm`, `test-driven-development`, ...); `ls ~/.claude/agents/` shows `developer`, `code-reviewer`, ...
+**✓ CHECK 5:** `ls ~/.claude/skills/` shows the skills (including `prd`, `stories`, `brainstorm`, `test-driven-development`, ...); `ls ~/.claude/agents/` shows `architect`, `builder`, `code-reviewer`, ...
 
 _The PM skills, the workflow commands, the agents, and the TDD skill are all
 installed by `install.sh` and available in every project. The TDD and ux-design
@@ -191,7 +191,7 @@ Inside Claude, verify each piece:
 1. Type `/`, you should see `setup-project`, `build`, `merge`, `commit-push` (workflow) and `prd`, `brainstorm`, `stories`, `critique` (PM skills)
 2. Ask: *"What does my global CLAUDE.md say about git discipline?"*, Claude should quote your rules (proves global file loads)
 3. Run `/setup-project`, Claude should interview you about your stack (or offer a preset) and fill in CLAUDE.md (proves onboarding works). On a fresh scaffold, CLAUDE.md starts with `[...]` placeholders until you do this.
-4. Ask: *"List the subagents available in this project"*, should mention `developer`, `code-reviewer`, and `architecture-reviewer` (PM critique is the `/critique` skill)
+4. Ask: *"List the subagents available in this project"*, should mention `architect`, `builder`, `code-reviewer`, and `architecture-reviewer` (PM critique is the `/critique` skill)
 6. Press `Shift+Tab` twice, bottom of screen should show plan mode is on
 
 If all 6 pass: **your setup is complete.**
@@ -214,7 +214,7 @@ gh repo delete test-setup --yes
 ├── .claude/
 │   ├── CLAUDE.md              ← global instructions (auto-loads everywhere)
 │   ├── skills/                ← all skills: /build /merge /learn ... + TDD, ux-design (Step 6)
-│   ├── agents/                ← subagents: developer, code-reviewer, ... (Step 6)
+│   ├── agents/                ← subagents: architect, builder, code-reviewer, ... (Step 6)
 │   ├── community-knowledge/   ← shared knowledge base (if reachable)
 │   └── plugins/               ← optional pm-skills plugin installs here (Step 7)
 ├── .claude-templates/         ← project-specific scaffolding for init-project.sh

@@ -7,7 +7,7 @@ welcome, open an issue.
 
 - Whole-lifecycle workflow: discovery → PRD → design → `/build` → review →
   `/merge` → `/outcome` → `/learn`.
-- Hybrid agentic build: human-first (Mode A) or `developer` agents in isolated
+- Hybrid agentic build: human-first (Mode A) or a plan-first pipeline (architect plans, you approve, builders execute) in isolated
   worktrees (Mode B), with human gates.
 - Compounding knowledge: `/learn`, `/knowledge-refresh`, the `knowledge/` base.
 - Security baseline (OWASP/GDPR-aware) applied to all code.

@@ -8,8 +8,8 @@ rules are also embedded in their bodies so they hold even when this file is abse
 
 ## Agent-first workflow
 - **Commands/skills orchestrate; agents execute.** A skill is the entry point; it
-  dispatches specialized agents (e.g. `developer`, `code-reviewer`) that do the
-  heavy work in isolation and return a result. The human holds the gates.
+  dispatches specialized agents (e.g. `architect`, `builder`, `code-reviewer`)
+  that do the heavy work in isolation and return a result. The human holds the gates.
 - The lifecycle, top-down by altitude, each step explicit, nothing fires blindly:
   **`/discover` -> `/plan` (prioritize -> roadmap) -> `/spec` (prd -> critique -> stories)
   -> `/build` -> `/merge` -> `/outcome` -> `/go-to-market`** (loop back to `/plan`).
@@ -18,8 +18,13 @@ rules are also embedded in their bodies so they hold even when this file is abse
 - **Two altitudes of prioritization:** `/prioritize` + `/roadmap` rank *which epics*
   (value, portfolio level); `/stories` orders *which stories within an epic* (by
   dependency). Never conflate them.
-- `/build` runs human-first (Mode A) or dispatches `developer` agents in isolated
-  git worktrees (Mode B, one per story, single or parallel).
+- `/build` runs human-first (Mode A) or, in Mode B, a fixed pipeline: the
+  `architect` (structurally read-only) writes each story's plan as a contract
+  (`docs/plans/`, per the plan format), the human approves it, then `builder`
+  agents execute it exactly in isolated git worktrees (one per story, single or
+  parallel). **A builder never runs without an approved plan.** Plan conflicts =
+  stop and ask, never improvise. Story-level planning inherits product-level
+  architecture; changing that is a human/ADR decision.
 - **Autonomy is a dial; the human holds the gates.** Agents can work autonomously up
   to a gate, but **merge-to-main, ship, and sending data out always require human
   approval.** Human-in-command leverage, never a zero-human autonomous loop.

@@ -48,7 +48,8 @@ for skill in "$REPO_DIR"/skills/*/; do
   [[ -d "$skill" ]] && place "$skill" ~/.claude/skills/"$(basename "$skill")"
 done
 
-# 2b. Agents, user-level (developer, reviewers, debugger). Available everywhere.
+# 2b. Agents, user-level (architect, builder, analyst, reviewers, debugger). Available everywhere.
+rm -f ~/.claude/agents/developer.md   # renamed to builder; remove the stale copy
 echo "  → agents → ~/.claude/agents/"
 mkdir -p ~/.claude/agents
 for agent in "$REPO_DIR"/agents/*.md; do

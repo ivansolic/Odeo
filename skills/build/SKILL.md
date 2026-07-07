@@ -21,15 +21,16 @@ First ask a plain diagnostic and recommend, so a non-expert can choose well:
 
 Then the modes themselves:
 > "  - **Myself (human-first):** I prepare the branch + todo and open the editor; you and I build it together, step by step.
->  - **Agents:** I dispatch a developer agent per story (each in its own worktree); they build end-to-end and present for your approval."
+>  - **Agents:** the architect plans your stories, you approve the plan, then a builder per story executes it in its own worktree and presents for your approval."
 
 The user picks (or names the mode directly); default toward Mode A while learning.
 
-**Plan-first is the default in BOTH modes.** Never build real work without an approved
-plan: Mode A enters plan mode and you approve before building; Mode B has the agent draft
-a plan that you approve before it runs autonomously. Skipping the plan ("straight to
-build") is an explicit opt-in, and only sensible for a trivial fix (which can skip `/build`
-entirely and just be made).
+**Plan-first is the default in BOTH modes, and in Mode B it is enforced by the
+pipeline.** Mode A: you enter plan mode and approve before building. Mode B: the
+`architect` writes the plan document (`docs/plans/`, per `docs/plan-format.md`),
+you approve it, and only then is a `builder` dispatched, a builder without an
+approved plan does not build, by design. Skipping the plan is only sensible for a
+trivial fix (which skips `/build` entirely).
 
 **Editor:** Mode A opens the editor by default (you watch and steer live). Mode B opens
 the worktree(s) only if you ask (you mainly review the finished result), see B4.
@@ -53,8 +54,16 @@ For one story at a time. The safest mode and the right default while learning.
 
 ---
 
-## MODE B: agents (dispatch, you approve)
-For one or several stories.
+## MODE B: agents (architect plans, you approve, builders execute)
+For one or several stories. The pipeline, always in this order:
+```
+architect (plans ALL chosen stories, read-only)
+  -> YOU approve the plan(s)                      [gate 1: the contract]
+  -> builder per story (own worktree, executes the plan exactly)
+  -> reviewers (code-reviewer, + design-reviewer if UI)
+  -> YOU approve each result                       [gate 2]
+  -> /merge (serialized)                           [gate 3: your approval again]
+```
 
 ### B1. Overlap check (before parallel), run `worktree-parallel-check`
 Run the `worktree-parallel-check` logic: compare the chosen stories against each other
@@ -79,25 +88,35 @@ Present these as a clear choice, and say what happens if the user just says "go"
   The user triggers parallel by saying so here, or up front when invoking (e.g.
   "/build USR-001 USR-002 in parallel"). If the stories overlap (B1), don't offer
   parallel; explain why and stay sequential.
-- **Oversight.** **Plan-gated is the default:** the agent drafts a plan, you approve it, THEN it builds autonomously to the success-signal. "Straight to presentation" (skip the plan gate) is an explicit opt-in for trusted/trivial work, never the silent default.
+- **Oversight is structural:** the plan gate is not optional in Mode B. The
+  architect's plan is what you approve; builders only run against an approved plan.
 
 ### B4. Watch in the editor? (optional)
 Offer: "Open the worktree(s) in your editor to watch changes live? A multi-root
 VS Code window shows all parallel branches as one view; you still control here in
 the terminal." If yes, open the worktree folders with `code`.
 
-### B5. Dispatch
-Dispatch the **`developer` agent**, one instance per story, each in its own git
-worktree + branch (built-in agent worktree isolation; parallel = background
-agents). Each `developer` runs the full pipeline: read story, define its
-**success-signal**, consult `knowledge/`, confirm a green baseline, plan (gated or
-autonomous), TDD + ux-design/ux-writing build, then **loop to the success-signal**
-(stop and report if stuck after a few tries), and return a result with a pass/fail
-checklist. Then run `code-reviewer` (plus `design-reviewer` if UI) on each result.
+### B5. Plan (architect), then gate, then dispatch (builders)
+1. **Dispatch the `architect`** with the chosen stories (+ the overlap-check
+   findings from B1 as binding input). It returns one plan per story in the
+   `docs/plan-format.md` format; save each to `docs/plans/<date>-<slug>.md` with
+   `approved: no`. If the architect escalates (a story would change product-level
+   architecture), stop and resolve that with the user first (ADR).
+2. **Present the plans for approval**: approach, file map, riskiest part, open
+   questions. The user approves (flip `approved: yes`), asks for changes (back to
+   the architect), or rejects. **No builder runs without an approved plan file.**
+3. **Dispatch one `builder` per approved story**, each in its own git worktree +
+   branch (built-in isolation; parallel = background agents). Each builder
+   executes its plan as a contract: success-signal, green baseline, tasks in
+   order (dev-rigor style from CLAUDE.md), loop to the signal, stop-and-ask on
+   any plan conflict. Then run `code-reviewer` (plus `design-reviewer` if UI) on
+   each result; the builder verifies findings before fixing (evidence-based
+   pushback allowed, you arbitrate).
 
 ### B6. Present per story
-Summary + diff, acceptance-criteria walkthrough, reviewer verdicts (Critical /
-Important / Nitpick), decisions and assumptions, `knowledge/` entries reused.
+Summary + diff, success-signal checklist (pass/fail each), contract adherence
+(any deviations from the plan), reviewer verdicts + scores, decisions and
+assumptions, `knowledge/` entries reused.
 
 ### B7. Gate + integrate
 You approve each, or request changes (the agent revises and re-presents). On
@@ -112,6 +131,7 @@ Offer `/learn` to capture non-trivial verified solutions into `knowledge/`.
 
 ## Safety rules
 - Parallel only for independent stories; one story = one branch = one PR.
-- Never merge without explicit approval. Your review is the bottleneck: keep parallel agents to 2-4.
-- While learning: start with MODE A or single-agent + plan-gated; raise autonomy as trust grows.
+- Never merge without explicit approval. Your review is the bottleneck: keep parallel builders to 2-4.
+- **No builder without an approved plan**, the plan gate is structural, not advisory.
+- While learning: start with MODE A or a single builder; raise parallelism as trust grows.
 - Uses built-in agents (worktree isolation, background), not a custom orchestrator.

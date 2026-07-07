@@ -192,7 +192,7 @@ These are built from public frameworks, credited by name. **pm-skills (phuryn) s
 
 **Workflow slash commands (only invoked explicitly by me, never automatically):**
 
-- **`/build`**, the build entry. Mode A (human-first): verify spec, branch, seed todo.md, open editor, plan and build with you step by step. Mode B (agents): dispatch a `developer` agent per story, each in its own git worktree, then present results for your gate. Folds in the old dev-handoff.
+- **`/build`**, the build entry. Mode A (human-first): verify spec, branch, seed todo.md, open editor, plan and build with you step by step. Mode B (agents): the architect plans each story as a contract, you approve, then a builder per story executes it in its own git worktree and presents for your gate. Folds in the old dev-handoff.
 - **`/merge`**, integrate an approved story branch into main with a clean linear history (fetch, rebase, tests, force-with-lease, merge PR, cleanup).
 - **`/learn`**, capture a solved, verified, non-trivial problem into `knowledge/` (shows the draft before writing).
 - **`/knowledge-refresh`**, audit and refresh `knowledge/` against the current codebase.
@@ -200,7 +200,7 @@ These are built from public frameworks, credited by name. **pm-skills (phuryn) s
 - **`/contribute-lesson`**, opt-in, share a sanitized lesson with the community knowledge base (approval-gated; nothing auto-sent).
 - **`/commit-push`**, stage, commit with conventional message, and push to current branch with safety checks.
 
-The **`developer`** agent is dispatched by `/build` (one per story, in its own worktree); it is not invoked proactively.
+The **`architect`** and **`builder`** agents are dispatched by `/build` (architect plans, builders execute, one per story in its own worktree); they are not invoked proactively.
 
 **Rule:** even when I have not explicitly invoked a subagent, if you finish a code change without invoking code-reviewer, remind me. Don't silently skip the review step.
 

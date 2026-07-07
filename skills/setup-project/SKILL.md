@@ -7,10 +7,32 @@ Goal: turn the placeholder `CLAUDE.md` into a real, project-specific config by
 **interviewing the user**, never guess the stack. One question group at a time,
 wait for answers, confirm before writing.
 
-## 1. Check current state
+## 1. Check current state, and pick the path: NEW or EXISTING project
 Read `CLAUDE.md`. If the Stack/Commands/Conventions sections are already filled
 (no `[...]` placeholders), tell the user it looks configured and ask whether they
 want to reconfigure or stop.
+
+Then look at the repo: is there already a real codebase here (source files beyond
+the scaffold)? Ask plainly:
+> "Is this a **new project** (we start from zero) or an **existing codebase**
+>  (I should learn how it's already built)?"
+
+**EXISTING path (onboarding an established codebase):**
+1. **Dispatch the `codebase-analyst` agent** (read-only, own context) to map the
+   repo: stack, architecture, modules, conventions, test state, risky areas, and
+   proposed DO-NOT-TOUCH boundaries.
+2. Save its map as `docs/codebase-map.md`.
+3. **Confirm the boundaries with the user** (plain language): "these interfaces/
+   folders look like they shouldn't be touched, correct? anything to add?" The
+   confirmed list is binding for the architect and builder.
+4. Fill CLAUDE.md **from the map** (their real stack, their conventions), then
+   continue the interview below ONLY for what the map couldn't tell (Security &
+   Data facts, house rules, preferences). Never impose our conventions over
+   theirs; the codebase's existing style wins.
+5. Dev-rigor default (step F3 below) comes from the test state: few or no tests
+   -> suggest `Test-after`.
+
+**NEW path:** continue with step 2 (preset or interview) as usual.
 
 ## 2. Offer a preset shortcut
 List the available presets first: `ls ~/.claude-templates/presets/`. Then ask:
@@ -76,6 +98,24 @@ add a recommendation there unless the user asked for one.
 - Any patterns they always want? Anything they never want (the "Don't" list)?
 - If they have none yet, say you'll fill in sensible defaults for the stack and
   they can refine later.
+
+**F3. How strictly should we test? (dev-rigor style, per project)**
+All three styles ALWAYS end with tests + review + the security baseline; the only
+difference is WHEN tests are written. Ask with plain explanations, and propose the
+context-aware default:
+> "How should we handle tests while building?
+>  - **TDD** , the test is written BEFORE the code, for everything (highest
+>    discipline; slower on visual UI work).
+>  - **TDD-lite** , test-first for logic (backend, APIs, calculations, bug
+>    fixes), tests-after for UI (the balanced default for new projects).
+>  - **Test-after** , code first, tests right after, everywhere (fastest start;
+>    the sensible default on an existing codebase that has few or no tests).
+>  Whichever you pick, nothing merges without tests and review, this only sets
+>  the ORDER."
+Default: **new project -> TDD-lite; existing codebase with few/no tests ->
+Test-after.** Record the choice in CLAUDE.md's Conventions section as
+`dev_rigor: tdd | tdd-lite | test-after` with a one-line meaning. The architect
+and builder read it.
 
 **F2. How should I talk to you? (plain language preference)**
 > "I always explain things in plain language. Do you also want me to teach you the

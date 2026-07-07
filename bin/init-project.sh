@@ -92,7 +92,7 @@ git branch -M main
 
 echo "  → creating folder structure"
 mkdir -p .claude/tasks
-mkdir -p docs/prds docs/stories docs/decisions docs/research docs/templates docs/evals
+mkdir -p docs/prds docs/stories docs/decisions docs/research docs/templates docs/evals docs/plans
 mkdir -p knowledge
 
 echo "  → copying project templates"
@@ -167,7 +167,7 @@ echo ""
 echo "Available everywhere from the claude-cofounder plugin:"
 echo "  commands: /build /merge /learn /knowledge-refresh /outcome /contribute-lesson"
 echo "            /commit-push /retro /setup-project$( $HAS_UI && echo ' /setup-design' )"
-echo "  agents:   developer, code-reviewer, architecture-reviewer, debugger$( $HAS_UI && echo ', design-reviewer' )"
+echo "  agents:   architect, builder, codebase-analyst, code-reviewer, pm-reviewer, skill-reviewer, architecture-reviewer, debugger$( $HAS_UI && echo ', design-reviewer' )"
 echo "  skills:   test-driven-development, ux-design (auto-apply)"
 echo ""
 echo "PM work (PRDs, critique, stories) is driven by the pm-skills plugins:"
