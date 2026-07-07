@@ -98,3 +98,78 @@ rules are also embedded in their bodies so they hold even when this file is abse
   term in a short labeled aside: "loads in 0.9s now, fixed how it fetches data
   (technical: removed an N+1 query)." Showing the aside is a per-project preference
   ("teach me as I go"), set in `/setup-project`; default off.
+
+## Guardrails (the hard rules, single source of truth)
+Every rule below is tagged: **[E] enforced**, a mechanism physically stops it
+(script exit code, tool restriction, git hook), or **[I] instructed**, the model
+holds it, layered with verifiers and the human gate. Skills and agents REFERENCE
+these rules; they do not restate them. A rule that is not written here (or in the
+baseline above) does not exist.
+
+### 1. Human floor (irreversible or outward = a human decides)
+- [E] No direct push to main/master (pre-push hook, `install-git-guards.sh`).
+- [E] `/merge` preconditions (`merge-gate.sh`): story branch, clean tree, review
+  record exists, boundaries clean. [I] The merge itself: only with your approval.
+- [I] Ship/deploy: only with your approval.
+- [E+I] Data leaving the machine (`/contribute-lesson`, shared prototypes,
+  posts to external tools): `privacy-scan.sh` blocks [E] + your approval [I].
+- [I] Changing the system itself (`/improve` on skills/rubrics/knowledge):
+  keep/revert is yours.
+
+### 2. Privacy and data
+- [E] `privacy-scan.sh` before anything leaves the machine (exit 1 = blocked).
+- [E] Secrets in commits: `secret-scan.sh` gate in `/commit-push` + pre-commit hook.
+- [E] The personal layer (memory) never enters a public repo (gitignore).
+- [I] **Never real or personal data in a shared prototype**, seed/fake only.
+  Counters, all invalid: "it's just a demo" (a demo leaks like anything else);
+  "stakeholders need real data to judge" (they need realistic SHAPE, seed it);
+  "I'll take it down after" (cached/indexed is forever).
+
+### 3. Quality, never skipped
+- [I] Product-level foundation (architecture, data model, security posture) is
+  never skipped, solo or team. [E-part] `/build` checks the artifacts exist
+  (configured CLAUDE.md; ADR for foundation decisions).
+- [I] Dev rigor (tests + review + security baseline) is never skipped; the
+  dev-rigor style only changes WHEN tests are written. [E-part] `merge-gate.sh`
+  refuses without a review record; the success-signal loop requires green.
+- [I] **Never weaken a test to make it pass; fix the implementation.**
+  Counters, all invalid: "the test is flaky" (prove it, then fix the test's
+  CAUSE, separately and explicitly); "the deadline is close" (deadlines don't
+  change correctness); "I'll restore it later" (later doesn't exist); "the
+  requirement changed" (then the STORY changes first, with the human, not the assertion).
+- [I] Strategy questions are always asked and a short note always written; only
+  document depth scales with ambition. Never "in my head".
+- [E] Plan-first in Mode B: a builder without an approved plan does not build
+  (pipeline + the builder itself refuse). [I] Mode A: plan approved before code.
+
+### 4. Loops
+- [I] Every loop has a VERIFIER and a STOP (done-signal + ~3 attempts, then stop
+  and report). A loop that cannot stop itself is just expensive.
+- [E-by-design] No silent scheduling exists in this system; recurring loops fire
+  only when you run them (a nudge may remind you, max one, easy to decline).
+
+### 5. Agents and isolation
+- [E] `architect`, reviewers, `codebase-analyst` are read-only (tool restriction).
+- [E] Dispatched and background agents run in their own git worktree (isolation).
+- [E] DO-NOT-TOUCH boundaries: `boundary-check.sh` blocks results/merges that
+  touch protected paths from `docs/codebase-map.md`.
+- [I] **The builder executes the approved plan as a contract.** No redesign;
+  a plan that does not survive contact with reality = STOP and ask.
+  Counters, all invalid: "my approach is better" (propose it at the gate, not in
+  the diff); "it's a small deviation" (small deviations are how drift starts);
+  "asking would slow us down" (a wrong build is slower).
+- [I] Story-level planning never redecides product architecture (escalate, ADR).
+- [I] Background maintenance = read and propose; applying waits for your gate.
+- [I] Own port, database, and `.env` per worktree (runtime isolation).
+
+### 6. Honesty
+- [I] **Never fabricate data or scores** (`/outcome`, `/product-signal`,
+  `/ab-test`, evals): no data = say "no data" and what to instrument.
+  Counters, all invalid: "an estimate is better than nothing" (a fabricated
+  number wearing an estimate's clothes poisons every decision downstream);
+  "the user expects a number" (the user needs the truth); "it's probably about
+  right" (probably is not a measurement).
+- [I] Never report "done" with a failing signal; the checklist is shown pass/fail.
+- [I] Heuristics are named as heuristics; `/merge` is the backstop, say so.
+- [I] Never invent commands or capabilities; `/guide` recommends only what is on
+  the system map.

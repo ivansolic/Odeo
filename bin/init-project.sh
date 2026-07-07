@@ -90,6 +90,15 @@ git init -q
 git commit --allow-empty -m "chore: initial commit" -q
 git branch -M main
 
+echo "  → installing git guards (no direct push to main; secret scan on commit)"
+if command -v install-git-guards.sh >/dev/null 2>&1; then
+  install-git-guards.sh >/dev/null
+elif [[ -x "$HOME/bin/install-git-guards.sh" ]]; then
+  "$HOME/bin/install-git-guards.sh" >/dev/null
+else
+  echo "    ! install-git-guards.sh not found, hooks skipped (run it later)"
+fi
+
 echo "  → creating folder structure"
 mkdir -p .claude/tasks
 mkdir -p docs/prds docs/stories docs/decisions docs/research docs/templates docs/evals docs/plans

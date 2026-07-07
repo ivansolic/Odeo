@@ -22,16 +22,18 @@ Briefly summarize to the user:
 - The nature of each change (1 sentence per file)
 - Whether anything looks unexpected or unintended
 
-## 3. Check for secrets and sensitive files
-Scan staged and unstaged files for:
-- Files named `.env`, `.env.*` (unless `.env.example`)
-- Files containing patterns like `API_KEY=`, `SECRET=`, `PASSWORD=`, `TOKEN=`, `BEGIN PRIVATE KEY`
-- Files in common secret locations like `credentials.json`, `firebase-adminsdk*.json`
-
-If anything suspicious appears:
-- STOP
-- Show the user the suspicious files/lines
-- Ask whether to exclude them, add to `.gitignore`, or abort
+## 3. Secret gate (ENFORCED, a script decides, not judgment)
+After staging (or on what's about to be staged), run the deterministic scanner:
+`secret-scan.sh` (in `~/bin`, or `bin/secret-scan.sh` in this repo).
+- **Exit 0:** clean, continue.
+- **Exit 1: BLOCKED.** Show the findings verbatim. The user must remove the
+  secret (env var / secrets manager) or unstage the file; if the value was real,
+  it is treated as leaked, rotate it. Re-run until clean. There is no
+  "commit anyway" override for secrets.
+Also eyeball for sensitive files the scanner can't judge by pattern
+(`credentials.json`, `firebase-adminsdk*.json`) and raise them.
+(The pre-commit hook runs the same scanner, this step catches it earlier and
+covers repos without hooks installed.)
 
 ## 4. Run local checks
 Read the project's `CLAUDE.md` to find the test and typecheck commands.

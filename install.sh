@@ -64,13 +64,14 @@ for doc in "$REPO_DIR"/docs/*.md; do
   [[ -f "$doc" ]] && place "$doc" ~/.claude/claude-cofounder-docs/"$(basename "$doc")"
 done
 
-# 3. Project scaffolder + privacy guard
-echo "  → init-project.sh → ~/bin/"
-place "$REPO_DIR/bin/init-project.sh" ~/bin/init-project.sh
-chmod +x ~/bin/init-project.sh 2>/dev/null || true
-echo "  → privacy-scan.sh → ~/bin/"
-place "$REPO_DIR/bin/privacy-scan.sh" ~/bin/privacy-scan.sh
-chmod +x ~/bin/privacy-scan.sh 2>/dev/null || true
+# 3. Scaffolder + guard scripts (all of bin/: init-project, privacy-scan,
+#    secret-scan, boundary-check, merge-gate, install-git-guards)
+echo "  → bin scripts → ~/bin/"
+for script in "$REPO_DIR"/bin/*.sh; do
+  [[ -f "$script" ]] || continue
+  place "$script" ~/bin/"$(basename "$script")"
+  chmod +x ~/bin/"$(basename "$script")" 2>/dev/null || true
+done
 
 # 3b. Privacy deny-list (your own private terms; gitignored by living in ~/.claude)
 #     Never overwrite an existing one. Seed a commented sample so it is discoverable.

@@ -114,9 +114,12 @@ the terminal." If yes, open the worktree folders with `code`.
    pushback allowed, you arbitrate).
 
 ### B6. Present per story
-Summary + diff, success-signal checklist (pass/fail each), contract adherence
-(any deviations from the plan), reviewer verdicts + scores, decisions and
-assumptions, `knowledge/` entries reused.
+Before presenting, run `boundary-check.sh` in the story's worktree (ENFORCED): if
+the builder touched a DO-NOT-TOUCH path, the result is blocked and goes back to
+the builder, it never reaches you dirty. Then present: summary + diff,
+success-signal checklist (pass/fail each), contract adherence (any deviations
+from the plan), reviewer verdicts + scores, decisions and assumptions,
+`knowledge/` entries reused.
 
 ### B7. Gate + integrate
 You approve each, or request changes (the agent revises and re-presents). On
