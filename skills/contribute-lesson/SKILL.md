@@ -1,5 +1,5 @@
 ---
-description: Opt-in. Share a local knowledge/ lesson with the community knowledge base so the whole system gets smarter. Sanitizes and generalizes it, shows you exactly what would be shared, and only opens a PR after your approval. Never sends anything automatically.
+description: Opt-in. Share a local knowledge/ lesson, an improved rubric, or an eval learning with the community knowledge base so the whole system gets smarter. Sanitizes and generalizes it, shows you exactly what would be shared, and only opens a PR after your approval. Never sends anything automatically.
 disable-model-invocation: true
 ---
 
@@ -9,8 +9,14 @@ approval-gated: nothing leaves your machine without your explicit OK.**
 
 ## When this runs
 - You invoke `/contribute-lesson`, OR
-- After `/learn` or `/retro`, if a lesson looks universal, Claude offers it (you choose).
-Only for **generalizable** lessons (universal patterns), never project-specific ones.
+- After `/learn` or `/retro`, if a lesson looks universal, Claude offers it (you choose), OR
+- After `/improve` keeps a rubric or skill change that would help everyone, Claude offers it.
+Only for **generalizable** content (universal patterns), never project-specific.
+
+## What can be contributed (three kinds, same pipeline)
+1. **A lesson** from `knowledge/` (a solved, reusable problem).
+2. **An improved rubric** (e.g. a sharper PRD criterion that /improve proved better), shared so everyone's quality bar rises.
+3. **An eval learning** (a scoring insight, e.g. "PRDs keep failing on X, here is the counter"), generalized.
 
 ## The offer (when Claude suggests it)
 > 💡 This lesson could help others using this system.
@@ -28,7 +34,7 @@ Only for **generalizable** lessons (universal patterns), never project-specific 
 > Contribute this lesson? (I will show you the sanitized version first.)
 
 ## Steps
-1. Pick the lesson from `knowledge/` (ask which if several).
+1. Pick the contribution: a lesson from `knowledge/`, a kept rubric change, or an eval learning (ask which if several).
 2. **Sanitize + generalize:**
    - Remove: real secrets/keys, PII, the project's proprietary code, internal file/class names, business logic specific to them.
    - Keep: the technical pattern, problem to solution, the reasoning, and a **generic** illustrative code example (not their proprietary code).

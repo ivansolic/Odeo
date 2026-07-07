@@ -55,6 +55,14 @@ for agent in "$REPO_DIR"/agents/*.md; do
   [[ -f "$agent" ]] && place "$agent" ~/.claude/agents/"$(basename "$agent")"
 done
 
+# 2c. System docs (authoring standard, eval framework, system map), referenced by
+#     reviewers and /guide from any project.
+echo "  → system docs → ~/.claude/claude-cofounder-docs/"
+mkdir -p ~/.claude/claude-cofounder-docs
+for doc in "$REPO_DIR"/docs/*.md; do
+  [[ -f "$doc" ]] && place "$doc" ~/.claude/claude-cofounder-docs/"$(basename "$doc")"
+done
+
 # 3. Project scaffolder + privacy guard
 echo "  → init-project.sh → ~/bin/"
 place "$REPO_DIR/bin/init-project.sh" ~/bin/init-project.sh

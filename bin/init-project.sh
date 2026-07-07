@@ -92,7 +92,7 @@ git branch -M main
 
 echo "  → creating folder structure"
 mkdir -p .claude/tasks
-mkdir -p docs/prds docs/stories docs/decisions docs/research docs/templates
+mkdir -p docs/prds docs/stories docs/decisions docs/research docs/templates docs/evals
 mkdir -p knowledge
 
 echo "  → copying project templates"
