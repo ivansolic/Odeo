@@ -70,6 +70,7 @@ The first-person voice ("I want…") is intentional, when you adopt this file,
 - For logic with clear rules (backend, API, services, validation, calculations, bug fixes): write the test from the acceptance criterion first, watch it fail, then implement (RED → GREEN → REFACTOR). The `test-driven-development` skill auto-applies here.
 - Skip test-first for UI/component layout, visual exploration, prototypes, and trivial fixes, add tests after instead.
 - Never weaken or edit a test just to make it pass; fix the implementation.
+- This TDD-lite is my personal default; a project may set its own `dev_rigor` (tdd | tdd-lite | test-after) in its CLAUDE.md via `/setup-project`, and that overrides this default for that project. All three styles still always end with tests + review + the security baseline.
 
 ## Security Baseline (non-negotiable, applies to ALL code)
 

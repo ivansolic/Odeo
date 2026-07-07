@@ -30,7 +30,12 @@ features. Structure adapted from common product-spec practice (a ProductCompass-
 8. **Open questions.**
 
 ## Output
-`docs/prds/PRD-NNN-<slug>.md` (next number, lowercase-hyphen slug). Then `/critique` it,
+`docs/prds/PRD-NNN-<slug>.md` (next number, lowercase-hyphen slug).
+
+## Quality gate (before moving on)
+Score the PRD with the **`pm-reviewer`** agent against `skills/prd/rubric.md`
+(installed copy: `~/.claude/skills/prd/rubric.md`). It writes the eval record to
+`docs/evals/`. Below threshold = fix the named gaps first. Then `/critique`,
 then `/stories`.
 
 ## Quality rules

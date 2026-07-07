@@ -63,9 +63,16 @@ claude-cofounder/
 │   ├── retro/                ← /retro end-of-session learning capture
 │   ├── setup-project/        ← /setup-project onboarding interview
 │   ├── setup-design/         ← /setup-design design-system/tokens setup (UI)
+│   ├── start/                ← /start you-are-here + next step + due loop reminders
+│   ├── guide/                ← auto-activates when you ask "how do I..." (routes goals)
+│   ├── prototype/            ← /prototype build-to-learn (N variants, live compare)
+│   ├── improve/              ← /improve evidence-gated system improvement (A/B, keep/revert)
+│   ├── product-signal/       ← /product-signal weekly user-feedback memo + trend
 │   ├── test-driven-development/ ← auto-applies to logic (RED-GREEN-REFACTOR)
 │   ├── ux-design/            ← auto-applies to UI (heuristics, states, a11y)
-│   └── ux-writing/           ← auto-applies to UI copy (microcopy, errors, NN/g)
+│   ├── ux-writing/           ← auto-applies to UI copy (microcopy, errors, NN/g)
+│   └── ...                   ← + the full PM set (discovery, strategy, planning,
+│                                metrics, launch), catalog: docs/system-map.md
 ├── agents/                   ← subagents (separate-context executors)
 │   ├── architect.md          ← plans a story as a contract (read-only, plan-only)
 │   ├── builder.md            ← executes the approved plan in its own worktree
@@ -78,7 +85,11 @@ claude-cofounder/
 │   └── design-reviewer.md    ← UI: heuristics, states, a11y, tokens
 ├── bin/
 │   ├── init-project.sh       ← scaffolds the project-specific parts of a new project
-│   └── privacy-scan.sh       ← deterministic privacy guard (blocks leaks before sharing)
+│   ├── privacy-scan.sh       ← deterministic privacy guard (blocks leaks before sharing)
+│   ├── secret-scan.sh        ← staged-secrets gate (blocks the commit)
+│   ├── boundary-check.sh     ← DO-NOT-TOUCH path gate (blocks protected-path changes)
+│   ├── merge-gate.sh         ← /merge preconditions (branch, clean tree, fresh approved review)
+│   └── install-git-guards.sh ← installs pre-push + pre-commit hooks into a repo
 ├── project-templates/        ← project-specific scaffolding only (not the tools)
 │   ├── CLAUDE.md             ← per-project config incl. a Security & Data section
 │   ├── knowledge/            ← README for the project knowledge base
@@ -89,9 +100,14 @@ claude-cofounder/
 ├── global/
 │   └── CLAUDE.md             ← user-global baseline laid into ~/.claude by install.sh
 ├── tests/
-│   └── privacy-scan.test.sh  ← tests for the privacy guard
+│   └── *.test.sh             ← test suites for every guard script (31 assertions)
 └── docs/
-    └── privacy-guard.md      ← design of the privacy guard
+    ├── system-map.md         ← the catalog: every command/agent/loop by phase
+    ├── eval-framework.md     ← rubrics, scorers, eval records, regression
+    ├── plan-format.md        ← the architect's plan contract format + rubric
+    ├── skill-authoring-standard.md ← how skills are written (+ skill rubric)
+    ├── privacy-guard.md      ← design of the privacy guard
+    └── checklists/           ← recorded audit results (alignment, Anthropic practices)
 
 # Commands, agents, and skills are provided by the installed plugin (or install.sh),
 # so they are available in EVERY project automatically, no per-project copies.

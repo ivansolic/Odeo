@@ -30,6 +30,11 @@ Confirmation) and Bill Wake's INVEST.
 ## Output
 `docs/stories/USR-NNN-<slug>.md` each, ordered. One story = one branch = one PR downstream.
 
+## Quality gate (before handing to /build)
+Score the story set with the **`pm-reviewer`** agent against
+`skills/stories/rubric.md` (installed copy: `~/.claude/skills/stories/rubric.md`);
+eval record goes to `docs/evals/`. Below threshold = fix the named gaps first.
+
 ## Quality rules
 - Acceptance criteria are **observable and binary**; no "user-friendly."
 - Small and independent; if it's more than ~2 days or can't be tested, split it.

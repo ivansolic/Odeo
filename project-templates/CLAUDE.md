@@ -76,6 +76,9 @@ these, fill them in accurately._
 
 _Your house rules. Be concrete, these shape every change Claude makes._
 
+- dev_rigor: [tdd | tdd-lite | test-after]  , when tests are written (set by /setup-project; all three always end with tests + review + the security baseline)
+- teach_me_as_i_go: [yes | no]  , add the technical term as a labeled aside after plain explanations
+
 ### Frontend
 - [e.g. component model, state patterns, control-flow syntax, file organization]
 

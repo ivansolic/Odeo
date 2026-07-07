@@ -12,10 +12,12 @@ written from scratch, they inherit the problem, outcome, and personas already es
 ## Flow
 ```
 1. /prd       problem-first PRD for this slice (absorbs discovery + strategy)
+   -> pm-reviewer scores it against the PRD rubric (eval record; fix gaps below threshold)
    -> GATE: approve the PRD
 2. /critique  red-team + pre-mortem (incl. security pre-mortem if sensitive)
    -> GATE: revise the PRD per findings
 3. /stories   break the critiqued PRD into INVEST stories, ORDERED BY DEPENDENCY
+   -> pm-reviewer scores the set against the stories rubric (eval record)
    -> GATE: approve the story set
 ```
 Output: `docs/prds/PRD-NNN` + `docs/stories/USR-NNN`. Next: `/build` each story in order, then `/merge`.

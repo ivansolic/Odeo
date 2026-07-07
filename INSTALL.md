@@ -109,7 +109,7 @@ cd claude-cofounder
 - `~/.claude/skills/`, all skills, available in every project: the workflow commands (`/build`, `/merge`, `/learn`, ...) and the auto-applying skills (TDD, ux-design)
 - `~/.claude/agents/`, the subagents (`architect`, `builder`, `code-reviewer`, ...), available everywhere
 - `~/.claude-templates/`, project-specific scaffolding templates + `presets/`
-- `~/bin/init-project.sh` and `~/bin/privacy-scan.sh`
+- `~/bin/`, the scaffold + guard scripts (init-project, privacy-scan, secret-scan, boundary-check, merge-gate, install-git-guards)
 - your shell profile, adds `~/bin` to PATH and sets `CLAUDE_CODE_AUTO_VERIFY=1`
 
 > This is the GitHub install path. The same repo is also a Claude Code plugin
@@ -222,7 +222,8 @@ gh repo delete test-setup --yes
 ├── .bash_profile              ← contains PATH + CLAUDE_CODE_AUTO_VERIFY
 └── bin/
     ├── init-project.sh        ← scaffolds the project-specific parts of a project
-    └── privacy-scan.sh        ← deterministic privacy guard
+    ├── privacy-scan.sh        ← deterministic privacy guard
+    └── + secret-scan, boundary-check, merge-gate, install-git-guards (enforced gates)
 ```
 
 Everything under `~/.claude*` and `~/bin` is installed by `install.sh` from the
