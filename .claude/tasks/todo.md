@@ -1,5 +1,12 @@
 # Task: Phase 2, first-party PM set (own the PM layer)
 
+## BUILD PROGRESS
+- [x] BATCH 1 , eval framework (2026-07-07): eval-framework.md + skill-authoring-standard.md (+skill rubric) + prd/stories rubrics + NEW pm-reviewer & skill-reviewer + code/design-reviewer upgraded (review=eval, records) + contribute-lesson extended (rubrics/eval learnings) + install (system docs -> ~/.claude/claude-cofounder-docs/) + scaffold docs/evals/. All checks green.
+- [ ] BATCH 2 , agent core (architect, builder, codebase-analyst, plan-format, /build pipeline, setup-project existing+dev-rigor)
+- [ ] BATCH 3 , new skills (/improve, /product-signal, /prototype, /start, /guide + system-map, OKR check-in, roadmap-drift nudge)
+- [ ] BATCH 4 , guardrails (AGENTS.md section + mechanisms + bulletproofing)
+- [ ] BATCH 5 , alignment + docs (51-skill pass, Anthropic checklists, doc overhaul, tests)
+
 ## ACTIVE DISCUSSION: loops + evals + guardrails (design, not yet built)
 Order: #1 evals DONE, #2 improve DONE, #3 signal DONE, #4 prototype DONE, #5 trigger pattern DONE, then TDD-vs-normal-dev option <- NEXT, then CATEGORIZATION, then GUARDRAILS.
 
