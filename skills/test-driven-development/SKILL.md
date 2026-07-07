@@ -1,6 +1,6 @@
 ---
 name: test-driven-development
-description: Write a failing test before implementation code, then make it pass (RED-GREEN-REFACTOR). Use proactively when implementing backend logic, API endpoints, services/controllers, data validation, business rules, calculations, data transformations, or bug fixes, anything with clear, checkable input/output. Do NOT use for UI component layout/styling, visual exploration where the design isn't settled, throwaway prototypes, generated code, config files, or trivial one-line fixes.
+description: Use when implementing backend logic, API endpoints, services/controllers, data validation, business rules, calculations, data transformations, or bug fixes, anything with clear, checkable input/output. Write a failing test before implementation code, then make it pass (RED-GREEN-REFACTOR). Do NOT use for UI component layout/styling, visual exploration where the design isn't settled, throwaway prototypes, generated code, config files, or trivial one-line fixes.
 ---
 
 # Test-Driven Development (lite)

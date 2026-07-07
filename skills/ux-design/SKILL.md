@@ -1,6 +1,6 @@
 ---
 name: ux-design
-description: Apply UX/UI best practices when building or reviewing any user interface, components, screens, layouts, forms, user flows. Use proactively for frontend/UI work: enforces usability heuristics, UX laws, UI foundations (spacing/type/grid/color), all interaction + data states, and accessibility. Do NOT use for pure backend/logic, config files, or non-visual work.
+description: Use when building or reviewing any user interface, components, screens, layouts, forms, or user flows (frontend/UI work): enforces usability heuristics, UX laws, UI foundations (spacing/type/grid/color), all interaction + data states, and accessibility. Do NOT use for pure backend/logic, config files, or non-visual work.
 ---
 
 # UX / UI Design

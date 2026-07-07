@@ -37,6 +37,18 @@ global CLAUDE.md, which affects every project.
 Briefly confirm what was written and where. Remind the user they can resume this
 session later with `claude --continue`.
 
+## Worked example
+```
+> /retro
+Session review: built USR-012 (timer), 2 corrections happened.
+Proposed lessons:
+1. PROJECT: "2026-07-07, timer drifted with setInterval. Rule: use timestamp
+   deltas, not interval ticks, for elapsed time."     -> lessons.md?  [yes/no]
+2. GLOBAL candidate: "always run worktree-parallel-check before parallel builds"
+   -> propose for global CLAUDE.md?                    [yes/no]
+You approve #1, decline #2 -> only #1 is written. Confirmed: 1 lesson saved.
+```
+
 ## Safety Rules
 - Never write a lesson the user didn't approve.
 - Never edit the global CLAUDE.md without explicit confirmation.

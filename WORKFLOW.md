@@ -700,6 +700,47 @@ loop: idea → ship → measure → learn → better next story.
 
 ---
 
+## The loops, at every timescale
+
+One picture explains how the whole system improves itself. Loops are nested by
+how fast they turn, and every one has a verifier and a stop:
+
+```
+MINUTES   the agent's inner loop     build -> test -> fix, to the success-signal
+          (builder; verifier = tests/criteria; stop = all green or ~3 tries)
+HOURS     your steering loop         plan gate -> review -> approve/redirect
+          (you direct and taste; you don't QA line by line)
+DAYS      the users' loop            /outcome + /product-signal -> back into /plan
+          (real signals decide what's next; never fabricated)
+WEEKS     the system learns          /learn, /knowledge-refresh, /improve
+          (knowledge compounds; skills/rubrics only change with evidence)
+```
+
+Why a human stays in the loop: you hold the **context advantage**, you understand
+your users, market, and constraints in ways no model does. The gates aren't a
+brake on the system; they're where its best information enters.
+
+### 🔁 Recurring loops, when each runs (nudge reminds you; YOU run them)
+
+| Loop | Natural moment | Interval |
+|---|---|---|
+| `/knowledge-refresh` | session start (quiet, only if due) | every 2-4 weeks |
+| `/improve` | when evals show repeated drops | after ~3-5 same-criterion drops |
+| `/product-signal` | first session after the interval | ~weekly |
+| `/learn` + `/retro` | after `/merge`, or when you say you're wrapping up | per story / session |
+| `/outcome` | you decide, ~a week after shipping | per shipped feature |
+
+Rules: at most ONE nudge, short, easy to decline; nothing ever runs on a silent
+schedule (no scheduler exists, that's a guardrail).
+
+**Background option:** read-only loops (`/product-signal`, analysis parts of
+`/improve` and `/knowledge-refresh`) can run in the background while you work,
+they read and think in their own isolated worktree and STOP at "here's my
+proposal, approve?". Applying any change waits for your gate, at a calm moment
+(after `/merge` or at the next session start), never mid-build.
+
+---
+
 ## Working With Claude, Rules of Thumb
 
 ### Trust but verify
@@ -747,6 +788,11 @@ trusting auto-invocation.
 | I want to... | I do... |
 |---|---|
 | Start a new project | `init-project.sh <name>` → `gh repo create ...` → `claude` |
+| See where you are + what's next | `/start` (you-are-here + due loop reminders) |
+| Ask "how do I do X here?" | just ask, `/guide` auto-activates (routes goal -> commands) |
+| Try an idea by building it | `/prototype` (N disposable variants, live compare, keep the learnings) |
+| Improve a skill/rubric with evidence | `/improve` (A/B test, you keep or revert) |
+| Weekly listen to your users | `/product-signal` (themes + trend vs last week) |
 | Configure a new project (stack, commands) | `/setup-project` (once per project, first thing) |
 | Import an existing PRD | Paste it, or "Read docs/prds/... and evaluate it" |
 | Triage external requests | `/interview-synthesis` then `/prioritize` |

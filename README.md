@@ -12,6 +12,8 @@ Claude Cofounder is an opinionated workflow system for [Claude Code](https://cla
 
 You bring the *what* and *why* (the product thinking). The system makes Claude deliver the *how* (the code), with guardrails so the result is actually solid.
 
+**Why a human stays in command:** you hold the context advantage, you understand your users, market, and constraints in ways no model does. The approval gates aren't a brake on the system; they're where its best information enters. One person, the force of a whole product team, and you stay in command.
+
 ## Who it's for
 
 PMs and builders who want to ship real software with Claude Code and don't want to figure out the workflow, testing, and security discipline from scratch. No engineering background assumed, the included `BEGINNERS-GUIDE.md` explains every concept in plain language.
@@ -110,6 +112,11 @@ claude-cofounder/
 - **Community knowledge** (`/contribute-lesson`), opt-in, share a sanitized, generalized lesson with the shared knowledge base so the whole system gets smarter; on update you get back the curated knowledge of all contributors. Approval-gated, nothing leaves your machine without your OK.
 - **Privacy guard** (`bin/privacy-scan.sh`), a deterministic scan (emails, secrets/tokens, local paths, IPs, and your own deny-list terms) that runs as a hard gate before anything is shared via `/contribute-lesson`. The safety net under the model's sanitization and your approval, so private data can't leak by accident, including other users' data once this is a product. Your private terms live in a local `~/.claude/privacy-denylist.txt`, never in a repo.
 - **Post-ship outcome loop** (`/outcome`), about a week after shipping, compares the real outcome against the PRD's intended outcome and verdicts keep/iterate/kill. Never on fabricated data.
+- **Never lost** (`/start` + `/guide`), `/start` reads your project and says where you are, what's next, and which recurring loops are due; and whenever you ask "how do I do X here?", the `/guide` advisor auto-activates and routes your goal to the right commands, prerequisites first. It only recommends what actually exists.
+- **Build-to-learn** (`/prototype`), spin up 2-3 disposable working variants (each in its own worktree, own port, running server), compare them live, kill the weak ones, and promote the winner's learnings into the real, fully-rigorous build. Prototypes never ship raw.
+- **Evals built in**, every artifact type has a rubric and a scorer: reviewers score code, UI, PM documents, and skills (review = eval, records in `docs/evals/`), regressions are visible, and `/improve` changes the system itself only when an A/B test proves the new version better, you keep or revert.
+- **Guardrails, enforced where it matters**, one `## Guardrails` section in `AGENTS.md` tags every hard rule as mechanism-enforced or instructed: no direct pushes to main (git hook), no secrets in commits (scan blocks the commit), no merges without a review record (gate script), protected paths can't be touched (boundary check), nothing private leaves the machine unscanned.
+- **Weekly listening** (`/product-signal`), your users' feedback becomes a themed memo compared against last week: what's new, what's growing, what faded, feeding `/prioritize` and `/roadmap` with reality.
 - **Three docs**, `INSTALL.md` (setup), `BEGINNERS-GUIDE.md` (concepts), `WORKFLOW.md` (daily use). Plus `CONTRIBUTING.md` for contributing back (code and beyond).
 
 ## Your data: what's private, what's shared

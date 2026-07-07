@@ -25,6 +25,14 @@ users. A quick git pull; it does NOT touch the tooling (for that, plugin users r
 ## Output
 A short summary of pulled lessons. Read-only consume; never edits the community base.
 
+## Worked example
+```
+> /sync-community
+Pulled 3 new community lessons: auth/jwt-refresh-rotation, testing/flaky-timers,
+api/pagination-cursors. 1 overlaps this project's knowledge/auth/, run
+/knowledge-refresh to reconcile? [yes/no]
+```
+
 ## Safety rules
 - Pull only (`--ff-only`); never push or edit the community base here (contribute via `/contribute-lesson`).
 - Don't auto-run; the user invokes it (or accepts the freshness nudge).

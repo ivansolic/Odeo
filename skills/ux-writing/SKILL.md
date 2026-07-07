@@ -1,5 +1,5 @@
 ---
-description: Write clear, scannable, trustworthy UI copy, button labels, error messages, empty/loading/success states, headings, links, tooltips, microcopy. Auto-applies when writing or reviewing interface text. Based on Nielsen Norman Group UX-writing guidance, plus Torrey Podmajersky (Strategic Writing for UX) and Kinneret Yifrah (Microcopy).
+description: Use when writing or reviewing any interface text, button labels, error messages, empty/loading/success states, headings, links, tooltips, microcopy. Produces clear, scannable, trustworthy UI copy. Based on Nielsen Norman Group UX-writing guidance, plus Torrey Podmajersky (Strategic Writing for UX) and Kinneret Yifrah (Microcopy).
 ---
 
 # UX writing (content design)

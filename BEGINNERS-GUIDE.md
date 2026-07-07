@@ -354,7 +354,21 @@ times. Stop it, send it back to plan mode, make it rethink.
 
 ---
 
-## 17. Where to go next
+## 17. Never lost: two helpers that always know the way
+
+- **`/start`**, type it any time: it reads your project and answers "where am I,
+  what's next?" with one concrete next command, plus any due reminders (like
+  "you haven't captured lessons this week").
+- **Just ask**, you don't need to memorize commands. Ask in plain words ("how do
+  I get these stories into Jira?", "what now?") and the built-in guide activates
+  by itself: it tells you the route, what's missing first, and offers to start.
+  It never runs anything without your yes.
+
+Rule of thumb: lost = `/start`; have a goal = just ask.
+
+---
+
+## 18. Where to go next
 
 - **`WORKFLOW.md`**, the exact commands, in order, for daily use. Your main map.
 - **`INSTALL.md`**, only for first-time setup or fixing a broken install.

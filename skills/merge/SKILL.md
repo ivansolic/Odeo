@@ -27,6 +27,17 @@ tests + merge. Used by both `/build` modes when a story is approved.
 5. Merge the PR into main (squash for a clean history): `gh pr merge --squash` (or fast-forward).
 6. Clean up: `git checkout main && git pull`, delete the branch local + remote.
 
+## Worked example
+```
+> /merge                          (on feature/usr-012-timer, reviewed, you approved)
+merge-gate: preconditions hold (branch 'feature/usr-012-timer', record: code-feature-usr-012-timer.md)
+fetch + rebase onto origin/main: clean
+tests + typecheck: green
+gh pr merge --squash: merged
+cleanup: back on main, branch deleted local + remote
+-> "USR-012 integrated. Next by dependency: USR-013. About a week after shipping, run /outcome."
+```
+
 ## Parallel / multiple stories
 Integrate **one at a time**, serialized. Each branch rebases onto the now-updated
 main (which may already include a sibling story), so conflicts surface and resolve
