@@ -1,31 +1,56 @@
 #!/usr/bin/env bash
 # Tests for bin/merge-gate.sh, the /merge deterministic gate.
+# Covers: branch guard, dirty tree, record existence by EXACT branch field,
+# record freshness (newer than last code commit), and verdict check.
 # Run: bash tests/merge-gate.test.sh
 set -uo pipefail
 TEST_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 GATE="$TEST_DIR/../bin/merge-gate.sh"
 pass=0; fail=0
 
-make_repo() { local d; d="$(mktemp -d)"; ( cd "$d" && git init -q -b main && echo a > a.txt && git add -A && git commit -qm init ) >/dev/null 2>&1; echo "$d"; }
-check() { # check <name> <expected_rc> <repo> [args...]
-  local name="$1" want="$2" repo="$3"; shift 3
-  ( cd "$repo" && bash "$GATE" "$@" ) >/dev/null 2>&1; local rc=$?
-  if [[ $rc -eq $want ]]; then echo "ok   - $name"; pass=$((pass+1)); else echo "FAIL - $name (rc=$rc want=$want)"; fail=$((fail+1)); fi
+T1='2026-01-01T10:00:00'; T2='2026-01-01T11:00:00'; T3='2026-01-01T12:00:00'
+commit_at() { # commit_at <repo> <time> <msg>
+  ( cd "$1" && GIT_AUTHOR_DATE="$2" GIT_COMMITTER_DATE="$2" git commit -qm "$3" ) >/dev/null 2>&1
 }
+make_repo() { local d; d="$(mktemp -d)"; ( cd "$d" && git init -q -b main && echo a > a.txt && git add -A ) >/dev/null 2>&1; commit_at "$d" "$T1" init; echo "$d"; }
+record() { # record <repo> <branch-field> <verdict>
+  ( cd "$1" && mkdir -p docs/evals && printf -- '---\nartifact: code\nbranch: %s\n---\n## Verdict\n%s\n' "$2" "$3" > docs/evals/code-review.md && git add -A ) >/dev/null 2>&1
+}
+check() { local name="$1" want="$2" repo="$3"; ( cd "$repo" && bash "$GATE" ) >/dev/null 2>&1; local rc=$?
+  if [[ $rc -eq $want ]]; then echo "ok   - $name"; pass=$((pass+1)); else echo "FAIL - $name (rc=$rc want=$want)"; fail=$((fail+1)); fi; }
 
 # 1. On main -> refuse
 d="$(make_repo)"; check "refuses on main" 1 "$d"; rm -rf "$d"
 
-# 2. On branch, NO review record -> refuse
-d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git commit -aqm c ) >/dev/null 2>&1
-check "refuses without a review record" 1 "$d"; rm -rf "$d"
+# 2. Branch, no record at all -> refuse
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1; commit_at "$d" "$T2" code
+check "refuses without any record" 1 "$d"; rm -rf "$d"
 
-# 3. On branch WITH review record for the branch -> pass
-d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && mkdir -p docs/evals && echo rec > "docs/evals/code-feature-x.md" && echo b >> a.txt && git add -A && git commit -qm c ) >/dev/null 2>&1
-check "passes with review record" 0 "$d"; rm -rf "$d"
+# 3. Record exists but for a DIFFERENT branch -> refuse (exact branch-field match)
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1; commit_at "$d" "$T2" code
+record "$d" "feature/OTHER" "APPROVE"; commit_at "$d" "$T3" rec
+check "refuses record for another branch" 1 "$d"; rm -rf "$d"
 
-# 4. Dirty working tree -> refuse (uncommitted work must not merge)
-d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && mkdir -p docs/evals && echo rec > "docs/evals/code-feature-x.md" && git add -A && git commit -qm c && echo dirty >> a.txt ) >/dev/null 2>&1
+# 4. Fresh matching record with APPROVE -> pass
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1; commit_at "$d" "$T2" code
+record "$d" "feature/x" "APPROVE"; commit_at "$d" "$T3" rec
+check "passes: matching + fresh + approved" 0 "$d"; rm -rf "$d"
+
+# 5. STALE record (code committed AFTER the review) -> refuse
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x ) >/dev/null 2>&1
+record "$d" "feature/x" "APPROVE"; commit_at "$d" "$T2" rec
+( cd "$d" && echo newer >> a.txt && git add -A ) >/dev/null 2>&1; commit_at "$d" "$T3" code-after-review
+check "refuses stale record (code changed after review)" 1 "$d"; rm -rf "$d"
+
+# 6. Matching + fresh record but verdict REQUEST CHANGES -> refuse
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1; commit_at "$d" "$T2" code
+record "$d" "feature/x" "REQUEST CHANGES"; commit_at "$d" "$T3" rec
+check "refuses REQUEST CHANGES verdict" 1 "$d"; rm -rf "$d"
+
+# 7. Dirty working tree -> refuse
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1; commit_at "$d" "$T2" code
+record "$d" "feature/x" "APPROVE"; commit_at "$d" "$T3" rec
+( cd "$d" && echo dirty >> a.txt ) >/dev/null 2>&1
 check "refuses dirty working tree" 1 "$d"; rm -rf "$d"
 
 echo ""; echo "passed: $pass, failed: $fail"; [[ $fail -eq 0 ]]

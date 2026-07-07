@@ -51,6 +51,7 @@ docs/evals/PRD-007.md
 ---
 artifact: PRD-007
 type: prd
+branch: feature/usr-007-password-reset   # required for code/UI records; merge-gate matches on it
 artifact_version: 3
 date: 2026-07-07
 scorer: pm-reviewer

@@ -36,13 +36,36 @@ if [[ -n "$(git status --porcelain)" ]]; then
   exit 1
 fi
 
-# 3. Review record exists for this branch (slug match in docs/evals/)
-slug="$(printf '%s' "$branch" | tr '/' '-' )"
-short="${branch##*/}"
-record="$(ls docs/evals/ 2>/dev/null | grep -iE "(${slug}|${short})" || true)"
-if [[ -z "$record" ]]; then
-  echo "merge-gate: REFUSED, no review record found in docs/evals/ for '$branch'." >&2
-  echo "Run code-reviewer (and design-reviewer if UI) first; review = eval record." >&2
+# 3. Review record exists for this branch, EXACT match on the record's
+#    "branch:" field (content, not filename), so an unrelated record can't pass.
+records="$(grep -rl "^branch: ${branch}\$" docs/evals/ 2>/dev/null || true)"
+if [[ -z "$records" ]]; then
+  echo "merge-gate: REFUSED, no review record in docs/evals/ carries 'branch: $branch'." >&2
+  echo "Run code-reviewer (and design-reviewer if UI) first; review = eval record" >&2
+  echo "(records must include a 'branch:' field, see the eval framework)." >&2
+  exit 1
+fi
+
+# Pick the newest matching record (by git commit time).
+record=""; rec_time=0
+while IFS= read -r r; do
+  t="$(git log -1 --format=%ct -- "$r" 2>/dev/null || echo 0)"
+  [[ "$t" -gt "$rec_time" ]] && { rec_time="$t"; record="$r"; }
+done <<< "$records"
+
+# 3b. Verdict check: an existing record that requested changes does not pass.
+if grep -qiE 'REQUEST CHANGES|(^|[[:space:]])verdict:? *FAIL' "$record"; then
+  echo "merge-gate: REFUSED, the latest review for '$branch' did not approve" >&2
+  echo "($record). Fix the findings and re-run the reviewer." >&2
+  exit 1
+fi
+
+# 3c. Freshness: the review must be newer than the last CODE commit, a review
+#     of older code does not cover what you are merging now.
+last_code="$(git log -1 --format=%ct -- . ":(exclude)docs/evals" 2>/dev/null || echo 0)"
+if [[ "$rec_time" -lt "$last_code" ]]; then
+  echo "merge-gate: REFUSED, the review record is OLDER than the last code change." >&2
+  echo "The code moved after the review; re-run the reviewer so it covers what merges." >&2
   exit 1
 fi
 

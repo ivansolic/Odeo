@@ -87,7 +87,8 @@ testing X/2 · conventions X/2  -> total X/12  (threshold: >=9, no zero)
 
 ## Eval record (review = eval)
 After reviewing, write the record to `docs/evals/code-<branch-or-story-id>.md`
-(format in `docs/eval-framework.md`): scores, verdict, top findings, and, if a
+(format in `docs/eval-framework.md`), and it MUST include the exact `branch:` field
+(e.g. `branch: feature/usr-012-timer`), the /merge gate matches on it: scores, verdict, top findings, and, if a
 previous record exists for the same story/branch, the regression note (better,
 worse, same). This record is what the /merge gate checks for. In blind scoring
 mode (subagent A/B tests) return scores only, no record.
