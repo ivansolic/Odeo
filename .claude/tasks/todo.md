@@ -2,7 +2,7 @@
 
 ## BUILD PROGRESS
 - [x] BATCH 1 , eval framework (2026-07-07): eval-framework.md + skill-authoring-standard.md (+skill rubric) + prd/stories rubrics + NEW pm-reviewer & skill-reviewer + code/design-reviewer upgraded (review=eval, records) + contribute-lesson extended (rubrics/eval learnings) + install (system docs -> ~/.claude/claude-cofounder-docs/) + scaffold docs/evals/. All checks green.
-- [ ] BATCH 2 , agent core (architect, builder, codebase-analyst, plan-format, /build pipeline, setup-project existing+dev-rigor)
+- [x] BATCH 2 , agent core (2026-07-07): plan-format.md+rubric, architect (read-only), developer->builder (contract+receiving-review), codebase-analyst, /build architect->gate->builders pipeline, /setup-project existing-mode + dev-rigor picker, repo-wide reference update, scaffold docs/plans. All checks green.
 - [ ] BATCH 3 , new skills (/improve, /product-signal, /prototype, /start, /guide + system-map, OKR check-in, roadmap-drift nudge)
 - [ ] BATCH 4 , guardrails (AGENTS.md section + mechanisms + bulletproofing)
 - [ ] BATCH 5 , alignment + docs (51-skill pass, Anthropic checklists, doc overhaul, tests)
