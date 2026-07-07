@@ -5,7 +5,7 @@
 - [x] BATCH 2 , agent core (2026-07-07): plan-format.md+rubric, architect (read-only), developer->builder (contract+receiving-review), codebase-analyst, /build architect->gate->builders pipeline, /setup-project existing-mode + dev-rigor picker, repo-wide reference update, scaffold docs/plans. All checks green.
 - [x] BATCH 3 , new skills (2026-07-07): system-map.md + /guide (auto-invoked advisor) + /start + /improve (A/B keep/revert) + /product-signal (weekly compare) + /prototype (worktree+port+server per variant, findings, promote gate) + OKR check-in mode + roadmap-drift offers in /outcome & /product-signal. All checks green.
 - [x] BATCH 4 , guardrails (2026-07-07): AGENTS.md ## Guardrails (6 groups, E/I, counters on 4 critical rules) + enforced mechanisms (secret-scan, boundary-check, merge-gate, install-git-guards w/ pre-push+pre-commit hooks) wired into /commit-push, /merge, /build, init-project. 28 test assertions green; live block verified. Live pressure-testing of counters -> dogfood.
-- [ ] BATCH 5 , alignment + docs (51-skill pass, Anthropic checklists, doc overhaul, tests)
+- [x] BATCH 5 , alignment + docs (2026-07-07): 56-skill alignment pass (recorded), Use-when fixes on 3 auto-skills, examples added to merge/retro/sync-community, Anthropic checklists recorded (1 accepted gap), WORKFLOW nested-loops + trigger table + background docs, README context-advantage + new bullets, BEGINNERS never-lost. ALL 5 BATCHES COMPLETE.
 
 ## ACTIVE DISCUSSION: loops + evals + guardrails (design, not yet built)
 Order: #1 evals DONE, #2 improve DONE, #3 signal DONE, #4 prototype DONE, #5 trigger pattern DONE, then TDD-vs-normal-dev option <- NEXT, then CATEGORIZATION, then GUARDRAILS.
