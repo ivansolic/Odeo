@@ -63,6 +63,10 @@ mkdir -p ~/.claude/claude-cofounder-docs
 for doc in "$REPO_DIR"/docs/*.md; do
   [[ -f "$doc" ]] && place "$doc" ~/.claude/claude-cofounder-docs/"$(basename "$doc")"
 done
+mkdir -p ~/.claude/claude-cofounder-docs/checklists
+for doc in "$REPO_DIR"/docs/checklists/*.md; do
+  [[ -f "$doc" ]] && place "$doc" ~/.claude/claude-cofounder-docs/checklists/"$(basename "$doc")"
+done
 
 # 3. Scaffolder + guard scripts (all of bin/: init-project, privacy-scan,
 #    secret-scan, boundary-check, merge-gate, install-git-guards)
