@@ -245,28 +245,28 @@ Deferred (very end): marketplace listing; the end-to-end dogfood test.
 ## DOGFOOD FIX BATCH (2026-07-13, approved A / pending sign-off B)
 
 ### Batch A — approved by Ivan
-- [ ] A1 merge-gate.sh: parse ONLY frontmatter `verdict:` (+ TDD tests) — F2
-- [ ] A2 reviewer agents: single clean frontmatter verdict, history in body — F2
-- [ ] A3 /merge: CI-exists check + warm /learn nudge; /start: /retro nudge; rewrite both nudges positively (no "skip if you like") — F3, F6 + tester note
-- [ ] A4 secret-scan.sh: credential-assignment rule skips test paths, key formats stay global (+ tests) — F5
-- [ ] A5 init-project.sh: git identity sanity check (machine/work email warning) — F7
-- [ ] A6 architect plan template: mandatory design-token wiring task for new UI packages — F8
-- [ ] A7 pm-skills: port best bits into our skills (multi-lens ideation, product-focused), sharpen our `description:` triggers, INSTALL.md says uninstall pm-skills — F1
-- [ ] A8 origin/HEAD auto-fix: `git remote set-head origin -a` baked into every first-push point (init next-steps, /merge, /build) so built-in /security-review works — F4 upgraded from doc-note to real fix
+- [x] A1 merge-gate.sh: parse ONLY frontmatter `verdict:` (+ TDD tests) — F2
+- [x] A2 reviewer agents: single clean frontmatter verdict, history in body — F2
+- [x] A3 /merge: CI-exists check + warm /learn nudge; /start: /retro nudge; rewrite both nudges positively (no "skip if you like") — F3, F6 + tester note
+- [x] A4 secret-scan.sh: credential-assignment rule skips test paths, key formats stay global (+ tests) — F5
+- [x] A5 init-project.sh: git identity sanity check (machine/work email warning) — F7
+- [x] A6 architect plan template: mandatory design-token wiring task for new UI packages — F8
+- [x] A7 pm-skills: port best bits into our skills (multi-lens ideation, product-focused), sharpen our `description:` triggers, INSTALL.md says uninstall pm-skills — F1
+- [x] A8 origin/HEAD auto-fix: `git remote set-head origin -a` baked into every first-push point (init next-steps, /merge, /build) so built-in /security-review works — F4 upgraded from doc-note to real fix
 
 ### Batch B — from tester notes (sign-off pending)
-- [ ] B1 VS Code integration (MUST): always `code -r` (reuse window, no dock dupes); PM docs auto-open after creation; Mode A live reveal standard; Mode B offers opening the worktree; document native gutter/diff coloring
-- [ ] B2 learning comments rule for builder + subagents (scope: decision pending — always vs teach_me-linked)
-- [ ] B3 merge human-floor: /merge NEVER self-triggers; /build ends with an offer, not an action; guardrail + rationalization counter in AGENTS.md
-- [ ] B4 test-command hygiene: non-watch runners (vitest run), timeouts; /setup-project fills non-interactive commands; builder rule
-- [ ] B5 Mode B: architecture-reviewer reviews the architect plan before the human gate (scope: decision pending — always vs arch-touching stories)
-- [ ] B6 mode ALWAYS asked, never inferred (/build wording + guardrail)
-- [ ] B7 Mode A: optional "want the architect agent to draft the plan?" offer
-- [ ] B8 entry flow: /start + /setup-project ask "do you have the idea yet?" → route brainstorm/prototype-first; remove preset-ad line; plain mode labels (naming decision pending)
-- [ ] B9 /critique writes follow-ups into todo/backlog so long projects resume cleanly
-- [ ] B10 /setup-design: existing design system / Figma source option; invokability policy (decision pending)
-- [ ] B11 stories skill: words over symbols ("at least one"), audience-adaptive AC technicality, standalone/no-repo mode
-- [ ] B12 docs: "grounded in established frameworks" section (INVEST, 3C's, JTBD, diverge-converge...); cleaner chat output, VS Code preview tip
-- [ ] B13 project template ships .claude/settings.json permission allowlist (tests/lint/typecheck/git-read) to cut prompt fatigue
-- [ ] B14 model-robustness pass: shorten + imperative-ize critical skill/agent instructions so Opus ≈ Fable experience
-- [ ] AFTER: /prototype dogfood test (Ivan wants to try it), then CI mirror
+- [x] B1 VS Code integration (MUST): always `code -r` (reuse window, no dock dupes); PM docs auto-open after creation; Mode A live reveal standard; Mode B offers opening the worktree; document native gutter/diff coloring
+- [x] B2 learning comments rule for builder + subagents (decided: teach_me-linked, default ON; comments = intent + connections, updated with the code)
+- [x] B3 merge human-floor: /merge NEVER self-triggers; /build ends with an offer, not an action; guardrail + rationalization counter in AGENTS.md
+- [x] B4 test-command hygiene: non-watch runners (vitest run), timeouts; /setup-project fills non-interactive commands; builder rule
+- [x] B5 for-me mode: architecture-reviewer reviews EVERY architect plan before the human gate (decided: every story)
+- [x] B6 mode ALWAYS asked, never inferred (/build wording + guardrail)
+- [x] B7 Mode A: optional "want the architect agent to draft the plan?" offer
+- [x] B8 entry flow: /start + /setup-project ask "do you have the idea yet?" → route brainstorm/prototype-first; remove preset-ad line; mode names decided: 'with me' / 'for me' (A/B aliases kept)
+- [x] B9 /critique writes follow-ups into todo/backlog so long projects resume cleanly
+- [x] B10 /setup-design: own-design-system/Figma source added; invokability decided: setup+navigation+discovery model-invocable, build/merge/commit-push human-only
+- [x] B11 stories skill: words over symbols ("at least one"), audience-adaptive AC technicality, standalone/no-repo mode
+- [x] B12 docs: "grounded in established frameworks" section (INVEST, 3C's, JTBD, diverge-converge...); cleaner chat output, VS Code preview tip
+- [x] B13 project template ships .claude/settings.json permission allowlist (tests/lint/typecheck/git-read) to cut prompt fatigue
+- [x] B14 model-robustness pass: critical rules rewritten imperative with rationalization counters (merge floor, verdict ownership, mode ask, false-green); measurable target set: zero human-floor violations + zero false greens on Opus, verified by the next dogfood. Full-catalog wording pass stays on the watch list
+- [x] AFTER: /prototype dogfood test (Ivan wants to try it), then CI mirror

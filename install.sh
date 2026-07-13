@@ -141,9 +141,10 @@ Start a project:  init-project.sh my-app && cd my-app && claude
 Inside Claude:    /setup-project   then  /brainstorm  or  /prd
 
 The PM phase uses our first-party skills (/brainstorm /prd /critique /stories ...).
-OPTIONAL: prefer the pm-skills plugin instead? Start Claude and run
-  /plugin marketplace add phuryn/pm-skills
-  /plugin install pm-execution@pm-skills   (+ other pm-* packages)  then  /reload-plugins
+NOTE: if the pm-skills plugin is also installed, plain-language requests can
+route to either set (a mixed system). For the single-system experience, open
+/plugin in a Claude session and uninstall the pm-* packages (details: INSTALL.md
+Step 7).
 
 Full guide: INSTALL.md   ·   Concepts: BEGINNERS-GUIDE.md   ·   Daily use: WORKFLOW.md
 DONE
