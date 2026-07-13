@@ -202,7 +202,7 @@ if $HAS_UI; then echo "  ├── design/              (tokens.json, design sys
 echo "  └── docs/                (prds, stories, decisions, research, templates)"
 echo ""
 echo "Available everywhere from the claude-cofounder plugin:"
-echo "  build:    /build /merge /commit-push /optimize /worktree-parallel-check"
+echo "  build:    /build /merge /ci /commit-push /optimize /worktree-parallel-check"
 echo "  PM:       /brainstorm /prd /critique /stories /prioritize /roadmap ... (full set:"
 echo "            discovery, strategy, planning, metrics, launch, see the system map)"
 echo "  learning: /learn /retro /outcome /knowledge-refresh /product-signal /improve"

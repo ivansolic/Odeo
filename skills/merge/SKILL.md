@@ -29,8 +29,9 @@ human floor.
 3. Run tests + typecheck, HERE, and see them pass. **A suite that has never been
    executed is not green.** "Deferred to CI" only counts if CI actually exists
    (check `.github/workflows/` or equivalent); if it doesn't, run the FULL suite
-   locally (non-watch: `vitest run`, not bare `vitest`) and watch it pass. If
-   red after rebase, fix before proceeding.
+   locally (non-watch: `vitest run`, not bare `vitest`) and watch it pass, and
+   offer once: "no CI here yet, want me to set it up so every PR gets tested
+   automatically? (/ci, ~2 minutes)". If red after rebase, fix before proceeding.
 4. If the branch was already pushed, update it: `git push --force-with-lease`
    (safe: only your own unshared branch; refuses if someone else changed it).
    First push to a fresh remote? Also run `git remote set-head origin -a` once,

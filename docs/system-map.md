@@ -64,6 +64,7 @@ Build-to-learn:       /prototype -> findings -> promote at the right phase (by s
 |---|---|
 | `/build` | The build entry. **with me** (Mode A): you + Claude, live in your editor. **for me** (Mode B): architect plans -> architecture-reviewer checks -> you approve -> builders execute in worktrees -> reviewers -> your gate. |
 | `/merge` | Rebase onto main, tests, merge PR, cleanup. Serialized; always your approval. |
+| `/ci` | Generate `.github/workflows/checks.yml` from the project's own Commands, so every PR runs typecheck/lint/tests/build. Verify only, never deploy. Offered by /setup-project and /merge. |
 | `/commit-push` | Conventional commit + secret scan + push safety checks. |
 | `/optimize` | Grounded performance loop: measure -> one change -> re-measure -> keep only if faster. |
 | `/worktree-parallel-check` | Read-only: what's safe to build next / in parallel, warns on overlap. |

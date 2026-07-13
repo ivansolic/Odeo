@@ -179,6 +179,10 @@ stack-agnostic). Update `_Last updated:_` to today's date.
 - Ask for corrections; apply them.
 - Remind them: "You can rerun `/setup-project` anytime, or just edit CLAUDE.md
   directly. The TDD skill will use the Commands you set here."
+- If the repo has a GitHub remote (or as soon as it gets one), offer CI once:
+  "want every pull request tested automatically? `/ci` generates the workflow
+  from the Commands you just set, about two minutes." (Setup can wait; the
+  offer should not be pushy, /merge re-offers when it matters.)
 
 ## Safety Rules
 - Never invent a stack, ask, or read the project's manifest and confirm.
