@@ -131,6 +131,14 @@ cp "$TEMPLATES_DIR/tasks/lessons.md" .claude/tasks/lessons.md
 cp "$TEMPLATES_DIR/docs/ADR-TEMPLATE.md" docs/templates/ADR-TEMPLATE.md
 cp "$TEMPLATES_DIR/knowledge/README.md" knowledge/README.md
 
+# Curated permission allowlist: read-only git, test/lint/typecheck/build, and
+# editor reveals run without a prompt; everything else still asks. Cuts prompt
+# fatigue without touching the security posture (no bypass, no broad grants).
+if [[ -f "$TEMPLATES_DIR/claude-settings.json" ]]; then
+  echo "  → seeding .claude/settings.json (safe-command allowlist)"
+  cp "$TEMPLATES_DIR/claude-settings.json" .claude/settings.json
+fi
+
 # Design layer (only for UI projects). The design-reviewer agent and /setup-design
 # come from the plugin; here we only seed the project's token source of truth.
 if $HAS_UI; then

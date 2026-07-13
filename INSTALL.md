@@ -139,13 +139,21 @@ skills auto-apply; the rest you invoke._
 
 ---
 
-## Step 7, (Optional) the pm-skills plugin
+## Step 7, (Optional) the pm-skills plugin, and why we suggest NOT mixing
 
-The PM phase runs on our **first-party PM skills** (installed in Step 6), so this
-step is **optional**. Install the [pm-skills](https://github.com/phuryn/pm-skills)
-plugin only if you'd rather use it for the PM phase.
+The PM phase runs on our **first-party PM skills** (installed in Step 6). The
+[pm-skills](https://github.com/phuryn/pm-skills) plugin is a respected
+alternative, but **don't run both**: when both are installed, plain-language
+requests ("let's brainstorm", "critique this PRD") can route to either set, and
+you end up with a mixed system whose gates and conventions don't fully apply.
+Our dogfood test hit exactly this.
 
-Plugin commands run **inside a Claude session**, not the shell. Start `claude`, then:
+- **Fresh install:** skip this step entirely, you're done.
+- **Already have pm-skills and want the single-system experience:** inside a
+  Claude session type `/plugin`, open the Installed list, and uninstall the
+  `pm-*` packages.
+- **Prefer pm-skills for the PM phase anyway?** That works too, its commands
+  are namespaced (`/pm-execution:create-prd` etc.). Install inside a session:
 
 ```
 /plugin marketplace add phuryn/pm-skills
@@ -155,12 +163,26 @@ Plugin commands run **inside a Claude session**, not the shell. Start `claude`, 
 /reload-plugins
 ```
 
-Its namespaced `/pm-*` commands then work alongside ours. Save outputs into the
-same `docs/` convention either way (`docs/prds/PRD-NNN-<slug>.md`,
-`docs/stories/USR-NNN-<slug>.md`).
+Save outputs into the same `docs/` convention either way
+(`docs/prds/PRD-NNN-<slug>.md`, `docs/stories/USR-NNN-<slug>.md`).
 
-**✓ CHECK (only if you installed it):** type `/pm-` in a Claude session and the
-pm-skills commands appear.
+---
+
+## Step 7b, Environment notes (read once, saves an afternoon)
+
+- **Repos created locally** (the normal `init-project.sh` flow) don't have
+  `origin/HEAD` until you run `git remote set-head origin -a` once after
+  creating the remote, the init output reminds you. The built-in
+  `/security-review` needs it.
+- **Test commands must be non-interactive**: `vitest run`, never bare `vitest`
+  (watch mode never exits, and agents run your test command constantly).
+  `/setup-project` records them correctly if you let it.
+- **Registry/network limits**: corporate networks and sandboxes sometimes block
+  package fetches (pnpm/npm). If installs hang, that's the environment, not the
+  system; try again on an open network before debugging further.
+- **Org spend limits**: agent-heavy steps (for-me builds, reviews) stop when the
+  organization's Claude budget is exhausted; work resumes cleanly after a reset,
+  state lives in files, not the session.
 
 ---
 

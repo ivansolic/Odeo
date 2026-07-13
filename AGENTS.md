@@ -109,7 +109,14 @@ baseline above) does not exist.
 ### 1. Human floor (irreversible or outward = a human decides)
 - [E] No direct push to main/master (pre-push hook, `install-git-guards.sh`).
 - [E] `/merge` preconditions (`merge-gate.sh`): story branch, clean tree, review
-  record exists, boundaries clean. [I] The merge itself: only with your approval.
+  record exists and approves (frontmatter verdict), boundaries clean.
+- [I] **`/merge` never starts itself**: it runs only when you invoke it or answer
+  an offer with an explicit yes. Counters, all invalid: "the reviews passed"
+  (a green review is evidence, not permission); "the pipeline continues
+  naturally" (the pipeline ENDS at the offer); "they merged the last story"
+  (each merge is its own decision).
+- [I] The build mode (**with me / for me**) is ASKED on every `/build`, never
+  inferred from history, phrasing, or enthusiasm.
 - [I] Ship/deploy: only with your approval.
 - [E+I] Data leaving the machine (`/contribute-lesson`, shared prototypes,
   posts to external tools): `privacy-scan.sh` blocks [E] + your approval [I].
@@ -139,8 +146,14 @@ baseline above) does not exist.
   requirement changed" (then the STORY changes first, with the human, not the assertion).
 - [I] Strategy questions are always asked and a short note always written; only
   document depth scales with ambition. Never "in my head".
-- [E] Plan-first in Mode B: a builder without an approved plan does not build
-  (pipeline + the builder itself refuse). [I] Mode A: plan approved before code.
+- [E] Plan-first in for-me mode: a builder without an approved plan does not
+  build (pipeline + the builder itself refuse). [I] With-me: plan approved
+  before code.
+- [I] A plan that creates a NEW UI surface includes the design-layer wiring
+  task (architect). [E-part] design-reviewer's tokens dimension: 0 = auto-fail,
+  the late net for the same miss.
+- [I] Test commands run non-interactively (`vitest run`, watch off) and with a
+  timeout; a command that never exits is a FAILED step, not a passing one.
 
 ### 4. Loops
 - [I] Every loop has a VERIFIER and a STOP (done-signal + ~3 attempts, then stop
@@ -170,6 +183,15 @@ baseline above) does not exist.
   "the user expects a number" (the user needs the truth); "it's probably about
   right" (probably is not a measurement).
 - [I] Never report "done" with a failing signal; the checklist is shown pass/fail.
+- [E] `merge-gate.sh` reads ONLY the eval record's frontmatter `verdict:` field.
+  [I] **Only a reviewer writes or changes a verdict; never hand-edit an eval
+  record to satisfy a gate.** Counters, all invalid: "the final verdict really
+  is APPROVE" (then the reviewer regenerates the record and says so itself);
+  "it's just a string the gate dislikes" (the record is the reviewer's artifact,
+  not yours); "regenerating takes longer" (gaming a gate costs the gate its
+  meaning, which costs everything).
+- [I] A test suite that has never been executed is not "green"; "deferred to CI"
+  counts only if CI exists.
 - [I] Heuristics are named as heuristics; `/merge` is the backstop, say so.
 - [I] Never invent commands or capabilities; `/guide` recommends only what is on
   the system map.

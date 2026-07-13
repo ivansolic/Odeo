@@ -79,7 +79,7 @@ IDEA (fresh or imported)
 ┌─────────────────────────────────────────────┐
 │ PHASE 2: DEVELOPMENT (one story at a time)  │
 │ /build → plan → implement → verify → review │
-│   Mode A human-first  ·  Mode B agents      │
+│   with me (live)      ·  for me (agents)    │
 └──────────────────┬──────────────────────────┘
                    ▼
 ┌─────────────────────────────────────────────┐
@@ -384,11 +384,11 @@ of truth; the `ux-design` skill applies them when you build.
 When stories are ready and you're switching to building, `/build` is the single
 entry. It has two modes; you pick at the start:
 
-- **Mode A, human-first.** You and Claude build one story together, step by step,
+- **With me (Mode A).** You and Claude build one story together, step by step,
   with you reviewing at each stage. This folds in the old PM→Dev handoff: it
   verifies the spec, creates the branch, seeds `todo.md`, and opens the editor
   before you plan and build. Best while you're learning the rhythm.
-- **Mode B, agents.** A fixed, always-gated pipeline: the `architect` (read-only)
+- **For me (Mode B).** A fixed, always-gated pipeline: the `architect` (read-only)
   plans your stories as a written contract (`docs/plans/`), **you approve the
   plan**, then a `builder` per story executes it exactly, each in its own isolated
   git worktree (TDD per your dev-rigor setting, verify, review), and presents the
@@ -453,7 +453,7 @@ Built-in Claude Code tools (use these, don't rebuild them; all work in any termi
 - **`claude --bg "task"`** , start a background agent from the shell; **`claude --worktree <name>`** , an interactive session in its own isolated worktree; **`claude attach|logs|stop <id>`** , manage a background session.
 - Our `builder` agent has `isolation: worktree`, so dispatched agents are isolated automatically. To check what's safe to parallelize, run **`worktree-parallel-check`** first.
 
-**When Mode A vs Mode B:** clear + independent work -> Mode B (agents, faster, parallel); fuzzy / needs your steering -> Mode A (build together). The isolation benefit ("no context-mixing = better output") holds for both; Mode A just lets you steer live.
+**When with-me vs for-me:** clear + independent work -> for me (agents, faster, parallel); fuzzy / needs your steering -> with me (build together). The mode is asked on every /build, never assumed. The isolation benefit ("no context-mixing = better output") holds for both; Mode A just lets you steer live.
 
 **When to parallelize, and the gotchas:**
 - Only **independent** tasks (different files/modules). `worktree-parallel-check` / the `/build` overlap check warns first; coupled work stays sequential, or you get merge conflicts.
@@ -812,7 +812,7 @@ trusting auto-invocation.
 | Analyze a test / retention | `/ab-test` · `/cohorts` · `/query` |
 | Speed up something slow | `/optimize` (measure -> change -> re-measure; never guess) |
 | Set up the design system | `/setup-design` (once, after PM, before building UI) |
-| Switch to building / build a story | `/build` (Mode A human-first, or Mode B agents; you approve at the gate) |
+| Switch to building / build a story | `/build` (with me: live together, or for me: agents on your approved plan; you approve at the gate) |
 | Check it's really done | "Walk through every acceptance criterion" |
 | Review code | "Invoke code-reviewer on these changes" |
 | Review UI | "Invoke design-reviewer on these changes" (states, a11y, tokens, heuristics) |

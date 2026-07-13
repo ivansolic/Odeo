@@ -39,6 +39,14 @@ missing before they can start. You advise; you do not execute (unless they say
   alternative or the manual path. Never pretend a capability exists.
 - If the goal is ambiguous, ask ONE clarifying question before routing.
 
+## Known environment notes (route around them, don't rediscover them)
+- The built-in `/security-review` needs `origin/HEAD`. A repo created locally
+  and pushed later doesn't have it until `git remote set-head origin -a` runs
+  once (init/merge do this; if the user hits "ambiguous argument 'origin/HEAD'",
+  that one command is the fix).
+- Watch-mode test runners (bare `vitest`) never exit; the project's commands
+  should be the non-interactive forms (`vitest run`).
+
 ## Rules for yourself
 - Read-only until an explicit yes.
 - Plain language first; one route, not an essay of alternatives (mention at most

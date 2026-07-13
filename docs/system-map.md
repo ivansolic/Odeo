@@ -62,7 +62,7 @@ Build-to-learn:       /prototype -> findings -> promote at the right phase (by s
 ## 6. Build & integrate
 | Command | What it does |
 |---|---|
-| `/build` | The build entry. Mode A: you + Claude, live. Mode B: architect plans -> you approve -> builders execute in worktrees -> reviewers -> your gate. |
+| `/build` | The build entry. **with me** (Mode A): you + Claude, live in your editor. **for me** (Mode B): architect plans -> architecture-reviewer checks -> you approve -> builders execute in worktrees -> reviewers -> your gate. |
 | `/merge` | Rebase onto main, tests, merge PR, cleanup. Serialized; always your approval. |
 | `/commit-push` | Conventional commit + secret scan + push safety checks. |
 | `/optimize` | Grounded performance loop: measure -> one change -> re-measure -> keep only if faster. |
@@ -125,7 +125,7 @@ Plus deterministic scorers (tests, `privacy-scan.sh`) and the human as the final
 ## Key decision points (the /guide decision trees)
 - Idea fuzzy vs concrete: fuzzy -> `/discover`; concrete enough to touch -> `/prototype`.
 - One feature vs many epics: one -> `/spec` directly; many/new product -> `/plan` first (product-level foundation before features).
-- Build mode: clear + independent -> Mode B (agents); fuzzy / want to steer -> Mode A.
+- Build mode (always asked, never inferred): clear + independent -> **for me** (agents); fuzzy / want to steer -> **with me** (live). "Mode A/B" work as aliases.
 - Parallel or not: independent stories only; check with `/worktree-parallel-check`.
 - Dev rigor: new project -> TDD-lite; existing codebase with few tests -> Test-after (set in `/setup-project`).
 - Share a prototype: quick + no account -> tunnel (machine stays on); days + stakeholders -> preview deploy.
