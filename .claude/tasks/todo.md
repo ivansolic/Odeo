@@ -269,4 +269,5 @@ Deferred (very end): marketplace listing; the end-to-end dogfood test.
 - [x] B12 docs: "grounded in established frameworks" section (INVEST, 3C's, JTBD, diverge-converge...); cleaner chat output, VS Code preview tip
 - [x] B13 project template ships .claude/settings.json permission allowlist (tests/lint/typecheck/git-read) to cut prompt fatigue
 - [x] B14 model-robustness pass: critical rules rewritten imperative with rationalization counters (merge floor, verdict ownership, mode ask, false-green); measurable target set: zero human-floor violations + zero false greens on Opus, verified by the next dogfood. Full-catalog wording pass stays on the watch list
-- [x] AFTER: /prototype dogfood test (Ivan wants to try it), then CI mirror
+- [x] AFTER-1: CI, built as the /ci skill (generates checks.yml from the project's Commands section; offered once by /setup-project and /merge; skill-reviewer PASS 8/10, both fixes applied)
+- [ ] AFTER-2: /prototype dogfood test (Ivan drives it, not yet run)
