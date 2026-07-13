@@ -74,7 +74,7 @@ fi
 # Resolve whether this project has a UI (controls the design layer)
 if [[ -z "$HAS_UI" ]]; then
   if [[ -t 0 ]]; then
-    read -r -p "Will this project have a UI? [Y/n] " _ans
+    read -r -p "Will this project have a UI? [Y/n] " _ans || _ans=""
     case "$_ans" in [Nn]*) HAS_UI=false ;; *) HAS_UI=true ;; esac
   else
     HAS_UI=true   # non-interactive default: include the design layer
@@ -96,7 +96,7 @@ if [[ -z "$_git_email" ]] || [[ "$_git_email" =~ @.*\.(local|lan|ip)$ ]]; then
   echo "  ⚠ git user.email is '${_git_email:-unset}', which looks machine-generated."
   echo "    Every commit in this project would carry it (including pushes to GitHub)."
   if [[ -t 0 ]]; then
-    read -r -p "    Enter the email to use for this project (or press Enter to keep as is): " _ans_email
+    read -r -p "    Enter the email to use for this project (or press Enter to keep as is): " _ans_email || _ans_email=""
     if [[ -n "$_ans_email" ]]; then
       git config user.email "$_ans_email"
       echo "    → set for this project. (Set it globally with: git config --global user.email $_ans_email)"

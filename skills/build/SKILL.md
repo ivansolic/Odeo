@@ -154,6 +154,23 @@ explicit user go.
 
 ---
 
+## Worked example
+```
+> /build USR-012
+"USR-012 (session timer) is ready: clear ACs. How do you want to build this?
+ with me (live, in your editor) or for me (agents on a plan you approve)?"
+> for me
+worktree-parallel-check: only USR-012 chosen, nothing overlaps -> proceed
+architect -> docs/plans/2026-07-14-usr-012-timer.md (approved: no)
+architecture-reviewer on the plan: fits inherited architecture, 1 note (shown)
+"Plan + independent check above. Approve, change, or reject?"
+> approve                                   (flips approved: yes)
+"Want me to add the worktree to your VS Code window to watch? (code --add)"
+builder in ../dogfood-usr-012 -> success-signal checklist all pass
+code-reviewer 12/12 APPROVE -> docs/evals/code-USR-012.md (branch: field set)
+"Approved and ready. Run /merge when you want it integrated."   <- ENDS here
+```
+
 ## After building
 If anything non-trivial got solved, don't let it evaporate: say what the
 reusable finding is and what it cost to figure out, then offer `/learn`, e.g.

@@ -57,7 +57,8 @@ date: 2026-07-07
 scorer: pm-reviewer
 scores: { problem: 2, outcome: 2, scope: 1, risks: 2, security: 2 }
 total: 9/10
-verdict: PASS          # threshold from the rubric
+verdict: PASS
+# (threshold comes from the rubric; the verdict line stays clean, the merge gate reads it)
 previous_total: 7/10   # regression check: improved
 ---
 Findings: scope still lists two nice-to-haves without a cut line.

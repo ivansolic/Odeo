@@ -78,6 +78,23 @@ d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && 
 record "$d" "feature/x" "PASS"; commit_at "$d" "$T3" rec
 check "passes PASS verdict" 0 "$d"; rm -rf "$d"
 
+# 6f. Non-vocabulary verdict values must NOT pass on prefix (regression:
+#     "APPROVE-PENDING-FIXES" and "PASSABLE BUT BROKEN" once matched APPROVE*/PASS*)
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1; commit_at "$d" "$T2" code
+record "$d" "feature/x" "APPROVE-PENDING-FIXES"; commit_at "$d" "$T3" rec
+check "refuses APPROVE-PENDING-FIXES (prefix is not approval)" 1 "$d"; rm -rf "$d"
+
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1; commit_at "$d" "$T2" code
+record "$d" "feature/x" "PASSABLE BUT BROKEN"; commit_at "$d" "$T3" rec
+check "refuses PASSABLE BUT BROKEN" 1 "$d"; rm -rf "$d"
+
+# 6g. Frontmatter must OPEN the file (regression: a body-only record with a
+#     setext heading '---' and a loose 'verdict: APPROVE' line passed the parse)
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1; commit_at "$d" "$T2" code
+( cd "$d" && mkdir -p docs/evals && printf -- 'Review Title\n---\nbranch: feature/x\nverdict: APPROVE\n' > docs/evals/code-review.md && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T3" rec
+check "refuses record whose '---' is a setext heading, not frontmatter" 1 "$d"; rm -rf "$d"
+
 # 7. Dirty working tree -> refuse
 d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1; commit_at "$d" "$T2" code
 record "$d" "feature/x" "APPROVE"; commit_at "$d" "$T3" rec

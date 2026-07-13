@@ -1,5 +1,5 @@
 ---
-description: Set up the project's design system (tokens) after the PM phase. Ingests the user's existing tokens/Figma export or company design system, or proposes a starter from the PRD + personas + strategy, then wires token compilation to the frontend stack. Use once per project before building UI, or when the user asks to set up design, tokens, or styling.
+description: Use when the user asks to set up design, tokens, or styling, or when UI building is about to start and the project has no design source of truth yet. Once per project, after the PM phase.
 ---
 
 Goal: establish `design/tokens.json` as the styling source of truth and compile

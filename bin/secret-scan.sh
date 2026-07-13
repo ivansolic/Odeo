@@ -21,6 +21,11 @@ git rev-parse --is-inside-work-tree >/dev/null 2>&1 || {
   exit 2
 }
 
+# Always scan from the repo root: pathspecs are cwd-relative, so a scan invoked
+# from a subdirectory would silently see only that subtree (and miss staged
+# secrets elsewhere). Anchoring here also anchors the exclude globs.
+cd "$(git rev-parse --show-toplevel)"
+
 findings=0
 
 # 1. Forbidden file names in the stage (.env and friends)
@@ -53,8 +58,9 @@ scan() { # scan <label> <regex> [extra pathspecs...]
 TEST_EXCLUDES=(
   ':(exclude,glob)**/*.spec.*'  ':(exclude,glob)**/*.test.*'
   ':(exclude,glob)**/*.e2e-spec.*'
+  ':(exclude,glob)**/*_spec.*'  ':(exclude,glob)**/*_test.*'
   ':(exclude,glob)**/test/**'   ':(exclude,glob)**/tests/**'
-  ':(exclude,glob)**/__tests__/**' ':(exclude,glob)**/fixtures/**'
+  ':(exclude,glob)**/__tests__/**' ':(exclude,glob)**/__fixtures__/**'
 )
 
 scan "private-key"       '-----BEGIN [A-Z0-9 ]*PRIVATE KEY-----'

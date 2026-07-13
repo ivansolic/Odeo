@@ -1,5 +1,5 @@
 ---
-description: Explore a product idea or problem space before committing to a solution. Use when the user wants to brainstorm, generate or explore product ideas, weigh directions for a new or existing product, or is jumping to a solution too early. Diverges into many distinct options through three product lenses, groups them, proposes selection criteria, problem-first.
+description: Use when the user wants to brainstorm, generate or weigh product ideas or directions for a new or existing product, explore a problem space before committing, or is jumping to a solution too early.
 ---
 
 # Brainstorm

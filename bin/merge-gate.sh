@@ -58,11 +58,17 @@ done <<< "$records"
 #     truth; reviewer prose in the body (e.g. honestly documented "was REQUEST
 #     CHANGES, now resolved" history) must never flip the gate. Deny by default:
 #     a record without a frontmatter verdict does not pass.
-verdict="$(awk '/^---[[:space:]]*$/{n++; next} n==1 && /^verdict:/{sub(/^verdict:[[:space:]]*/,""); print; exit}' "$record")"
+verdict="$(awk '
+  NR==1 { if ($0 !~ /^---[[:space:]]*$/) exit; next }   # frontmatter must OPEN the file
+  /^---[[:space:]]*$/ { exit }                          # closing delimiter ends the search
+  /^verdict:/ { sub(/^verdict:[[:space:]]*/, ""); print; exit }
+' "$record")"
 verdict="${verdict%%#*}"
-verdict="$(printf '%s' "$verdict" | tr '[:lower:]' '[:upper:]' | xargs 2>/dev/null || true)"
+verdict="$(printf '%s' "$verdict" | tr '[:lower:]' '[:upper:]' | tr -d '\r')"
+verdict="${verdict#"${verdict%%[![:space:]]*}"}"   # trim leading whitespace
+verdict="${verdict%"${verdict##*[![:space:]]}"}"   # trim trailing whitespace
 case "$verdict" in
-  APPROVE*|PASS*) : ;;  # approved, incl. "APPROVE WITH COMMENTS"
+  APPROVE|"APPROVE WITH COMMENTS"|PASS) : ;;  # the exact approval vocabulary, nothing else
   "")
     echo "merge-gate: REFUSED, no 'verdict:' field in the record's frontmatter ($record)." >&2
     echo "Re-run the reviewer; a record must declare one clean frontmatter verdict." >&2

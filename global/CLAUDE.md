@@ -192,7 +192,7 @@ These are built from public, named frameworks.
 
 **Workflow slash commands (only invoked explicitly by me, never automatically):**
 
-- **`/build`**, the build entry. Mode A (human-first): verify spec, branch, seed todo.md, open editor, plan and build with you step by step. Mode B (agents): the architect plans each story as a contract, you approve, then a builder per story executes it in its own git worktree and presents for your gate. Folds in the old dev-handoff.
+- **`/build`**, the build entry, two modes, always asked. **With me** (Mode A): verify spec, branch, seed todo.md, open editor, plan and build with you step by step. **For me** (Mode B): the architect plans each story as a contract, architecture-reviewer checks the plan, you approve, then a builder per story executes it in its own git worktree and presents for your gate. Folds in the old dev-handoff.
 - **`/merge`**, integrate an approved story branch into main with a clean linear history (fetch, rebase, tests, force-with-lease, merge PR, cleanup).
 - **`/learn`**, capture a solved, verified, non-trivial problem into `knowledge/` (shows the draft before writing).
 - **`/knowledge-refresh`**, audit and refresh `knowledge/` against the current codebase.

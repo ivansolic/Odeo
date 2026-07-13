@@ -1,5 +1,5 @@
 ---
-description: Where am I and what's next? Reads the project's actual state (docs, git, evals, loop dates) and shows your position on the lifecycle map, the recommended next step, and any pending loop reminders, all in one place. Read-only. Use when the user asks "where are we", "what's next", "what's the status", or seems lost about their position in the lifecycle, or run /start directly.
+description: Use when the user asks "where are we", "what's next", or "what's the status", seems lost about their position in the lifecycle, or wants a session-opening overview of the project. Read-only; also invoked directly as /start.
 ---
 
 # Start (you-are-here)

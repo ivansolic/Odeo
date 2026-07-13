@@ -1,5 +1,5 @@
 ---
-description: Adversarially stress-test a PRD or product direction before you commit, attack the assumptions (red-team), then run a pre-mortem (it failed in 6 months, why?). Use when the user asks to critique, red-team, poke holes in, or stress-test a PRD, strategy, or direction. Includes a security pre-mortem for sensitive features.
+description: Use when the user asks to critique, red-team, poke holes in, stress-test, or pre-mortem a PRD, strategy, or product direction before committing to build it.
 ---
 
 # Critique (red-team + pre-mortem)

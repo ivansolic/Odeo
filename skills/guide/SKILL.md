@@ -22,7 +22,7 @@ missing before they can start. You advise; you do not execute (unless they say
    - **missing prerequisites first** ("for /build you need stories; you have
      none, so start with /stories, or /spec for the full path"),
    - where a real choice exists, present the options with tradeoffs (use the
-     map's decision points: discover vs prototype, Mode A vs B, tunnel vs deploy),
+     map's decision points: discover vs prototype, with-me vs for-me (Mode A/B), tunnel vs deploy),
    - respect the project's "teach me as I go" setting for technical asides.
 4. **Offer, don't run**: end with "want me to start with <first step>?" Only an
    explicit yes triggers anything.

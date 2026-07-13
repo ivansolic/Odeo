@@ -18,7 +18,7 @@ rules are also embedded in their bodies so they hold even when this file is abse
 - **Two altitudes of prioritization:** `/prioritize` + `/roadmap` rank *which epics*
   (value, portfolio level); `/stories` orders *which stories within an epic* (by
   dependency). Never conflate them.
-- `/build` runs human-first (Mode A) or, in Mode B, a fixed pipeline: the
+- `/build` runs **with me** (Mode A, live together) or, in **for me** (Mode B), a fixed pipeline: the
   `architect` (structurally read-only) writes each story's plan as a contract
   (`docs/plans/`, per the plan format), the human approves it, then `builder`
   agents execute it exactly in isolated git worktrees (one per story, single or
@@ -97,7 +97,7 @@ rules are also embedded in their bodies so they hold even when this file is abse
 - When a technical term matters, give the **plain meaning first**, then optionally the
   term in a short labeled aside: "loads in 0.9s now, fixed how it fetches data
   (technical: removed an N+1 query)." Showing the aside is a per-project preference
-  ("teach me as I go"), set in `/setup-project`; default off.
+  ("teach me as I go"), set in `/setup-project`; default on, professionals turn it off.
 
 ## Guardrails (the hard rules, single source of truth)
 Every rule below is tagged: **[E] enforced**, a mechanism physically stops it

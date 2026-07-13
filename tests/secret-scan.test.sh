@@ -41,6 +41,21 @@ check "token literal in an e2e-spec is ALLOWED"       0 app.e2e-spec.ts   "await
 check "REAL sk_live token in a .spec file still BLOCKS" 1 pay.spec.ts     "const k = 'sk_live_abcdef123456789012'"
 check "private key in a test file still BLOCKS"       1 test/key.spec.ts  '-----BEGIN RSA PRIVATE KEY-----'
 
+# Subdirectory invocation must scan the WHOLE staged set, not the cwd subtree
+# (regression: cwd-relative pathspec let root-level secrets pass when the scan
+# ran from a subdir, e.g. via /commit-push or an agent in a package folder).
+d="$(mktemp -d)"
+( cd "$d" && git init -q && mkdir -p sub \
+  && echo 'const t = "ghp_ABCdef0123456789ABCdef0123456789ABCD"' > root-leak.ts \
+  && git add root-leak.ts ) >/dev/null 2>&1
+( cd "$d/sub" && bash "$SCAN" ) >/dev/null 2>&1; rc=$?
+rm -rf "$d"
+if [[ $rc -eq 1 ]]; then echo "ok   - subdir invocation still catches root-level secrets"; pass=$((pass+1));
+else echo "FAIL - subdir invocation missed a root-level secret (rc=$rc, want 1)"; fail=$((fail+1)); fi
+
+# Non-JS test files are also fixtures (Ruby/Python naming)
+check "password literal in a _spec.rb file is ALLOWED" 0 auth_spec.rb "creds = { password: 'wrong guess here' }"
+
 # usage error: not a git repo
 d="$(mktemp -d)"; ( cd "$d" && bash "$SCAN" ) >/dev/null 2>&1; rc=$?
 rm -rf "$d"

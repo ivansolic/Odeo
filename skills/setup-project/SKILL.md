@@ -1,5 +1,5 @@
 ---
-description: First-run onboarding. Interviews the user about their stack, commands, and conventions, then fills in the project CLAUDE.md. Use once per new project before any building, when the user asks to configure or set up the project, or when CLAUDE.md still has placeholders.
+description: Use when a project needs configuring: a new project before any building, CLAUDE.md still full of placeholders, or the user asks to set up or reconfigure the project, its stack, commands, or conventions.
 ---
 
 Goal: turn the placeholder `CLAUDE.md` into a real, project-specific config by
@@ -38,7 +38,7 @@ the scaffold)? Ask plainly:
    continue the interview below ONLY for what the map couldn't tell (Security &
    Data facts, house rules, preferences). Never impose our conventions over
    theirs; the codebase's existing style wins.
-5. Dev-rigor default (step F3 below) comes from the test state: few or no tests
+5. Dev-rigor default (step H below) comes from the test state: few or no tests
    -> suggest `Test-after`.
 
 **NEW path:** continue with step 2 (preset or interview) as usual.
@@ -74,7 +74,7 @@ able to answer. Offer examples. Accept "I don't know / none" gracefully.
 **D. Tooling:**
 - Package manager? Monorepo tool (or none)? Deployment target?
 
-**D2. Architecture**, the user chooses. Present the options with neutral
+**E. Architecture**, the user chooses. Present the options with neutral
 trade-offs and let them decide. Do **not** steer toward any option. Only if the
 user explicitly asks for your recommendation, give it, with your reasoning.
 
@@ -96,7 +96,7 @@ user explicitly asks for your recommendation, give it, with your reasoning.
 Record the user's choice in the `## Architecture` section of CLAUDE.md. Do not
 add a recommendation there unless the user asked for one.
 
-**E. Commands** (critical, the TDD skill and auto-verify loop use these):
+**F. Commands** (critical, the TDD skill and auto-verify loop use these):
 - How do you start the app (dev)? Run tests? Run backend tests separately? Lint?
   Typecheck? Build? Any DB commands (migrate/generate/studio)?
 - If the user doesn't know, infer sensible defaults from the stack and the
@@ -105,12 +105,12 @@ add a recommendation there unless the user asked for one.
   bare `vitest`; `--watch=false` where needed): a watch-mode command hangs any
   automated run forever, and agents will run these commands constantly.
 
-**F. Conventions / house rules:**
+**G. Conventions / house rules:**
 - Any patterns they always want? Anything they never want (the "Don't" list)?
 - If they have none yet, say you'll fill in sensible defaults for the stack and
   they can refine later.
 
-**F3. How strictly should we test? (dev-rigor style, per project)**
+**H. How strictly should we test? (dev-rigor style, per project)**
 All three styles ALWAYS end with tests + review + the security baseline; the only
 difference is WHEN tests are written. Ask with plain explanations, and propose the
 context-aware default:
@@ -128,7 +128,7 @@ Test-after.** Record the choice in CLAUDE.md's Conventions section as
 `dev_rigor: tdd | tdd-lite | test-after` with a one-line meaning. The architect
 and builder read it.
 
-**F2. How should I talk to you? (plain language preference)**
+**I. How should I talk to you? (plain language preference)**
 > "I always explain things in plain language. Do you also want me to teach you the
 >  technical terms as we go, the plain explanation first, then the technical name in
 >  a short aside (e.g. 'fixed how it fetches data (technical: removed an N+1 query)')?
@@ -140,7 +140,7 @@ it off with one answer). When yes, it also turns on teaching comments in built
 code: comments explain intent and connections, and are updated with the code
 they describe.
 
-**G. Security & Data** (do not skip, fills the Security & Data section):
+**J. Security & Data** (do not skip, fills the Security & Data section):
 First tell the user:
 
 > "A security baseline already applies to all code automatically (input
