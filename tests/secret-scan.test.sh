@@ -55,6 +55,7 @@ else echo "FAIL - subdir invocation missed a root-level secret (rc=$rc, want 1)"
 
 # Non-JS test files are also fixtures (Ruby/Python naming)
 check "password literal in a _spec.rb file is ALLOWED" 0 auth_spec.rb "creds = { password: 'wrong guess here' }"
+check "password literal in test_*.py is ALLOWED"        0 test_auth.py "creds = { 'password': 'wrong guess here' }"
 
 # usage error: not a git repo
 d="$(mktemp -d)"; ( cd "$d" && bash "$SCAN" ) >/dev/null 2>&1; rc=$?

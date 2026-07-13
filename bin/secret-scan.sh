@@ -59,6 +59,7 @@ TEST_EXCLUDES=(
   ':(exclude,glob)**/*.spec.*'  ':(exclude,glob)**/*.test.*'
   ':(exclude,glob)**/*.e2e-spec.*'
   ':(exclude,glob)**/*_spec.*'  ':(exclude,glob)**/*_test.*'
+  ':(exclude,glob)**/test_*.*'
   ':(exclude,glob)**/test/**'   ':(exclude,glob)**/tests/**'
   ':(exclude,glob)**/__tests__/**' ':(exclude,glob)**/__fixtures__/**'
 )

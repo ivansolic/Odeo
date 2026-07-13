@@ -24,6 +24,10 @@ git rev-parse --is-inside-work-tree >/dev/null 2>&1 || {
 
 branch="$(git rev-parse --abbrev-ref HEAD)"
 
+# Run from the repo root: the record grep and freshness pathspecs are
+# cwd-relative, and a subdir invocation must see the same truth as a root one.
+cd "$(git rev-parse --show-toplevel)"
+
 # 1. Not on main
 if [[ "$branch" == "main" || "$branch" == "master" ]]; then
   echo "merge-gate: REFUSED, you are on '$branch'. Merges run from the story branch." >&2
@@ -63,7 +67,6 @@ verdict="$(awk '
   /^---[[:space:]]*$/ { exit }                          # closing delimiter ends the search
   /^verdict:/ { sub(/^verdict:[[:space:]]*/, ""); print; exit }
 ' "$record")"
-verdict="${verdict%%#*}"
 verdict="$(printf '%s' "$verdict" | tr '[:lower:]' '[:upper:]' | tr -d '\r')"
 verdict="${verdict#"${verdict%%[![:space:]]*}"}"   # trim leading whitespace
 verdict="${verdict%"${verdict##*[![:space:]]}"}"   # trim trailing whitespace

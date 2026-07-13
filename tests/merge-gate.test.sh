@@ -95,6 +95,12 @@ d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && 
 commit_at "$d" "$T3" rec
 check "refuses record whose '---' is a setext heading, not frontmatter" 1 "$d"; rm -rf "$d"
 
+# 6h. Verdict line with a trailing comment -> refuse (the contract is value-only;
+#     fail closed rather than guess what the comment means)
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1; commit_at "$d" "$T2" code
+record "$d" "feature/x" "APPROVE  # but actually pending"; commit_at "$d" "$T3" rec
+check "refuses verdict with trailing comment (value-only contract)" 1 "$d"; rm -rf "$d"
+
 # 7. Dirty working tree -> refuse
 d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1; commit_at "$d" "$T2" code
 record "$d" "feature/x" "APPROVE"; commit_at "$d" "$T3" rec
