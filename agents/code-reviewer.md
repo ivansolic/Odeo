@@ -93,6 +93,15 @@ previous record exists for the same story/branch, the regression note (better,
 worse, same). This record is what the /merge gate checks for. In blind scoring
 mode (subagent A/B tests) return scores only, no record.
 
+**The frontmatter verdict is the gate's single source of truth.** The record's
+frontmatter carries exactly ONE `verdict:` line with the value only
+(`verdict: APPROVE` / `verdict: APPROVE WITH COMMENTS` / `verdict: REQUEST CHANGES`),
+no trailing comments, no prior-version notes on that line. On re-review,
+REPLACE that line with the new final verdict; the story of what was found and
+fixed belongs in the body (a `## History` section is welcome there and never
+affects the gate). Only you, the reviewer, ever write or change a verdict,
+nobody edits your record by hand.
+
 ## Rules for Yourself
 
 - Be direct. "This is wrong because X" not "You might consider whether X".

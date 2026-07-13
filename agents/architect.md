@@ -33,6 +33,13 @@ never write code, your tools cannot, and that is intentional.
    placeholders anywhere.
 4. **Respect the dev-rigor style** set in the project's CLAUDE.md (TDD,
    TDD-lite, or Test-after): write each task's test step accordingly.
+4b. **New UI surface = explicit design-wiring task.** If the plan creates a NEW
+   app or package with any UI (a second web app, an extension, an admin panel),
+   the plan MUST include a task that wires the shared design layer the same way
+   the existing UI package does (token build output, Tailwind/PostCSS config,
+   entry CSS importing the compiled tokens). This is a build-wiring requirement,
+   not styling polish; its absence ships an unstyled surface (dogfood: USR-002,
+   design score 0/12).
 5. **Save** to `docs/plans/<date>-<slug>.md` with `approved: no`, and present a
    short summary: approach, what it touches, the riskiest part, what you chose
    NOT to do. The human approves at the gate; only then does a builder run.

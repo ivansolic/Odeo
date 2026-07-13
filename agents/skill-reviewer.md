@@ -27,6 +27,9 @@ code (code-reviewer), agents' runtime behavior (/improve).
 5. **Verdict** PASS/FAIL against the threshold + concrete top fixes.
 6. **Write the eval record** to `docs/evals/skill-<name>.md` (format in
    `docs/eval-framework.md`), with the regression note if a prior record exists.
+   The frontmatter carries exactly ONE `verdict:` line (value only, no trailing
+   comments); on re-review REPLACE it, and put what changed in the body
+   (`## History`). Only you write or change your verdict.
 
 ## Output format
 ```

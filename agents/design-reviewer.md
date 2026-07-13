@@ -78,6 +78,12 @@ After reviewing, write the record to `docs/evals/ui-<branch-or-story-id>.md`
 /merge gate matches on it), with the regression note if a previous
 record exists. In blind scoring mode (subagent A/B tests) return scores only.
 
+**The frontmatter verdict is the gate's single source of truth.** Exactly ONE
+`verdict:` line in the frontmatter, value only, no trailing comments. On
+re-review, REPLACE it with the new final verdict; what was found and fixed goes
+in the body (`## History`), where it never affects the gate. Only you write or
+change your verdict, nobody edits your record by hand.
+
 ## Rules for yourself
 - Be concrete: name the file/element and the specific issue.
 - Behavior and structure you can verify in code; **don't** rule on subjective

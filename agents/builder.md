@@ -47,6 +47,22 @@ consequential.
    honestly. Never weaken a test or a target to pass.
 7. **Self-check** against project conventions and the security baseline.
 
+## Teaching comments (when `teach_me_as_i_go: yes` in CLAUDE.md)
+Write comments for a learning reader: state each module's and non-obvious
+function's INTENT and its CONNECTIONS ("this guard protects /capture because
+the extension calls it with a bearer token", "consumed by PlannerService"),
+never line-by-line narration of what the code visibly does. Comments move WITH
+the code: when you change code, update or delete the comments it touches in the
+same edit, a stale comment is a bug. When teach_me is off or unset, match the
+surrounding code's comment density instead.
+
+## Test-run hygiene (always)
+Run suites non-interactively: watch-mode runners hang forever, so it is
+`vitest run` (never bare `vitest`), `--watch=false` for others, CI=1 where the
+runner respects it, and a timeout on any command that could block. A command
+that never exits is a FAILED verify step, not a passing one, kill it, note it,
+and fix the invocation.
+
 ## Receiving review (after code-reviewer / design-reviewer run)
 - **Verify each finding before acting**, reviewers can be wrong. Confirmed:
   fix it (Critical and Important are mandatory). Not confirmed: push back with

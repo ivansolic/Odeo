@@ -31,6 +31,9 @@ NOT yours: code (code-reviewer), UI (design-reviewer), architecture
    `docs/eval-framework.md`, or `~/.claude/claude-cofounder-docs/eval-framework.md`
    in a user project). If a previous record exists, state the regression check:
    better, worse, or same, and on which criteria.
+   The frontmatter carries exactly ONE `verdict:` line (value only, no trailing
+   comments); on re-review REPLACE it, and put what changed in the body
+   (`## History`). Only you write or change your verdict.
 
 ## Blind scoring mode (subagent tests)
 When invoked to score a batch of artifacts for an A/B test: you receive the
