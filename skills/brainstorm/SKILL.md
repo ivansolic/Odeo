@@ -1,13 +1,12 @@
 ---
-description: Explore a product idea or problem space before committing to a solution. Diverges into many distinct options, groups them, and proposes selection criteria, problem-first. Use at the very start, or whenever the team is jumping to a solution too early. Based on continuous-discovery thinking (Teresa Torres) and divergent ideation.
-disable-model-invocation: true
+description: Explore a product idea or problem space before committing to a solution. Use when the user wants to brainstorm, generate or explore product ideas, weigh directions for a new or existing product, or is jumping to a solution too early. Diverges into many distinct options through three product lenses, groups them, proposes selection criteria, problem-first.
 ---
 
 # Brainstorm
 
 Open the space before narrowing it. The goal is to find the *right problem and a
-range of ways to solve it*, not to defend the first idea. Based on Teresa Torres's
-continuous discovery (opportunity before solution) and classic diverge-then-converge.
+range of ways to solve it*, not to defend the first idea. Built on continuous
+discovery (opportunity before solution) and classic diverge-then-converge.
 
 ## When to use
 - A new idea, feature, or problem with no clear direction yet.
@@ -20,6 +19,14 @@ continuous discovery (opportunity before solution) and classic diverge-then-conv
 2. **Diverge.** Produce **7 to 10 genuinely distinct options**, not variations of one.
    Push past the obvious first three. Include at least one "do nothing / non-build"
    and one "10x ambitious" option.
+2b. **Sweep three product lenses** so the set isn't one-note, some options from
+   each:
+   - **value**: which pain it kills, for whom, versus what they do today;
+   - **experience**: onboarding, habit, the moment it feels great;
+   - **viability/effort**: what is cheap vs expensive to TRY, flagged in one
+     line per option. This lens flags, it never designs: no stacks, no
+     architectures, technology decisions come later (`/setup-project`, `/build`).
+   A brainstorm is about the product, not the implementation.
 3. **Group by approach.** Cluster the options (e.g. by mechanism, by user, by effort)
    so the real choices become visible.
 4. **Propose selection criteria** before choosing (e.g. impact on the opportunity,

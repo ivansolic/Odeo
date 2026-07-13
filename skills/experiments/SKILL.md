@@ -1,6 +1,5 @@
 ---
-description: De-risk before building, surface the riskiest assumptions behind an idea, prioritize them, and design the cheapest experiment to test each. Use after a solution or PRD takes shape, before committing build effort. Based on Lean Startup (Eric Ries) and the four product risks (Marty Cagan: value, usability, feasibility, viability).
-disable-model-invocation: true
+description: De-risk before building, surface the riskiest assumptions behind an idea, prioritize them, and design the cheapest experiment to test each. Use when the user wants to run or design experiments, validate assumptions, or test an idea cheaply before building. Based on lean experimentation and the four product risks (value, usability, feasibility, viability).
 ---
 
 # Experiments (assumption mapping + tests)

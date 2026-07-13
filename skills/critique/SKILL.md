@@ -1,13 +1,12 @@
 ---
-description: Adversarially stress-test a PRD or product direction before you commit, attack the assumptions (red-team), then run a pre-mortem (it failed in 6 months, why?). Use after drafting a PRD/strategy, before building. Includes a security pre-mortem for sensitive features.
-disable-model-invocation: true
+description: Adversarially stress-test a PRD or product direction before you commit, attack the assumptions (red-team), then run a pre-mortem (it failed in 6 months, why?). Use when the user asks to critique, red-team, poke holes in, or stress-test a PRD, strategy, or direction. Includes a security pre-mortem for sensitive features.
 ---
 
 # Critique (red-team + pre-mortem)
 
 Find the holes while they're cheap. Two passes: a **red-team** that attacks the logic,
-and a **pre-mortem** that imagines failure and works backward. Pre-mortem technique is
-from Gary Klein (popularized by Kahneman).
+and a **pre-mortem** that imagines failure and works backward (the classic
+pre-mortem technique).
 
 ## When to use
 - After a `/prd` or `/strategy` draft, before committing to build.
@@ -35,6 +34,13 @@ List the top 3 attack/leak scenarios and what the design must include to close t
 ## Output
 Findings + ranked failure modes + leading signals, in chat. Revise the PRD; capture
 security findings as requirements. Re-run if changes were large.
+
+**Route the follow-ups so they survive the session.** Any finding the user wants
+to act on but not now (a test to run, a gate to satisfy, an assumption to check)
+goes into `.claude/tasks/todo.md` as a checkable item, with a one-line why.
+Long projects resume through `/start`, and /start can only surface what is
+written down. If the PRD was revised, open the revised file in the editor
+(`code -r <file>`, fallback `cursor -r`, else just give the path).
 
 ## Quality rules
 - Be genuinely adversarial; a soft critique is useless. Attack the strongest version, not a strawman.

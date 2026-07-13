@@ -1,6 +1,5 @@
 ---
-description: Build lightweight, decision-useful user personas centered on the job the user is trying to get done, not demographics. Use when you need to ground a PRD, stories, or design in who you are building for and why. Based on Jobs-to-be-Done (Clayton Christensen).
-disable-model-invocation: true
+description: Build lightweight, decision-useful user personas centered on the job the user is trying to get done, not demographics. Use when the user asks for personas, target users, or audience definition, or needs to ground a PRD, stories, or design in who it's for and why. Based on Jobs-to-be-Done.
 ---
 
 # Personas (Jobs-to-be-Done)

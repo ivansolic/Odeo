@@ -7,8 +7,7 @@ disable-model-invocation: true
 
 A PRD exists to align everyone on **the problem, the intended outcome, and how we'll
 know we succeeded**, before anyone builds. Problem before solution; outcomes over
-features. Structure adapted from common product-spec practice (a ProductCompass-style
-8-section layout).
+features. Structure adapted from common product-spec practice (an 8-section layout).
 
 ## When to use
 - An idea has shape (often after `/brainstorm`, `/personas`, `/market-segments`).
@@ -31,6 +30,13 @@ features. Structure adapted from common product-spec practice (a ProductCompass-
 
 ## Output
 `docs/prds/PRD-NNN-<slug>.md` (next number, lowercase-hyphen slug).
+
+**Show it to the human.** Once the document is saved (finished, not every
+intermediate edit), open it in their editor: `code -r <file>` (fallback `cursor -r`; if
+neither exists, give the path and move on). Mention once: "opened it in VS Code,
+Cmd+Shift+V shows the formatted view." Terminal markdown is hard to read; the
+editor is where a PM reviews a document. If the user says "stop opening files,"
+stop for the session.
 
 ## Quality gate (before moving on)
 Score the PRD with the **`pm-reviewer`** agent against `skills/prd/rubric.md`

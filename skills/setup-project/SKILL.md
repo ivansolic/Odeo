@@ -1,11 +1,20 @@
 ---
-description: First-run onboarding. Interviews the user about their stack, commands, and conventions, then fills in the project CLAUDE.md. Offers to start from a preset. Use once per new project, before any building.
-disable-model-invocation: true
+description: First-run onboarding. Interviews the user about their stack, commands, and conventions, then fills in the project CLAUDE.md. Use once per new project before any building, when the user asks to configure or set up the project, or when CLAUDE.md still has placeholders.
 ---
 
 Goal: turn the placeholder `CLAUDE.md` into a real, project-specific config by
 **interviewing the user**, never guess the stack. One question group at a time,
 wait for answers, confirm before writing.
+
+## 0. Does the idea exist yet? (before any stack question)
+Setup answers HOW we build; it cannot precede knowing WHAT we build. If the user
+hasn't stated a direction yet (or says "we still need to brainstorm"), say so
+plainly and route first:
+> "Stack and conventions follow from what we're building. Want to shape the idea
+>  first (`/brainstorm`, or `/prototype` to feel a concrete feature), and come
+>  back to setup once there's a direction? Or if you already know, tell me in a
+>  sentence and we'll set up now."
+Never march a user without a direction through stack questions.
 
 ## 1. Check current state, and pick the path: NEW or EXISTING project
 Read `CLAUDE.md`. If the Stack/Commands/Conventions sections are already filled
@@ -34,20 +43,19 @@ the scaffold)? Ask plainly:
 
 **NEW path:** continue with step 2 (preset or interview) as usual.
 
-## 2. Offer a preset shortcut
-List the available presets first: `ls ~/.claude-templates/presets/`. Then ask:
+## 2. Preset shortcut, only when one actually fits
+Check `ls ~/.claude-templates/presets/` QUIETLY. Mention a preset ONLY if it
+matches the stack the user has described or implied (e.g. they said "Angular and
+NestJS" and `angular-nest-mysql` exists):
+> "There's a ready-made preset for that stack, want me to start from it and
+>  tweak, instead of the questions?"
+If nothing matches (or the user hasn't named a stack yet), say nothing about
+presets, advertising an irrelevant preset only confuses, and go straight to the
+interview (step 3).
 
-> "Do you want to start from a preset, or answer a few questions?
->  Presets available: [list what you found in ~/.claude-templates/presets/].
->  - **Preset:** I'll copy it into CLAUDE.md, then we tweak names/details.
->  - **Interview:** I'll ask you about your stack and fill it in from scratch."
-
-If they pick a preset:
-- Copy the chosen preset over `CLAUDE.md`:
-  `cp ~/.claude-templates/presets/<name>.md CLAUDE.md`
+If they take a preset:
+- Copy it over `CLAUDE.md`: `cp ~/.claude-templates/presets/<name>.md CLAUDE.md`
 - Jump to step 5 (confirm + per-project details).
-
-If they pick interview, continue to step 3.
 
 ## 3. Interview, ask in small groups, wait for each answer
 
@@ -93,6 +101,9 @@ add a recommendation there unless the user asked for one.
   Typecheck? Build? Any DB commands (migrate/generate/studio)?
 - If the user doesn't know, infer sensible defaults from the stack and the
   package manifest (e.g. read `package.json` scripts) and confirm them.
+- **Record test commands in their NON-INTERACTIVE form** (`vitest run`, never
+  bare `vitest`; `--watch=false` where needed): a watch-mode command hangs any
+  automated run forever, and agents will run these commands constantly.
 
 **F. Conventions / house rules:**
 - Any patterns they always want? Anything they never want (the "Don't" list)?
@@ -123,7 +134,11 @@ and builder read it.
 >  a short aside (e.g. 'fixed how it fetches data (technical: removed an N+1 query)')?
 >  - **Teach me as I go:** I add the technical term so you learn it.
 >  - **Just keep it plain:** I skip the technical aside."
-Record this as `teach_me_as_i_go: yes|no` in the CLAUDE.md Conventions section (default no).
+Record this as `teach_me_as_i_go: yes|no` in the CLAUDE.md Conventions section
+(default **yes**, most solo builders are learning something; professionals turn
+it off with one answer). When yes, it also turns on teaching comments in built
+code: comments explain intent and connections, and are updated with the code
+they describe.
 
 **G. Security & Data** (do not skip, fills the Security & Data section):
 First tell the user:

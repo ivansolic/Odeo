@@ -1,6 +1,5 @@
 ---
-description: Where am I and what's next? Reads the project's actual state (docs, git, evals, loop dates) and shows your position on the lifecycle map, the recommended next step, and any pending loop reminders, all in one place. Read-only. Run it at the start of a session or whenever you feel lost.
-disable-model-invocation: true
+description: Where am I and what's next? Reads the project's actual state (docs, git, evals, loop dates) and shows your position on the lifecycle map, the recommended next step, and any pending loop reminders, all in one place. Read-only. Use when the user asks "where are we", "what's next", "what's the status", or seems lost about their position in the lifecycle, or run /start directly.
 ---
 
 # Start (you-are-here)
@@ -22,10 +21,20 @@ what the next step is, and which recurring loops are due. Changes nothing.
 4. **Consolidate loop reminders** (max a short list, easy to ignore): signal
    memo older than a week, knowledge-refresh older than ~3 weeks, an unshipped
    `/outcome` for a feature merged ~a week ago, repeated eval drops (suggest
-   `/improve`). Only show what is actually due; no nagging.
-5. For an **empty/new project**: suggest the entry points instead ("1.
-   /setup-project, then: idea fuzzy -> /discover, concrete -> /prototype,
-   already have a PRD -> paste it + /critique").
+   `/improve`), and **stories merged since the last `/retro`** (e.g. "3 stories
+   merged, no retro yet, 10 minutes of /retro now compounds into every future
+   story"). Sell the value in one concrete line; a "no" is final, no nagging.
+   When MORE THAN ONE epic/PRD exists and no prioritization artifact does,
+   suggest `/prioritize` + `/roadmap` (value ordering is a PM decision that
+   single-epic projects never needed).
+5. For an **empty/new project**, the first question is whether the IDEA exists,
+   before any setup:
+   > "Do you already know what you're building?
+   >  - not yet / several directions -> `/brainstorm` (shape the direction first;
+   >    stack questions come after there IS a direction)
+   >  - a concrete feature you want to feel in your hands -> `/prototype`
+   >  - yes, and I can describe it -> `/setup-project`, then `/prd`
+   >  - I already have a PRD -> paste it + `/critique`"
 
 ## Output shape (keep it this tight)
 ```

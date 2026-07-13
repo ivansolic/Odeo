@@ -1,6 +1,5 @@
 ---
-description: Discovery orchestrator. Runs the full front-of-funnel cycle, brainstorm -> personas -> journey-map -> opportunity-tree -> experiments, pausing for your input at each step, to take a fuzzy idea to a de-risked, evidence-seeking plan. Thin conductor; each step is also a standalone skill.
-disable-model-invocation: true
+description: Discovery orchestrator. Use when the user wants to run discovery on a fuzzy idea end to end, brainstorm -> personas -> journey-map -> opportunity-tree -> experiments, pausing for input at each step, producing a de-risked, evidence-seeking plan. Thin conductor; each step is also a standalone skill.
 ---
 
 # Discover (discovery orchestrator)

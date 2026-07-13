@@ -1,6 +1,5 @@
 ---
-description: Set up the project's design system (tokens) after the PM phase. Ingest the user's existing tokens/Figma export, or propose a starter from the PRD + personas + strategy. Wires token compilation to the project's frontend stack. Run once per project, before building UI.
-disable-model-invocation: true
+description: Set up the project's design system (tokens) after the PM phase. Ingests the user's existing tokens/Figma export or company design system, or proposes a starter from the PRD + personas + strategy, then wires token compilation to the frontend stack. Use once per project before building UI, or when the user asks to set up design, tokens, or styling.
 ---
 
 Goal: establish `design/tokens.json` as the styling source of truth and compile
@@ -15,9 +14,11 @@ Read `CLAUDE.md` (Stack + Design sections) and any PRD/personas/strategy in
 
 > "How do you want to handle the design system?
 > - **I have tokens**, paste them or point me to the file (a Figma Tokens Studio
->   export works, it's the same DTCG format).
-> - **I use a UI library / design system already** (MUI, Chakra, shadcn, …), I'll
->   map tokens to its theming, not reinvent it.
+>   export works, it's the same DTCG format; Figma variables export too).
+> - **I use a public UI library** (MUI, Chakra, shadcn, …), I'll map tokens to
+>   its theming, not reinvent it.
+> - **My company/product has its OWN design system** (existing components, brand
+>   variables), point me at it (repo, package, or docs) and I'll adopt it.
 > - **Start fresh**, I'll propose a starter palette/type/spacing based on your
 >   PRD, personas, and strategy; you adjust."
 
@@ -29,6 +30,14 @@ Read `CLAUDE.md` (Stack + Design sections) and any PRD/personas/strategy in
 ### If "UI library already"
 - Keep their library as the component layer. Map semantic tokens to its theme
   mechanism (e.g. MUI theme, Tailwind+shadcn CSS vars). Note it in CLAUDE.md.
+
+### If "our own design system" (company/existing product)
+- **Their system wins; never rebuild or restyle it.** Read what exists (component
+  package, brand variables, style docs). Extract or map their values into
+  `design/tokens.json` as the bridge, THEIR names and values, so new work stays
+  consistent with the existing product. Components come from their library;
+  tokens only fill what their system doesn't define. Record in CLAUDE.md's
+  Design section: "component source = <their system>, tokens mirror it."
 
 ### If "start fresh"
 - Propose primitive + semantic tokens **informed by the product** (e.g. brand
