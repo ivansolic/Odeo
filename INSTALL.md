@@ -139,32 +139,19 @@ skills auto-apply; the rest you invoke._
 
 ---
 
-## Step 7, (Optional) the pm-skills plugin, and why we suggest NOT mixing
+## Step 7, One PM system at a time
 
-The PM phase runs on our **first-party PM skills** (installed in Step 6). The
-[pm-skills](https://github.com/phuryn/pm-skills) plugin is a respected
-alternative, but **don't run both**: when both are installed, plain-language
-requests ("let's brainstorm", "critique this PRD") can route to either set, and
-you end up with a mixed system whose gates and conventions don't fully apply.
-Our dogfood test hit exactly this.
+The PM phase runs on our **first-party PM skills** (installed in Step 6). If a
+third-party PM plugin is ALSO installed, plain-language requests ("let's
+brainstorm", "critique this PRD") can route to either skill set, and you end up
+with a mixed system whose gates and conventions don't fully apply, our own
+end-to-end test hit exactly this.
 
-- **Fresh install:** skip this step entirely, you're done.
-- **Already have pm-skills and want the single-system experience:** inside a
-  Claude session type `/plugin`, open the Installed list, and uninstall the
-  `pm-*` packages.
-- **Prefer pm-skills for the PM phase anyway?** That works too, its commands
-  are namespaced (`/pm-execution:create-prd` etc.). Install inside a session:
-
-```
-/plugin marketplace add phuryn/pm-skills
-/plugin install pm-execution@pm-skills
-/plugin install pm-product-discovery@pm-skills
-# ...and any other pm-* packages you want, then:
-/reload-plugins
-```
-
-Save outputs into the same `docs/` convention either way
-(`docs/prds/PRD-NNN-<slug>.md`, `docs/stories/USR-NNN-<slug>.md`).
+For the single-system experience: inside a Claude session type `/plugin`, open
+the Installed list, and uninstall any other PM packages. (If you deliberately
+prefer another plugin for the PM phase, its namespaced commands keep working,
+just know the routing caveat above. Save outputs into the same `docs/`
+convention either way.)
 
 ---
 
@@ -238,7 +225,7 @@ gh repo delete test-setup --yes
 │   ├── skills/                ← all skills: /build /merge /learn ... + TDD, ux-design (Step 6)
 │   ├── agents/                ← subagents: architect, builder, code-reviewer, ... (Step 6)
 │   ├── community-knowledge/   ← shared knowledge base (if reachable)
-│   └── plugins/               ← optional pm-skills plugin installs here (Step 7)
+│   └── plugins/               ← any plugins you add install here
 ├── .claude-templates/         ← project-specific scaffolding for init-project.sh
 │                                 (CLAUDE.md, tasks/, docs/, design/, knowledge/, presets/)
 ├── .bash_profile              ← contains PATH + CLAUDE_CODE_AUTO_VERIFY

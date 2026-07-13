@@ -151,9 +151,8 @@ This system is built for a PM/builder. When working on product topics (not just 
 - When proposing implementation, link back to the spec it implements
 
 ### PM skills (first-party, the default)
-- The PM work is driven by **our own PM skills** (built from public frameworks, credited by name): `/brainstorm`, `/personas`, `/interview-synthesis`, `/competitor-analysis`, `/market-segments`, `/vision`, `/strategy`, `/value-proposition`, `/okrs`, `/prd`, `/critique`, `/stories`, `/prioritize`, `/metrics`, `/positioning`, `/gtm-plan`, `/release-notes`.
+- The PM work is driven by **our own PM skills** (built from public, named frameworks): `/brainstorm`, `/personas`, `/interview-synthesis`, `/competitor-analysis`, `/market-segments`, `/vision`, `/strategy`, `/value-proposition`, `/okrs`, `/prd`, `/critique`, `/stories`, `/prioritize`, `/metrics`, `/positioning`, `/gtm-plan`, `/release-notes`.
 - Save their output into the `/docs/` structure with the naming convention (`PRD-NNN-<slug>.md`, `USR-NNN-<slug>.md`); the ADR template lives in `/docs/templates/`.
-- **pm-skills (phuryn) remains an optional alternative**, if installed, its namespaced `/pm-execution:*`, `/pm-product-discovery:*`, etc. commands still work. Use whichever you prefer; ours is the documented default.
 
 ## Task Management
 For any non-trivial task in a project:
@@ -184,7 +183,7 @@ For any non-trivial task in a project:
 - **Measure & launch:** `/metrics`, `/positioning`, `/gtm-plan`, `/release-notes`
 - Save output into the project's `docs/` structure (`docs/prds/`, `docs/stories/`, `docs/research/`).
 
-These are built from public frameworks, credited by name. **pm-skills (phuryn) stays an optional alternative**, its `/pm-*` commands work if installed; ours is the default.
+These are built from public, named frameworks.
 
 **Dev subagents (invoke proactively when context fits, but I will also invoke explicitly):**
 

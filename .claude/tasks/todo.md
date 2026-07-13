@@ -107,7 +107,7 @@ STATUS writing-skills: NOT built yet. Will exist in TWO forms: (a) embedded , su
 
 ## CATEGORIZATION (DECIDED, user confirmed all):
 - 10 lifecycle categories (doc/mental map; GitHub repo layout stays TECHNICAL skills/+agents/ flat , plugin format; README/WORKFLOW carry the categorized map): 1 Setup & Onboarding (setup-project, setup-design; codebase-analyst*) · 2 Discovery & Research (brainstorm, personas, interview-synthesis, competitor-analysis, market-segments, opportunity-solution-tree, customer-journey-map, experiments, prototype*) · 3 Strategy & Viability (vision, strategy, value-proposition, okrs, business-model, pricing) · 4 Planning/portfolio (prioritize, roadmap, stakeholder-map) · 5 Specification (prd, critique, stories) · 6 Build & Integrate (build, merge, commit-push, optimize, worktree-parallel-check; agents architect*, builder*(=developer), debugger; auto: TDD, ux-design, ux-writing) · 7 Metrics & Analytics (metrics, ab-test, cohorts, query) · 8 Launch & Growth (positioning, marketing, gtm-plan, release-notes, growth-loops, battlecard, product-name) · 9 Knowledge & Learning (learn🔁, retro🔁, outcome🔁, knowledge-refresh🔁, product-signal*🔁, improve*🔁, contribute-lesson, sync-community) · 10 Orchestrators (discover -> plan -> spec -> go-to-market). Reviewers cross-cutting (code/design/architecture/pm*/skill*) + deterministic + human gate.
-- LOOP NAMING = (b+c): NO -loop suffix in command names (verified practice: obra/EveryInc/pm-skills/gstack/builtins , zero "loop" names; loop lives in concepts/docs) + 🔁 mark + a "Recurring loops" cross-section block in docs. growth-loops stays (domain term for the product-growth skill, unrelated to our system loops , document the distinction).
+- LOOP NAMING = (b+c): NO -loop suffix in command names (verified practice: obra/EveryInc/3rd-party-PM-plugin/gstack/builtins , zero "loop" names; loop lives in concepts/docs) + 🔁 mark + a "Recurring loops" cross-section block in docs. growth-loops stays (domain term for the product-growth skill, unrelated to our system loops , document the distinction).
 - NEW: /start (read-only orientation: reads project state -> you-are-here on lifecycle map + next step + consolidated 🔁 nudges; empty-project variant suggests entry points). Category: Setup.
 - PM loops: covered (product-signal weekly, outcome per-ship, experiments per-bet, improve on eval-drops, learn/retro, macro signal->plan->spec->build->outcome). Two small additions, NOT new skills: ROADMAP-DRIFT NUDGE (after /outcome or /product-signal with picture-changing findings -> offer to revisit /roadmap) + OKR CHECK-IN MODE (re-running /okrs over existing OKRs = compare actuals vs KRs, status). NO PM executor agent (PM work = conversation with the user, their context advantage; research via built-in subagents; pm-reviewer evaluates; revisit only if dogfood shows a concrete need , then a narrow read-only research agent, never a "PM writer").
 
@@ -123,11 +123,11 @@ STATUS writing-skills: NOT built yet. Will exist in TWO forms: (a) embedded , su
 
 Goal/outcome: the system owns its full discovery->spec flow with our own skills,
 built from PUBLIC frameworks in our own words (credited by name), so there is no
-hard dependency on pm-skills. Human-in-command positioning throughout.
+hard dependency on 3rd-party-PM-plugin. Human-in-command positioning throughout.
 
 Integrity rule: build from public frameworks (Cagan, Torres, ProductCompass-style
 PRD, 3 C's / Jeffries, INVEST / Wake, RICE / Intercom) in OUR words; credit each by
-name; never copy/reword pm-skills text.
+name; never copy/reword 3rd-party-PM-plugin text.
 
 ## Proposed scope, core-first in batches
 Batch 1 (the spine WORKFLOW Phase 1 already uses):
@@ -148,11 +148,11 @@ Batch 3 (later, optional): GTM, release-notes, market/competitor, OKRs, sprint-p
 
 ## Integration
 - Update WORKFLOW.md Phase 1 + global CLAUDE.md PM section to use our skills.
-- pm-skills handling: TBD (see decisions) , default to ours; keep pm-skills optional + credited, or remove.
+- 3rd-party-PM-plugin handling: TBD (see decisions) , default to ours; keep 3rd-party-PM-plugin optional + credited, or remove.
 
 ## Decisions (confirmed)
 - Scope: FULL set now (build in batches, depth over shallow stubs).
-- pm-skills: default to OURS; keep pm-skills optional + credited (no big-bang removal).
+- 3rd-party-PM-plugin: default to OURS; keep 3rd-party-PM-plugin optional + credited (no big-bang removal).
 - Format: skills/<name>/SKILL.md, disable-model-invocation: true, each cites its public framework by name.
 
 ## Full catalog (build order)
@@ -179,7 +179,7 @@ Batch D , Metrics & GTM:
 - [ ] release-notes
 
 ## Integration (after skills built)
-- [ ] WORKFLOW.md Phase 1 + global CLAUDE.md PM section point at our skills (pm-skills optional/credited)
+- [ ] WORKFLOW.md Phase 1 + global CLAUDE.md PM section point at our skills (3rd-party-PM-plugin optional/credited)
 - [ ] install.sh / scaffold unaffected (skills ship with plugin); re-run install; scaffold test
 - [ ] dash-check; commit per batch (no push)
 
@@ -237,9 +237,9 @@ Jeffries, RICE/Intercom, McClure, Google HEART, Dunford):
 - Spec: prd, critique, stories, prioritize
 - Metrics/GTM: metrics, positioning, gtm, release-notes
 All plugin skills (disable-model-invocation). Integration: global CLAUDE.md, WORKFLOW,
-README, INSTALL, install.sh, project-CLAUDE + preset all default to OUR skills; pm-skills
+README, INSTALL, install.sh, project-CLAUDE + preset all default to OUR skills; 3rd-party-PM-plugin
 kept as a credited optional alternative (its install step is now optional). install.sh
-ships them user-level; scaffold + privacy tests green. Did NOT copy pm-skills text.
+ships them user-level; scaffold + privacy tests green. Did NOT copy 3rd-party-PM-plugin text.
 Deferred (very end): marketplace listing; the end-to-end dogfood test.
 
 ## DOGFOOD FIX BATCH (2026-07-13, approved A / pending sign-off B)
@@ -251,7 +251,7 @@ Deferred (very end): marketplace listing; the end-to-end dogfood test.
 - [x] A4 secret-scan.sh: credential-assignment rule skips test paths, key formats stay global (+ tests) — F5
 - [x] A5 init-project.sh: git identity sanity check (machine/work email warning) — F7
 - [x] A6 architect plan template: mandatory design-token wiring task for new UI packages — F8
-- [x] A7 pm-skills: port best bits into our skills (multi-lens ideation, product-focused), sharpen our `description:` triggers, INSTALL.md says uninstall pm-skills — F1
+- [x] A7 3rd-party-PM-plugin: port best bits into our skills (multi-lens ideation, product-focused), sharpen our `description:` triggers, INSTALL.md says uninstall 3rd-party-PM-plugin — F1
 - [x] A8 origin/HEAD auto-fix: `git remote set-head origin -a` baked into every first-push point (init next-steps, /merge, /build) so built-in /security-review works — F4 upgraded from doc-note to real fix
 
 ### Batch B — from tester notes (sign-off pending)

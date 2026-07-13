@@ -104,7 +104,7 @@ Don't memorize these. They stick after a week of use.
 You'll see two kinds of capabilities. The difference is simple, **who decides to
 use it:**
 
-| | **Command** (e.g. `/setup-project`, `/build`, `/retro`) | **Skill** (e.g. the TDD skill, the pm-skills) |
+| | **Command** (e.g. `/setup-project`, `/build`, `/retro`) | **Skill** (e.g. the TDD skill, ux-design) |
 |---|---|---|
 | Who starts it | **You**, by typing the `/name` | **Claude**, automatically, when the work matches |
 | Trigger | Explicit: you choose the moment | Contextual: Claude reads the skill's description and engages when it fits |
@@ -112,9 +112,9 @@ use it:**
 | Example | You type `/build` when ready to build | You build a backend rule → the TDD skill kicks in on its own |
 
 Think of it as: **commands are buttons you press; skills are reflexes Claude has.**
-(The pm-skills are a special case, they're skills bundled in a plugin, and you
-invoke them by name like `/pm-execution:create-prd`, so they behave like commands
-in practice.)
+(Plugin-bundled skills are a special case: skills that ship inside a plugin are
+invoked by a namespaced name like `/plugin-name:command`, so they behave like
+commands in practice.)
 
 This is why the end-of-session retro is a **command** (`/retro`) and not a skill:
 Claude can't detect that you're wrapping up, so *you* press the button.

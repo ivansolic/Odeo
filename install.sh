@@ -141,10 +141,10 @@ Start a project:  init-project.sh my-app && cd my-app && claude
 Inside Claude:    /setup-project   then  /brainstorm  or  /prd
 
 The PM phase uses our first-party skills (/brainstorm /prd /critique /stories ...).
-NOTE: if the pm-skills plugin is also installed, plain-language requests can
-route to either set (a mixed system). For the single-system experience, open
-/plugin in a Claude session and uninstall the pm-* packages (details: INSTALL.md
-Step 7).
+NOTE: if a third-party PM plugin is installed alongside, plain-language
+requests can route to either set (a mixed system). For the single-system
+experience, open /plugin in a Claude session and uninstall other PM packages
+(INSTALL.md Step 7).
 
 Full guide: INSTALL.md   ·   Concepts: BEGINNERS-GUIDE.md   ·   Daily use: WORKFLOW.md
 DONE

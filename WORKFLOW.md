@@ -10,7 +10,7 @@ Keep this open until the rhythm becomes muscle memory (~2-3 weeks).
 
 The workflow (the phases, the discipline, the rhythm) is yours and stays fixed.
 The PM thinking inside Phase 1 runs on our **first-party PM skills** (`/brainstorm`,
-`/prd`, `/critique`, `/stories`, ...); the **pm-skills** plugin is an optional alternative.
+`/prd`, `/critique`, `/stories`, ...).
 
 ---
 
@@ -54,7 +54,7 @@ fresh `claude` picks up where you left off.
 ### If commands seem missing in a session
 ```
 # our skills/agents live in ~/.claude/skills and ~/.claude/agents; re-run install.sh if missing.
-/reload-plugins           # if you also use the optional pm-skills plugin and it doesn't respond
+/reload-plugins           # if a plugin's commands stop responding
 ```
 
 For first-time machine setup (or troubleshooting an install), see `INSTALL.md`.
@@ -141,11 +141,6 @@ PM here is driven by our **first-party PM skills** (built from public frameworks
 credited by name). You keep the `docs/` folder as the home for the output, save
 PRDs and stories into `docs/prds/PRD-NNN-<slug>.md` and
 `docs/stories/USR-NNN-<slug>.md` so the rest of the workflow lines up.
-
-> **Optional alternative:** the [pm-skills](https://github.com/phuryn/pm-skills)
-> plugin (phuryn) covers the same ground; if you install it, its namespaced
-> `/pm-execution:*`, `/pm-product-discovery:*`, etc. commands work too. Ours is the
-> default; use whichever you prefer.
 
 ### 1.1 Brainstorm
 
@@ -270,8 +265,7 @@ on a `docs/` branch if you're on main).
 **Orchestrators (chain the above, with a human gate between each step):**
 `/discover` (front funnel) -> `/plan` (prioritize -> roadmap) -> `/spec` (prd -> critique -> stories) -> `/go-to-market` (positioning -> marketing -> gtm-plan -> release-notes).
 
-Browse everything with `/`. All first-party (built from named public frameworks);
-the optional pm-skills plugin adds its own namespaced `/pm-*` equivalents if you prefer it.
+Browse everything with `/`. All first-party (built from named public frameworks).
 
 ### The order, at a glance
 The lifecycle runs top-down by altitude: understand, decide, define, build, measure, launch.
@@ -774,7 +768,7 @@ senior's job: "How do you know it works?" / "Did you actually run it?"
 ### Skill & subagent invocation (your current level)
 Invoke explicitly, every time:
 - PM thinking (Phase 1) → our PM skills (`/brainstorm`, `/prd`, `/critique`,
-  `/stories`, `/prioritize`, ...); the optional pm-skills plugin works too if installed
+  `/stories`, `/prioritize`, ...)
 - `code-reviewer` subagent → before every commit
 - `architecture-reviewer` subagent → any decision touching multiple modules
 

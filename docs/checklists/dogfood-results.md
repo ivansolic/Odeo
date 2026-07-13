@@ -3,7 +3,7 @@
 Analyst: Claude (main session) · Test window: 2026-07-08 → 2026-07-13
 Sources: 2 session transcripts (6.7 MB + 6.2 MB .jsonl), the dogfood-app repo
 (git history, docs/plans, docs/evals, lessons.md, CLAUDE.md), tester recollection.
-Tester grades (1–5): PENDING — to be added by the tester.
+Tester grade: 3.4/5 overall (see Tester verdict at the end).
 
 ## Scope actually exercised
 
@@ -23,7 +23,7 @@ NOT exercised: /learn, /retro, /outcome, /prioritize, /roadmap, /prototype,
 /improve, /knowledge-refresh, /product-signal, the deliberate gate tests of
 protocol step 8 (both gates fired organically instead), parallel two-story
 build (declined: USR-009 cut from MVP), community flows.
-(*)/critique routed to pm-skills — see F2.
+(*)/critique routed to a third-party PM plugin — see F1.
 
 ## What worked (keep, and say so in marketing honestly)
 
@@ -53,18 +53,17 @@ build (declined: USR-009 cut from MVP), community flows.
 
 ## Findings (by severity)
 
-### F1 — pm-skills shadowed our PM skills for auto-invocation (HIGH, product)
+### F1 — a third-party PM plugin shadowed our PM skills for auto-invocation (HIGH, product)
 When the user spoke plain words ("we need to brainstorm", "run /critique",
-"lets go with personas", "run experiments"), Claude invoked the **pm-skills
-plugin** versions (pm-product-discovery:brainstorm-ideas-new, user-personas,
-brainstorm-experiments-new, pm-execution:strategy-red-team, /pre-mortem) —
+"lets go with personas", "run experiments"), Claude invoked the **third-party plugin's** versions (its brainstorm,
+personas, experiments, red-team, and pre-mortem skills) —
 NOT our installed /brainstorm, /personas, /experiments, /critique. Our /prd,
 /stories, /setup-design, /build, /merge were used correctly (typed as slash
 commands). Root cause: with both installed, model-invoked routing picks by
-description match; pm-skills' descriptions won. Impact: the first-party PM set
-(built precisely to replace pm-skills) went largely untested at the discovery
+description match; the plugin's descriptions won. Impact: the first-party PM set
+(built precisely to replace it) went largely untested at the discovery
 stage, and a new user with both installed gets a mixed system.
-**Fix options**: (a) recommend uninstalling pm-skills in INSTALL.md once ours
+**Fix options**: (a) recommend uninstalling the third-party plugin in INSTALL.md once ours
 are default (strongest); (b) sharpen our skills' `description:` trigger lines
 ("Use when the user wants to brainstorm…") so they win routing; (c) both.
 
@@ -156,7 +155,7 @@ mini-dogfood on a standard-context model.
 
 ### F12 — stale init-project success message (FIXED pre-test)
 Caught by the tester before step 1; fixed and committed same day
-(fix(init-project): success message showed pm-skills as the PM driver).
+(fix(init-project): success message showed the third-party PM plugin as the PM driver).
 
 ## Protocol adherence
 
@@ -177,7 +176,7 @@ questions, "where can I see the app?").
    (+ tests) — F5
 6. init-project.sh: git identity sanity check — F7
 7. Architect plan template: mandatory design-wiring task for new UI packages — F8
-8. INSTALL.md: "uninstall pm-skills once ours are default" recommendation +
+8. INSTALL.md: "uninstall the third-party PM plugin once ours are default" recommendation +
    environment prerequisites section — F1, F10
 9. Our discovery skills (brainstorm, personas, experiments, critique):
    sharpen description trigger lines to win routing — F1
@@ -194,7 +193,7 @@ not the model, must carry the quality.
 
 ### Tester notes (transferred from the test, condensed)
 
-- Remove pm-skills from the system; port the good bits into ours first
+- Remove the third-party PM plugin from the system; port the good bits into ours first
   (liked: the 3-perspective ideation format, wants it product-focused).
 - Entry flow: ask FIRST whether the idea exists; if not, route to
   /brainstorm or /prototype BEFORE /setup-project. Rework /start branching.
