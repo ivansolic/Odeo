@@ -185,10 +185,46 @@ questions, "where can I see the app?").
 11. Next milestone after fixes: CI mirror (GitHub Action running merge-gate,
     tests, secret-scan on PRs) — F3
 
-## Tester verdict (1–5) — PENDING
+## Tester verdict
 
-- Clarity: _
-- Trust: _
-- Friction: _
-- Honesty: _
-- Language: _
+Overall: **3.4 / 5** ("satisfied, but it can be much better"). Individual
+dimensions not graded separately. Key ask: the experience on Opus should be
+~90% of (or identical to) the Fable experience, i.e. the system's structure,
+not the model, must carry the quality.
+
+### Tester notes (transferred from the test, condensed)
+
+- Remove pm-skills from the system; port the good bits into ours first
+  (liked: the 3-perspective ideation format, wants it product-focused).
+- Entry flow: ask FIRST whether the idea exists; if not, route to
+  /brainstorm or /prototype BEFORE /setup-project. Rework /start branching.
+- /setup-project: drop the "there's one preset available: angular-nest-mysql"
+  line; consider plainer mode names for /build.
+- VS Code integration is a MUST: reuse the existing window (no new dock
+  icons), auto-open PM docs for preview, Mode A live file-by-file reveal,
+  Mode B must OFFER opening the worktree; changed-lines coloring (native
+  gutter) documented. Applies to PM phase and dev phase.
+- Code comments for learning are a MUST: builder + subagents explain what
+  each part does and how parts connect.
+- /merge self-triggered several times — NOT allowed; merge is human-floor,
+  must only run on explicit invocation/approval. Add to guardrails.
+- Shell test runs that never terminate (Vitest watch mode) must be fixed:
+  non-watch commands + timeouts.
+- Mode B should add architecture-reviewer review of the architect's plan
+  before the human gate. Mode A is good as-is (plan mode), light improvement OK.
+- The session once ASSUMED Mode A ("that's what you've been after") without
+  asking — mode must always be asked, never inferred.
+- /retro and /learn were offered as "skip if you like" — communicate their
+  compounding value positively/emotionally instead; don't undersell.
+- /setup-design: support existing design systems (company components, Figma)
+  as a source, not only tokens/PRD; reconsider which setup skills Claude may
+  invoke itself.
+- Stories: write "at least one" in words instead of "≥1"; adapt AC
+  technicality when /stories is used standalone (company products, no repo).
+- Document the frameworks the system is grounded in (INVEST, 3C's, JTBD...)
+  for credibility.
+- Markdown-heavy output (asterisks, hashes) is hard to read in the terminal;
+  keep markdown in files for tooling, but route human reading through VS Code
+  preview and keep chat output cleaner.
+- The eval hand-edit incident: "guardrail is a must to respect, never avoid" —
+  confirmed as a standing rule.

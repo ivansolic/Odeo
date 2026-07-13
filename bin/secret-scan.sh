@@ -32,23 +32,34 @@ if [[ -n "$forbidden_names" ]]; then
 fi
 
 # 2. Content of staged changes (added lines only)
-staged_added() {
-  git diff --cached --unified=0 --diff-filter=ACM \
+staged_added() { # staged_added [extra git pathspecs...]
+  git diff --cached --unified=0 --diff-filter=ACM -- . "$@" \
     | grep -E '^\+' | grep -vE '^\+\+\+' || true
 }
-scan() { # scan <label> <regex>
+scan() { # scan <label> <regex> [extra pathspecs...]
+  local label="$1" regex="$2"; shift 2
   local hits
-  hits="$(staged_added | grep -nEi -e "$2" || true)"
+  hits="$(staged_added "$@" | grep -nEi -e "$regex" || true)"
   if [[ -n "$hits" ]]; then
-    echo "BLOCK [$1]:"
+    echo "BLOCK [$label]:"
     printf '%s\n' "$hits" | sed 's/^/    /'
     findings=$((findings + 1))
   fi
 }
 
+# Test files legitimately assign harmless literals to password:/token: keys
+# (fixtures, wrong-guess specs). The blunt ASSIGNMENT heuristic skips them;
+# the hard format rules below still cover tests, a real key is a leak anywhere.
+TEST_EXCLUDES=(
+  ':(exclude,glob)**/*.spec.*'  ':(exclude,glob)**/*.test.*'
+  ':(exclude,glob)**/*.e2e-spec.*'
+  ':(exclude,glob)**/test/**'   ':(exclude,glob)**/tests/**'
+  ':(exclude,glob)**/__tests__/**' ':(exclude,glob)**/fixtures/**'
+)
+
 scan "private-key"       '-----BEGIN [A-Z0-9 ]*PRIVATE KEY-----'
 scan "token"             '(ghp_|gho_|ghu_|ghs_|github_pat_)[A-Za-z0-9_]{20,}|sk-[A-Za-z0-9_]{16,}|sk_(live|test)_[A-Za-z0-9]{10,}|xox[baprs]-[A-Za-z0-9-]{10,}|AKIA[0-9A-Z]{16}|AIza[0-9A-Za-z_-]{20,}'
-scan "credential-assignment" '[A-Za-z0-9_]*(api[_-]?key|secret|token|password|passwd|access[_-]?key|client[_-]?secret)[A-Za-z0-9_]*["'"'"' ]*[:=][ ]*["'"'"'][^"'"'"']{6,}'
+scan "credential-assignment" '[A-Za-z0-9_]*(api[_-]?key|secret|token|password|passwd|access[_-]?key|client[_-]?secret)[A-Za-z0-9_]*["'"'"' ]*[:=][ ]*["'"'"'][^"'"'"']{6,}' "${TEST_EXCLUDES[@]}"
 
 if [[ $findings -gt 0 ]]; then
   {

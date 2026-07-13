@@ -87,6 +87,26 @@ cd "$PROJECT_NAME"
 
 echo "  → initializing git"
 git init -q
+
+# Identity sanity check: machine-generated emails (user@Host.something.ip/.local)
+# silently brand every commit, and on a work machine they can embed the employer.
+_git_email="$(git config user.email 2>/dev/null || true)"
+if [[ -z "$_git_email" ]] || [[ "$_git_email" =~ @.*\.(local|lan|ip)$ ]]; then
+  echo ""
+  echo "  ⚠ git user.email is '${_git_email:-unset}', which looks machine-generated."
+  echo "    Every commit in this project would carry it (including pushes to GitHub)."
+  if [[ -t 0 ]]; then
+    read -r -p "    Enter the email to use for this project (or press Enter to keep as is): " _ans_email
+    if [[ -n "$_ans_email" ]]; then
+      git config user.email "$_ans_email"
+      echo "    → set for this project. (Set it globally with: git config --global user.email $_ans_email)"
+    fi
+  else
+    echo "    Fix it with: git config --global user.email you@example.com"
+  fi
+  echo ""
+fi
+
 git commit --allow-empty -m "chore: initial commit" -q
 git branch -M main
 
@@ -186,6 +206,8 @@ echo ""
 echo "Next steps:"
 echo "  cd $PROJECT_NAME"
 echo "  gh repo create $PROJECT_NAME --private --source=. --remote=origin --push"
+echo "  git remote set-head origin -a    (one-time; lets tools resolve origin/HEAD,"
+echo "                                    e.g. the built-in /security-review needs it)"
 echo "  claude"
 echo ""
 echo "Then, first thing inside Claude, configure the project for your stack:"

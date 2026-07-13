@@ -53,12 +53,25 @@ while IFS= read -r r; do
   [[ "$t" -gt "$rec_time" ]] && { rec_time="$t"; record="$r"; }
 done <<< "$records"
 
-# 3b. Verdict check: an existing record that requested changes does not pass.
-if grep -qiE 'REQUEST CHANGES|(^|[[:space:]])verdict:? *FAIL' "$record"; then
-  echo "merge-gate: REFUSED, the latest review for '$branch' did not approve" >&2
-  echo "($record). Fix the findings and re-run the reviewer." >&2
-  exit 1
-fi
+# 3b. Verdict check, read ONLY from the record's frontmatter (between the first
+#     two '---' lines). The frontmatter 'verdict:' field is the single source of
+#     truth; reviewer prose in the body (e.g. honestly documented "was REQUEST
+#     CHANGES, now resolved" history) must never flip the gate. Deny by default:
+#     a record without a frontmatter verdict does not pass.
+verdict="$(awk '/^---[[:space:]]*$/{n++; next} n==1 && /^verdict:/{sub(/^verdict:[[:space:]]*/,""); print; exit}' "$record")"
+verdict="${verdict%%#*}"
+verdict="$(printf '%s' "$verdict" | tr '[:lower:]' '[:upper:]' | xargs 2>/dev/null || true)"
+case "$verdict" in
+  APPROVE*|PASS*) : ;;  # approved, incl. "APPROVE WITH COMMENTS"
+  "")
+    echo "merge-gate: REFUSED, no 'verdict:' field in the record's frontmatter ($record)." >&2
+    echo "Re-run the reviewer; a record must declare one clean frontmatter verdict." >&2
+    exit 1 ;;
+  *)
+    echo "merge-gate: REFUSED, the latest review for '$branch' did not approve (verdict: $verdict)." >&2
+    echo "($record). Fix the findings and re-run the reviewer, never edit the record by hand." >&2
+    exit 1 ;;
+esac
 
 # 3c. Freshness: the review must be newer than the last CODE commit, a review
 #     of older code does not cover what you are merging now.

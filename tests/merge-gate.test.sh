@@ -13,8 +13,13 @@ commit_at() { # commit_at <repo> <time> <msg>
   ( cd "$1" && GIT_AUTHOR_DATE="$2" GIT_COMMITTER_DATE="$2" git commit -qm "$3" ) >/dev/null 2>&1
 }
 make_repo() { local d; d="$(mktemp -d)"; ( cd "$d" && git init -q -b main && echo a > a.txt && git add -A ) >/dev/null 2>&1; commit_at "$d" "$T1" init; echo "$d"; }
-record() { # record <repo> <branch-field> <verdict>
-  ( cd "$1" && mkdir -p docs/evals && printf -- '---\nartifact: code\nbranch: %s\n---\n## Verdict\n%s\n' "$2" "$3" > docs/evals/code-review.md && git add -A ) >/dev/null 2>&1
+record() { # record <repo> <branch-field> <frontmatter-verdict> [body]
+  local body="${4:-## Verdict
+$3}"
+  ( cd "$1" && mkdir -p docs/evals && printf -- '---\nartifact: code\nbranch: %s\nverdict: %s\n---\n%s\n' "$2" "$3" "$body" > docs/evals/code-review.md && git add -A ) >/dev/null 2>&1
+}
+record_no_verdict() { # record_no_verdict <repo> <branch-field>
+  ( cd "$1" && mkdir -p docs/evals && printf -- '---\nartifact: code\nbranch: %s\n---\n## Verdict\nAPPROVE\n' "$2" > docs/evals/code-review.md && git add -A ) >/dev/null 2>&1
 }
 check() { local name="$1" want="$2" repo="$3"; ( cd "$repo" && bash "$GATE" ) >/dev/null 2>&1; local rc=$?
   if [[ $rc -eq $want ]]; then echo "ok   - $name"; pass=$((pass+1)); else echo "FAIL - $name (rc=$rc want=$want)"; fail=$((fail+1)); fi; }
@@ -46,6 +51,32 @@ check "refuses stale record (code changed after review)" 1 "$d"; rm -rf "$d"
 d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1; commit_at "$d" "$T2" code
 record "$d" "feature/x" "REQUEST CHANGES"; commit_at "$d" "$T3" rec
 check "refuses REQUEST CHANGES verdict" 1 "$d"; rm -rf "$d"
+
+# 6b. Frontmatter APPROVE but body honestly documents a RESOLVED "REQUEST CHANGES"
+#     history -> must PASS (the gate reads ONLY the frontmatter verdict; scrubbing
+#     reviewer prose to satisfy a grep must never be necessary again)
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1; commit_at "$d" "$T2" code
+record "$d" "feature/x" "APPROVE" '## Verdict
+APPROVE (was REQUEST CHANGES in v1; all findings resolved)
+## History
+v1 verdict: REQUEST CHANGES — register endpoint unthrottled. Fixed in a1b2c3.'
+commit_at "$d" "$T3" rec
+check "passes: APPROVE frontmatter with resolved REQUEST-CHANGES history in body" 0 "$d"; rm -rf "$d"
+
+# 6c. Record with NO verdict field in frontmatter -> refuse (deny by default)
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1; commit_at "$d" "$T2" code
+record_no_verdict "$d" "feature/x"; commit_at "$d" "$T3" rec
+check "refuses record without a frontmatter verdict field" 1 "$d"; rm -rf "$d"
+
+# 6d. APPROVE WITH COMMENTS in frontmatter -> pass (non-blocking approval)
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1; commit_at "$d" "$T2" code
+record "$d" "feature/x" "APPROVE WITH COMMENTS"; commit_at "$d" "$T3" rec
+check "passes APPROVE WITH COMMENTS" 0 "$d"; rm -rf "$d"
+
+# 6e. PASS verdict (pm-reviewer style) in frontmatter -> pass
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1; commit_at "$d" "$T2" code
+record "$d" "feature/x" "PASS"; commit_at "$d" "$T3" rec
+check "passes PASS verdict" 0 "$d"; rm -rf "$d"
 
 # 7. Dirty working tree -> refuse
 d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1; commit_at "$d" "$T2" code
