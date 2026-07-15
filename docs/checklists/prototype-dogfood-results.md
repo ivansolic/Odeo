@@ -70,10 +70,10 @@ the transcript, the analyst found it immediately).
 becomes "tell the test session your observation as it happens" (it lands in
 the transcript), plus grades asked by the analyst afterward.
 
-## Tester grades (1-5): PENDING, to be added
-Speed: _ · Distinctness: _ · Clarity: _ · Discipline: _ · Findings quality: _
-(Qualitative from the session: variants genuinely distinct; decision was easy
-and clear; the one friction named was P1.)
+## Tester grade
+Overall: **4/5** (single overall grade; dimensions not graded separately).
+Qualitative from the session: variants genuinely distinct; the decision was
+easy and clear; the one named friction was P1 (nothing opened automatically).
 
 ## Sample artifact
 The test's findings.md is preserved as `docs/examples/prototype-findings-example.md`

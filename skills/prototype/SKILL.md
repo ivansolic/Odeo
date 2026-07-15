@@ -17,9 +17,16 @@ comes later, through the real build pipeline.
 ## Process
 1. **Frame the question**: what must these prototypes teach us? (e.g. "which
    invoicing flow feels effortless?"). One sentence, written down.
-2. **Fidelity choice** (ask plainly):
-   - **lo-fi**, frontend only, fake data: validates flow/looks; easiest to share.
-   - **hi-fi**, full app (backend/db): validates real behavior; heavier.
+2. **Fidelity choice** (ask plainly, and RECOMMEND from the framing question):
+   - **lo-fi**, looks and behaves like the app, but nothing is really saved
+     (frontend only, fake data). Tests how it FEELS: flow, layout, wording.
+     Fast (minutes to an hour) and easiest to share.
+   - **hi-fi**, a real miniature system (saving, accounts, real logic). Tests
+     whether it actually WORKS: a parser, a calculation, a sync. Roughly 3x
+     heavier; pick it only when the risk lives in the mechanics.
+   The framing question decides: "which flow feels effortless?" -> lo-fi;
+   "can this parser/algorithm work reliably?" -> hi-fi. Say your
+   recommendation and why in one line; the user chooses.
 3. **Spin up N variants (2-3)**: each gets its own git worktree, its own port,
    its own `.env`/install, and a RUNNING server. Builders may work in parallel
    (they're disposable, prototype rigor: no TDD, no review, speed over polish,
