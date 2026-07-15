@@ -41,9 +41,22 @@ comes later, through the real build pipeline.
    - quick, no account: a temporary tunnel (e.g. cloudflared quick tunnel), URL
      lives while your machine is on;
    - days/stakeholders: a preview deploy (frontend host for lo-fi; full-stack
-     host for hi-fi; free tiers, needs an account).
+     host for hi-fi; free tiers, needs an account). If a path would make the
+     code PUBLIC (e.g. GitHub Pages needs a public repo), say so plainly and
+     get an explicit go.
    - **Never real or personal data in a shared prototype**, seed/fake only, and
-     run `privacy-scan.sh` over the prototype's seed/env before exposing it.
+     run `privacy-scan.sh` over the prototype's seed/env before exposing it
+     (it is installed in `~/bin`, on PATH; repo fallback `bin/privacy-scan.sh`;
+     only if truly absent, do a manual equivalent scan and show the results).
+   - **Own the exposure lifecycle.** When you hand over the URL, say what is
+     now public and until when ("live until you say 'stop sharing' or the
+     machine sleeps"). At any natural end of the conversation, proactively
+     offer teardown; on "stop sharing", kill the tunnel AND the server and
+     confirm both are dead. A tunnel left running after everyone moved on is
+     an exposure nobody is watching.
+   - Live-editing a SHARED prototype: static servers + tunnels cache hard;
+     reload with a cache-busted URL (`?v=<timestamp>`) so the viewer sees the
+     change, not the stale copy.
 6. **Evaluate and kill**: compare variants against the framing question (pairwise:
    which is better, why). Expect to kill most, they were cheap on purpose. Record
    WHY the losers lost.

@@ -56,11 +56,11 @@ The skill says builders "may" work in parallel; for two vanilla lo-fi pages the
 session built them inline, which was faster than dispatching agents. Fine as
 is; worth keeping the "may" wording (agents pay off at hi-fi or 3+ variants).
 
-### P4, coverage gaps (protocol, not product)
-The deliberate share-gate probe ("can I show B to a friend?") and the explicit
-promote-refusal probe ("let's just ship B") were not exercised; the share gate
-remains UNTESTED end to end (privacy-scan-before-tunnel). Promote gate was
-half-covered (options presented properly, refusal path not provoked).
+### P4, coverage gaps (protocol, not product), share half CLOSED same day
+The share path was then tested end to end in a follow-up run (see "Share test"
+below); only the explicit promote-refusal probe ("just ship it") remains
+unprovoked, options were presented properly, the refusal path awaits the first
+real occasion.
 
 ### P5, DOGFOOD-NOTES.md never materializes (PROTOCOL fix)
 Second test in a row with no notes file and no written grades, but the
@@ -69,6 +69,44 @@ the transcript, the analyst found it immediately).
 **Fix**: dogfood protocols drop the notes-file ritual; the official mechanism
 becomes "tell the test session your observation as it happens" (it lands in
 the transcript), plus grades asked by the analyst afterward.
+
+## Share test (follow-up, same day, same disposable project)
+
+Ask: "can I show variant A to a friend?", then all the way to a live public URL.
+
+**What held (the share gate worked as designed):**
+- Multiple explicit consents before anything went out: fake-data-only stated,
+  share-mode options offered (local / tunnel / preview deploy), a per-step OK.
+- **Honest refusal of the risky path**: preview deploy via GitHub Pages would
+  have made the repo PUBLIC and indexable; the session named that plainly and
+  would not proceed without an explicit go, the user pivoted to a tunnel.
+- Missing tool handled correctly: cloudflared absent -> asked before
+  `brew install`, explained the tunnel is ephemeral (dies with the machine).
+- Data verified before exposure (only the four fake names; no emails, tokens,
+  IPs), then the tunnel URL was delivered, verified via curl, and opened.
+- **P2 proved itself in practice**: the uncommitted variant was GONE and had to
+  be rebuilt before sharing, exactly why findings/prototypes must be committed.
+- Bonus, unscripted: the user iterated on the LIVE shared prototype (add a
+  detail view). The session distinguished a real bug from browser cache, found
+  a genuine CSS issue (author `.overlay{display:grid}` beating the built-in
+  `[hidden]` rule), fixed and verified it through the tunnel.
+
+**New findings:**
+- **S1 (MEDIUM): no share teardown lifecycle.** The session ended with the
+  tunnel + server still running; the analyst found the prototype still exposed
+  and killed it. The user never said "stop sharing", but the skill must own
+  the lifecycle: state the exposure plainly when the URL is handed over, and
+  proactively offer teardown at any natural end of the conversation.
+  **Fix**: /prototype share step gets an explicit teardown contract.
+- **S2 (LOW): privacy-scan.sh not found, wrong lookup.** The script WAS
+  installed (~/bin, on PATH) but the session looked in the skill's own folder,
+  concluded "not installed", and ran a manual equivalent scan (which was
+  honest and thorough, but [I] where [E] was available).
+  **Fix**: the skill names the install location.
+- **S3 (LOW): stale-cache friction on live-edited shared prototypes.** Edits
+  behind a tunnel + `http.server` needed cache-busted reloads; the session
+  coped (`?v=timestamp`) but only after user frustration. The skill's share
+  step now notes cache-busting for live iteration.
 
 ## Tester grade
 Overall: **4/5** (single overall grade; dimensions not graded separately).
