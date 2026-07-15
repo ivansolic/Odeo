@@ -24,8 +24,12 @@ comes later, through the real build pipeline.
    its own `.env`/install, and a RUNNING server. Builders may work in parallel
    (they're disposable, prototype rigor: no TDD, no review, speed over polish,
    this is the ONE place that's allowed, because nothing here ships).
-4. **Present live**: "open A: localhost:3001 · B: localhost:3002 · C: :3003",
-   side by side. You click through and compare the real thing.
+4. **Present live, and actually OPEN it**: printing URLs is not presenting.
+   Open each variant in the browser yourself (`open http://localhost:3001`,
+   `open http://localhost:3002`, one tab per variant), and offer the editor
+   view: "want the worktrees in your VS Code window too?" (`code --add <a> <b>`,
+   the reuse-never-multiply ladder: code -> cursor -> graceful skip). Then the
+   user clicks through and compares the real thing side by side.
 5. **Share (optional, always your call, outward = gated)**:
    - quick, no account: a temporary tunnel (e.g. cloudflared quick tunnel), URL
      lives while your machine is on;
@@ -37,8 +41,12 @@ comes later, through the real build pipeline.
    which is better, why). Expect to kill most, they were cheap on purpose. Record
    WHY the losers lost.
 7. **Write the findings** to `docs/prototypes/<idea>/findings.md`, the durable
-   handoff (checklist below). Delete or keep the dead worktrees; the findings are
-   what matters.
+   handoff (checklist below), **and commit them**: durable means committed, an
+   untracked file dies with the next cleanup. Branch `chore/prototype-findings`,
+   commit, offer `/merge` (docs-only PR). Delete or keep the dead worktrees;
+   the findings are what matters.
+   (A reference example of a complete findings file:
+   `docs/examples/prototype-findings-example.md`.)
 8. **Promote gate (your decision)**: the winner rejoins the normal flow AT THE
    PHASE ITS SCOPE NEEDS:
    - solo/small feature -> `/spec` (prd -> critique -> stories) -> `/build`;

@@ -25,8 +25,10 @@ cd dogfood-app && claude                        # FRESH session, the test runs h
 Fresh session matters: the system must load clean, no help from an ongoing chat.
 
 ## The script (what to type, in order)
-Each step lists WHAT TO OBSERVE, jot anything odd into `DOGFOOD-NOTES.md` in the
-project as you go (one line per observation is enough).
+Each step lists WHAT TO OBSERVE. When you notice something odd, SAY IT TO THE
+TEST SESSION right there ("note: X didn't happen / felt heavy"), it lands in
+the transcript, which is what the analyst reads. No separate notes file needed;
+grades are collected by the analyst afterward.
 
 1. `/start` , empty project. OBSERVE: does it give clear entry points?
 2. `/setup-project` , new project path; pick a simple stack or say "you choose";

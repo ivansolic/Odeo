@@ -30,7 +30,8 @@ cd proto-dogfood && claude                        # FRESH session, test runs her
 Skip `gh repo create` on purpose, no remote, nothing leaves the machine.
 
 ## The script (what to type, in order)
-Note anything odd in DOGFOOD-NOTES.md in the project (one line per observation).
+Notice something odd? Say it to the test session right there ("note: ..."), it
+lands in the transcript the analyst reads. Grades are collected afterward.
 
 1. `/prototype` straight away, no PM phase first. OBSERVE: does it ask for the
    framing question and write it down? Does it ask the fidelity choice plainly
@@ -57,7 +58,7 @@ Note anything odd in DOGFOOD-NOTES.md in the project (one line per observation).
    without a project?" (via /guide), "what would hi-fi have given me?"
    OBSERVE: honest answers, no invented capabilities.
 
-## Grades (1-5, in DOGFOOD-NOTES.md)
+## Grades (1-5, the analyst asks for these after the test)
 - Speed: did it FEEL fast (the whole point of taste-at-speed)?
 - Distinctness: were variants really different shapes?
 - Clarity: always knew what to do next?
@@ -69,8 +70,8 @@ Note it, that IS the finding. A broken step is a result, not a failed test.
 
 ## After the test (analysis first, deletion second)
 1. Analyst (main session) reads: the transcript
-   (`~/.claude/projects/-Users-ivan-solic-code-proto-dogfood/*.jsonl`), the
-   project artifacts (docs/prototypes/, worktrees, git log), DOGFOOD-NOTES.md.
+   (`~/.claude/projects/-Users-ivan-solic-code-proto-dogfood/*.jsonl`) and the
+   project artifacts (docs/prototypes/, worktrees, git log).
    Writes `docs/checklists/prototype-dogfood-results.md` + fixes.
 2. ONLY THEN delete the environment (worktrees first, then the project):
 ```
