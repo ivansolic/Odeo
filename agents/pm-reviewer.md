@@ -34,6 +34,10 @@ NOT yours: code (code-reviewer), UI (design-reviewer), architecture
    The frontmatter carries exactly ONE `verdict:` line (value only, no trailing
    comments); on re-review REPLACE it, and put what changed in the body
    (`## History`). Only you write or change your verdict.
+   The frontmatter also names WHAT the record covers, `artifact: USR-012` for
+   one artifact, or `covers: USR-001 USR-002 USR-003` listing every id of a
+   set explicitly (no ranges, `spec-gate.sh` matches these tokens exactly and
+   refuses builds without them).
 
 ## Blind scoring mode (subagent tests)
 When invoked to score a batch of artifacts for an A/B test: you receive the

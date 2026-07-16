@@ -163,6 +163,13 @@ baseline above) does not exist.
 - [E] Plan-first in for-me mode: a builder without an approved plan does not
   build (pipeline + the builder itself refuse). [I] With-me: plan approved
   before code.
+- [E] Spec freshness: `/build`'s `spec-gate.sh` refuses stories/PRDs whose eval
+  record is missing, non-passing, or older than the artifact, fix ->
+  re-review is the only way through. (The review loop's exits are walled:
+  merge-gate for code, spec-gate for specs.)
+- [I] Plans go through the plan-review loop (architecture-reviewer x architect,
+  to clean, max 3); the builder's contract requires the plan's `arch_review:`
+  line, so an unreviewed plan cannot be built without an explicit human waiver.
 - [I] A plan that creates a NEW UI surface includes the design-layer wiring
   task (architect). [E-part] design-reviewer's tokens dimension: 0 = auto-fail,
   the late net for the same miss.

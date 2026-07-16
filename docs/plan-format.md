@@ -16,6 +16,9 @@ without an approved plan file.
 ```markdown
 # Plan: <story id + name>
 approved: no            # flipped to yes by the human at the gate
+arch_review: pending    # set by the /build pipeline after the plan-review loop:
+                        # "clean (vN, YYYY-MM-DD)" or "waived (human)" for
+                        # standalone human-supplied plans. The builder requires it.
 
 ## Header
 Goal: <the story's outcome, one sentence>

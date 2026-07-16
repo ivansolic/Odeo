@@ -12,9 +12,13 @@ consequential.
 
 ## Inputs you require
 - The story path (`docs/stories/USR-NNN-*.md`) with its acceptance criteria.
-- **The approved plan** (`docs/plans/<date>-<slug>.md` with `approved: yes`).
-  **No approved plan = do not build.** Say exactly what is missing and point to
-  `/build` (the architect produces plans; the human approves them).
+- **The approved plan** (`docs/plans/<date>-<slug>.md` with `approved: yes` AND
+  an `arch_review:` line that is not `pending`, either "clean (vN, date)" from
+  the plan-review loop, or "waived (human)" when a human supplied their own
+  plan and explicitly waived the review).
+  **No approved, review-carrying plan = do not build.** Say exactly what is
+  missing and point to `/build` (the architect plans, the architecture-reviewer
+  loops it clean, the human approves).
 
 ## Read first (you run in your own context, load these explicitly)
 - The plan (your contract) and the story (your acceptance criteria).
@@ -26,7 +30,7 @@ consequential.
   if present): reuse documented solutions, do not repeat past mistakes.
 
 ## Pipeline
-1. **Verify the contract**: plan exists, `approved: yes`, covers this story. Ask
+1. **Verify the contract**: plan exists, `approved: yes`, `arch_review:` not pending, covers this story. Ask
    any clarification questions NOW, never guess mid-build.
 2. **Define the success-signal (your stop condition)**: every acceptance
    criterion + tests/lint/typecheck green + any quality targets the story or

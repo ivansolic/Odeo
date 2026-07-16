@@ -6,10 +6,14 @@ disable-model-invocation: true
 The single entry to building. You pick the mode; the system prepares everything.
 Invoke once. Replaces the old dev-handoff (its prep is the with-me mode here).
 
-## 1. Identify the stories
+## 1. Identify the stories, then the spec gate (ENFORCED)
 Ask which stories to build (paths in `docs/stories/`), or use the ones named.
 For each, confirm it is ready: a description and testable acceptance criteria.
-If a story is not ready, stop and say what is missing.
+Then run `spec-gate.sh <story paths...>` (in `~/bin` or `bin/`) and STOP on
+non-zero: it refuses stories with no eval record, a non-passing verdict, or a
+record OLDER than the story (spec edited after review). The only way through
+is the review loop: fix -> pm-reviewer re-verifies -> fresh PASS. Never work
+around it; if the gate is wrong, that is a bug to report, not to bypass.
 
 ## 2. Pick the mode (ALWAYS ask, never infer)
 The two modes are **with me** and **for me** ("Mode A"/"Mode B" work as aliases).
@@ -117,15 +121,21 @@ instance). Fallback `cursor --add`; neither installed -> skip gracefully.
    `docs/plan-format.md` format; save each to `docs/plans/<date>-<slug>.md` with
    `approved: no`. If the architect escalates (a story would change product-level
    architecture), stop and resolve that with the user first (ADR).
-2. **Dispatch `architecture-reviewer` on each plan** (read-only): does the plan
-   fit the inherited architecture, respect boundaries, hide no risky ambiguity?
-   Its findings go back to the architect for revision (real findings only), and
-   its short verdict is presented WITH the plan, so the human approves with an
-   independent second opinion in hand, not alone.
+2. **Plan review LOOP (architecture-reviewer x architect, to clean, max 3)**:
+   dispatch `architecture-reviewer` on each plan (read-only): does it fit the
+   inherited architecture, respect boundaries, hide no risky ambiguity? Real
+   findings go back to the `architect` for a revision, then the SAME reviewer
+   re-verifies, repeat until clean or 3 cycles (then stop: present the
+   disagreement, the human arbitrates). The reviewer cannot write files; YOU
+   record the outcome in the plan's frontmatter as
+   `arch_review: clean (v<N>, <date>)` plus a short findings-and-resolutions
+   section in the plan body. Present the trajectory at the gate ("v1: 2
+   blocking findings -> v2: 1 -> v3: clean").
 3. **Present the plans for approval**: approach, file map, riskiest part, open
-   questions, + the architecture-reviewer's verdict. The user approves (flip
+   questions, + the plan-review trajectory. The user approves (flip
    `approved: yes`), asks for changes (back to the architect), or rejects.
-   **No builder runs without an approved plan file.**
+   **No builder runs without an approved plan that carries an `arch_review:`
+   line**, both are the builder's contract preconditions.
 4. **Dispatch one `builder` per approved story**, each in its own git worktree +
    branch (built-in isolation; parallel = background agents). Each builder
    executes its plan as a contract: success-signal, green baseline, tasks in

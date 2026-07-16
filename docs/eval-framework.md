@@ -49,7 +49,7 @@ then `git log`/`git show` for the previous version.
 ```markdown
 docs/evals/PRD-007.md
 ---
-artifact: PRD-007
+artifact: PRD-007        # or covers: USR-001 USR-002 ... for a set (spec-gate matches these)
 type: prd
 branch: feature/usr-007-password-reset   # required for code/UI records; merge-gate matches on it
 artifact_version: 3
