@@ -30,7 +30,9 @@ git rev-parse --is-inside-work-tree >/dev/null 2>&1 || {
 # breaks the containment check)
 ARTIFACTS=()
 for p in "$@"; do
-  if [[ -f "$p" ]]; then
+  if [[ -L "$p" ]]; then
+    echo "spec-gate: artifact is a symlink (target can drift after review): $p" >&2; exit 2
+  elif [[ -f "$p" ]]; then
     ARTIFACTS+=("$(cd "$(dirname "$p")" && pwd -P)/$(basename "$p")")
   else
     echo "spec-gate: artifact not found: $p" >&2; exit 2
@@ -87,7 +89,7 @@ frontmatter_verdict() { # frontmatter_verdict <record-file> -> prints normalized
 
 fail=0
 for abs in "${ARTIFACTS[@]}"; do
-  rel="${abs#"$(pwd)"/}"
+  rel="${abs#"$TOP"/}"
   base="$(basename "$rel" .md)"
 
   # The id token: PRD-NNN / USR-NNN / RES-NNN prefix, else the full basename
@@ -139,8 +141,15 @@ for abs in "${ARTIFACTS[@]}"; do
       fail=1; continue ;;
   esac
 
-  # 4. Freshness: the review must postdate the artifact's last change
-  art_time="$(git log -1 --format=%ct -- "$rel" 2>/dev/null || echo 0)"
+  # 4. Freshness: the review must postdate the artifact's last change.
+  #    No commit history (gitignored / never committed) = refuse, a file git
+  #    cannot see has no reviewable state (porcelain is blind to ignored files).
+  art_time="$(git log -1 --format=%ct -- "$rel" 2>/dev/null || true)"
+  if [[ -z "$art_time" || "$art_time" == "0" ]]; then
+    echo "spec-gate: REFUSED, '$rel' has no commit history (gitignored or never committed)." >&2
+    echo "Specs enter the build only committed; commit it, review it, then build." >&2
+    fail=1; continue
+  fi
   if [[ "$rec_time" -lt "$art_time" ]]; then
     echo "spec-gate: REFUSED, '$id' changed AFTER its review ($record is older than $rel)." >&2
     echo "Re-run pm-reviewer so the record covers what you are about to build." >&2

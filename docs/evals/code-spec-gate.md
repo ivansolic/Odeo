@@ -2,95 +2,96 @@
 artifact: code
 type: code
 branch: main
-scope: bin/spec-gate.sh + tests/spec-gate.test.sh (commit 680a5ce)
+scope: bin/spec-gate.sh + tests/spec-gate.test.sh (commit ebdad14)
 date: 2026-07-16
 scorer: code-reviewer
-scores: { correctness: 1, security: 0, performance: 2, readability: 1, testing: 1, conventions: 2 }
-total: 7/12
-verdict: REQUEST CHANGES
+scores: { correctness: 2, security: 1, performance: 2, readability: 2, testing: 1, conventions: 2 }
+total: 10/12
+verdict: APPROVE WITH COMMENTS
 ---
 
-# Code review: spec-gate.sh (the /build entry gate)
+# Code review: spec-gate.sh (the /build entry gate), re-review after ebdad14
 
-Test suite: 12/12 green. All findings below were reproduced live in scratch repos.
+Test suite: 20/20 green (all 7 suites in tests/ green). All six prior findings
+(2 Critical, 4 Important) confirmed RESOLVED by independent live probes, not
+just by the new tests. Regression note vs. previous round: BETTER (7/12
+REQUEST CHANGES -> 10/12 APPROVE WITH COMMENTS).
+
+## Resolved (verified independently)
+
+1. Dirty-record bypass (prior Critical 1): docs/evals must be fully clean
+   before the artifact loop (bin/spec-gate.sh:53-57); porcelain catches
+   modified, staged, and untracked records. Test 10 reproduces the original
+   exploit and refuses.
+2. Out-of-repo fail-open (prior Critical 2): physical-path containment,
+   pwd -P on both sides (bin/spec-gate.sh:31-49), exit 2. Test 11 passes on
+   macOS where mktemp lives under the /var -> /private/var symlink.
+3. Left boundary, body-line matching, ERE injection (prior Important 3-5):
+   matching rebuilt as frontmatter-only awk parse plus exact string equality
+   per token (record_tokens/covers_id, bin/spec-gate.sh:60-74). No regex in
+   matching; the only regex left is the fixed-pattern id extraction on the
+   basename (line 94), which takes no record input. Probed: XUSR-001,
+   body-only `covers:`, comma/bracket/quoted YAML variants all refuse.
+4. Empty $record guard (prior Important 6): line 123, and it is reachable,
+   a gitignored record in docs/evals is invisible to porcelain but has no
+   commit time; probed, refuses with the correct message.
+5. Keep-in-sync comments both directions, tie-resolution comment, record()
+   filename parameter (exercised by test 13): all present.
 
 ## Critical (must fix before merge)
 
-1. **Uncommitted record edits flip the gate** (bin/spec-gate.sh:67, 82 vs 77).
-   Coverage (`grep`) and verdict (`frontmatter_verdict`) read the WORKING COPY of
-   the record, while freshness reads the record's last COMMIT time. Reproduced:
-   commit a record with `verdict: REQUEST CHANGES`, hand-edit the file to
-   `verdict: PASS` without committing, gate exits 0. This defeats the gate's
-   entire purpose ("never edit the record by hand"). Same hole lets a dirty edit
-   add `covers: USR-001` to an unrelated committed record. merge-gate does not
-   have this hole only because it demands a fully clean tree.
-   Fix: before the artifact loop, refuse if `git status --porcelain -- docs/evals`
-   is non-empty (also cleans up the untracked-record path, see Important 4).
-   Alternative: read record content via `git show HEAD:$r` so content and
-   timestamp come from the same source.
-
-2. **Fail-open on artifacts outside the repo** (bin/spec-gate.sh:30-37, 60, 95).
-   Point the gate at an artifact file outside the current repo: `git status`
-   prints a fatal to stderr but the command substitution captures empty stdout,
-   so check 1 "passes"; `git log ... || echo 0` makes art_time 0, so check 4
-   "passes"; coverage matches by id against the gate repo's records. Reproduced:
-   exit 0 with a visible `fatal:` above it. An enforced guardrail consumed by
-   /build via exit code must fail closed.
-   Fix: resolve with `pwd -P`, then after `cd "$top"` verify
-   `case "$abs" in "$top"/*) ;; *) exit 2;; esac`.
+None.
 
 ## Important (should fix)
 
-3. **No left token boundary in the coverage regex** (bin/spec-gate.sh:67).
-   `artifact: XUSR-001` matches id USR-001 (reproduced). The right boundary
-   `([^0-9-]|$)` exists, the left one does not.
+- bin/spec-gate.sh:97,143, a GITIGNORED artifact passes the gate (reproduced:
+  .gitignore covering docs/stories/, artifact never committed, committed PASS
+  record for its id, exit 0). Root cause: porcelain is blind to ignored files,
+  so check 1 passes, and `git log -1` prints empty for them, so art_time is
+  empty and `[[ rec_time -lt "" ]]` is false, freshness passes vacuously.
+  Fix: after computing art_time, refuse when it is empty or 0
+  ("artifact has no commit history in this repo"). One guard closes the whole
+  no-commit-history class (also nested-repo gitlink paths). Precondition is
+  unusual (a gitignore rule matching spec dirs), hence Important, not Critical.
 
-4. **`artifact:`/`covers:` matched anywhere in the file, not frontmatter-only**
-   (bin/spec-gate.sh:67). A body line `covers: USR-001` in an unrelated PASS
-   record gates USR-001 through (reproduced). This contradicts the script's own
-   header (lines 7-8: "frontmatter `artifact:` or `covers:`") and the
-   verdict-parsing philosophy (body prose must never flip the gate). A History
-   section quoting old frontmatter is a realistic trigger.
+## Nitpicks (optional)
 
-5. **Fallback id is injected into the ERE unescaped** (bin/spec-gate.sh:57, 67).
-   `spec.one.md` matched a record saying `artifact: specXone` (reproduced, `.`
-   is a wildcard). Parens change grouping; `[` makes the pattern invalid.
+- bin/spec-gate.sh:33-38, a COMMITTED SYMLINK artifact whose target lives
+  outside the repo passes even after the target changes post-review
+  (reproduced). Git tracks the link, not the target content. Fix: refuse
+  symlink artifacts, `[[ -L "$abs" ]]` -> exit 2.
+- bin/spec-gate.sh:90, prefix-strip uses `$(pwd)` while containment used
+  `$TOP` (pwd -P). Behavior is currently correct either way (git accepts
+  absolute in-repo paths), but use "$TOP" so both checks share one source.
+- bin/spec-gate.sh:65, tokenizer splits on whitespace only; `covers: USR-001,
+  USR-002` leaves the token `USR-001,` unmatched and refuses a covered id.
+  Fails closed, and docs/eval-framework.md prescribes space-separated ids, so
+  acceptable; consider stripping `,` `"` `'` `[` `]` in the tr, or state the
+  format requirement in the header comment.
 
-   Unified fix for 3-5: parse frontmatter `artifact:`/`covers:` values with awk
-   (mirror `frontmatter_verdict`), split values into whitespace/comma tokens,
-   compare with string equality against the id. No regex, no boundary hacks,
-   frontmatter-only by construction.
+## Testing
 
-6. **Empty `$record` reaches awk** (bin/spec-gate.sh:75-79, 82, 86). When all
-   matching records are untracked, `record` stays empty; the refusal message
-   prints `($record)` as `()`. Deny holds, message misleads. Guard
-   `[[ -z "$record" ]]` explicitly (subsumed by fix 1).
-
-## Nitpicks
-
-7. `frontmatter_verdict` (bin/spec-gate.sh:39-49) duplicates
-   bin/merge-gate.sh:65-72. Two enforcement scripts claim "the same contract"
-   but keep it in sync by copy-paste. Extract a shared helper or add explicit
-   "keep in sync with" comments on both sides.
-8. Timestamp tie between two matching records (same commit) picks grep order
-   arbitrarily; harmless today, worth a comment.
-9. tests/spec-gate.test.sh:18: `record()` hardcodes `rec.md`, so
-   multiple-records scenarios cannot be expressed; add a filename parameter.
-
-## Testing gaps
-
-The 12 assertions cover happy paths and the id-set edge (4b), but miss:
-dirty-record bypass (the Critical), out-of-repo artifact, subdir invocation
-(the exact lesson the path-resolution code exists for, works but is untested),
-newest-record-wins (newer FAIL must beat older PASS), left-boundary
-(XUSR-001), REQUEST CHANGES and missing-verdict records, RES- ids.
-Verified manually: subdir invocation, symlinked cwd, USR-0012 vs USR-001, and
-lowercase `verdict: pass` all behave correctly.
+20 assertions, hermetic, fast, and they now include every previously missed
+scenario (dirty bypass, out-of-repo, subdir, newest-wins, left boundary, body
+covers, missing verdict, RES ids). Remaining gap: the gitignored-artifact case
+above shipped untested; add it alongside the fix.
 
 ## What's good
 
-Small, readable, well-commented; deny-by-default vocabulary matches merge-gate
-exactly; the right-boundary `([^0-9-]|$)` and digit handling are correct
-(USR-0012 does not cover USR-001 and vice versa); path resolution before cd
-genuinely fixes subdir and symlinked-cwd invocation; failures accumulate
-per-artifact as specified; test suite is fast, hermetic, and green.
+The unified string-equality rewrite is exactly right: it removed three holes
+and all regex from matching in one move, and the code got SHORTER and clearer.
+Fail-closed discipline is now consistent (odd YAML token formats refuse rather
+than guess). The empty-record guard turned out to be live defense, not dead
+code. Installed copy in ~/bin is in sync per the repo convention.
+
+## History
+
+- Round 1 (commit 680a5ce, record dated 2026-07-16): REQUEST CHANGES, 7/12.
+  Criticals: uncommitted record edits flipped the gate (verdict/coverage read
+  from the working copy while freshness read commits); fail-open on artifacts
+  outside the repo. Importants: no left token boundary; artifact:/covers:
+  matched anywhere in the file; unescaped id injected into the ERE; empty
+  $record reaching awk; test gaps (12 assertions, happy-path heavy).
+- Round 2 (commit ebdad14, this record): all round-1 findings verified fixed
+  by independent probes; one new Important (gitignored artifact, empty
+  art_time) and two edge nitpicks found. 10/12, no zeros, threshold met.

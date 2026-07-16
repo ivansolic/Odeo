@@ -115,4 +115,16 @@ d="$(make_repo)"
 record "$d" "artifact: RES-002" PASS "$T3"
 check "passes a fresh PASS RES record" 0 "$d" docs/research/RES-002-market.md; rm -rf "$d"
 
+# 18. GITIGNORED artifact (never committed) must refuse, not pass vacuously
+d="$(make_repo)"
+( cd "$d" && echo "docs/stories/USR-009-*" > .gitignore && git add .gitignore ) >/dev/null 2>&1; commit_at "$d" "$T1" gitignore
+( cd "$d" && printf 'ghost story\n' > docs/stories/USR-009-ghost.md ) >/dev/null 2>&1
+record "$d" "artifact: USR-009" PASS "$T3"
+check "refuses a gitignored, never-committed artifact" 1 "$d" docs/stories/USR-009-ghost.md; rm -rf "$d"
+
+# 19. symlink artifact -> refuse (target can drift after review)
+d="$(make_repo)"; story "$d" USR-001-login "$T2"; record "$d" "artifact: USR-001" PASS "$T3"
+( cd "$d" && ln -s "$(pwd)/docs/stories/USR-001-login.md" docs/stories/USR-001-link.md )
+check "refuses a symlink artifact" 2 "$d" docs/stories/USR-001-link.md; rm -rf "$d"
+
 echo ""; echo "passed: $pass, failed: $fail"; [[ $fail -eq 0 ]]
