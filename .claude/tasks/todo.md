@@ -271,3 +271,10 @@ Deferred (very end): marketplace listing; the end-to-end dogfood test.
 - [x] B14 model-robustness pass: critical rules rewritten imperative with rationalization counters (merge floor, verdict ownership, mode ask, false-green); measurable target set: zero human-floor violations + zero false greens on Opus, verified by the next dogfood. Full-catalog wording pass stays on the watch list
 - [x] AFTER-1: CI, built as the /ci skill (generates checks.yml from the project's Commands section; offered once by /setup-project and /merge; skill-reviewer PASS 8/10, both fixes applied)
 - [ ] AFTER-2: /prototype dogfood test (Ivan drives it, not yet run)
+
+## INNOVATION BATCH (2026-07-16, from the cross-test synthesis)
+- [x] #1 skills-lint + docs/invariants.md: 9 mechanical invariants (each born from a real dogfood bug), 16 tests, repo passes its own lint; first run caught 4 real violations; person credits stripped from 14 skills (C8 enforces)
+- [x] #2 share-tunnel.sh (TTL, self-closing, .shares registry) + session-end-check.sh (Stop hook) + /start share reminders + guardrail entries; 11 tests
+- [x] #5 /research skill: 2+ sources or 'unverified', ranges with methods, RES-NNN reports; offered by /prd and /discover; skill-reviewer PASS 8/10, fixes applied
+- [ ] #3 living design gallery + Figma token bridge (A-G elaboration in chat + results docs), PARKED by Ivan until after launch
+- [ ] #4 /improve "calibrate" mode (fire-rate, rubric separation, 5-rep variance), BACKLOG
