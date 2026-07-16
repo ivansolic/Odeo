@@ -127,6 +127,10 @@ baseline above) does not exist.
 - [E] `privacy-scan.sh` before anything leaves the machine (exit 1 = blocked).
 - [E] Secrets in commits: `secret-scan.sh` gate in `/commit-push` + pre-commit hook.
 - [E] The personal layer (memory) never enters a public repo (gitignore).
+- [E] Public tunnels are time-boxed: `share-tunnel.sh` shuts itself down at the
+  TTL (default 60 min), a forgotten share cannot stay public. [I] Preview
+  deploys are recorded in `docs/prototypes/.shares`; `/start` reminds about old
+  ones. The Stop hook sweeps for live tunnels/servers at session end.
 - [I] **Never real or personal data in a shared prototype**, seed/fake only.
   Counters, all invalid: "it's just a demo" (a demo leaks like anything else);
   "stakeholders need real data to judge" (they need realistic SHAPE, seed it);

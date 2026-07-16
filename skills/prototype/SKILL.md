@@ -38,8 +38,10 @@ comes later, through the real build pipeline.
    the reuse-never-multiply ladder: code -> cursor -> graceful skip). Then the
    user clicks through and compares the real thing side by side.
 5. **Share (optional, always your call, outward = gated)**:
-   - quick, no account: a temporary tunnel (e.g. cloudflared quick tunnel), URL
-     lives while your machine is on;
+   - quick, no account: `share-tunnel.sh <port> [minutes]` (in `~/bin`), a
+     cloudflared quick tunnel that SHUTS ITSELF DOWN when the TTL expires
+     (default 60 min; ask how long, extend by re-running). It announces the
+     expiry up front and records the share in `docs/prototypes/.shares`;
    - days/stakeholders: a preview deploy (frontend host for lo-fi; full-stack
      host for hi-fi; free tiers, needs an account). If a path would make the
      code PUBLIC (e.g. GitHub Pages needs a public repo), say so plainly and
@@ -48,12 +50,14 @@ comes later, through the real build pipeline.
      run `privacy-scan.sh` over the prototype's seed/env before exposing it
      (it is installed in `~/bin`, on PATH; repo fallback `bin/privacy-scan.sh`;
      only if truly absent, do a manual equivalent scan and show the results).
-   - **Own the exposure lifecycle.** When you hand over the URL, say what is
-     now public and until when ("live until you say 'stop sharing' or the
-     machine sleeps"). At any natural end of the conversation, proactively
-     offer teardown; on "stop sharing", kill the tunnel AND the server and
-     confirm both are dead. A tunnel left running after everyone moved on is
-     an exposure nobody is watching.
+   - **Own the exposure lifecycle.** Tunnels expire on their own (the TTL is
+     the enforced floor); still say what is public and until when, offer
+     teardown at any natural end of the conversation, and on "stop sharing"
+     kill the tunnel AND the server and confirm both are dead. Preview
+     DEPLOYS cannot expire on their own: record each one in
+     `docs/prototypes/.shares` (what, host, URL, date), recommend password
+     protection where the host offers it, and delete the deploy when it has
+     served its purpose, `/start` reminds about old ones.
    - Live-editing a SHARED prototype: static servers + tunnels cache hard;
      reload with a cache-busted URL (`?v=<timestamp>`) so the viewer sees the
      change, not the stale copy.

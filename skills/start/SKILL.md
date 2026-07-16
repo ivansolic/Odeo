@@ -27,6 +27,9 @@ what the next step is, and which recurring loops are due. Changes nothing.
    When MORE THAN ONE epic/PRD exists and no prioritization artifact does,
    suggest `/prioritize` + `/roadmap` (value ordering is a PM decision that
    single-epic projects never needed).
+   **Active shares**: if `docs/prototypes/.shares` exists, tunnels past their
+   expiry are already dead (ignore); a preview DEPLOY older than ~a week gets
+   one line: "preview deploy live since <date>, still needed? (password/delete)".
 5. For an **empty/new project**, the first question is whether the IDEA exists,
    before any setup:
    > "Do you already know what you're building?

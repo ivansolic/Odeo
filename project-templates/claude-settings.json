@@ -25,5 +25,17 @@
       "Bash(cursor -r:*)",
       "Bash(cursor --add:*)"
     ]
+  },
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "command -v session-end-check.sh >/dev/null 2>&1 && session-end-check.sh || true"
+          }
+        ]
+      }
+    ]
   }
 }
