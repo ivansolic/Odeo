@@ -16,7 +16,7 @@ remember the sequence. Human-in-command.
 4. /opportunity-solution-tree  outcome -> opportunities -> solutions -> GATE: pick target opportunity
 5. /experiments                riskiest assumptions + cheap tests    -> GATE
 ```
-Adjacent, pull in when relevant: `/interview-synthesis` (if you have research), `/competitor-analysis`, `/market-segments`.
+Adjacent, pull in when relevant: `/research` (cited web evidence for any claim, market size, competitors, pricing), `/interview-synthesis` (if you have interview notes), `/competitor-analysis`, `/market-segments`.
 
 ## Output
 A discovery packet in `docs/research/`. Next: strategy skills (`/vision`, `/strategy`), then `/plan`.

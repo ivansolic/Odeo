@@ -19,6 +19,9 @@ features. Structure adapted from common product-spec practice (an 8-section layo
    (e.g. "users who forgot their password regain access in <60s without support"),
    not "we shipped reset." Define the metric and target.
 3. **Context** , relevant research, the real alternative / competitors (`/competitor-analysis`), constraints.
+   If this section rests on assumptions instead of evidence, offer once:
+   "shall I back this with `/research`? (cited sources, ~10 min quick scan)"
+   and cite the resulting RES-NNN here.
 4. **Hypotheses & assumptions** , what we're betting is true, and **how we'd know we're wrong**.
 5. **Scope** , the thin slice (MVP) that tests the outcome. Explicit in / out. Non-goals.
 6. **Requirements & acceptance criteria** , high-level, observable. (Detailed ACs live in `/stories`.)
