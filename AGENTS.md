@@ -156,7 +156,11 @@ baseline above) does not exist.
   regenerate the record, and repeat, WITHOUT the human having to ask twice.
   Stop conditions (a loop needs a stop): max score reached, or the reviewer
   says no actionable fixes remain (e.g. what's left needs behavioral testing,
-  out of a form review's reach), or 3 cycles (then stop and report honestly).
+  out of a form review's reach), or 3 cycles. A loop that stops short of max
+  ends with three things, always: WHY max is not reachable (the specific
+  blocker, named), the residual findings AS THEY ARE (an unreached max is
+  reported, never rounded up), and the open decision handed to the human
+  (accept the residual, change the approach, or kill the piece).
   Present the trajectory: first score -> final score -> what changed. Scores
   move ONLY by fixing files; never by arguing with the reviewer, never by
   weakening a rubric, never by touching the record (F2 rule holds).
