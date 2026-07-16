@@ -58,7 +58,7 @@ while IFS= read -r r; do
 done <<< "$records"
 
 # 3b. Verdict check, read ONLY from the record's frontmatter (between the first
-#     two '---' lines). The frontmatter 'verdict:' field is the single source of
+#     two '---' lines). KEPT IN SYNC with bin/spec-gate.sh's verdict parsing. The frontmatter 'verdict:' field is the single source of
 #     truth; reviewer prose in the body (e.g. honestly documented "was REQUEST
 #     CHANGES, now resolved" history) must never flip the gate. Deny by default:
 #     a record without a frontmatter verdict does not pass.

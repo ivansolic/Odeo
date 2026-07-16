@@ -25,16 +25,53 @@ set -uo pipefail
 git rev-parse --is-inside-work-tree >/dev/null 2>&1 || {
   echo "spec-gate: not a git repository" >&2; exit 2; }
 
-# Resolve arguments to absolute paths BEFORE anchoring at the repo root
+# Resolve arguments to PHYSICAL absolute paths BEFORE anchoring at the repo
+# root (pwd -P on both sides, or the /var -> /private/var symlink on macOS
+# breaks the containment check)
 ARTIFACTS=()
 for p in "$@"; do
   if [[ -f "$p" ]]; then
-    ARTIFACTS+=("$(cd "$(dirname "$p")" && pwd)/$(basename "$p")")
+    ARTIFACTS+=("$(cd "$(dirname "$p")" && pwd -P)/$(basename "$p")")
   else
     echo "spec-gate: artifact not found: $p" >&2; exit 2
   fi
 done
 cd "$(git rev-parse --show-toplevel)"
+TOP="$(pwd -P)"
+
+# Fail CLOSED on artifacts outside this repository, an enforced gate consumed
+# via exit code must never pass vacuously (git checks go quiet outside the tree).
+for abs in "${ARTIFACTS[@]}"; do
+  case "$abs" in
+    "$TOP"/*) : ;;
+    *) echo "spec-gate: artifact outside this repository: $abs" >&2; exit 2 ;;
+  esac
+done
+
+# Records participate in gates only COMMITTED: a hand-edited working copy must
+# never flip a verdict or coverage (content and timestamp must share a source).
+if [[ -n "$(git status --porcelain -- docs/evals 2>/dev/null)" ]]; then
+  echo "spec-gate: REFUSED, docs/evals/ has uncommitted changes." >&2
+  echo "Records enter gates only committed; commit the reviewer's record first." >&2
+  exit 1
+fi
+
+# Kept in sync with merge-gate.sh's verdict parsing, same contract, both gates.
+record_tokens() { # record_tokens <record-file> -> frontmatter artifact:/covers: tokens, one per line
+  awk '
+    NR==1 { if ($0 !~ /^---[[:space:]]*$/) exit; next }
+    /^---[[:space:]]*$/ { exit }
+    /^(artifact|covers):/ { sub(/^(artifact|covers):[[:space:]]*/, ""); print }
+  ' "$1" | tr -s ' \t' '\n' | tr -d '\r'
+}
+
+covers_id() { # covers_id <record-file> <id> -> 0 if a frontmatter token EQUALS id
+  local t
+  while IFS= read -r t; do
+    [[ "$t" == "$2" ]] && return 0
+  done < <(record_tokens "$1")
+  return 1
+}
 
 frontmatter_verdict() { # frontmatter_verdict <record-file> -> prints normalized verdict
   local v
@@ -62,9 +99,14 @@ for abs in "${ARTIFACTS[@]}"; do
     fail=1; continue
   fi
 
-  # 2. A record covers this id (exact token on an artifact:/covers: line;
-  #    the [^0-9-] tail stops USR-001 from matching inside USR-001-008)
-  records="$(grep -rlE "^(artifact|covers):.*${id}([^0-9-]|$)" docs/evals/ 2>/dev/null || true)"
+  # 2. A record covers this id: exact STRING equality against frontmatter
+  #    artifact:/covers: tokens (no regex, no boundary hacks, body lines never
+  #    count, so USR-001 cannot match inside USR-001-008 or XUSR-001)
+  records=""
+  while IFS= read -r r; do
+    covers_id "$r" "$id" && records="${records}${r}"$'\n'
+  done < <(find docs/evals -type f -name '*.md' 2>/dev/null | sort)
+  records="${records%$'\n'}"
   if [[ -z "$records" ]]; then
     echo "spec-gate: REFUSED, no eval record in docs/evals/ covers '$id'." >&2
     echo "Run pm-reviewer on the artifact first (review = eval record with artifact:/covers:)." >&2
@@ -78,7 +120,13 @@ for abs in "${ARTIFACTS[@]}"; do
     [[ "$t" -gt "$rec_time" ]] && { rec_time="$t"; record="$r"; }
   done <<< "$records"
 
-  # 3. Verdict must approve (deny by default)
+  if [[ -z "$record" ]]; then
+    echo "spec-gate: REFUSED, no COMMITTED record covers '$id' (matches exist only uncommitted)." >&2
+    fail=1; continue
+  fi
+
+  # 3. Verdict must approve (deny by default; ties between equal commit times
+  #    resolve by find order, deterministic within a checkout)
   verdict="$(frontmatter_verdict "$record")"
   case "$verdict" in
     APPROVE|"APPROVE WITH COMMENTS"|PASS) : ;;

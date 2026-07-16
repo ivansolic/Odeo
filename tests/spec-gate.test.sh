@@ -14,9 +14,10 @@ story() { # story <repo> <id-slug> <commit-time>
   ( cd "$1" && printf 'story body\n' > "docs/stories/$2.md" && git add -A ) >/dev/null 2>&1
   commit_at "$1" "$3" "story $2"
 }
-record() { # record <repo> <artifact-line> <verdict> <commit-time>
-  ( cd "$1" && printf -- '---\n%s\nverdict: %s\n---\nbody\n' "$2" "$3" > docs/evals/rec.md && git add -A ) >/dev/null 2>&1
-  commit_at "$1" "$4" record
+record() { # record <repo> <artifact-line> <verdict> <commit-time> [filename] [body]
+  local f="${5:-rec.md}" body="${6:-body}"
+  ( cd "$1" && printf -- '---\n%s\nverdict: %s\n---\n%s\n' "$2" "$3" "$body" > "docs/evals/$f" && git add -A ) >/dev/null 2>&1
+  commit_at "$1" "$4" "record $f"
 }
 check() { local name="$1" want="$2" repo="$3"; shift 3
   ( cd "$repo" && bash "$GATE" "$@" ) >/dev/null 2>&1; local rc=$?
@@ -69,5 +70,49 @@ d="$(make_repo)"
 ( cd "$d" && printf 'prd body\n' > docs/prds/PRD-001-core.md && git add -A ) >/dev/null 2>&1; commit_at "$d" "$T2" prd
 record "$d" "artifact: PRD-001" PASS "$T3"
 check "passes a fresh PASS PRD record" 0 "$d" docs/prds/PRD-001-core.md; rm -rf "$d"
+
+# 10. DIRTY RECORD BYPASS (critical regression): committed REQUEST CHANGES,
+#     verdict hand-edited to PASS without committing -> must refuse
+d="$(make_repo)"; story "$d" USR-001-login "$T2"; record "$d" "artifact: USR-001" "REQUEST CHANGES" "$T3"
+( cd "$d" && printf -- '---\nartifact: USR-001\nverdict: PASS\n---\nbody\n' > docs/evals/rec.md )
+check "refuses uncommitted record edits (dirty-evals bypass)" 1 "$d" docs/stories/USR-001-login.md; rm -rf "$d"
+
+# 11. artifact OUTSIDE the repo -> fail closed (2), never 0
+d="$(make_repo)"; outside="$(mktemp -d)"; printf 'x\n' > "$outside/USR-001-x.md"
+check "fails closed on artifact outside the repo" 2 "$d" "$outside/USR-001-x.md"; rm -rf "$d" "$outside"
+
+# 12. subdir invocation works (path resolution)
+d="$(make_repo)"; story "$d" USR-001-login "$T2"; record "$d" "artifact: USR-001" PASS "$T3"
+( cd "$d" && mkdir -p sub )
+( cd "$d/sub" && bash "$GATE" ../docs/stories/USR-001-login.md ) >/dev/null 2>&1; rc=$?
+if [[ $rc -eq 0 ]]; then echo "ok   - passes when invoked from a subdirectory"; pass=$((pass+1));
+else echo "FAIL - subdir invocation (rc=$rc want=0)"; fail=$((fail+1)); fi
+rm -rf "$d"
+
+# 13. newest record wins: older PASS + newer FAIL -> refuse
+d="$(make_repo)"; story "$d" USR-001-login "$T1"; record "$d" "artifact: USR-001" PASS "$T2" old.md
+record "$d" "artifact: USR-001" "REQUEST CHANGES" "$T3" new.md
+check "newer non-passing record beats an older PASS" 1 "$d" docs/stories/USR-001-login.md; rm -rf "$d"
+
+# 14. LEFT token boundary: XUSR-001 must not cover USR-001
+d="$(make_repo)"; story "$d" USR-001-login "$T2"; record "$d" "artifact: XUSR-001" PASS "$T3"
+check "refuses XUSR-001 record for USR-001 (left boundary)" 1 "$d" docs/stories/USR-001-login.md; rm -rf "$d"
+
+# 15. covers: in the BODY only (e.g. a History quote) must not count
+d="$(make_repo)"; story "$d" USR-001-login "$T2"
+record "$d" "artifact: OTHER-9" PASS "$T3" rec.md "history says: covers: USR-001"
+check "ignores covers: lines in the record body" 1 "$d" docs/stories/USR-001-login.md; rm -rf "$d"
+
+# 16. record with NO verdict in frontmatter -> refuse
+d="$(make_repo)"; story "$d" USR-001-login "$T2"
+( cd "$d" && printf -- '---\nartifact: USR-001\n---\nverdict: PASS\n' > docs/evals/rec.md && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T3" rec
+check "refuses record without a frontmatter verdict" 1 "$d" docs/stories/USR-001-login.md; rm -rf "$d"
+
+# 17. RES ids work like the others
+d="$(make_repo)"
+( cd "$d" && mkdir -p docs/research && printf 'res\n' > docs/research/RES-002-market.md && git add -A ) >/dev/null 2>&1; commit_at "$d" "$T2" res
+record "$d" "artifact: RES-002" PASS "$T3"
+check "passes a fresh PASS RES record" 0 "$d" docs/research/RES-002-market.md; rm -rf "$d"
 
 echo ""; echo "passed: $pass, failed: $fail"; [[ $fail -eq 0 ]]
