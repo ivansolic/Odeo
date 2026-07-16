@@ -1,12 +1,12 @@
 ---
-description: Articulate a product vision, the compelling future you are building toward, in a way that aligns and motivates. Use at the start of a product or a major bet, before strategy and PRDs. Based on Marty Cagan's product-vision thinking.
+description: Articulate a product vision, the compelling future you are building toward, in a way that aligns and motivates. Use at the start of a product or a major bet, before strategy and PRDs. Based on modern product-vision practice.
 disable-model-invocation: true
 ---
 
 # Product vision
 
 The vision is the **shared picture of the future** you are trying to create, the north
-star that outlives any single feature. Based on Marty Cagan (Inspired/Empowered): a
+star that outlives any single feature. Grounded in modern product-vision practice: a
 good vision is inspiring, persistent (2 to 5 year horizon), and about the customer's
 better future, not your roadmap.
 

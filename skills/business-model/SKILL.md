@@ -1,13 +1,13 @@
 ---
-description: Map the business model, how the product creates, delivers, and captures value, on one page, to pressure-test viability. Use early in strategy for a new product/venture. Based on the Business Model Canvas (Osterwalder) and Lean Canvas (Ash Maurya); covers Cagan's viability risk.
+description: Map the business model, how the product creates, delivers, and captures value, on one page, to pressure-test viability. Use early in strategy for a new product/venture. Based on the Business Model Canvas and Lean Canvas; covers the viability risk.
 disable-model-invocation: true
 ---
 
 # Business model
 
 A one-page view of how the whole thing works as a **business**, not just a product.
-Pressure-tests the **viability** risk (one of Cagan's four). Based on Osterwalder's
-Business Model Canvas and Ash Maurya's Lean Canvas (the startup-focused variant).
+Pressure-tests the **viability** risk (one of the four product risks). Based on the
+Business Model Canvas and the Lean Canvas (the startup-focused variant).
 
 ## When to use
 - Early strategy for a new product/venture; or whenever "is this actually a business?" is unanswered.

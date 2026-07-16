@@ -6,7 +6,7 @@ description: Build lightweight, decision-useful user personas centered on the jo
 
 A persona earns its place only if it changes a decision. We build around the **job
 the user hires the product to do**, not age/gender/fluff. Based on Jobs-to-be-Done
-(Clayton Christensen): people "hire" products to make progress in a situation.
+people "hire" products to make progress in a situation.
 
 ## When to use
 - Before a PRD or stories, to anchor who and why.

@@ -1,5 +1,5 @@
 ---
-description: Build an Opportunity Solution Tree, a visual map from a desired OUTCOME down to opportunities (unmet needs), candidate solutions, then experiments. Keeps discovery outcome-driven and stops solution-jumping. Use during discovery once you have a target outcome and some user signal. Based on Teresa Torres (Continuous Discovery Habits).
+description: Build an Opportunity Solution Tree, a visual map from a desired OUTCOME down to opportunities (unmet needs), candidate solutions, then experiments. Keeps discovery outcome-driven and stops solution-jumping. Use during discovery once you have a target outcome and some user signal. Based on the continuous-discovery school.
 disable-model-invocation: true
 ---
 
@@ -7,7 +7,7 @@ disable-model-invocation: true
 
 Make discovery visual and outcome-driven: one OUTCOME at the top, the OPPORTUNITIES
 (unmet needs/pains/desires) beneath it, candidate SOLUTIONS under those, and
-EXPERIMENTS to test them. Based on Teresa Torres (Continuous Discovery Habits). It
+EXPERIMENTS to test them. Based on the continuous-discovery school. It
 forces every idea to connect back to the outcome.
 
 ## When to use

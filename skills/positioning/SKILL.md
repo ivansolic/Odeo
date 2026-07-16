@@ -1,18 +1,18 @@
 ---
-description: Position the product, the deliberate context you put it in so its value is obvious to the right buyer. Use before GTM/launch, or when people "don't get" what you do. Based on April Dunford's Obviously Awesome positioning framework.
+description: Position the product, the deliberate context you put it in so its value is obvious to the right buyer. Use before GTM/launch, or when people "don't get" what you do. Based on the modern positioning framework.
 disable-model-invocation: true
 ---
 
 # Positioning
 
 Positioning is the **context you set** so the right customer instantly understands why
-you're valuable and better. Based on April Dunford's framework (Obviously Awesome):
+you're valuable and better. Based on the modern positioning framework:
 position relative to a chosen market category and the alternatives, not in a vacuum.
 
 ## When to use
 - Before `/gtm-plan` or launch; when prospects misunderstand or undervalue the product.
 
-## Process (Dunford's components)
+## Process (the positioning components)
 1. **Competitive alternatives:** what would the customer use if you didn't exist
    (including the status quo)? This sets the comparison frame.
 2. **Unique attributes:** what you have that the alternatives don't (features,

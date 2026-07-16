@@ -1,5 +1,5 @@
 ---
-description: Define the metrics that matter, a North Star plus a small supporting set, tied to user value, not vanity. Use when setting up measurement for a product or feature, or to make an outcome in a PRD measurable. Based on North Star Metric thinking, AARRR (Dave McClure), and HEART (Google).
+description: Define the metrics that matter, a North Star plus a small supporting set, tied to user value, not vanity. Use when setting up measurement for a product or feature, or to make an outcome in a PRD measurable. Based on North Star Metric thinking, the AARRR funnel, and the HEART framework.
 disable-model-invocation: true
 ---
 
@@ -7,7 +7,7 @@ disable-model-invocation: true
 
 Measure the **value users get**, not activity that flatters you. One North Star, a few
 supporting metrics, and explicit guardrails. Draws on North Star Metric practice, AARRR
-(Dave McClure's pirate metrics) and Google's HEART framework.
+(the AARRR pirate-metrics funnel) and the HEART framework.
 
 ## When to use
 - Standing up measurement; making a PRD's outcome quantifiable; before `/outcome`.

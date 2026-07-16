@@ -1,12 +1,12 @@
 ---
-description: Turn a vision into a product strategy, the focused sequence of bets and the insights behind them, that gets you there. Use after vision/research, before committing roadmaps. Based on insight-driven product strategy (Marty Cagan) and focus-over-everything thinking.
+description: Turn a vision into a product strategy, the focused sequence of bets and the insights behind them, that gets you there. Use after vision/research, before committing roadmaps. Based on insight-driven product strategy and focus-over-everything thinking.
 disable-model-invocation: true
 ---
 
 # Product strategy
 
 Strategy is **what you'll do and (harder) what you won't**, driven by insight, to make
-the vision real. Based on Marty Cagan's product strategy (focus, leverage insights,
+the vision real. Based on modern product-strategy practice (focus, leverage insights,
 pick a small number of hard problems) , strategy is choice, not a list of everything.
 
 ## When to use

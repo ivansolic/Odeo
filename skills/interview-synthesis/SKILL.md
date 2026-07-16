@@ -1,12 +1,12 @@
 ---
-description: Turn raw user-interview or feedback notes into structured insights and opportunities (not a feature wishlist). Use after talking to users, or when you have a pile of feedback to make sense of. Based on continuous discovery (Teresa Torres).
+description: Turn raw user-interview or feedback notes into structured insights and opportunities (not a feature wishlist). Use after talking to users, or when you have a pile of feedback to make sense of. Based on continuous-discovery practice.
 disable-model-invocation: true
 ---
 
 # Interview synthesis
 
 Raw conversations become decisions only once you extract the **opportunities** (unmet
-needs, pains, desires) underneath what people literally said. Based on Teresa Torres's
+needs, pains, desires) underneath what people literally said. Based on continuous-discovery
 continuous discovery: capture interview snapshots, map opportunities, resist jumping
 to features.
 

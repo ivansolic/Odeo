@@ -1,12 +1,12 @@
 ---
-description: Sharpen the value proposition, the explicit fit between what users need and what you offer. Use before a PRD or positioning, or when the pitch feels fuzzy. Based on the Value Proposition Canvas (Osterwalder) and Jobs-to-be-Done.
+description: Sharpen the value proposition, the explicit fit between what users need and what you offer. Use before a PRD or positioning, or when the pitch feels fuzzy. Based on the Value Proposition Canvas and Jobs-to-be-Done.
 disable-model-invocation: true
 ---
 
 # Value proposition
 
 A value prop is the **demonstrable fit** between the customer's jobs/pains/gains and your
-product's pain-relievers and gain-creators. Based on Osterwalder's Value Proposition
+product's pain-relievers and gain-creators. Based on the Value Proposition
 Canvas, paired with Jobs-to-be-Done.
 
 ## When to use

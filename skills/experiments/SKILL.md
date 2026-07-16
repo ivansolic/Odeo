@@ -6,13 +6,13 @@ description: De-risk before building, surface the riskiest assumptions behind an
 
 The cheapest code is the code you didn't build because a near-free test killed the idea
 first. Surface assumptions, rank by risk, test the riskiest cheaply. Based on Lean
-Startup (Ries: build-measure-learn, validated learning) and Cagan's four risks.
+Startup thinking (build-measure-learn, validated learning) and the four product risks.
 
 ## When to use
 - After a solution or `/prd` takes shape; before committing build effort, especially for new/uncertain bets.
 
 ## Process
-1. **List assumptions** across Cagan's four risks:
+1. **List assumptions** across the four product risks:
    - **Value** (will they want it?) , usually the riskiest
    - **Usability** (can they use it?)
    - **Feasibility** (can we build it?)

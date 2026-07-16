@@ -1,13 +1,13 @@
 ---
-description: Set Objectives and Key Results, an ambitious qualitative objective with measurable, outcome-based key results; re-running it over existing OKRs becomes a check-in (actuals vs targets, status per KR). Use for quarterly/cycle goal-setting and periodic reviews. Based on OKRs (John Doerr / Andy Grove).
+description: Set Objectives and Key Results, an ambitious qualitative objective with measurable, outcome-based key results; re-running it over existing OKRs becomes a check-in (actuals vs targets, status per KR). Use for quarterly/cycle goal-setting and periodic reviews. Based on the OKR method.
 disable-model-invocation: true
 ---
 
 # OKRs
 
 OKRs align effort to **outcomes**: one inspiring Objective (where we're going) with a
-few measurable Key Results (how we'll know we got there). Based on Doerr's "Measure What
-Matters" (originating with Andy Grove at Intel).
+few measurable Key Results (how we'll know we got there). Based on the OKR method ("Measure What
+Matters" school).
 
 ## When to use
 - Quarterly/cycle goal-setting; connecting team work to outcomes, not output.

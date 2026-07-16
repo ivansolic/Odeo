@@ -1,12 +1,12 @@
 ---
-description: Use when writing or reviewing any interface text, button labels, error messages, empty/loading/success states, headings, links, tooltips, microcopy. Produces clear, scannable, trustworthy UI copy. Based on Nielsen Norman Group UX-writing guidance, plus Torrey Podmajersky (Strategic Writing for UX) and Kinneret Yifrah (Microcopy).
+description: Use when writing or reviewing any interface text, button labels, error messages, empty/loading/success states, headings, links, tooltips, microcopy. Produces clear, scannable, trustworthy UI copy. Based on established UX-writing and microcopy guidance (NN/g school).
 ---
 
 # UX writing (content design)
 
 The words ARE the interface. Clear microcopy reduces confusion, builds trust, and drives
 action. This auto-applies whenever you write or review user-facing text. Based on NN/g
-UX-writing principles, Torrey Podmajersky (Strategic Writing for UX), Kinneret Yifrah
+UX-writing principles, strategic-UX-writing practice, and microcopy craft
 (Microcopy).
 
 ## When this applies
