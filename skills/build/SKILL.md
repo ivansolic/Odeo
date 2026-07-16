@@ -132,7 +132,10 @@ instance). Fallback `cursor --add`; neither installed -> skip gracefully.
    order (dev-rigor style from CLAUDE.md), loop to the signal, stop-and-ask on
    any plan conflict. Then run `code-reviewer` (plus `design-reviewer` if UI) on
    each result; the builder verifies findings before fixing (evidence-based
-   pushback allowed, you arbitrate).
+   pushback allowed, you arbitrate). The review LOOPS until clean: fix ->
+   same reviewer re-verifies and regenerates the record -> repeat (max 3
+   cycles, per the AGENTS.md review-loop rule); the user sees first -> final
+   score, not two separate asks.
 
 ### B6. Present per story
 Before presenting, run `boundary-check.sh` in the story's worktree (ENFORCED): if

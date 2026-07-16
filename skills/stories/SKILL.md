@@ -44,7 +44,9 @@ files" stops it for the session.
 ## Quality gate (before handing to /build)
 Score the story set with the **`pm-reviewer`** agent against
 `skills/stories/rubric.md` (installed copy: `~/.claude/skills/stories/rubric.md`);
-eval record goes to `docs/evals/`. Below threshold = fix the named gaps first.
+eval record goes to `docs/evals/`. Below max score = fix the named gaps and
+re-dispatch pm-reviewer to verify, looping automatically (AGENTS.md review-loop
+rule, max 3 cycles); show first -> final score.
 
 ## Quality rules
 - Acceptance criteria are **observable and binary**; no "user-friendly."

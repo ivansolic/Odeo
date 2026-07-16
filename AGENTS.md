@@ -150,6 +150,16 @@ baseline above) does not exist.
   requirement changed" (then the STORY changes first, with the human, not the assertion).
 - [I] Strategy questions are always asked and a short note always written; only
   document depth scales with ambition. Never "in my head".
+- [I] **The review loop runs to done, not to "reviewed once".** When any
+  reviewer (code, design, pm, skill) returns findings below the max score:
+  apply the actionable fixes, re-dispatch the SAME reviewer to verify and
+  regenerate the record, and repeat, WITHOUT the human having to ask twice.
+  Stop conditions (a loop needs a stop): max score reached, or the reviewer
+  says no actionable fixes remain (e.g. what's left needs behavioral testing,
+  out of a form review's reach), or 3 cycles (then stop and report honestly).
+  Present the trajectory: first score -> final score -> what changed. Scores
+  move ONLY by fixing files; never by arguing with the reviewer, never by
+  weakening a rubric, never by touching the record (F2 rule holds).
 - [E] Plan-first in for-me mode: a builder without an approved plan does not
   build (pipeline + the builder itself refuse). [I] With-me: plan approved
   before code.
