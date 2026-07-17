@@ -309,6 +309,8 @@ Deferred (very end): marketplace listing; the end-to-end dogfood test.
         provenance wrapper (raw transcript + hash), vendor_model: in the record.
 
 ## POST-LAUNCH BACKLOG (recorded 2026-07-17)
+
+## MOVED TO PRE-LAUNCH by Ivan 2026-07-17 (part of the launch polish batch):
 - [ ] /deploy skill (NAME TBD with brand): human says ship, the skill does the
       craft, re-check, deploy to the project's platform (from CLAUDE.md), live
       smoke test, ready rollback. NEVER auto-CD to production (human floor);

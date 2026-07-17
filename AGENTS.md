@@ -118,6 +118,10 @@ baseline above) does not exist.
 - [I] The build mode (**with me / for me**) is ASKED on every `/build`, never
   inferred from history, phrasing, or enthusiasm.
 - [I] Ship/deploy: only with your approval.
+- [I] The task ledger (.claude/tasks/todo.md) records the HUMAN's decisions:
+  propose the entry, write only after their OK. (Writes that are the documented
+  job of a flow the human just invoked, /critique follow-ups, /build seeding,
+  carry that OK implicitly.)
 - [E+I] Data leaving the machine (`/contribute-lesson`, shared prototypes,
   posts to external tools): `privacy-scan.sh` blocks [E] + your approval [I].
 - [I] Changing the system itself (`/improve` on skills/rubrics/knowledge):
