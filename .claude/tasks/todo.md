@@ -356,6 +356,19 @@ Deferred (very end): marketplace listing; the end-to-end dogfood test.
       * Adversarial mode is READ-ONLY: the vendor reasons about how the code
         fails (file:line), never edits, never executes attacks; when a finding
         needs proof, OUR builder writes the failing test in OUR worktree
+      * Model picker (Ivan 2026-07-19): default = vendor's strongest AVAILABLE
+        on the user's actual subscription, resolved live and ANNOUNCED as a
+        question (user can stop/override in one line, e.g. "koristi Terru");
+        full picker only ON DEMAND: fetch the vendor's CURRENT model list with
+        their own one-line descriptions and tier/variant structure (e.g.
+        Sol/Ultra, Terra, Luna) at call time, never baked into files; record
+        what actually ran (vendor_model:). Symmetric on every host (on Codex,
+        picking Claude's model works the same way).
+      * Token/cost bounds: reviews are bounded jobs (one artifact, one diff),
+        review loop capped at 3 cycles, expensive classes (both-vendors,
+        repeats) declare budget upfront; user can downgrade tier anytime by
+        explicit override; org/spend limits are the hard external wall, state
+        lives in files so work resumes cleanly after a reset.
       * Vendor is an ARGUMENT, never a skill name: no codex-*/gemini-* skill
         family; per-vendor CLI differences live inside the wrapper script.
 
