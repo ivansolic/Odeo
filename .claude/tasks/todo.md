@@ -282,7 +282,11 @@ Deferred (very end): marketplace listing; the end-to-end dogfood test.
 ## LAUNCH POLISH BATCH (approved 2026-07-17, build AFTER the naming decision)
 - [ ] README narrative rewrite (gstack-style storytelling: hook -> philosophy -> the loop -> catalog by phase -> honest limits); our lifecycle gets its branded name here
 - [ ] Prefix decision folded into branding (marketplace namespace resolves it once); no mass rename before that
-- [ ] second-opinion skill (NAME TBD with brand), cross-model review. Design decided 2026-07-17:
+- [ ] second-opinion skill (NAME TBD with brand), cross-model review. ONE skill,
+      target as argument: code | plan | doc | design, each cross-diffed against
+      the matching OUR reviewer (code/architecture/pm/design); design target
+      needs a multimodal vendor CLI (gemini), code/plan/doc work with codex.
+      Design decided 2026-07-17:
       * wrapper script (bin/) is the ONLY sanctioned path: runs the vendor CLI non-interactively, captures the RAW transcript to a file, stamps provenance (CLI version, actual model id parsed from output, duration, output hash); record references the raw log; missing CLI = exit 3, skill stops (never simulates)
       * strongest vendor model requested EXPLICITLY (--model flag/config), the model that actually answered is printed + recorded in frontmatter (vendor_model:); if the account lacks the top model, say so, record what ran
       * consent: per-invocation default; optional per-session/per-branch scope grant (never persisted, never global); secret-scan over the diff before EVERY send regardless; delta shown on repeat sends
@@ -303,3 +307,10 @@ Deferred (very end): marketplace listing; the end-to-end dogfood test.
         JSON for the cross-model overlap table (Both/Only-X/Only-Claude + agreement %).
         Ours adds on top: consent gate w/ scoped grants, secret-scan pre-send,
         provenance wrapper (raw transcript + hash), vendor_model: in the record.
+
+## POST-LAUNCH BACKLOG (recorded 2026-07-17)
+- [ ] /deploy skill (NAME TBD with brand): human says ship, the skill does the
+      craft, re-check, deploy to the project's platform (from CLAUDE.md), live
+      smoke test, ready rollback. NEVER auto-CD to production (human floor);
+      optional auto-deploy to STAGING only. Closes the gap before /outcome
+      (outcome assumes something shipped). CI=yes CD-decision=human stays the line.
