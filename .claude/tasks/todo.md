@@ -330,7 +330,19 @@ Deferred (very end): marketplace listing; the end-to-end dogfood test.
         severe sink-it assumption, multi-epic scope, or a hard-to-reverse
         decision. Vendor ASKED by name when >1 installed (recommendation from
         the matrix); strongest model always, named and recorded.
-      * FINAL SHAPE converging (2026-07-17): FOUR thin per-target skills
+      * FINAL SHAPE, CLOSED by Ivan 2026-07-18: FOUR focused full-standard
+        skills, in this order and naming: second-opinion-pm (everything
+        pm-reviewer judges, incl. discovery: personas, OST, experiments,
+        interviews, PRD, stories, strategy, roadmap, research, GTM),
+        second-opinion-plan (-> architecture-reviewer), second-opinion-design
+        (multimodal, look + UI code -> design-reviewer), second-opinion-code
+        (diff -> code-reviewer). Target rule: a target = its reviewer's
+        jurisdiction (new PM doc types need no new skill). Each skill is FULL
+        per the authoring standard (Use when, process, vendor instructions
+        that grow, worked example, limits), only the shared mechanism is
+        referenced, never restated: ONE docs/second-opinion-protocol.md +
+        ONE bin/second-opinion.sh. Working names final at branding.
+        (superseded draft below:) FOUR thin per-target skills
         (second-opinion-code/-plan/-doc/-design) + ONE shared protocol doc
         (consent, provenance, record format, vendor matrix, referenced never
         restated) + ONE bin/second-opinion.sh; lint C10: all four reference
