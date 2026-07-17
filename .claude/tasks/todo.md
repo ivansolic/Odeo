@@ -277,7 +277,7 @@ Deferred (very end): marketplace listing; the end-to-end dogfood test.
 - [x] #2 share-tunnel.sh (TTL, self-closing, .shares registry) + session-end-check.sh (Stop hook) + /start share reminders + guardrail entries; 11 tests
 - [x] #5 /research skill: 2+ sources or 'unverified', ranges with methods, RES-NNN reports; offered by /prd and /discover; skill-reviewer PASS 8/10, fixes applied
 - [ ] #3 living design gallery + Figma token bridge (A-G elaboration in chat + results docs), PARKED by Ivan until after launch
-- [ ] #4 /improve "calibrate" mode (fire-rate, rubric separation, 5-rep variance), BACKLOG
+- [ ] #4 /improve "calibrate" mode, MOVED TO PRE-LAUNCH by Ivan 2026-07-17 (metrics before launch); metric map approved: fire-rate (descriptions), separation (rubrics), catch-rate on seeded bugs + 5-rep variance (reviewers), verified-real rate (vendor prompts), attempts-to-green + stop-and-ask counts (plans/builder, already in records), unverified-ratio + claim-survival (research), route-correct rate (guide/start), knowledge reuse-rate, nudge acceptance-rate; NOT metricized: taste/aesthetics/tone/strategy wisdom (human judgment, Goodhart guard: metrics are sensors for /improve, verdicts stay with reviewers + human)
 
 ## LAUNCH POLISH BATCH (approved 2026-07-17, build AFTER the naming decision)
 - [ ] README narrative rewrite (gstack-style storytelling: hook -> philosophy -> the loop -> catalog by phase -> honest limits); our lifecycle gets its branded name here
@@ -330,6 +330,20 @@ Deferred (very end): marketplace listing; the end-to-end dogfood test.
         severe sink-it assumption, multi-epic scope, or a hard-to-reverse
         decision. Vendor ASKED by name when >1 installed (recommendation from
         the matrix); strongest model always, named and recorded.
+      * FINAL SHAPE converging (2026-07-17): FOUR thin per-target skills
+        (second-opinion-code/-plan/-doc/-design) + ONE shared protocol doc
+        (consent, provenance, record format, vendor matrix, referenced never
+        restated) + ONE bin/second-opinion.sh; lint C10: all four reference
+        the protocol, line cap each, no vendor names in file/command names
+        (names mandatory IN records: vendor_model:, and spoken at send time)
+      * Maximize gstack adoption (Ivan): adversarial think-like-an-attacker
+        framing, diff-in-prompt, filesystem boundary line, read-only sandbox
+        flag, timeouts, severity markers, three modes
+      * ALWAYS strongest models for review-class actions (both vendors and
+        ours), stated and recorded, cheaper only by explicit override
+      * Adversarial mode is READ-ONLY: the vendor reasons about how the code
+        fails (file:line), never edits, never executes attacks; when a finding
+        needs proof, OUR builder writes the failing test in OUR worktree
       * Vendor is an ARGUMENT, never a skill name: no codex-*/gemini-* skill
         family; per-vendor CLI differences live inside the wrapper script.
 
