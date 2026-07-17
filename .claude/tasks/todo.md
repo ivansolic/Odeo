@@ -291,3 +291,15 @@ Deferred (very end): marketplace listing; the end-to-end dogfood test.
 - [ ] /freeze-style session edit boundary (small skill)
 - [ ] /document-release equivalent, docs drift fixer (small skill)
 - [ ] Park notes: taste-memory/design-shotgun ideas live with the design gallery batch; transparent opt-in telemetry with the marketplace phase
+      * gstack /codex implementation notes (read 2026-07-17, source studied):
+        `codex review "<prompt>" -c 'model_reasoning_effort="high"'` for the gate;
+        `codex exec "<prompt>" -C <root> -s read-only --json` for adversarial/consult
+        (read-only sandbox flag!); model NOT hardcoded (default frontier, -m override);
+        diff embedded in the prompt (newer codex rejects prompt+--base together);
+        plan content pasted verbatim (never "read this file", wastes tool calls);
+        filesystem-boundary line in every prompt (never read ~/.claude, agents/);
+        timeouts 330s/600s with exit-124 handling; auth probe before running;
+        session resume via saved session-id for consult mode; findings logged as
+        JSON for the cross-model overlap table (Both/Only-X/Only-Claude + agreement %).
+        Ours adds on top: consent gate w/ scoped grants, secret-scan pre-send,
+        provenance wrapper (raw transcript + hash), vendor_model: in the record.
