@@ -322,8 +322,14 @@ Deferred (very end): marketplace listing; the end-to-end dogfood test.
         verdict; the main session presents it and discusses next steps with
         the user; builder verifies-before-fixing as with any review.
       * Invocation: human-invoked only (data leaves + costs money); offered
-        max once at natural moments (after a contested/risky code review,
-        big strategic /critique, /merge tiebreaker), never after a decline.
+        max once at natural moments, never after a decline. Offer TRIGGERS
+        approved by Ivan 2026-07-17 (named list lives in the skill, the offer
+        always states its reason): risky review = touches auth/payments/
+        uploads/data-access paths, or security dim < 2, or a contested
+        finding, or 2+ REQUEST-CHANGES cycles; big bet = critique flagged a
+        severe sink-it assumption, multi-epic scope, or a hard-to-reverse
+        decision. Vendor ASKED by name when >1 installed (recommendation from
+        the matrix); strongest model always, named and recorded.
       * Vendor is an ARGUMENT, never a skill name: no codex-*/gemini-* skill
         family; per-vendor CLI differences live inside the wrapper script.
 
