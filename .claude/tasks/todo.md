@@ -307,6 +307,25 @@ Deferred (very end): marketplace listing; the end-to-end dogfood test.
         JSON for the cross-model overlap table (Both/Only-X/Only-Claude + agreement %).
         Ours adds on top: consent gate w/ scoped grants, secret-scan pre-send,
         provenance wrapper (raw transcript + hash), vendor_model: in the record.
+      * MUST (Ivan 2026-07-17, "vrijednost ogromna"): ONE skill over a shared
+        bin/second-opinion.sh (mechanism in script, thin prose); NO new agents;
+        vendor matrix defaults per target (code/plan/doc->codex, design->gemini,
+        re-verify capabilities at build time) + --vendor override + both-option;
+        STRUCTURED findings mandatory from v1 (target, finding class, file:line,
+        who found it), they feed the absorption loop: /improve mines recurring
+        vendor-unique finding classes into permanent checks in OUR reviewers,
+        every paid second opinion permanently upgrades the first.
+      * Comparison flow (Ivan): OUR matching reviewer (not the main session,
+        not a new agent) receives the vendor findings and authors the
+        comparison in the second-opinion record (overlap / only-ours /
+        only-vendor + recommendation); vendor findings NEVER touch our
+        verdict; the main session presents it and discusses next steps with
+        the user; builder verifies-before-fixing as with any review.
+      * Invocation: human-invoked only (data leaves + costs money); offered
+        max once at natural moments (after a contested/risky code review,
+        big strategic /critique, /merge tiebreaker), never after a decline.
+      * Vendor is an ARGUMENT, never a skill name: no codex-*/gemini-* skill
+        family; per-vendor CLI differences live inside the wrapper script.
 
 ## POST-LAUNCH BACKLOG (recorded 2026-07-17)
 
