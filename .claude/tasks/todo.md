@@ -278,3 +278,16 @@ Deferred (very end): marketplace listing; the end-to-end dogfood test.
 - [x] #5 /research skill: 2+ sources or 'unverified', ranges with methods, RES-NNN reports; offered by /prd and /discover; skill-reviewer PASS 8/10, fixes applied
 - [ ] #3 living design gallery + Figma token bridge (A-G elaboration in chat + results docs), PARKED by Ivan until after launch
 - [ ] #4 /improve "calibrate" mode (fire-rate, rubric separation, 5-rep variance), BACKLOG
+
+## LAUNCH POLISH BATCH (approved 2026-07-17, build AFTER the naming decision)
+- [ ] README narrative rewrite (gstack-style storytelling: hook -> philosophy -> the loop -> catalog by phase -> honest limits); our lifecycle gets its branded name here
+- [ ] Prefix decision folded into branding (marketplace namespace resolves it once); no mass rename before that
+- [ ] second-opinion skill (NAME TBD with brand), cross-model review. Design decided 2026-07-17:
+      * wrapper script (bin/) is the ONLY sanctioned path: runs the vendor CLI non-interactively, captures the RAW transcript to a file, stamps provenance (CLI version, actual model id parsed from output, duration, output hash); record references the raw log; missing CLI = exit 3, skill stops (never simulates)
+      * strongest vendor model requested EXPLICITLY (--model flag/config), the model that actually answered is printed + recorded in frontmatter (vendor_model:); if the account lacks the top model, say so, record what ran
+      * consent: per-invocation default; optional per-session/per-branch scope grant (never persisted, never global); secret-scan over the diff before EVERY send regardless; delta shown on repeat sends
+      * authority: merge-gate reads only OUR code-reviewer's verdict; second opinion informs, never rules
+      * absorb-the-strength loop: recurring unique-to-vendor findings become checks in OUR code-reviewer (via /improve)
+- [ ] /freeze-style session edit boundary (small skill)
+- [ ] /document-release equivalent, docs drift fixer (small skill)
+- [ ] Park notes: taste-memory/design-shotgun ideas live with the design gallery batch; transparent opt-in telemetry with the marketplace phase
