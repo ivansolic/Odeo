@@ -83,4 +83,4 @@ flag when a human/designer eye would materially help.
 
 ## Going deeper
 For domain-specific patterns (forms, e-commerce, navigation, mobile, data tables),
-consult NN/g (nngroup.com) research for that domain rather than guessing.
+consult established usability research (e.g. nngroup.com) for that domain rather than guessing.

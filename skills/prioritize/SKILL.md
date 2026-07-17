@@ -1,12 +1,12 @@
 ---
-description: Prioritize features, opportunities, or stories with a transparent, comparable method (RICE), so sequencing is a defensible decision, not a loudest-voice one. Use when you have more to do than you can do. Based on RICE (Intercom); notes MoSCoW and value/effort.
+description: Prioritize features, opportunities, or stories with a transparent, comparable method (RICE), so sequencing is a defensible decision, not a loudest-voice one. Use when you have more to do than you can do. Based on the RICE framework; notes MoSCoW and value/effort.
 disable-model-invocation: true
 ---
 
 # Prioritize (RICE)
 
 Prioritization is **making the trade-offs explicit** so the order survives scrutiny. RICE
-(from Intercom) scores each item by Reach, Impact, Confidence, and Effort.
+scores each item by Reach, Impact, Confidence, and Effort.
 
 ## When to use
 - More candidates than capacity; sequencing a roadmap or a backlog.

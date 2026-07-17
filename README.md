@@ -70,7 +70,7 @@ claude-cofounder/
 │   ├── product-signal/       ← /product-signal weekly user-feedback memo + trend
 │   ├── test-driven-development/ ← auto-applies to logic (RED-GREEN-REFACTOR)
 │   ├── ux-design/            ← auto-applies to UI (heuristics, states, a11y)
-│   ├── ux-writing/           ← auto-applies to UI copy (microcopy, errors, NN/g)
+│   ├── ux-writing/           ← auto-applies to UI copy (microcopy, errors)
 │   └── ...                   ← + the full PM set (discovery, strategy, planning,
 │                                metrics, launch), catalog: docs/system-map.md
 ├── agents/                   ← subagents (separate-context executors)

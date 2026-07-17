@@ -6,8 +6,7 @@ disable-model-invocation: true
 # OKRs
 
 OKRs align effort to **outcomes**: one inspiring Objective (where we're going) with a
-few measurable Key Results (how we'll know we got there). Based on the OKR method ("Measure What
-Matters" school).
+few measurable Key Results (how we'll know we got there). Based on the OKR method.
 
 ## When to use
 - Quarterly/cycle goal-setting; connecting team work to outcomes, not output.

@@ -76,11 +76,11 @@ for f in $dash_hits; do
 done
 
 # C8. No person credits, no third-party plugin names
-PERSONS='Podmajersky|Yifrah|Teresa Torres|Marty Cagan|Ron Jeffries|Bill Wake|Clayton Christensen|Osterwalder|April Dunford|Dave McClure|John Doerr|Andy Grove|Ash Maurya|Gary Klein|Kahneman|Karpathy'
+PERSONS='Podmajersky|Yifrah|Teresa Torres|Marty Cagan|Ron Jeffries|Bill Wake|Clayton Christensen|Osterwalder|April Dunford|Dave McClure|John Doerr|Andy Grove|Ash Maurya|Gary Klein|Kahneman|Karpathy|Intercom|NN/g|Nielsen Norman'
 PLUGINS='pm-skills|phuryn'
 cred_hits="$(grep -rlE "$PERSONS" "$ROOT/skills" "$ROOT/agents" "$ROOT/docs/system-map.md" "$ROOT/global/CLAUDE.md" 2>/dev/null || true)"
 for f in $cred_hits; do
-  viol C8 "$f: credits a person by name (attribution policy: frameworks only)"
+  viol C8 "$f: credits a person or company by name (attribution policy: frameworks only)"
 done
 plug_hits="$(grep -rliE "$PLUGINS" "$ROOT/skills" "$ROOT/agents" "$ROOT/docs/system-map.md" "$ROOT/global/CLAUDE.md" 2>/dev/null || true)"
 for f in $plug_hits; do

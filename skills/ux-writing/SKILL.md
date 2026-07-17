@@ -1,11 +1,11 @@
 ---
-description: Use when writing or reviewing any interface text, button labels, error messages, empty/loading/success states, headings, links, tooltips, microcopy. Produces clear, scannable, trustworthy UI copy. Based on established UX-writing and microcopy guidance (NN/g school).
+description: Use when writing or reviewing any interface text, button labels, error messages, empty/loading/success states, headings, links, tooltips, microcopy. Produces clear, scannable, trustworthy UI copy. Based on established UX-writing and microcopy research.
 ---
 
 # UX writing (content design)
 
 The words ARE the interface. Clear microcopy reduces confusion, builds trust, and drives
-action. This auto-applies whenever you write or review user-facing text. Based on NN/g
+action. This auto-applies whenever you write or review user-facing text. Based on established
 UX-writing principles, strategic-UX-writing practice, and microcopy craft
 (Microcopy).
 
@@ -14,7 +14,7 @@ UX-writing principles, strategic-UX-writing practice, and microcopy craft
   headings, links, tooltips, onboarding, confirmations, form hints.
 - Skip for backend, logs, and internal text users never see.
 
-## Principles (NN/g)
+## Principles
 - **Plain language + brevity.** Easy to read; get to the point. No jargon unless the audience truly uses it in everyday speech.
 - **Scannable.** People scan, not read. Front-load meaning, the first 2 words of headings and links carry the weight. Inverted pyramid (most important first); chunk content.
 - **Specific buttons and links.** Name the outcome ("Send invoice", "Delete project"), never generic "Submit", "OK", "Learn more", or "Click here".
