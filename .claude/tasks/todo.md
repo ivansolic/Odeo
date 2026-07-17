@@ -334,6 +334,10 @@ Deferred (very end): marketplace listing; the end-to-end dogfood test.
         family; per-vendor CLI differences live inside the wrapper script.
 
 ## POST-LAUNCH BACKLOG (recorded 2026-07-17)
+- [ ] PORTABILITY (approved 2026-07-17): the system installable on other hosts
+      (Codex, Cursor, ...), requires translating skill/agent formats per host;
+      design consequence already locked: second-opinion is host-symmetric
+      (vendor = runtime detection, never a command name).
 
 ## MOVED TO PRE-LAUNCH by Ivan 2026-07-17 (part of the launch polish batch):
 - [ ] /deploy skill (NAME TBD with brand): human says ship, the skill does the
