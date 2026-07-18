@@ -118,6 +118,19 @@ d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && 
 commit_at "$d" "$T3" rec
 check "refuses record without model_tier" 1 "$d"; rm -rf "$d"
 
+# 6l. UNKNOWN tier vocabulary -> refuse (allowlist, not blocklist)
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1; commit_at "$d" "$T2" code
+record "$d" "feature/x" "APPROVE" "" "model_tier: banana"; commit_at "$d" "$T3" rec
+check "refuses unknown model_tier vocabulary" 1 "$d"; rm -rf "$d"
+
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1; commit_at "$d" "$T2" code
+record "$d" "feature/x" "APPROVE" "" "model_tier: fast (haiku)"; commit_at "$d" "$T3" rec
+check "refuses annotated tier value" 1 "$d"; rm -rf "$d"
+
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1; commit_at "$d" "$T2" code
+record "$d" "feature/x" "APPROVE" "" "model_tier: haiku"; commit_at "$d" "$T3" rec
+check "refuses vendor word as tier (haiku)" 1 "$d"; rm -rf "$d"
+
 # 7. Dirty working tree -> refuse
 d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1; commit_at "$d" "$T2" code
 record "$d" "feature/x" "APPROVE"; commit_at "$d" "$T3" rec

@@ -90,6 +90,18 @@ check "C11 flags builder on a non-sonnet tier" 1 "$d"; rm -rf "$d"
 d="$(clean_root)"; printf -- '---\nname: builder\nmodel: sonnet\ntools: Read\n---\nbody\n' > "$d/agents/builder.md"
 check "C11 passes builder on sonnet" 0 "$d"; rm -rf "$d"
 
+# C11: prose model name with version -> fail; old-style id -> fail; in AGENTS.md -> fail
+d="$(clean_root)"; mkskill "$d" lam "disable-model-invocation: true\n" "Prose name." "Reviews run best on Sonnet 4.6 today."
+check "C11 flags prose versioned name" 1 "$d"; rm -rf "$d"
+d="$(clean_root)"; mkskill "$d" mu "disable-model-invocation: true\n" "Old id." "Use claude-3-5-sonnet-20241022 here."
+check "C11 flags old-style dated id" 1 "$d"; rm -rf "$d"
+d="$(clean_root)"; printf -- 'baseline\nOpus 4.8 is great.\n' > "$d/AGENTS.md"
+check "C11 flags versioned name in AGENTS.md" 1 "$d"; rm -rf "$d"
+
+# C11: builder model with trailing whitespace must still pass
+d="$(clean_root)"; printf -- '---\nname: builder\nmodel: sonnet \ntools: Read\n---\nbody\n' > "$d/agents/builder.md"
+check "C11 tolerates trailing whitespace on builder model" 0 "$d"; rm -rf "$d"
+
 # FINAL: the real repo must pass its own lint
 check "the actual repo passes its own invariants" 0 "$TEST_DIR/.."
 

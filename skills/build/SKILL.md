@@ -184,8 +184,11 @@ explicit user go.
 "USR-012 (session timer) is ready: clear ACs. How do you want to build this?
  with me (live, in your editor) or for me (agents on a plan you approve)?"
 > for me
+"Model plan: thinking/reviews on <session model, resolved now>, building on
+ <builder tier, resolved now>. Continue, or change?"
+> continue
 worktree-parallel-check: only USR-012 chosen, nothing overlaps -> proceed
-architect -> docs/plans/2026-07-14-usr-012-timer.md (approved: no)
+architect -> docs/plans/2026-07-14-usr-012-timer.md (approved: no, model_plan: recorded)
 architecture-reviewer on the plan: fits inherited architecture, 1 note (shown)
 "Plan + independent check above. Approve, change, or reject?"
 > approve                                   (flips approved: yes)

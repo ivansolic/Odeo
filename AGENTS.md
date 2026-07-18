@@ -47,8 +47,9 @@ rules are also embedded in their bodies so they hold even when this file is abse
   it to the newest Sonnet; it executes an approved, independently reviewed
   plan, so strong models guard both its input and its output.
 - Model names are spoken only LIVE (resolved by the harness at that moment)
-  and recorded after (`model:` + `model_tier:` in eval records). Files speak
-  in tiers; versions never appear in them (lint C11).
+  and recorded after (`model:` + `model_tier:` in eval records; `model_plan:`
+  in approved plans). Instruction files speak in tiers; versions never appear
+  in them (lint C11); resolved names live only in records and plans.
 - Tier map (the one place vendor tier words live; extended per host at port
   time): fast = haiku class (Anthropic) / flash class (Google) / mini class
   (OpenAI); strong = sonnet class and up; strongest = the top tier available

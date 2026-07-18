@@ -89,15 +89,15 @@ done
 
 # C11. Model names never version-pinned; tiers only. A versioned ID baked into
 #      an instruction file goes stale the day a new model ships (proven:
-#      "Sonnet 4.6" quoted while Sonnet 5 was already out). Harness resolves
+#      a stale versioned name was quoted after the successor shipped). Harness resolves
 #      tiers to the newest; files must speak in tiers.
-ver_hits="$(grep -rlE 'claude-(opus|sonnet|haiku|fable)[a-z0-9]*-[0-9]' "$ROOT/skills" "$ROOT/agents" 2>/dev/null || true)"
+ver_hits="$(grep -rliE '(opus|sonnet|haiku|fable)[- ][0-9]' "$ROOT/skills" "$ROOT/agents" "$ROOT/AGENTS.md" "$ROOT/global/CLAUDE.md" 2>/dev/null || true)"
 for f in $ver_hits; do
-  viol C11 "$f: contains a version-pinned model id (use tier words; the harness resolves versions)"
+  viol C11 "$f: contains a version-pinned model name/id (use tier words; the harness resolves versions)"
 done
 # Builder executes; its tier is pinned to sonnet (or inherit for max-quality).
 if [[ -f "$ROOT/agents/builder.md" ]]; then
-  bmodel="$(awk 'NR==1{next} /^---/{exit} /^model:/{sub(/^model:[[:space:]]*/,""); print; exit}' "$ROOT/agents/builder.md")"
+  bmodel="$(awk 'NR==1 { if ($0 !~ /^---[[:space:]]*$/) exit; next } /^---/{exit} /^model:/{sub(/^model:[[:space:]]*/,""); sub(/[[:space:]]+$/,""); print; exit}' "$ROOT/agents/builder.md")"
   case "$bmodel" in
     sonnet|inherit|"") : ;;  # empty = inherits by default, allowed
     *) viol C11 "agents/builder.md: model must be 'sonnet' or 'inherit', got '$bmodel'" ;;

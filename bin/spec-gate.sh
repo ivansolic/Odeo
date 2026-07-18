@@ -76,12 +76,13 @@ covers_id() { # covers_id <record-file> <id> -> 0 if a frontmatter token EQUALS 
 }
 
 
+# KEPT IN SYNC with bin/merge-gate.sh (same helper, same contract).
 frontmatter_field() { # frontmatter_field <file> <field> -> prints normalized value
   local v
   v="$(awk -v fld="$2" '
     NR==1 { if ($0 !~ /^---[[:space:]]*$/) exit; next }
     /^---[[:space:]]*$/ { exit }
-    $0 ~ "^"fld":" { sub("^"fld":[[:space:]]*", ""); print; exit }
+    index($0, fld ":") == 1 { sub("^[^:]*:[[:space:]]*", ""); print; exit }
   ' "$1")"
   v="$(printf '%s' "$v" | tr '[:upper:]' '[:lower:]' | tr -d '\r')"
   v="${v#"${v%%[![:space:]]*}"}"; v="${v%"${v##*[![:space:]]}"}"
@@ -157,16 +158,23 @@ for abs in "${ARTIFACTS[@]}"; do
   # 3b. Model tier floor (same contract as merge-gate): no silent fast-tier judgment
   tier="$(frontmatter_field "$record" "model_tier")"
   waiver="$(frontmatter_field "$record" "model_waiver")"
-  if [[ -z "$tier" ]]; then
-    echo "spec-gate: REFUSED, record for '$id' has no 'model_tier:' field ($record)." >&2
-    echo "Re-run pm-reviewer; records declare the tier that judged (fast|strong|strongest)." >&2
-    fail=1; continue
-  fi
-  if [[ "$tier" == "fast" && "$waiver" != "human" ]]; then
-    echo "spec-gate: REFUSED, judgment for '$id' ran on a FAST-tier model ($record)." >&2
-    echo "Re-run pm-reviewer on a strong tier, or add 'model_waiver: human' explicitly." >&2
-    fail=1; continue
-  fi
+  case "$tier" in
+    strong|strongest) : ;;
+    fast)
+      if [[ "$waiver" != "human" ]]; then
+        echo "spec-gate: REFUSED, judgment for '$id' ran on a FAST-tier model ($record)." >&2
+        echo "Re-run pm-reviewer on a strong tier, or add 'model_waiver: human' explicitly." >&2
+        fail=1; continue
+      fi ;;
+    "")
+      echo "spec-gate: REFUSED, record for '$id' has no 'model_tier:' field ($record)." >&2
+      echo "Re-run pm-reviewer; records declare the tier that judged (fast|strong|strongest)." >&2
+      fail=1; continue ;;
+    *)
+      echo "spec-gate: REFUSED, unknown model_tier '$tier' for '$id' ($record)." >&2
+      echo "Vocabulary is exactly: fast | strong | strongest." >&2
+      fail=1; continue ;;
+  esac
 
   # 4. Freshness: the review must postdate the artifact's last change.
   #    No commit history (gitignored / never committed) = refuse, a file git

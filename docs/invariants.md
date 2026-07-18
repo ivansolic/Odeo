@@ -16,7 +16,7 @@ the lint moves the catch from "test day" to "commit time". Run:
 | C7 | No em/en dashes anywhere in skills/, agents/, AGENTS.md, global baseline | the standing style rule, now enforced |
 | C8 | No person credits and no third-party plugin names in skills/, agents/, system map, global baseline | attribution policy |
 | C9 | Every SKILL.md has a non-empty `description:` frontmatter line | plugin listing sanity |
-| C11 | No version-pinned model ids in skills/agents (tier words only; the harness resolves versions); builder's `model:` is `sonnet` or `inherit` | the "Sonnet 4.6" stale-name incident while Sonnet 5 was already out |
+| C11 | No version-pinned model ids in skills/agents (tier words only; the harness resolves versions); builder's `model:` is `sonnet` or `inherit` | a stale versioned model name was quoted in conversation after its successor had shipped (2026-07-17); C10 intentionally unused |
 
 Maintenance: when a new rule class appears (a bug that a grep could have
 caught), add the invariant HERE, the check to `bin/skills-lint.sh`, and a test

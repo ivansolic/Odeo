@@ -143,4 +143,9 @@ d="$(make_repo)"; story "$d" USR-001-login "$T2"
 commit_at "$d" "$T3" rec
 check "refuses PM record without model_tier" 1 "$d" docs/stories/USR-001-login.md; rm -rf "$d"
 
+# 22. unknown tier vocabulary -> refuse (allowlist)
+d="$(make_repo)"; story "$d" USR-001-login "$T2"
+record "$d" "artifact: USR-001" PASS "$T3" rec.md body "model_tier: flash"
+check "refuses unknown tier vocabulary" 1 "$d" docs/stories/USR-001-login.md; rm -rf "$d"
+
 echo ""; echo "passed: $pass, failed: $fail"; [[ $fail -eq 0 ]]

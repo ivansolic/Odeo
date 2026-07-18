@@ -57,6 +57,8 @@ date: 2026-07-07
 scorer: pm-reviewer
 model: <exact model that judged, as the agent's context reports it>
 model_tier: strong     # fast | strong | strongest; gates enforce the floor
+                       # (records written before this field existed refuse at
+                       #  the gates; regenerate them via the reviewer once)
 scores: { problem: 2, outcome: 2, scope: 1, risks: 2, security: 2 }
 total: 9/10
 verdict: PASS
