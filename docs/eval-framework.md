@@ -56,9 +56,10 @@ artifact_version: 3
 date: 2026-07-07
 scorer: pm-reviewer
 model: <exact model that judged, as the agent's context reports it>
-model_tier: strong     # fast | strong | strongest; gates enforce the floor
-                       # (records written before this field existed refuse at
-                       #  the gates; regenerate them via the reviewer once)
+model_tier: strong
+# tier vocabulary: fast | strong | strongest; the gates enforce the floor and
+# read the value only, keep the model_tier line clean like the verdict line.
+# (Records written before this field existed refuse once; regenerate via the reviewer.)
 scores: { problem: 2, outcome: 2, scope: 1, risks: 2, security: 2 }
 total: 9/10
 verdict: PASS

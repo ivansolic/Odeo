@@ -384,3 +384,25 @@ Deferred (very end): marketplace listing; the end-to-end dogfood test.
       smoke test, ready rollback. NEVER auto-CD to production (human floor);
       optional auto-deploy to STAGING only. Closes the gap before /outcome
       (outcome assumes something shipped). CI=yes CD-decision=human stays the line.
+
+## MODEL POLICY PACKAGE (built 2026-07-18, approved by Ivan)
+- [x] Tier-based model policy shipped: builder pinned to sonnet tier (inherit =
+      human-flipped max-quality override); judgment inherits the session;
+      semantic preference (strongest|strong-default) in setup-project; model
+      plan asked as a QUESTION before work (written as model_plan: in for-me
+      plans, builder contract requires it); /start preference + new-top-model
+      reminders; reviewers record model: + model_tier:; tier map lives once in
+      AGENTS.md (fast=haiku/flash/mini classes)
+- [x] Guardrails: [E] lint C11 (no version-pinned model names/ids anywhere in
+      instruction files, prose included, Anthropic-family alternation extended
+      per host at port time; builder tier pinned), [E] gate tier floor
+      (allowlist fast|strong|strongest, fast needs model_waiver: human, deny
+      by default), [I] question-not-FYI announcement, no silent switches,
+      record-model honesty
+- [x] Review loop ran: code-reviewer 7/12 REQUEST CHANGES (Critical: blocklist
+      floor) -> fixes+8 tests -> 11/12 APPROVE WITH COMMENTS -> final fixes
+      (template line, casing test); skill-reviewer PASS 9/9/9, 4 fixes applied.
+      Suites: lint 23, merge-gate 22, spec-gate 26.
+- Born from the live incident: a stale versioned name was quoted in
+  conversation while its successor had already shipped; the system now cannot
+  repeat it in files, and resolves names live everywhere else.

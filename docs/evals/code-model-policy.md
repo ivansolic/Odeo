@@ -2,104 +2,113 @@
 artifact: code
 type: code
 branch: main
-scope: model policy scripts, commit 7979e9d (skills-lint.sh C11, merge-gate.sh + spec-gate.sh model-tier floor + frontmatter_field, agents/builder.md model pin, tests x3)
+scope: model policy scripts, commit 2b097e9 (skills-lint.sh C11 broadened, merge-gate.sh + spec-gate.sh tier allowlist, frontmatter_field index() match, eval-framework migration note, tests +8)
 date: 2026-07-18
 scorer: code-reviewer
 model: claude-fable-5[1m]
 model_tier: strong
-scores: { correctness: 1, security: 0, performance: 2, readability: 2, testing: 1, conventions: 1 }
-total: 7/12
-verdict: REQUEST CHANGES
+scores: { correctness: 2, security: 2, performance: 2, readability: 2, testing: 2, conventions: 1 }
+total: 11/12
+previous_total: 7/12
+verdict: APPROVE WITH COMMENTS
 ---
 
-# Code review: model policy (lint C11 + gate tier floor), round 1
+# Code review: model policy, round 2 (final)
 
-Test suites: skills-lint 19/19, merge-gate 18/18, spec-gate 25/25, all green.
-Findings below come from independent live probes in throwaway repos, not from
-the suites. No previous record for this scope; no regression note.
+Regression vs round 1 (7/12, REQUEST CHANGES): BETTER. The Critical and all
+four Importants are independently verified fixed. Suites: skills-lint 23,
+merge-gate 21, spec-gate 26, all green. Findings below come from live probes
+in throwaway repos (16 gate cases x2 gates, 13 lint cases), not from the suites.
+
+## Round-1 findings, verification status
+
+- Critical (tier floor was a blocklist): FIXED. Both gates now run an exact
+  case allowlist. Probed in both gates: `banana`, `haiku`, `flash`,
+  `fast (haiku)`, `strong # comment`, empty, missing, indented all refuse with
+  distinct messages; `strong`, `STRONG`, `strongest`, CRLF `strong`,
+  `fast` + `model_waiver: human` (and `HUMAN`) pass; `fast` + waiver with
+  trailing prose refuses. Regression tests exist for banana, haiku,
+  fast (haiku) (merge-gate) and flash (spec-gate).
+- C11 regex: FIXED. `(opus|sonnet|haiku|fable)[- ][0-9]` case-insensitive
+  catches prose `Sonnet 4.6`, old dated `claude-3-5-sonnet-20241022`,
+  capitalized `Claude-Sonnet-4-5`, `Haiku 4.5`, `fable-5` (all probed).
+  Tier phrases without digits stay clean; zero false positives on the real
+  tree (lint exit 0).
+- C11 scope: FIXED. AGENTS.md and global/CLAUDE.md now scanned (probed hits
+  in both). Test covers the AGENTS.md case.
+- Builder parse: FIXED. Trailing whitespace after `model: sonnet` passes;
+  a frontmatter-less file with a body `model:` line is no longer parsed
+  (both probed). Test pins the whitespace case.
+- Migration note: FIXED. eval-framework.md documents that pre-field records
+  refuse once and regenerate via the reviewer.
+- Nitpicks: fld metachar fixed via `index($0, fld ":") == 1` (probed:
+  `model` does not match `model_tier:`/`model_waiver:` lines and vice versa,
+  literal `m.del` matches only itself); sync notes present both directions;
+  sections relabeled 3c/3d in order; blank lines squeezed; C10 declared
+  intentionally unused in invariants.md; incident lore de-versioned.
 
 ## Critical (must fix before merge)
 
-- bin/merge-gate.sh:104-113 and bin/spec-gate.sh:160-169, the tier floor is a
-  blocklist, not an allowlist. Only empty and the exact lowercase word `fast`
-  are refused; every other value passes. Probed and confirmed passing (exit 0):
-  `model_tier: banana`, `model_tier: fast (haiku)`, `model_tier: fast tier`,
-  and `model_tier: haiku`, a vendor FAST-class word sails under the floor.
-  This contradicts the check's own header ("Tier words only
-  (fast|strong|strongest)"), the deny-by-default posture of the verdict check
-  ten lines above (which allowlists exact vocabulary and has a regression test
-  for trailing-comment values, 6h), and the repo security baseline ("allowlist
-  over blocklist"). Fix in both gates: replace the two ifs with a case on the
-  exact vocabulary, `strong|strongest` pass, `fast` requires
-  `model_waiver: human`, `*` refuses with "unknown model_tier '$tier'
-  (vocabulary: fast|strong|strongest)". Add refusal tests for an unknown value
-  and an annotated `fast (...)` value.
+None.
 
 ## Important (should fix)
 
-- bin/skills-lint.sh:94, C11's regex does not catch its own motivating
-  incident. It matches only lowercase API-style ids. Probed misses: prose
-  `Sonnet 4.6` (the exact string named in the comment on line 90-92 and in the
-  invariants row), old-style `claude-3-5-sonnet-20241022`, capitalized
-  `Claude-Sonnet-4-5`. Fix: `grep -rilE '(opus|sonnet|haiku|fable)[- ][0-9]'`
-  catches all four forms (verified) and stays clean on the real repo's tier
-  phrases ("sonnet tier", "haiku class", "opusplan" have no digit after the
-  name; verified no false positives on the current tree).
-- bin/skills-lint.sh:94, C11 scans only skills/ and agents/ while C7 and C8
-  scan AGENTS.md and global/CLAUDE.md too. Probed: a pinned id appended to
-  global/CLAUDE.md passes the lint today, and AGENTS.md is exactly where the
-  model-policy prose lives. Fix: add `"$ROOT/AGENTS.md" "$ROOT/global/CLAUDE.md"`
-  to the grep target list, matching C7/C8 scope.
-- bin/skills-lint.sh:100, the builder `model:` parse false-positives on
-  trailing whitespace: `model: sonnet ` (one trailing space) flags a violation
-  (probed, exit 1) because the awk sub strips only leading space. Fails loud,
-  not open, but an invisible-whitespace lint failure is a debugging tax. Fix:
-  `sub(/[[:space:]]+$/,"")` before print. Same awk also skips line 1
-  unconditionally instead of requiring `---` to open the file (probed: a
-  frontmatter-less builder.md with a body `model:` line before an hr gets
-  parsed), align it with frontmatter_field's strict NR==1 check.
-- Migration: every eval record written before this commit lacks `model_tier:`
-  and is now refused by both gates (verified: 5 of 6 records in this repo's
-  docs/evals/ lack the field). Harmless in this repo (branch: main / skill
-  records), but in installed projects every previously PASSing spec record now
-  refuses at spec-gate until regenerated. Deny-by-default is the right call;
-  the missing piece is one documented line (eval-framework or upgrade note):
-  pre-2026-07-18 records must be regenerated by their reviewer once.
+- docs/eval-framework.md:59, the canonical record template now teaches a line
+  the gates refuse. `model_tier: strong     # fast | strong | strongest; ...`
+  copied literally yields value `strong # fast | ...`, which the new allowlist
+  rejects as unknown vocabulary (probed: refuse in both gates). The verdict
+  line already solved this exact problem by keeping its comment on a separate
+  line (line 65). Fix: move the tier comment (and the round-2 continuation
+  lines) below the field, own-line comments in frontmatter are ignored by the
+  parsers. Failure mode is loud and self-explaining, so this is a first-run
+  debugging tax, not a hole; the real records in this repo already use the
+  clean form.
 
 ## Nitpicks (optional)
 
-- bin/merge-gate.sh:32 / bin/spec-gate.sh:84, `fld` is interpolated into an
-  awk regex (`$0 ~ "^"fld":"`). Both call sites pass literal names today, so
-  not exploitable, but a future field containing a regex metachar would match
-  wrong lines silently. Literal fix: `index($0, fld ":") == 1`.
-- frontmatter_field is copy-pasted between the two gates without the
-  "KEPT IN SYNC" note that the verdict parsers carry (merge-gate.sh:74),
-  and both files now hold a second copy of the same awk in their verdict
-  parsing. Add the sync note; consider routing verdict reads through the
-  helper (case-normalize at the call site).
-- bin/merge-gate.sh:99, section 3d sits before 3c; plus stray double blank
-  lines at 38-39 and 97-98. Renumber, drop the blanks.
-- Duplicate `model_tier:` lines: first match wins (probed: `strong` then
-  `fast` passes). Consistent with the verdict parser's posture, but the
-  verdict has an explicit ONE-line contract; extend it to the tier line if
-  that contract ever hardens.
-- Numbering jumps C9 -> C11 with no C10 anywhere in the repo (script,
-  invariants table, tests). If C10 is reserved, say so in the table.
+- bin/skills-lint.sh:94, C11's alternation covers Anthropic-family names plus
+  fable only. The tier map in AGENTS.md explicitly names flash (Google) and
+  mini (OpenAI) classes, but a pinned `gemini-2.5-flash` or `gpt-5-mini` id
+  passes lint. AGENTS.md already says the tier map extends per host at port
+  time; say the same next to C11 (or in the invariants row) so ports know to
+  extend the alternation too.
+- bin/skills-lint.sh:100, the builder awk's closing delimiter `/^---/` is
+  looser than its opener `/^---[[:space:]]*$/` (and than frontmatter_field's
+  close). Fail-closed direction, but align for symmetry.
+- Casing normalization (`model_tier: FAST`, `model_waiver: HUMAN`) works
+  (probed) but is still unpinned by any test.
+- Duplicate `model_tier:` lines: first match wins (carried from round 1,
+  consistent with the verdict parser's posture; only matters if the ONE-line
+  contract ever extends to tier).
 
 ## Testing
 
-Suites are hermetic and cover the happy paths plus missing-field, fast-refusal,
-and waiver-pass. Gaps: no test for an unknown/annotated tier value (would have
-caught the Critical), no test for `model_tier: FAST` / `model_waiver: HUMAN`
-casing (the normalization works, probed, but is unpinned), no lint test for a
-prose-pinned model name, the motivating incident is untested.
+The eight new tests close exactly the gaps that hid the round-1 Critical:
+unknown vocabulary, annotated fast, vendor word as tier (both gates), prose
+name, dated id, AGENTS.md scope, builder trailing whitespace. Suites remain
+hermetic. Remaining unpinned behavior is nitpick-level (casing, duplicates).
 
 ## What's good
 
-The tier floor lands in both gates with identical contracts and error messages
-that name the fix path. frontmatter_field's normalization (frontmatter-only,
-strict opening delimiter, case-fold, CRLF strip, whitespace trim) is careful,
-and every fail-closed probe held: indented field, missing field, waiver with
-trailing prose all refuse. Tier words instead of vendor names in the scripts
-keeps the portability promise. The builder pin plus C11 gives the policy both
-the commit-time and the merge-time net.
+The allowlist rewrite is exactly the deny-by-default shape the verdict check
+established, with per-branch error messages that name the fix path, and it is
+byte-for-byte the same contract in both gates under a two-way sync note.
+`index($0, fld ":") == 1` is the right literal-match fix and handles the
+model / model_tier / model_waiver prefix family correctly. The broadened C11
+catches all four miss-forms of the motivating incident while staying clean on
+the real tree, and the invariants row now explains both the incident and the
+C10 gap. The migration note turns a silent breaking change into a documented
+one-time step.
+
+## History
+
+- Round 1 (2026-07-18, commit 7979e9d): REQUEST CHANGES, 7/12. Critical: tier
+  floor was a blocklist ('banana', 'haiku', 'fast (haiku)' passed). Important:
+  C11 regex missed prose names, old dated ids, capitalization; C11 scope
+  missed AGENTS.md and the global baseline; builder parse tripped on trailing
+  whitespace; migration note absent. Nitpicks: fld regex injection, sync
+  notes, section ordering, blank lines.
+- Round 2 (2026-07-18, commit 2b097e9): all round-1 findings verified fixed by
+  independent probes. One new Important (template's inline tier comment now
+  refuses under the allowlist), four nitpicks. 7/12 -> 11/12, APPROVE WITH
+  COMMENTS.

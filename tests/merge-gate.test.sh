@@ -131,6 +131,12 @@ d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && 
 record "$d" "feature/x" "APPROVE" "" "model_tier: haiku"; commit_at "$d" "$T3" rec
 check "refuses vendor word as tier (haiku)" 1 "$d"; rm -rf "$d"
 
+# 6m. Casing tolerance: FAST + HUMAN waiver passes (normalization pinned)
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1; commit_at "$d" "$T2" code
+record "$d" "feature/x" "APPROVE" "" "model_tier: FAST
+model_waiver: HUMAN"; commit_at "$d" "$T3" rec
+check "passes FAST tier with HUMAN waiver (case-folded)" 0 "$d"; rm -rf "$d"
+
 # 7. Dirty working tree -> refuse
 d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1; commit_at "$d" "$T2" code
 record "$d" "feature/x" "APPROVE"; commit_at "$d" "$T3" rec
