@@ -13,10 +13,10 @@ commit_at() { # commit_at <repo> <time> <msg>
   ( cd "$1" && GIT_AUTHOR_DATE="$2" GIT_COMMITTER_DATE="$2" git commit -qm "$3" ) >/dev/null 2>&1
 }
 make_repo() { local d; d="$(mktemp -d)"; ( cd "$d" && git init -q -b main && echo a > a.txt && git add -A ) >/dev/null 2>&1; commit_at "$d" "$T1" init; echo "$d"; }
-record() { # record <repo> <branch-field> <frontmatter-verdict> [body]
+record() { # record <repo> <branch-field> <frontmatter-verdict> [body] [tier-lines]
   local body="${4:-## Verdict
-$3}"
-  ( cd "$1" && mkdir -p docs/evals && printf -- '---\nartifact: code\nbranch: %s\nverdict: %s\n---\n%s\n' "$2" "$3" "$body" > docs/evals/code-review.md && git add -A ) >/dev/null 2>&1
+$3}" tier="${5:-model_tier: strong}"
+  ( cd "$1" && mkdir -p docs/evals && printf -- '---\nartifact: code\nbranch: %s\nverdict: %s\n%s\n---\n%s\n' "$2" "$3" "$tier" "$body" > docs/evals/code-review.md && git add -A ) >/dev/null 2>&1
 }
 record_no_verdict() { # record_no_verdict <repo> <branch-field>
   ( cd "$1" && mkdir -p docs/evals && printf -- '---\nartifact: code\nbranch: %s\n---\n## Verdict\nAPPROVE\n' "$2" > docs/evals/code-review.md && git add -A ) >/dev/null 2>&1
@@ -100,6 +100,23 @@ check "refuses record whose '---' is a setext heading, not frontmatter" 1 "$d"; 
 d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1; commit_at "$d" "$T2" code
 record "$d" "feature/x" "APPROVE  # but actually pending"; commit_at "$d" "$T3" rec
 check "refuses verdict with trailing comment (value-only contract)" 1 "$d"; rm -rf "$d"
+
+# 6i. Judgment record on a FAST tier -> refuse (quality floor)
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1; commit_at "$d" "$T2" code
+record "$d" "feature/x" "APPROVE" "" "model_tier: fast"; commit_at "$d" "$T3" rec
+check "refuses fast-tier judgment record" 1 "$d"; rm -rf "$d"
+
+# 6j. FAST tier WITH explicit human waiver -> pass (loud override)
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1; commit_at "$d" "$T2" code
+record "$d" "feature/x" "APPROVE" "" "model_tier: fast
+model_waiver: human"; commit_at "$d" "$T3" rec
+check "passes fast tier with model_waiver: human" 0 "$d"; rm -rf "$d"
+
+# 6k. Record WITHOUT model_tier -> refuse (deny by default; re-run reviewer)
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1; commit_at "$d" "$T2" code
+( cd "$d" && mkdir -p docs/evals && printf -- '---\nartifact: code\nbranch: feature/x\nverdict: APPROVE\n---\nbody\n' > docs/evals/code-review.md && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T3" rec
+check "refuses record without model_tier" 1 "$d"; rm -rf "$d"
 
 # 7. Dirty working tree -> refuse
 d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1; commit_at "$d" "$T2" code

@@ -101,6 +101,11 @@ REPLACE that line with the new final verdict; the story of what was found and
 fixed belongs in the body (a `## History` section is welcome there and never
 affects the gate). Only you, the reviewer, ever write or change a verdict,
 nobody edits your record by hand.
+   The frontmatter also declares WHO judged: `model:` (the exact model you
+   actually ran on, as your context reports it, never what policy wishes) and
+   `model_tier: fast | strong | strongest` (per the tier map in AGENTS.md).
+   Gates refuse records without `model_tier:`, and refuse fast-tier judgment
+   without an explicit `model_waiver: human` line.
 
 ## Rules for Yourself
 

@@ -24,6 +24,19 @@ git rev-parse --is-inside-work-tree >/dev/null 2>&1 || {
 
 branch="$(git rev-parse --abbrev-ref HEAD)"
 
+frontmatter_field() { # frontmatter_field <file> <field> -> prints normalized value
+  local v
+  v="$(awk -v fld="$2" '
+    NR==1 { if ($0 !~ /^---[[:space:]]*$/) exit; next }
+    /^---[[:space:]]*$/ { exit }
+    $0 ~ "^"fld":" { sub("^"fld":[[:space:]]*", ""); print; exit }
+  ' "$1")"
+  v="$(printf '%s' "$v" | tr '[:upper:]' '[:lower:]' | tr -d '\r')"
+  v="${v#"${v%%[![:space:]]*}"}"; v="${v%"${v##*[![:space:]]}"}"
+  printf '%s' "$v"
+}
+
+
 # Run from the repo root: the record grep and freshness pathspecs are
 # cwd-relative, and a subdir invocation must see the same truth as a root one.
 cd "$(git rev-parse --show-toplevel)"
@@ -81,6 +94,23 @@ case "$verdict" in
     echo "($record). Fix the findings and re-run the reviewer, never edit the record by hand." >&2
     exit 1 ;;
 esac
+
+
+# 3d. Model tier floor: judgment must not ride a fast-tier model silently.
+#     Tier words only (fast|strong|strongest), no vendor names, portable to
+#     any host. Explicit human waiver is the loud override.
+tier="$(frontmatter_field "$record" "model_tier")"
+waiver="$(frontmatter_field "$record" "model_waiver")"
+if [[ -z "$tier" ]]; then
+  echo "merge-gate: REFUSED, record has no 'model_tier:' field ($record)." >&2
+  echo "Re-run the reviewer; records declare the tier that judged (fast|strong|strongest)." >&2
+  exit 1
+fi
+if [[ "$tier" == "fast" && "$waiver" != "human" ]]; then
+  echo "merge-gate: REFUSED, judgment record was produced on a FAST-tier model ($record)." >&2
+  echo "Re-run the reviewer on a strong tier, or add an explicit 'model_waiver: human' line." >&2
+  exit 1
+fi
 
 # 3c. Freshness: the review must be newer than the last CODE commit, a review
 #     of older code does not cover what you are merging now.

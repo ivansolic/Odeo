@@ -55,6 +55,8 @@ branch: feature/usr-007-password-reset   # required for code/UI records; merge-g
 artifact_version: 3
 date: 2026-07-07
 scorer: pm-reviewer
+model: <exact model that judged, as the agent's context reports it>
+model_tier: strong     # fast | strong | strongest; gates enforce the floor
 scores: { problem: 2, outcome: 2, scope: 1, risks: 2, security: 2 }
 total: 9/10
 verdict: PASS

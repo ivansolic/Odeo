@@ -34,6 +34,17 @@ Ask a plain diagnostic and recommend, so a non-expert can choose well:
 
 The user picks (or names the mode when invoking); default toward with-me while learning.
 
+**Model plan, asked before any work.** Resolve LIVE what the harness is
+actually running (session model for judgment; the builder's tier alias for
+execution) and put it as a question, never bake names into this file:
+> "Model plan: thinking/reviews on <session model as resolved now>, building
+>  on <builder tier as resolved now>. Continue with these, or change
+>  (/model for the session; say so for this run)?"
+In for-me mode, write the answer into the plan file as `model_plan:` (the
+builder's contract requires it); in with-me mode the spoken question is the
+announcement. If judgment would run below the strong tier, say so in the same
+breath (question, not a block, the choice is the user's).
+
 **Plan-first is the default in BOTH modes, and in for-me it is enforced by the
 pipeline.** With me: you enter plan mode and approve before building. For me: the
 `architect` writes the plan document (`docs/plans/`, per `docs/plan-format.md`),

@@ -30,6 +30,11 @@ code (code-reviewer), agents' runtime behavior (/improve).
    The frontmatter carries exactly ONE `verdict:` line (value only, no trailing
    comments); on re-review REPLACE it, and put what changed in the body
    (`## History`). Only you write or change your verdict.
+   The frontmatter also declares WHO judged: `model:` (the exact model you
+   actually ran on, as your context reports it, never what policy wishes) and
+   `model_tier: fast | strong | strongest` (per the tier map in AGENTS.md).
+   Gates refuse records without `model_tier:`, and refuse fast-tier judgment
+   without an explicit `model_waiver: human` line.
 
 ## Output format
 ```

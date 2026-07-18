@@ -80,6 +80,16 @@ check "C8 flags third-party plugin name" 1 "$d"; rm -rf "$d"
 d="$(clean_root)"; mkdir -p "$d/skills/iota"; printf -- '---\n---\nNo description here.\n' > "$d/skills/iota/SKILL.md"
 check "C9 flags missing description" 1 "$d"; rm -rf "$d"
 
+# C11: versioned Claude model ID in a skill -> fail
+d="$(clean_root)"; mkskill "$d" kappa "disable-model-invocation: true\n" "Uses models." "Runs on claude-sonnet-4-6 for speed."
+check "C11 flags versioned model id" 1 "$d"; rm -rf "$d"
+
+# C11: builder frontmatter model must be sonnet or inherit
+d="$(clean_root)"; printf -- '---\nname: builder\nmodel: haiku\ntools: Read\n---\nOnly you write the verdict.\n## History\n' > "$d/agents/builder.md"
+check "C11 flags builder on a non-sonnet tier" 1 "$d"; rm -rf "$d"
+d="$(clean_root)"; printf -- '---\nname: builder\nmodel: sonnet\ntools: Read\n---\nbody\n' > "$d/agents/builder.md"
+check "C11 passes builder on sonnet" 0 "$d"; rm -rf "$d"
+
 # FINAL: the real repo must pass its own lint
 check "the actual repo passes its own invariants" 0 "$TEST_DIR/.."
 

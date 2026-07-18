@@ -27,6 +27,11 @@ what the next step is, and which recurring loops are due. Changes nothing.
    When MORE THAN ONE epic/PRD exists and no prioritization artifact does,
    suggest `/prioritize` + `/roadmap` (value ordering is a PM decision that
    single-epic projects never needed).
+   **Model preference**: if CLAUDE.md carries `session_model_preference` and
+   the session's current model does not match what that preference resolves to
+   TODAY, one line: "session runs on <current>, your preference means
+   <resolved now>, /model to switch." Also note when a NEW top model exists
+   ("your 'strongest' now points to <name>").
    **Active shares**: if `docs/prototypes/.shares` exists, tunnels past their
    expiry are already dead (ignore); a preview DEPLOY older than ~a week gets
    one line: "preview deploy live since <date>, still needed? (password/delete)".

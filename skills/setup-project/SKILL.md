@@ -128,6 +128,20 @@ Test-after.** Record the choice in CLAUDE.md's Conventions section as
 `dev_rigor: tdd | tdd-lite | test-after` with a one-line meaning. The architect
 and builder read it.
 
+**H2. Where should the thinking run? (model preference, semantic)**
+Resolve the CURRENT model lineup live (ask the harness/session what tiers and
+prices exist right now, never recite from this file), then ask:
+> "On which model should the thinking run, planning, discovery, reviews?
+>  (Code execution always rides the newest fast-strong tier; this choice is
+>  for judgment.)
+>  - **strongest** , the top tier that exists (name + price as resolved now)
+>  - **strong-default** , the strongest standard-price tier (name it now)
+>  This is a DEFAULT, not a lock: /model overrides it any moment, and one
+>  sentence changes it permanently."
+Record semantically in CLAUDE.md Conventions: `session_model_preference:
+strongest | strong-default`, never a model name (names age; the preference
+must not). /start reminds when the session and the preference disagree.
+
 **I. How should I talk to you? (plain language preference)**
 > "I always explain things in plain language. Do you also want me to teach you the
 >  technical terms as we go, the plain explanation first, then the technical name in

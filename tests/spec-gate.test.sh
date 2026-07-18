@@ -14,9 +14,9 @@ story() { # story <repo> <id-slug> <commit-time>
   ( cd "$1" && printf 'story body\n' > "docs/stories/$2.md" && git add -A ) >/dev/null 2>&1
   commit_at "$1" "$3" "story $2"
 }
-record() { # record <repo> <artifact-line> <verdict> <commit-time> [filename] [body]
-  local f="${5:-rec.md}" body="${6:-body}"
-  ( cd "$1" && printf -- '---\n%s\nverdict: %s\n---\n%s\n' "$2" "$3" "$body" > "docs/evals/$f" && git add -A ) >/dev/null 2>&1
+record() { # record <repo> <artifact-line> <verdict> <commit-time> [filename] [body] [tier-lines]
+  local f="${5:-rec.md}" body="${6:-body}" tier="${7:-model_tier: strong}"
+  ( cd "$1" && printf -- '---\n%s\nverdict: %s\n%s\n---\n%s\n' "$2" "$3" "$tier" "$body" > "docs/evals/$f" && git add -A ) >/dev/null 2>&1
   commit_at "$1" "$4" "record $f"
 }
 check() { local name="$1" want="$2" repo="$3"; shift 3
@@ -126,5 +126,21 @@ check "refuses a gitignored, never-committed artifact" 1 "$d" docs/stories/USR-0
 d="$(make_repo)"; story "$d" USR-001-login "$T2"; record "$d" "artifact: USR-001" PASS "$T3"
 ( cd "$d" && ln -s "$(pwd)/docs/stories/USR-001-login.md" docs/stories/USR-001-link.md )
 check "refuses a symlink artifact" 2 "$d" docs/stories/USR-001-link.md; rm -rf "$d"
+
+# 20. FAST-tier judgment record -> refuse; with waiver -> pass
+d="$(make_repo)"; story "$d" USR-001-login "$T2"
+record "$d" "artifact: USR-001" PASS "$T3" rec.md body "model_tier: fast"
+check "refuses fast-tier PM record" 1 "$d" docs/stories/USR-001-login.md; rm -rf "$d"
+
+d="$(make_repo)"; story "$d" USR-001-login "$T2"
+record "$d" "artifact: USR-001" PASS "$T3" rec.md body "model_tier: fast
+model_waiver: human"
+check "passes fast tier with human waiver" 0 "$d" docs/stories/USR-001-login.md; rm -rf "$d"
+
+# 21. record without model_tier -> refuse
+d="$(make_repo)"; story "$d" USR-001-login "$T2"
+( cd "$d" && printf -- '---\nartifact: USR-001\nverdict: PASS\n---\nbody\n' > docs/evals/rec.md && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T3" rec
+check "refuses PM record without model_tier" 1 "$d" docs/stories/USR-001-login.md; rm -rf "$d"
 
 echo ""; echo "passed: $pass, failed: $fail"; [[ $fail -eq 0 ]]

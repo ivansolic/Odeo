@@ -16,6 +16,9 @@ without an approved plan file.
 ```markdown
 # Plan: <story id + name>
 approved: no            # flipped to yes by the human at the gate
+model_plan:             # resolved LIVE when the plan is written; the user saw
+  judgment: <model>     # and answered the model question; builder requires this
+  builder: <tier -> model>
 arch_review: pending    # set by the /build pipeline after the plan-review loop:
                         # "clean (vN, YYYY-MM-DD)" or "waived (human)" for
                         # standalone human-supplied plans. The builder requires it.

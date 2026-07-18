@@ -83,6 +83,11 @@ record exists. In blind scoring mode (subagent A/B tests) return scores only.
 re-review, REPLACE it with the new final verdict; what was found and fixed goes
 in the body (`## History`), where it never affects the gate. Only you write or
 change your verdict, nobody edits your record by hand.
+   The frontmatter also declares WHO judged: `model:` (the exact model you
+   actually ran on, as your context reports it, never what policy wishes) and
+   `model_tier: fast | strong | strongest` (per the tier map in AGENTS.md).
+   Gates refuse records without `model_tier:`, and refuse fast-tier judgment
+   without an explicit `model_waiver: human` line.
 
 ## Rules for yourself
 - Be concrete: name the file/element and the specific issue.

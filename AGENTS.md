@@ -37,6 +37,23 @@ rules are also embedded in their bodies so they hold even when this file is abse
   criteria, and where relevant plain-language quality targets like "loads fast",
   "works for keyboard/screen-reader users").
 
+## Model policy (judgment inherits, execution rides sonnet)
+- Judgment (architect, all reviewers, PM work) runs on the SESSION model, run
+  your session on the strongest you have; preference is stored semantically in
+  CLAUDE.md (`session_model_preference: strongest | strong-default`), never as
+  a model name. With-me users can use `/model opusplan` (plan on the strong
+  tier, execution on sonnet, automatically).
+- Execution (the builder) is pinned to the `sonnet` TIER, the harness resolves
+  it to the newest Sonnet; it executes an approved, independently reviewed
+  plan, so strong models guard both its input and its output.
+- Model names are spoken only LIVE (resolved by the harness at that moment)
+  and recorded after (`model:` + `model_tier:` in eval records). Files speak
+  in tiers; versions never appear in them (lint C11).
+- Tier map (the one place vendor tier words live; extended per host at port
+  time): fast = haiku class (Anthropic) / flash class (Google) / mini class
+  (OpenAI); strong = sonnet class and up; strongest = the top tier available
+  on the user's actual subscription.
+
 ## Security baseline (applies to ALL code, non-negotiable)
 - Validate all input at the boundary; allowlist over blocklist.
 - Parameterized queries only; never build queries by string concatenation.
@@ -183,6 +200,16 @@ baseline above) does not exist.
   the late net for the same miss.
 - [I] Test commands run non-interactively (`vitest run`, watch off) and with a
   timeout; a command that never exits is a FAILED step, not a passing one.
+- [E] Model tiers, never versions: version-pinned model ids are banned in
+  skills/agents and the builder's tier is pinned (lint C11); judgment eval
+  records must carry `model_tier:`, and a fast-tier judgment record is refused
+  by merge-gate and spec-gate unless it carries an explicit
+  `model_waiver: human` line (loud override, never silent).
+- [I] The model plan (who thinks, who executes, as the harness resolves it
+  NOW) is put to the user as a QUESTION before work starts, for-me mode writes
+  it into the plan (`model_plan:`, part of the builder's contract), with-me
+  says it aloud. The system never switches models on its own, and the model
+  named in any record is the one that actually ran (never-fabricate applies).
 
 ### 4. Loops
 - [I] Every loop has a VERIFIER and a STOP (done-signal + ~3 attempts, then stop
