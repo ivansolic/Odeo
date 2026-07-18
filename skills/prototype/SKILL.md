@@ -17,6 +17,12 @@ comes later, through the real build pipeline.
 ## Process
 1. **Frame the question**: what must these prototypes teach us? (e.g. "which
    invoicing flow feels effortless?"). One sentence, written down.
+   **If PM artifacts already exist** (docs/prds/, a discovery packet, research
+   reports), DERIVE the framing question and variant ideas from them instead of
+   asking from scratch: "PRD-002 says the problem is X for persona Y, proposed
+   framing: 'which shape of Z feels effortless for Y?', confirm or correct."
+   Record in the findings WHICH document the prototypes test, so a later
+   promote knows what it updates. No artifacts -> ask from scratch as below.
 2. **Fidelity choice** (ask plainly, and RECOMMEND from the framing question):
    - **lo-fi**, looks and behaves like the app, but nothing is really saved
      (frontend only, fake data). Tests how it FEELS: flow, layout, wording.
