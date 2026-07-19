@@ -88,7 +88,7 @@ docs/evals/second-opinion-code-usr-012.md
 ---
 artifact: USR-012
 type: second-opinion
-target: code                 # code | plan | doc | design
+target: code                 # code | plan | pm | design
 related_branch: feature/usr-012-timer   # association only; NOT the gate-matched 'branch:'
 date: 2026-07-19
 vendor: <vendor>             # the CLI used (an argument, never a baked-in name)

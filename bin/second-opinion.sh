@@ -10,7 +10,7 @@
 #
 # Usage:
 #   second-opinion.sh <target> <payload-file> [--vendor NAME] [--model ID] [--mode review|adversarial]
-#     target       code | plan | doc | design   (picks the default vendor)
+#     target       code | plan | pm | design   (picks the default vendor)
 #     payload-file the artifact/diff to review (a file; scanned before any send)
 #     --vendor     override the default vendor for the target
 #     --model      request a specific vendor model (else the vendor default)
@@ -25,7 +25,7 @@
 
 set -uo pipefail
 
-usage() { echo "Usage: second-opinion.sh <code|plan|doc|design> <payload-file> [--vendor NAME] [--model ID] [--mode review|adversarial]" >&2; exit 2; }
+usage() { echo "Usage: second-opinion.sh <code|plan|pm|design> <payload-file> [--vendor NAME] [--model ID] [--mode review|adversarial]" >&2; exit 2; }
 
 # --- parse args ---
 TARGET="${1:-}"; PAYLOAD="${2:-}"
@@ -41,7 +41,7 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-case "$TARGET" in code|plan|doc|design) : ;; *) echo "second-opinion: target must be code|plan|doc|design, got '$TARGET'" >&2; usage ;; esac
+case "$TARGET" in code|plan|pm|design) : ;; *) echo "second-opinion: target must be code|plan|pm|design, got '$TARGET'" >&2; usage ;; esac
 case "$MODE" in review|adversarial) : ;; *) echo "second-opinion: mode must be review|adversarial, got '$MODE'" >&2; usage ;; esac
 [[ -f "$PAYLOAD" ]] || { echo "second-opinion: payload file not found: $PAYLOAD" >&2; exit 2; }
 

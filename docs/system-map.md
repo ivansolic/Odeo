@@ -130,13 +130,19 @@ Plus deterministic scorers (tests, `privacy-scan.sh`) and the human as the final
 | `token-report.py` | Per-agent token (and optional cost) breakdown of a session transcript, so build economics are measured, not guessed. Prices passed as args, never hardcoded. |
 
 ## Second opinion (paid cross-model review, human-invoked only)
-| Command | What it does |
-|---|---|
-| `/second-opinion-code` | Send a code diff to an external vendor model for an independent review, then OUR `code-reviewer` compares the two reads (overlap / only-ours / only-vendor + recommendation). It informs; it never gates. Data leaves the machine and costs money, so a human starts every send. |
+An external vendor model reviews one artifact; OUR matching reviewer compares the
+two reads (overlap / only-ours / only-vendor + recommendation). It informs; it
+never gates. Data leaves the machine and costs money, so a human starts every send.
 
-The `-pm`, `-plan`, and `-design` members of this family are planned, not yet
-built. All share `bin/second-opinion.sh` and `docs/second-opinion-protocol.md`;
-the vendor is always an argument, never a command name.
+| Command | Target -> our reviewer | What it does |
+|---|---|---|
+| `/second-opinion-code` | code -> `code-reviewer` | Independent read of a code diff. |
+| `/second-opinion-pm` | pm -> `pm-reviewer` | Independent read of a PM document (PRD, stories, strategy, roadmap, research, discovery). |
+| `/second-opinion-plan` | plan -> `architecture-reviewer` | Independent read of an implementation plan (the orchestrator writes the comparison, since architecture-reviewer writes no record). |
+| `/second-opinion-design` | design -> `design-reviewer` | Independent read of UI (look + code), via a multimodal vendor. |
+
+All four share `bin/second-opinion.sh` and `docs/second-opinion-protocol.md`; the
+vendor is always an argument, never a command name (lint C10).
 
 ## Key decision points (the /guide decision trees)
 - Idea fuzzy vs concrete: fuzzy -> `/discover`; concrete enough to touch -> `/prototype`.
