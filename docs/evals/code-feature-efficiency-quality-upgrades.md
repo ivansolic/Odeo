@@ -1,7 +1,7 @@
 ---
 artifact: code
 type: code
-branch: feature/superpowers-derived-upgrades
+branch: feature/efficiency-quality-upgrades
 scope: bin/token-report.py + tests/token-report.test.sh + docs/system-map.md (utility-scripts line)
 date: 2026-07-19
 scorer: code-reviewer
