@@ -17,8 +17,9 @@ comes later, through the real build pipeline.
 ## Process
 1. **Frame the question**: what must these prototypes teach us? (e.g. "which
    invoicing flow feels effortless?"). One sentence, written down.
-   **If PM artifacts already exist** (docs/prds/, a discovery packet, research
-   reports), DERIVE the framing question and variant ideas from them instead of
+   **If PM artifacts already exist** (docs/prds/, or docs/research/ holding
+   discovery packets and RES-NNN research reports), DERIVE the framing question
+   and variant ideas from them instead of
    asking from scratch: "PRD-002 says the problem is X for persona Y, proposed
    framing: 'which shape of Z feels effortless for Y?', confirm or correct."
    Record in the findings WHICH document the prototypes test, so a later
@@ -94,6 +95,7 @@ what worked / what didn't · tech approach + data-model sketch · edge cases fou
 security & data notes (PII/auth touched? feeds the PRD's pre-mortem) · assumptions
 validated/invalidated · what the prototype did NOT cover · dependencies discovered ·
 complexity signal for the real build · open risks · metrics if users touched it ·
+source document tested (PRD/RES id, or "none, no PM artifacts existed") ·
 date + the framing question.
 
 ## Rules for yourself
