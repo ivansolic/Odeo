@@ -27,6 +27,17 @@
     ]
   },
   "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "command -v focus-check.sh >/dev/null 2>&1 && focus-check.sh || true"
+          }
+        ]
+      }
+    ],
     "Stop": [
       {
         "hooks": [

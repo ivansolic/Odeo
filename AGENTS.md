@@ -228,6 +228,11 @@ baseline above) does not exist.
 - [E] Dispatched and background agents run in their own git worktree (isolation).
 - [E] DO-NOT-TOUCH boundaries: `boundary-check.sh` blocks results/merges that
   touch protected paths from `docs/codebase-map.md`.
+- [E] `/focus` session edit fence (`focus-check.sh`, a PreToolUse hook): while a
+  focus zone is set, Edit/Write outside it is refused until `/focus off`. It only
+  refuses (never grants), fails open, and sits UNDER the DO-NOT-TOUCH boundaries,
+  a focus aid, not a security boundary. Enforced on Claude Code; advisory on hosts
+  without PreToolUse hooks (portability backlog).
 - [I] **The builder executes the approved plan as a contract.** No redesign;
   a plan that does not survive contact with reality = STOP and ask.
   Counters, all invalid: "my approach is better" (propose it at the gate, not in

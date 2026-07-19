@@ -176,6 +176,7 @@ coverage/
 # Claude local-only files
 CLAUDE.local.md
 .claude/local/
+.claude/focus-zone
 
 # OS
 .DS_Store

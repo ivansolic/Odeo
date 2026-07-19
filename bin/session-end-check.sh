@@ -34,6 +34,12 @@ if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
     n="$(printf '%s\n' "$extra" | wc -l | tr -d ' ')"
     say "$n extra git worktree(s) exist (git worktree list), fine if builds are in flight."
   fi
+
+  # 4. A /focus edit fence still active (carries into the next session otherwise)
+  root="$(git rev-parse --show-toplevel 2>/dev/null || true)"
+  if [[ -n "$root" && -s "$root/.claude/focus-zone" ]]; then
+    say "a /focus edit fence is still active on $(head -n1 "$root/.claude/focus-zone"); run /focus off to lift it."
+  fi
 fi
 
 exit 0

@@ -44,6 +44,10 @@ human floor.
    time it's free, want me to draft the entry?"). Never present it as
    skippable hygiene; it is how the system gets smarter with every story. If
    several stories merged since the last `/retro`, say so and offer it too.
+   If the merged diff touched behavior the docs describe (a supported format, a
+   flag, an endpoint, a default in README/docs/CLAUDE.md), offer `/sync-docs`
+   once, stating why ("this changed the export format the README documents, want
+   me to reconcile the docs?"), never after a decline.
    (Draft-first: the user approves anything saved. A "no" is final, no nagging.)
 
 ## Worked example

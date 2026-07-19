@@ -21,6 +21,7 @@ Build-to-learn:       /prototype -> findings -> promote at the right phase (by s
 | `/setup-project` | Configure a project: new (interview/preset) or existing (maps the codebase); sets dev-rigor style and preferences. Once per project. |
 | `/setup-design` | Design system setup: tokens as the styling source of truth (UI projects). |
 | `/start` | You-are-here: reads project state, tells you the next step + pending loop reminders. |
+| `/focus` | Fence this session's edits to one directory (`/focus <dir>`); a PreToolUse hook refuses edits elsewhere until `/focus off`. A focus aid under the permanent DO-NOT-TOUCH boundaries. |
 
 ## 2. Discovery & research
 | Command | What it does |
@@ -64,6 +65,7 @@ Build-to-learn:       /prototype -> findings -> promote at the right phase (by s
 |---|---|
 | `/build` | The build entry. **with me** (Mode A): you + Claude, live in your editor. **for me** (Mode B): architect plans -> architecture-reviewer checks -> you approve -> builders execute in worktrees -> reviewers -> your gate. |
 | `/merge` | Rebase onto main, tests, merge PR, cleanup. Serialized; always your approval. |
+| `/sync-docs` | Reconcile what the code does against what the docs claim (README/docs/CLAUDE.md), then sync or name the gap, your approval. Offered by /merge when a diff touched documented behavior. |
 | `/research` | Cited market/web research: every claim 2+ independent sources or labeled unverified; TAM/SAM/SOM as ranges with methods. Saves docs/research/RES-NNN. Offered by /discover and /prd; standalone anytime. |
 | `/ci` | Generate `.github/workflows/checks.yml` from the project's own Commands, so every PR runs typecheck/lint/tests/build. Verify only, never deploy. Offered by /setup-project and /merge. |
 | `/commit-push` | Conventional commit + secret scan + push safety checks. |
