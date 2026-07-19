@@ -406,3 +406,34 @@ Deferred (very end): marketplace listing; the end-to-end dogfood test.
 - Born from the live incident: a stale versioned name was quoted in
   conversation while its successor had already shipped; the system now cannot
   repeat it in files, and resolves names live everywhere else.
+
+## SUPERPOWERS-DERIVED UPGRADES (approved 2026-07-18, from the obra/superpowers study)
+Naming locked this session: /freeze -> /focus, /document-release -> /sync-docs
+(final naming pass still at branding). /prototype PM-artifact bridge shipped
+this session (10/10). Then this track:
+- [ ] Phase 1 , token-report (measure first): NEW bin/token-report.py (python3
+      stdlib; per-agent token breakdown from a session .jsonl; prices never
+      hardcoded, optional --input-price/--output-price add a $ column) + NEW
+      tests/token-report.test.sh + system-map line. code-reviewer on the script.
+- [ ] Phase 2 , plan-format C+D: complete-code-as-economy (exact code in the
+      task, builder transcribes) + task right-sizing (smallest unit worth a
+      fresh reviewer's gate). GUARDRAIL (Ivan): complete code does NOT waive
+      test-first, builder writes failing test (RED) then transcribes (GREEN);
+      one sentence, no new logic/code.
+- [ ] Phase 3 , review budget B: code-reviewer + design-reviewer get a diff-first
+      scope (don't crawl unless naming a concrete risk; don't re-run the suite to
+      confirm the builder's report). Removes redundant work only; diff scrutiny
+      unchanged.
+- [ ] Phase 4 , tier-tag A (per-story, reframed): per-task Tier tag is a reviewer
+      ATTENTION signal only (where to look hardest), NOT a model selector. Reviews
+      ALWAYS run on the strongest via session preference (Ivan's call 2026-07-18);
+      NO review_tier field, NO model-scaling. Per-task dispatch DEFERRED pending
+      token-report data.
+- [ ] Phase 5 , red-flag pattern: optional calm two-column table device in
+      skill-authoring-standard.md (reference guardrail, don't restate; only where
+      a shortcut is observed). Exemplar in the standard; no skill retrofits yet.
+- [ ] Phase 6 , judgment-eval scaffolding: docs/checklists/review-calibration.md
+      format + 1-2 seed planted-defect scenarios; live calibration folds into
+      polish #3 (/improve calibrate mode).
+- Do NOT: multi-harness (parked), their caps/pressure tone, cheap controller /
+  cheap reviewer (they empirically failed the N=5 quality gates).

@@ -124,6 +124,11 @@ Recurring loops are reminded via nudges (max one, easy to decline); you always r
 | `codebase-analyst` | Maps an existing codebase (read-only). |
 Plus deterministic scorers (tests, `privacy-scan.sh`) and the human as the final gate.
 
+## Utility scripts (in `bin/`, run directly)
+| Script | What it does |
+|---|---|
+| `token-report.py` | Per-agent token (and optional cost) breakdown of a session transcript, so build economics are measured, not guessed. Prices passed as args, never hardcoded. |
+
 ## Key decision points (the /guide decision trees)
 - Idea fuzzy vs concrete: fuzzy -> `/discover`; concrete enough to touch -> `/prototype`.
 - One feature vs many epics: one -> `/spec` directly; many/new product -> `/plan` first (product-level foundation before features).
