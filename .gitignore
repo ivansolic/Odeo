@@ -2,6 +2,10 @@
 .DS_Store
 Thumbs.db
 
+# Second-opinion raw vendor transcripts (may contain the reviewed artifact).
+# The committed eval record references only the path + sha256, never the log.
+docs/second-opinion-logs/
+
 # Editor
 .vscode/*
 !.vscode/extensions.json
