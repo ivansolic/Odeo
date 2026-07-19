@@ -48,6 +48,26 @@ The proven shape (adapt, don't pad):
   LIVES, CONCLUSION + limits.
 - Never weaken or restate a guardrail; reference it.
 
+## Red-flag tables (optional; only for loopholes you have actually seen)
+When agents keep talking themselves out of a rule, a small two-column table that
+names the exact rationalization and answers it closes the gap better than more
+prose. Use it sparingly, and in OUR voice:
+- Calm and plain, never shouting (no all-caps, no "NON-NEGOTIABLE"); the table
+  does the work, not the volume.
+- Left column is the tempting thought, right column is the reality. One line each.
+- REFERENCE the guardrail it protects, do not restate it (the rule above still
+  holds); the table points at the rule, it is not a second copy.
+- Add one ONLY where the shortcut has been observed (a dogfood run, an `/improve`
+  pressure test) or is a known high-risk judgment point, never speculatively.
+  Mechanical slips are caught by lint and the gates and need no table.
+
+Worked example (a build-time loophole):
+
+| Tempting shortcut | The reality |
+|---|---|
+| "The plan already has the code, so I can skip the test" | Complete code in the plan is the intended implementation, not proof it runs; write the failing test first, then transcribe. |
+| "This task is tagged `mechanical`, a quick skim is fine" | The `Scrutiny:` tag guides attention, not coverage; the change still gets a full correctness and security read. |
+
 ## Documentation duties
 - If the skill adds a command, update `docs/system-map.md` (the catalog `/guide`
   and `/start` consult). A skill that isn't on the map doesn't exist.
