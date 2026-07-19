@@ -102,6 +102,18 @@ check "C11 flags versioned name in AGENTS.md" 1 "$d"; rm -rf "$d"
 d="$(clean_root)"; printf -- '---\nname: builder\nmodel: sonnet \ntools: Read\n---\nbody\n' > "$d/agents/builder.md"
 check "C11 tolerates trailing whitespace on builder model" 0 "$d"; rm -rf "$d"
 
+# C10: a second-opinion skill without the protocol reference -> fail
+d="$(clean_root)"; mkskill "$d" second-opinion-code "disable-model-invocation: true\n" "Second opinion on code." "Runs the vendor and compares. (no protocol reference here)"
+check "C10 flags a second-opinion skill missing the protocol ref" 1 "$d"; rm -rf "$d"
+
+# C10: a vendor name in a second-opinion folder -> fail (even with the protocol ref)
+d="$(clean_root)"; mkskill "$d" second-opinion-codex "disable-model-invocation: true\n" "Vendor-named." "See docs/second-opinion-protocol.md for the mechanism."
+check "C10 flags a vendor name in the skill folder" 1 "$d"; rm -rf "$d"
+
+# C10: a target-named second-opinion skill that references the protocol -> pass
+d="$(clean_root)"; mkskill "$d" second-opinion-code "disable-model-invocation: true\n" "Second opinion on code." "See docs/second-opinion-protocol.md for the shared mechanism."
+check "C10 passes a target-named skill that references the protocol" 0 "$d"; rm -rf "$d"
+
 # FINAL: the real repo must pass its own lint
 check "the actual repo passes its own invariants" 0 "$TEST_DIR/.."
 

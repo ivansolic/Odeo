@@ -74,6 +74,44 @@ Records are used for: gates (did it pass the threshold?), regression (better tha
 last time?), `/improve` signals (repeated drops on the same criterion), and blind
 scoring in subagent tests.
 
+## Second-opinion records (a consult, not a gate)
+A paid cross-model review (see `docs/second-opinion-protocol.md`) writes its own
+record at `docs/evals/second-opinion-<target>-<id>.md`. It fits the family above
+and adds provenance for what actually ran plus a comparison authored by OUR
+matching reviewer. It NEVER carries a gate `verdict:` (it informs); OUR reviewer's
+own record still holds the verdict the gate reads. Critically, it uses
+`related_branch:` NOT `branch:`, so the `merge-gate` (which matches `^branch:` and
+then requires a verdict) never picks up this verdict-less record.
+
+```markdown
+docs/evals/second-opinion-code-usr-012.md
+---
+artifact: USR-012
+type: second-opinion
+target: code                 # code | plan | doc | design
+related_branch: feature/usr-012-timer   # association only; NOT the gate-matched 'branch:'
+date: 2026-07-19
+vendor: <vendor>             # the CLI used (an argument, never a baked-in name)
+vendor_model: <model>        # what ACTUALLY answered, from the provenance stamp
+raw_log: docs/second-opinion-logs/code-<vendor>-<stamp>.log   # gitignored
+output_sha256: <hash>        # integrity of the raw transcript
+scorer: code-reviewer        # OUR matching reviewer authored the comparison
+model: <model that judged ours>
+model_tier: strongest
+# NO verdict line: a second opinion informs, it does not gate.
+---
+## Findings (structured)
+- target=code | class=correctness | app.ts:42 | High | off-by-one on the last page
+## Comparison
+- overlap: [findings both OUR reviewer and the vendor raised]
+- only-ours: [what our reviewer caught that the vendor missed]
+- only-vendor: [what the vendor caught that we missed, the value we paid for]
+- recommendation: [what to do; our verdict is unchanged, in its own record]
+```
+
+Recurring `only-vendor` classes are the `/improve` signal that upgrades OUR
+reviewers (the absorption loop in the protocol).
+
 ## Rigor allocation (risk-based)
 Testing effort is proportional to the risk of being wrong:
 - **Content artifacts** (PRD, memo, stories): rubric scoring by the domain

@@ -112,6 +112,20 @@ for f in "${SKILLS[@]:+${SKILLS[@]}}"; do
     || viol C9 "$f: missing or empty 'description:' frontmatter"
 done
 
+# C10. second-opinion skills reference the shared protocol, and NO vendor name
+#      appears in a skill folder/command name (vendor is an argument; names belong
+#      only in records, e.g. vendor_model:, and spoken at send time). Extend the
+#      vendor list per integrated CLI.
+VENDOR_NAMES='codex|gemini'
+for f in "${SKILLS[@]:+${SKILLS[@]}}"; do
+  case "$f" in */second-opinion-*/SKILL.md) : ;; *) continue ;; esac
+  grep -q "second-opinion-protocol.md" "$f" \
+    || viol C10 "$f: a second-opinion skill must reference docs/second-opinion-protocol.md (never restate it)"
+  dir="$(basename "$(dirname "$f")")"
+  echo "$dir" | grep -qiE "$VENDOR_NAMES" \
+    && viol C10 "$f: vendor name in the skill folder '$dir' (vendor is an argument, not a name)"
+done
+
 if [[ $fail -eq 0 ]]; then
   echo "skills-lint: all invariants hold."
   exit 0
