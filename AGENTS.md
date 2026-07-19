@@ -54,6 +54,11 @@ rules are also embedded in their bodies so they hold even when this file is abse
   time): fast = haiku class (Anthropic) / flash class (Google) / mini class
   (OpenAI); strong = sonnet class and up; strongest = the top tier available
   on the user's actual subscription.
+- A plan's per-task `Scrutiny:` tag (mechanical | standard | judgment) is a
+  reviewer ATTENTION signal (where to look hardest), NOT a model selector.
+  Reviews still follow judgment-inherits-session; the tag never lowers the review
+  model or the coverage of other tasks. (Named `Scrutiny`, distinct from the
+  model `tier`, on purpose.)
 
 ## Security baseline (applies to ALL code, non-negotiable)
 - Validate all input at the boundary; allowlist over blocklist.

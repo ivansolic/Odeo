@@ -411,24 +411,27 @@ Deferred (very end): marketplace listing; the end-to-end dogfood test.
 Naming locked this session: /freeze -> /focus, /document-release -> /sync-docs
 (final naming pass still at branding). /prototype PM-artifact bridge shipped
 this session (10/10). Then this track:
-- [ ] Phase 1 , token-report (measure first): NEW bin/token-report.py (python3
+- [x] Phase 1 (729d0ef) , token-report (measure first): NEW bin/token-report.py (python3
       stdlib; per-agent token breakdown from a session .jsonl; prices never
       hardcoded, optional --input-price/--output-price add a $ column) + NEW
       tests/token-report.test.sh + system-map line. code-reviewer on the script.
-- [ ] Phase 2 , plan-format C+D: complete-code-as-economy (exact code in the
+- [x] Phase 2 , plan-format C+D: complete-code-as-economy (exact code in the
       task, builder transcribes) + task right-sizing (smallest unit worth a
       fresh reviewer's gate). GUARDRAIL (Ivan): complete code does NOT waive
       test-first, builder writes failing test (RED) then transcribes (GREEN);
       one sentence, no new logic/code.
-- [ ] Phase 3 , review budget B: code-reviewer + design-reviewer get a diff-first
+- [x] Phase 3 , review budget B: code-reviewer + design-reviewer get a diff-first
       scope (don't crawl unless naming a concrete risk; don't re-run the suite to
       confirm the builder's report). Removes redundant work only; diff scrutiny
       unchanged.
-- [ ] Phase 4 , tier-tag A (per-story, reframed): per-task Tier tag is a reviewer
-      ATTENTION signal only (where to look hardest), NOT a model selector. Reviews
-      ALWAYS run on the strongest via session preference (Ivan's call 2026-07-18);
-      NO review_tier field, NO model-scaling. Per-task dispatch DEFERRED pending
-      token-report data.
+- [x] Phase 4 , Scrutiny-tag A (per-story, reframed): per-task `Scrutiny:` tag
+      (mechanical|standard|judgment) is a reviewer ATTENTION signal only (where to
+      look hardest), NOT a model selector. Renamed from `Tier:` off the arch
+      review to avoid colliding with model_tier. Reviews ALWAYS run on the
+      strongest via session preference (Ivan's call 2026-07-18); NO review_tier
+      field, NO model-scaling. Per-task dispatch DEFERRED pending token-report.
+      arch-reviewer loop: round 1 PROCEED-WITH-MODS (4 concerns) -> fixes ->
+      round 2 PROCEED (all closed, constraints hold).
 - [ ] Phase 5 , red-flag pattern: optional calm two-column table device in
       skill-authoring-standard.md (reference guardrail, don't restate; only where
       a shortcut is observed). Exemplar in the standard; no skill retrofits yet.

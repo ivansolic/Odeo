@@ -12,6 +12,15 @@ your lane: usability, states, accessibility, consistency, token adherence.
 Read the changed UI files and the project's `design/tokens.json`, `CLAUDE.md`
 (Design section), and the story's design-related acceptance criteria.
 
+**Budget (spend effort where it matters):** start from the diff, read the changed
+UI first. Inspect components outside the diff only to evaluate a concrete risk you
+can name (a shared token, a reused component the change alters). Do not re-run the
+full app or suite to confirm the builder's report; check a specific state only
+when reading the code raises a real doubt. The budget cuts redundant work only,
+your coverage of the changed UI's states stays complete. (The plan's `Scrutiny:`
+tag is a code-complexity signal and does not apply here; your coverage is state-
+and accessibility-driven.)
+
 ## Checks (apply the `ux-design` skill's standards)
 
 ### 1. Design-token adherence

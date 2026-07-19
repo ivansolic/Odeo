@@ -39,10 +39,19 @@ Constraints: <copied verbatim from the spec/story + do-not-touch boundaries
 ## Tasks
 <the smallest independently testable units, in dependency order; each task:>
 ### Task 1: <name>
+- Scrutiny: <mechanical | standard | judgment> (optional; omitted = standard) , a
+  complexity signal that tells the reviewer WHERE to spend the deepest attention
+  (judgment tasks get the hardest look). It is NOT a model selector: reviews
+  always run on the session judgment tier, and it never lowers coverage of the
+  other tasks. (Named `Scrutiny` on purpose, to stay clear of the model `tier`.)
 - Test first (per the project's dev-rigor style): <the exact test to write,
   named, with the expected failure>
 - Implement: <exact function signatures, paths, and the change, no "add
-  validation", write WHICH validation, on WHICH field, with WHAT rule>
+  validation", write WHICH validation, on WHICH field, with WHAT rule.
+  When the change is mechanical enough to write out, PUT THE EXACT CODE HERE:
+  the builder transcribes and tests it, which is cheaper and more precise than
+  a prose description it has to reconstruct. For genuinely novel logic, describe
+  the approach and let the builder work it out under test.>
 - Verify: <exact command(s) and expected output>
 - Consumes: <interfaces/types this task needs, from which task or existing code>
 - Produces: <interfaces/types the next tasks may use>
@@ -57,7 +66,15 @@ Constraints: <copied verbatim from the spec/story + do-not-touch boundaries
   Exact paths, names, signatures, commands.
 - **Interfaces explicit between tasks** (consumes/produces), so dependencies are
   visible and tasks stay independently verifiable.
-- Task granularity: one test cycle each (test, fail, implement, pass, commit).
+- Task granularity (right-size it): a task is the SMALLEST unit that still
+  carries its own test cycle AND is worth a fresh reviewer's gate. Merge trivial
+  setup/config steps into the task that needs them; split only where a reviewer
+  could meaningfully reject. Each task is still one cycle: test, fail, implement,
+  pass, commit.
+- **Complete code in a task does NOT waive test-first.** The builder still writes
+  the failing test first (per the project's dev-rigor), watches it fail, THEN
+  transcribes the plan's code to make it pass. Code in the plan is the intended
+  implementation, never a licence to skip the test.
 - DRY and YAGNI apply: no speculative structures the story doesn't need.
 - The plan INHERITS product-level architecture; if the story seems to require
   changing it, the plan must say so and STOP for a human/ADR decision.
@@ -68,7 +85,8 @@ Constraints: <copied verbatim from the spec/story + do-not-touch boundaries
 ```
 1. Executability   0 needs interpretation / 1 mostly / 2 context-free builder could run it
 2. File map        0 missing / 1 partial / 2 complete with responsibilities
-3. Task quality    0 vague steps / 1 mixed / 2 smallest testable units, exact signatures,
+3. Task quality    0 vague steps / 1 mixed / 2 right-sized units (each worth its own
+                   reviewer gate), exact signatures + exact code where mechanical,
                    verify commands, consumes/produces stated
 4. Constraint fit  0 ignores architecture or boundaries / 1 partial / 2 inherits explicitly,
                    do-not-touch respected, escalations flagged

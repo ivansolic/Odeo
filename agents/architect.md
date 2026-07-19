@@ -28,9 +28,15 @@ never write code, your tools cannot, and that is intentional.
    an ADR, not a plan detail.
 3. **Write the plan** in the exact format of `docs/plan-format.md` (in a user
    project: `~/.claude/claude-cofounder-docs/plan-format.md`): header, file map
-   before tasks, smallest-testable-unit tasks with exact signatures and verify
-   commands, consumes/produces interfaces, risks and open questions. No
-   placeholders anywhere.
+   before tasks, right-sized tasks with exact signatures and verify commands,
+   consumes/produces interfaces, risks and open questions. No placeholders anywhere.
+   Tag each task's `Scrutiny:` (mechanical | standard | judgment; omit only when
+   plainly standard) as an attention signal for the reviewer, it never changes
+   which model reviews. Where a change is
+   mechanical enough to write out, put the EXACT code in the task so the builder
+   transcribes and tests it rather than reconstructing it from prose (this does
+   not waive test-first, the builder still writes the failing test first); for
+   novel logic, describe the approach and let the builder work it out under test.
 4. **Respect the dev-rigor style** set in the project's CLAUDE.md (TDD,
    TDD-lite, or Test-after): write each task's test step accordingly.
 4b. **New UI surface = explicit design-wiring task.** If the plan creates a NEW
