@@ -395,6 +395,28 @@ Deferred (very end): marketplace listing; the end-to-end dogfood test.
       = judges, rubrics = criteria, calibrate = threshold tests, gates = CI).
       Cheap related sharpen: a "if LLM-powered, also check faithfulness/relevancy/
       tool-correctness" line in code-reviewer. Its own batch, not a rushed pre-push add.
+- [ ] OPT-IN LOOP AUTOMATION (recorded 2026-07-20, from the loop-engineering wave;
+      Cherny/Steinberger "write loops, not prompts"). TWO host-neutral CONCEPTS,
+      never host commands:
+      (a) OPT-IN SCHEDULING (a time trigger) for recurring NON-CONSEQUENTIAL loops
+          (product-signal / outcome / knowledge-refresh; read-only gather -> draft):
+          run on a schedule, leave a draft for review. This is the genuinely NEW
+          bit (we deferred cron).
+      (b) GOAL SEMANTICS (an outcome trigger: run until a verifier signals done or
+          blocked, capped) for iterate loops (build / optimize / review). We ALREADY
+          have this natively ("every loop has a verifier + stop condition"); not new,
+          just named.
+      PORTABILITY (Ivan's catch, load-bearing): do NOT hardcode a host command.
+      routines + `/goal` (Claude Code), automations (Codex), etc. are the per-host
+      MECHANISMS the concept maps to AT PORT TIME, same rule as vendor=runtime-
+      detection and the tier map "extended per host". Where a host has no
+      scheduler/goal primitive, the loop FALLS BACK to our default (nudge +
+      human-run), which works everywhere. `/goal` is a convenience on the one host
+      that has it; the capability never depends on it.
+      HARD LINE: opt-in / off by default (no silent scheduling stays the rule); the
+      human holds EVERY consequential gate (merge, ship/deploy, send-out, system
+      change). Aligned with human-in-command, NOT ship-while-you-sleep. Own batch.
+      Bank the "loops, human at the gates" contrast for the README.
 
 ## MOVED TO PRE-LAUNCH by Ivan 2026-07-17 (part of the launch polish batch):
 - [x] /deploy SHIPPED on main (27ce3cd): re-check green -> rollback-ready-first ->
