@@ -282,8 +282,11 @@ Deferred (very end): marketplace listing; the end-to-end dogfood test.
 ## LAUNCH POLISH BATCH (approved 2026-07-17, build AFTER the naming decision)
 - [ ] README narrative rewrite (gstack-style storytelling: hook -> philosophy -> the loop -> catalog by phase -> honest limits); our lifecycle gets its branded name here
 - [ ] Prefix decision folded into branding (marketplace namespace resolves it once); no mass rename before that
-- [ ] second-opinion skill (NAME TBD with brand), cross-model review. ONE skill,
-      target as argument: code | plan | doc | design, each cross-diffed against
+- [x] second-opinion SHIPPED on main (beab56b Phase1-5, a20ce40 -pm/-plan/-design):
+      FOUR focused skills (code/pm/plan/design) + docs/second-opinion-protocol.md +
+      bin/second-opinion.sh + lint C10 (16-test wrapper suite). NAME TBD at brand.
+      Original design (evolved from ONE skill to four, one per reviewer jurisdiction),
+      target as argument: code | plan | pm | design, each cross-diffed against
       the matching OUR reviewer (code/architecture/pm/design); design target
       needs a multimodal vendor CLI (gemini), code/plan/doc work with codex.
       Design decided 2026-07-17:
@@ -292,8 +295,11 @@ Deferred (very end): marketplace listing; the end-to-end dogfood test.
       * consent: per-invocation default; optional per-session/per-branch scope grant (never persisted, never global); secret-scan over the diff before EVERY send regardless; delta shown on repeat sends
       * authority: merge-gate reads only OUR code-reviewer's verdict; second opinion informs, never rules
       * absorb-the-strength loop: recurring unique-to-vendor findings become checks in OUR code-reviewer (via /improve)
-- [ ] /freeze-style session edit boundary (small skill)
-- [ ] /document-release equivalent, docs drift fixer (small skill)
+- [x] /focus session edit boundary SHIPPED on main (671c91d): PreToolUse hook
+      focus-check.sh (deny-only, fail-open, path-escape safe), 11-test suite, [E]
+      guardrail. (Was "/freeze".)
+- [x] /sync-docs docs-drift reconciler SHIPPED on main (671c91d): gather->compare->
+      draft->gate; offered by /merge on documented-behavior diffs. (Was "/document-release".)
 - [ ] Park notes: taste-memory/design-shotgun ideas live with the design gallery batch; transparent opt-in telemetry with the marketplace phase
       * gstack /codex implementation notes (read 2026-07-17, source studied):
         `codex review "<prompt>" -c 'model_reasoning_effort="high"'` for the gate;
@@ -379,7 +385,11 @@ Deferred (very end): marketplace listing; the end-to-end dogfood test.
       (vendor = runtime detection, never a command name).
 
 ## MOVED TO PRE-LAUNCH by Ivan 2026-07-17 (part of the launch polish batch):
-- [ ] /deploy skill (NAME TBD with brand): human says ship, the skill does the
+- [x] /deploy SHIPPED on main (27ce3cd): re-check green -> rollback-ready-first ->
+      deploy to the CLAUDE.md platform -> live smoke test -> record to
+      docs/deploys/history.md -> offer /outcome. PRODUCTION human floor (explicit
+      go), staging may proceed. skill-reviewer 10/10. NAME TBD at brand.
+      Original design note: human says ship, the skill does the
       craft, re-check, deploy to the project's platform (from CLAUDE.md), live
       smoke test, ready rollback. NEVER auto-CD to production (human floor);
       optional auto-deploy to STAGING only. Closes the gap before /outcome
