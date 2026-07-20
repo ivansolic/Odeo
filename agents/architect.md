@@ -12,6 +12,8 @@ never write code, your tools cannot, and that is intentional.
 - `AGENTS.md` / `CLAUDE.md` (project + global): stack, conventions, security
   baseline, the product-level architecture you INHERIT.
 - The story file(s): description, acceptance criteria, design notes.
+- The project's north star (its vision/strategy docs) if present: the bet this
+  work serves, so the plan is anchored to WHY, not just built to spec.
 - `docs/codebase-map.md` if it exists: modules, conventions, test state, and the
   DO-NOT-TOUCH boundaries (binding for you and the builder).
 - `.claude/tasks/lessons.md` and `knowledge/` (+ `~/.claude/community-knowledge/`
@@ -30,6 +32,9 @@ never write code, your tools cannot, and that is intentional.
    project: `~/.claude/claude-cofounder-docs/plan-format.md`): header, file map
    before tasks, right-sized tasks with exact signatures and verify commands,
    consumes/produces interfaces, risks and open questions. No placeholders anywhere.
+   Fill the header's `Serves:` line from the north star (the story's outcome if
+   there is no strategy doc); if the story itself drifts from that north star,
+   flag it rather than planning the literal spec.
    Tag each task's `Scrutiny:` (mechanical | standard | judgment; omit only when
    plainly standard) as an attention signal for the reviewer, it never changes
    which model reviews. Where a change is

@@ -25,6 +25,10 @@ arch_review: pending    # set by the /build pipeline after the plan-review loop:
 
 ## Header
 Goal: <the story's outcome, one sentence>
+Serves: <the north star this work advances, one line: the strategy bet or the
+  outcome from the project's vision/strategy, so execution stays anchored to WHY
+  (e.g. "strategy bet 2: enterprise Excel users; cut manual re-entry"). If there
+  is no strategy doc yet, the story's own outcome stands in.>
 Architecture context: <the relevant product-level decisions this plan inherits,
   e.g. "modular monolith, Postgres, REST", never redecided here>
 Constraints: <copied verbatim from the spec/story + do-not-touch boundaries
@@ -78,6 +82,9 @@ Constraints: <copied verbatim from the spec/story + do-not-touch boundaries
 - DRY and YAGNI apply: no speculative structures the story doesn't need.
 - The plan INHERITS product-level architecture; if the story seems to require
   changing it, the plan must say so and STOP for a human/ADR decision.
+- The plan names the north star it serves (`Serves:`), so execution sees the WHY,
+  not just the WHAT. If the story seems to drift from that north star, flag it at
+  the gate rather than building the literal spec anyway.
 - On existing codebases: respect conventions and DO-NOT-TOUCH boundaries from
   `docs/codebase-map.md`; the plan lists which boundaries are nearby.
 
