@@ -14,10 +14,15 @@ instead of reacting to the loudest recent voice.
   it). It can run in the background while you work, gathering is read-only.
 
 ## Process
-1. **Gather from REAL sources only**: exports/pastes you provide (support
-   tickets, call notes, reviews, analytics) or a connected tool (MCP connector)
-   if configured. A source is missing? Note it and continue with what exists.
-   **Never invent or estimate feedback.**
+1. **Gather from REAL sources only, and pull only what the memo needs.** From
+   exports/pastes you provide, or a connected tool (MCP connector) if configured.
+   Be specific; do not let a connector wander the whole dataset: pull the items
+   in THIS window (since the last memo's date, else the last ~7 days), capped
+   (say the ~100 most recent per source), and only the fields the memo uses, the
+   text, the date, the source, and any severity/frequency signal, not full
+   records or unrelated tables. Sources: support tickets, call notes, reviews,
+   product analytics. A source is missing or empty? Note it and continue with
+   what exists. **Never invent or estimate feedback.**
 2. **Cluster into themes**: recurring pains, requests, confusions, praise. Frame
    as NEEDS ("users can't find X"), not features ("add a button").
    Count frequency; quote 1-2 verbatim examples per theme.
