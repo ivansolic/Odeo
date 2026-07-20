@@ -20,3 +20,16 @@ personal/
 # Memory (Claude Code personal memory): never belongs in the public product repo.
 memory/
 MEMORY.md
+
+# Internal build artifacts: our own war-room, NEVER ship to the public repo.
+# They stay on disk / in the private claude-cofounder-personal repo. The public
+# repo is published as a clean snapshot, so these never enter its history either.
+.claude/tasks/todo.md
+docs/checklists/dogfood-protocol.md
+docs/checklists/dogfood-results.md
+docs/checklists/prototype-dogfood-protocol.md
+docs/checklists/prototype-dogfood-results.md
+docs/checklists/anthropic-practices-pass.md
+docs/checklists/skills-alignment-pass.md
+docs/evals/
+# (docs/checklists/review-calibration.md stays public: it is a shipped method.)
