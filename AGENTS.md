@@ -140,7 +140,9 @@ baseline above) does not exist.
   (each merge is its own decision).
 - [I] The build mode (**with me / for me**) is ASKED on every `/build`, never
   inferred from history, phrasing, or enthusiasm.
-- [I] Ship/deploy: only with your approval.
+- [I] Ship/deploy (`/deploy`): PRODUCTION never auto-triggers (the human floor,
+  like `/merge`); staging may be offered. A ready rollback before the deploy runs
+  and a passing live smoke test after, or it is not "shipped".
 - [I] The task ledger (.claude/tasks/todo.md) records the HUMAN's decisions:
   propose the entry, write only after their OK. (Writes that are the documented
   job of a flow the human just invoked, /critique follow-ups, /build seeding,

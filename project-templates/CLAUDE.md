@@ -35,7 +35,7 @@ _Replace the placeholders with your actual stack. Keep it specific, versions mat
 ### Shared
 - **Package manager:** [e.g. pnpm / npm / uv / go mod]
 - **Monorepo (if used):** [e.g. Nx / Turborepo / none]
-- **Deployment:** [e.g. Vercel / Railway / Fly.io / internal]
+- **Deployment:** [e.g. Vercel / Railway / Fly.io / internal] (read by `/deploy`; add the deploy command if non-obvious)
 - **Env management:** [e.g. `.env` files, never committed]
 
 ## Commands

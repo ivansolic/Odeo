@@ -65,6 +65,7 @@ Build-to-learn:       /prototype -> findings -> promote at the right phase (by s
 |---|---|
 | `/build` | The build entry. **with me** (Mode A): you + Claude, live in your editor. **for me** (Mode B): architect plans -> architecture-reviewer checks -> you approve -> builders execute in worktrees -> reviewers -> your gate. |
 | `/merge` | Rebase onto main, tests, merge PR, cleanup. Serialized; always your approval. |
+| `/deploy` | Ship a merged change to the platform in CLAUDE.md: re-check green, rollback ready, deploy, live smoke test, record it. PRODUCTION is your explicit go; staging may be offered. Makes "shipped" true before /outcome. |
 | `/sync-docs` | Reconcile what the code does against what the docs claim (README/docs/CLAUDE.md), then sync or name the gap, your approval. Offered by /merge when a diff touched documented behavior. |
 | `/research` | Cited market/web research: every claim 2+ independent sources or labeled unverified; TAM/SAM/SOM as ranges with methods. Saves docs/research/RES-NNN. Offered by /discover and /prd; standalone anytime. |
 | `/ci` | Generate `.github/workflows/checks.yml` from the project's own Commands, so every PR runs typecheck/lint/tests/build. Verify only, never deploy. Offered by /setup-project and /merge. |
