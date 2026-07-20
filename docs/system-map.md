@@ -102,7 +102,7 @@ Agents here: `architect` (plans, read-only), `builder` (executes the approved pl
 | `/outcome` | per shipped feature (~1 week after) | Did it actually solve the problem? Real data only; feeds /learn and suggests next steps. |
 | `/knowledge-refresh` | every 2-4 weeks | Audit and prune the knowledge base against current code. |
 | `/product-signal` | weekly | Gather user feedback -> themes -> compare vs last memo -> signal memo. |
-| `/improve` | on repeated eval drops | Improve a skill/rubric/knowledge entry with evidence (A/B test, keep or revert). |
+| `/improve` | on repeated eval drops | Improve a skill/rubric/knowledge entry with evidence (A/B test, keep or revert). Also has a calibrate mode: measure a reviewer against planted-defect scenarios (docs/checklists/review-calibration.md) without changing it. |
 | `/contribute-lesson` | opt-in | Share a sanitized lesson/rubric/eval learning with the community (privacy-scanned, your approval). |
 | `/sync-community` | often | Pull the latest shared community knowledge (read-only). |
 

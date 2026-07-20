@@ -48,6 +48,33 @@ Test: "write a PRD for password reset", 2 subagents on old, 2 on new;
 pm-reviewer scores all four blind. Old avg 7/10 (outcome 1/2), new avg 9/10
 (outcome 2/2), nothing else dropped. Presented; you keep; committed.
 
+## Calibrate mode (measure a reviewer, do not change it)
+The sibling of the A/B loop above: instead of comparing two versions of a skill,
+it MEASURES whether a reviewer still catches what it claims to. It never edits the
+reviewer, it reports a catch rate. It is how you prove a gate still holds after a
+change that cheapened mechanics (per-task Scrutiny, the review budget).
+- **Invoke** by name, e.g. "calibrate the code-reviewer". Human-invoked.
+- **Run** the planted-defect scenarios in `docs/checklists/review-calibration.md`
+  whose `reviewer:` matches the target. For each, dispatch that reviewer on the
+  seed (it reviews the seed as it would any artifact), 5 reps (calibration is
+  discipline-critical; lower it only for a quick smoke check, never for a gate
+  decision). State the run count (scenarios x reps) upfront, these are live
+  reviewer runs and cost model calls.
+- **Score** per scenario: did the reviewer flag the planted defect at or above the
+  scenario's expected severity? Report the catch rate (n of N). A Critical-expected
+  scenario missed in ANY rep is a flagged gap; an Important-expected one is flagged
+  if missed in the majority. Never fabricate a run; if the reviewer cannot be
+  dispatched, say so and stop.
+- **On a gap**, surface it and offer the A/B loop above to propose a check that
+  closes it (the absorption loop for a recurring miss or a vendor-unique class),
+  tested and human-gated like any other change. Calibrate finds the gap; the A/B
+  loop, with your keep, fixes it.
+
+Worked example: "calibrate the code-reviewer" runs the assert-nothing and IDOR
+seeds x5. IDOR caught 5/5 at Critical; the assert-nothing test caught 4/5 at
+Important. Reported; the 1/5 miss is noted and you are offered the A/B loop to
+strengthen the testing-dimension prompt. The reviewer itself is left unchanged.
+
 ## Scope
 - LOCAL: this project's knowledge, rubrics, local skill copies, applies after
   your keep.

@@ -83,7 +83,7 @@ Each scenario is one record:
    reviewer, fix the agent (or the rubric), then re-run, per the review loop.
 
 ## Boundary (honest)
-This doc is the FORMAT plus seed scenarios. Automating the run/score loop (seed
--> dispatch -> assert on the verdict, over N reps) folds into `/improve` calibrate
-mode (a pre-launch polish item). Until that ships, these run by hand.
+This doc is the FORMAT plus seed scenarios. The run/score loop (seed -> dispatch
+-> assert on the verdict, over N reps) is automated by `/improve` calibrate mode
+("calibrate the code-reviewer"); you can also run any scenario by hand.
 Extend the seed set whenever a real miss is observed in dogfood.
