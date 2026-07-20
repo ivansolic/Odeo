@@ -383,6 +383,18 @@ Deferred (very end): marketplace listing; the end-to-end dogfood test.
       (Codex, Cursor, ...), requires translating skill/agent formats per host;
       design consequence already locked: second-opinion is host-symmetric
       (vendor = runtime detection, never a command name).
+- [ ] LLM-APP EVALS (recorded 2026-07-20, from the deepeval look): a NEW capability
+      for USERS building LLM-powered products (chatbot/RAG/agent). Gap today: our
+      eval framework judges PRDs/code/UI/skills, nothing tests the user's MODEL
+      behavior, so hallucination + prompt drift ship silently. Shape: when the
+      project is an LLM app (anthropic/openai SDK present), offer to scaffold
+      LLM-output evals (faithfulness, answer-relevancy, task-completion, safety) +
+      a seed dataset, wired into /ci; deepeval as a RECOMMENDED option, framed
+      tool-agnostically (like deploy platforms), never hardcoded. Do NOT adopt
+      deepeval for OUR OWN evals (we already have the native equivalent: reviewers
+      = judges, rubrics = criteria, calibrate = threshold tests, gates = CI).
+      Cheap related sharpen: a "if LLM-powered, also check faithfulness/relevancy/
+      tool-correctness" line in code-reviewer. Its own batch, not a rushed pre-push add.
 
 ## MOVED TO PRE-LAUNCH by Ivan 2026-07-17 (part of the launch polish batch):
 - [x] /deploy SHIPPED on main (27ce3cd): re-check green -> rollback-ready-first ->
