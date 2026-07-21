@@ -36,7 +36,10 @@ Success metrics (targets):
 - **Consistency:** 100% of newly generated user-facing prose in a project follows the
   effective setting (spot-check on a sample of generated artifacts).
 - **Zero mechanics leakage:** 0 cases of non-English text in machine-read fields,
-  filenames, identifiers, branches, or commit types (enforced by gates/lint + a test).
+  filenames, identifiers, branches, or commit types (enforced deterministically, see R6).
+- **Adoption / value (the real signal):** among users offered the choice in a target
+  locale, the share who set AND keep a non-English language, plus self-reported drop in
+  re-translation friction. Target set after the pilot. Compliance alone is not value.
 
 ## 3. Context
 - **Evidence (see `RES-001`):** most developers work outside English-first regions (~60%
@@ -62,10 +65,15 @@ Success metrics (targets):
   report low-quality or inconsistent generated prose.
 - **H3:** keeping every machine-read field English fully protects gates/lint. Wrong if a
   gate or lint check fails on a non-English project despite English fields.
+- **H4 (riskiest):** users in the target locales (DE/HR/FR) will actually set and keep a
+  non-English language rather than defaulting to English. Wrong if the set-and-keep rate is
+  low in the pilot (see Risks).
 
 ## 5. Scope
 **In (v1):**
-- A single setting `output_language` (e.g. `en`, `hr`), default `en`.
+- A single setting `output_language`. **v1 selectable set: English (default), German
+  (`de`), Croatian (`hr`), French (`fr`).** Further languages are deferred until the pilot
+  validates prose quality on these four.
 - **Global default:** set once at plugin install / first run; applies to all the user's
   projects.
 - **Per-project override:** one line in the project's CLAUDE.md. Precedence:
@@ -94,10 +102,26 @@ Success metrics (targets):
 - **R4 , public Odeo repo stays English (MUST).** Its per-project override resolves to
   `en` regardless of any global setting. AC: generating an artifact in the Odeo repo yields
   English even when the global default is another language.
-- **R5 , setup prompt.** One question at setup, default English, skippable; editable later
-  via the CLAUDE.md line. AC: a fresh setup asks once; skipping yields English.
-- **R6 , gate/lint integrity.** AC: a test creates a project with a non-English setting and
-  non-English prose and confirms merge-gate, spec-gate, and skills-lint still pass.
+- **R5 , language UX (set + change).** (a) A one-time GLOBAL prompt at plugin install /
+  first run sets the global default (default English, skippable). (b) A per-project prompt at
+  `setup-project` sets the project override. (c) A change-anytime command/setting (e.g.
+  `/language`) updates the effective language at the chosen scope without hand-editing files,
+  and shows the current value. AC: install asks once and is not re-asked per project; setup
+  asks once per project; `/language de` changes the effective language and the next generated
+  artifact reflects it; skipping anywhere yields the inherited/default value.
+- **R6 , no-leak guardrail (`[E]` enforced).** A deterministic check (`language-guard.sh`
+  or a `skills-lint` invariant; exit 1 on violation) asserts that the R3 machine-read
+  surfaces stay English/ASCII/allowlisted regardless of prose language: frontmatter field
+  names + enum values, filenames (PRD-NNN slug), branch names, conventional-commit
+  type+scope, identifiers. AC: with a non-English setting and non-English prose present, the
+  check passes when mechanics are clean and FAILS (exit 1) on any non-allowlisted token in a
+  machine surface; merge-gate/spec-gate/skills-lint stay green.
+- **R7 , prose-language check (`[I]` + soft).** Skills/agents are instructed to write
+  user-facing prose in the effective language; a best-effort language-detection check WARNS
+  (never hard-fails) when generated prose does not match the setting. Not a guarantee (LLM
+  output; mixed technical terms are legitimate); human review is the quality backstop. AC:
+  under a German setting a generated PRD body is German; an English body under a German
+  setting raises a warning.
 
 ## 7. Risks & dependencies
 - **Feasibility/integrity (highest risk):** prose language leaks into machine-read fields
@@ -107,8 +131,11 @@ Success metrics (targets):
   with a clear default; document in the guide.
 - **Quality (H2):** generated prose quality varies by language. Mitigation: rely on strong
   models; gather feedback post-launch.
-- **Value:** few users truly need non-English. Mitigation: cheap to ship; default English
-  means zero cost to English users.
+- **Value (riskiest assumption, H4):** non-English users may PREFER English for technical
+  work and never switch, leaving the feature unused. Early signal: low set-and-keep rate.
+  Cheapest test now: a willingness check with ~5 DACH/German PMs before the full build
+  (German business/PM docs are culturally expected there, the strongest willingness case).
+  Mitigation: cheap to ship; default English means zero cost to English users.
 - **Security pre-mortem: N/A** , the feature touches no auth, PII, payments, uploads, or
   private data; it is a language preference. Criterion rescaled to /8. (The integrity risk
   above is the real hazard and is treated as feasibility.)
