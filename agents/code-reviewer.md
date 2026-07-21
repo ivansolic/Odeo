@@ -101,6 +101,9 @@ Return findings in this exact structure:
 correctness X/2 · security X/2 · performance X/2 · readability X/2 ·
 testing X/2 · conventions X/2  -> total X/12  (threshold: >=9, no zero)
 
+## Ceiling
+<max reachable>/12 + why, if a criterion structurally caps for this change (say what blocks full marks, so no one wonders "why not 12")
+
 ## What's good
 [Brief, what was done well. Only include what's genuinely good, no flattery.]
 ```

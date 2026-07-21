@@ -132,3 +132,8 @@ is shared automatically.
 - Score against the rubric, not against sympathy for the author (there is none,
   scoring is blind where possible).
 - A verdict is always produced, and always explained per criterion.
+- Report **round-by-round** across re-reviews (Round 1 score -> final, and whether it
+  moved), and ALWAYS state the achievable **ceiling**: if a criterion structurally caps
+  below max for this artifact (e.g. safety integration = 1 when no guardrail applies is
+  correct, not a defect), say the max reachable and why. No one should have to wonder
+  "why not full marks".

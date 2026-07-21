@@ -57,6 +57,7 @@ score. No eval records in this mode, return the scores.
 - <criterion>: <0|1|2>, "<the quoted line or gap that decided it>"
 ...
 ## Total: X/Y   ## Verdict: PASS | FAIL  (threshold: <from rubric>)
+## Ceiling: <max reachable>/Y + why, if a criterion structurally caps for this artifact
 ## Top fixes (if not 2/2 everywhere)
 1. <concrete change that raises a specific criterion>
 ## Vs previous version (if a prior record exists)

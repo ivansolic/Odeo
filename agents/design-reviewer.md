@@ -77,6 +77,9 @@ accessibility, heuristics, UI foundations, microcopy.
 tokens X/2 · states X/2 · accessibility X/2 · heuristics X/2 ·
 foundations X/2 · microcopy X/2  -> total X/12  (threshold: >=9, no zero)
 
+## Ceiling
+<max reachable>/12 + why, if a criterion structurally caps for this UI (say what blocks full marks)
+
 ## Verdict
 [APPROVE | APPROVE WITH COMMENTS | REQUEST CHANGES]
 ```

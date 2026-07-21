@@ -46,6 +46,7 @@ code (code-reviewer), agents' runtime behavior (/improve).
 - precision: <0|1|2>, "<quote/gap>"
 - safety integration: <0|1|2>, "<quote/gap>"
 ## Total: X/10   ## Verdict: PASS | FAIL (threshold 8/10, no zero)
+## Ceiling: <max reachable>/10 + why, if a criterion structurally caps (e.g. safety integration = 1 when no guardrail applies is correct, not a defect)
 ## Top fixes
 1. <concrete edit>
 ## Vs previous version (if prior record exists)
