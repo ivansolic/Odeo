@@ -320,7 +320,9 @@ if [ "${#PATHS[@]}" -eq 0 ] && [ -z "$branch_arg" ] && [ -z "$commit_arg" ]; the
 fi
 
 # Validate that every path argument exists.
-for p in "${PATHS[@]}"; do
+# The "${PATHS[@]+...}" form keeps this safe under `set -u` on bash 3.2 (macOS)
+# when PATHS is empty, e.g. a branch/commit-only invocation with no path.
+for p in "${PATHS[@]+"${PATHS[@]}"}"; do
   if [ ! -e "$p" ]; then
     echo "language-guard: path not found: $p" >&2
     exit 2
@@ -338,8 +340,8 @@ fail=0
 [ -n "$branch_arg" ] && check_branch "$branch_arg"
 [ -n "$commit_arg" ] && check_commit "$commit_arg"
 
-# Check each path.
-for p in "${PATHS[@]}"; do
+# Check each path. Safe under `set -u` on bash 3.2 when PATHS is empty.
+for p in "${PATHS[@]+"${PATHS[@]}"}"; do
   if [ -d "$p" ]; then
     check_directory "$p"
   else

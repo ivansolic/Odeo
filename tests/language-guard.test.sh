@@ -301,4 +301,16 @@ for l in $UTF8_LOCALES; do
     --commit "feat(Auth): x" "$TMP/docs/prds/PRD-001-demo.md"
 done
 
+# Case 19: branch/commit-only invocation (NO path) must run, not crash under set -u.
+out="$(bash "$SCRIPT" --branch feature/ok 2>&1)"; rc=$?
+assert_exit "branch-only, clean, passes" 0 "$rc"
+out="$(bash "$SCRIPT" --commit "feat(auth): x" 2>&1)"; rc=$?
+assert_exit "commit-only, clean, passes" 0 "$rc"
+out="$(bash "$SCRIPT" --branch "feature/prijavā" 2>&1)"; rc=$?
+assert_exit "branch-only, bad, fails" 1 "$rc"
+assert_contains "branch-only bad: surface 'branch'" "branch" "$out"
+out="$(bash "$SCRIPT" --commit "feat(Auth): x" 2>&1)"; rc=$?
+assert_exit "commit-only, bad scope, fails" 1 "$rc"
+assert_contains "commit-only bad: surface 'scope'" "scope" "$out"
+
 exit $fail
