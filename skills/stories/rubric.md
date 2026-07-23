@@ -35,3 +35,7 @@ Notes for the scorer:
 - Quote the criterion or story line behind every score.
 - A beautiful story set for the wrong feature still passes here, feature choice
   is `/prioritize` and `/critique` territory, not this rubric.
+- **Coverage is a precondition, not a graded criterion.** Before scoring a set that
+  decomposes a PRD, confirm every PRD requirement maps to at least one story (a
+  traceability map); an uncovered requirement blocks the set regardless of score. Kept
+  out of the score so the N/A rescale stays clean.

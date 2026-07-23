@@ -1,5 +1,5 @@
 ---
-description: Break a PRD into small, independent, testable user stories with observable acceptance criteria, ordered by dependency. Use after a PRD is critiqued and you're ready to hand work to the build, or standalone on any product (a PRD from elsewhere, a company feature) . Produces stories in docs/stories/. Based on INVEST and the 3 C's.
+description: Break a PRD into small, independent, testable user stories with observable acceptance criteria, ordered by dependency. Use after a PRD is critiqued and you're ready to hand work to the build, or standalone on any product (a PRD from elsewhere, a company feature). Produces stories in docs/stories/. Based on INVEST and the 3 C's.
 disable-model-invocation: true
 ---
 
@@ -40,6 +40,35 @@ and the INVEST checklist.
 files in their editor (`code -r <files>`, fallback `cursor -r`; neither -> give
 the paths). Mention Cmd+Shift+V once for the formatted view. "Stop opening
 files" stops it for the session.
+
+## Worked example
+PRD-014 (saved searches) has requirements R1 (save a search), R2 (rerun one), R3 (delete
+one). One story from that set:
+
+> **USR-021 , Save a search** , `prd: PRD-014` · `covers: R1` · order 1 · ~1 day
+>
+> **Card:** As a shopper, I want to save my current search filters under a name, so that I
+> can find the same results later without rebuilding them.
+>
+> **Acceptance criteria**
+> - Saving with a name shows the saved search in the "Saved" list immediately.
+> - Saving with an empty name is blocked, with the reason shown inline beside the field.
+> - Saving a name that already exists is blocked, with an inline "name already used" message.
+> - A saved search stores the filters, not the results.
+>
+> Traceability: `R1 -> USR-021`.
+
+## PRD coverage (traceability, a precondition)
+When the set decomposes a PRD, before the quality gate, build a **traceability map**: every
+PRD requirement (R1, R2, ...) maps to at least one story. Show it (`Rn -> USR-NNN`). A
+requirement with no covering story is a **coverage gap** that blocks `/build`, close it by
+adding or splitting a story. Coverage is separate from the rubric (which grades how WELL the
+stories are written); a set can score 8/8 and still fail coverage.
+
+Make it deterministic: each story declares a `covers:` frontmatter field listing the
+requirement IDs it satisfies (e.g. `covers: R1 R5`), and `bin/coverage-check.sh <prd-file>
+docs/stories` verifies every requirement is covered, exit 1 on any gap. That is the `[E]`
+enforced backstop for the map above.
 
 ## Quality gate (before handing to /build)
 Score the story set with the **`pm-reviewer`** agent against
