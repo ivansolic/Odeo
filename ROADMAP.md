@@ -27,6 +27,15 @@ welcome, open an issue.
 
 ## Later / exploring
 
+- **Output language option**: choose the language the system writes human-facing
+  prose in (English default, plus German, Croatian, French), global default +
+  per-project override, while code and all machine-read surfaces stay English.
+  (Specified: PRD + stories; build in progress.)
+- **Skill evolution from lessons**: (1) a curated pipeline where community lessons
+  and rubric improvements feed `/improve` into shipped skills; (2) an opt-in
+  community *skills* repo with `skill-reviewer` scoring, privacy scan, provenance,
+  and isolation before anything installs. Deliberately human-gated, no
+  self-rewriting skills. (Next feature after output language.)
 - Central learning beyond git: a curated, maintained community knowledge base that
   ships improvements back to everyone on update. (Backend deferred until there is
   real contribution volume; git PRs are the bootstrap.)

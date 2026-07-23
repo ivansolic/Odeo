@@ -32,5 +32,11 @@ docs/checklists/prototype-dogfood-protocol.md
 docs/checklists/prototype-dogfood-results.md
 docs/checklists/anthropic-practices-pass.md
 docs/checklists/skills-alignment-pass.md
-docs/evals/
 # (docs/checklists/review-calibration.md stays public: it is a shipped method.)
+#
+# NOTE: docs/evals/ is intentionally NOT gitignored. Eval records are the gate's
+# source of truth (spec-gate / merge-gate read COMMITTED records) and the basis of
+# compounding (regression baselines, /improve calibration), so they must be
+# committed. They are kept out of the PUBLIC repo by the clean-snapshot-at-publish
+# step + an enforced pre-push guard (see the internal-path denylist), NOT by
+# gitignore.
