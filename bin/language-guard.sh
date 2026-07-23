@@ -50,6 +50,14 @@ is_ascii() {
   return 0
 }
 
+# matches_ascii_pattern TOKEN PATTERN
+# Returns 0 (true) if TOKEN fully matches the ERE PATTERN under LC_ALL=C,
+# so character ranges like [a-z] are interpreted as ASCII-only regardless of
+# the runner's locale (which may cause [a-z] to collate beyond ASCII letters).
+matches_ascii_pattern() {
+  printf '%s' "$1" | LC_ALL=C grep -qE "^($2)$"
+}
+
 # viol FILE SURFACE REASON
 # Records a violation: prints the message to stderr and sets fail=1.
 viol() {
@@ -100,11 +108,12 @@ check_frontmatter() {
       viol "$path" "frontmatter field name" "non-ASCII key: $key"
       continue
     fi
-    case "$key" in
-      *[!a-z0-9_-]*)
-        viol "$path" "frontmatter field name" "invalid key: $key"
-        continue ;;
-    esac
+    # Use matches_ascii_pattern so [a-z0-9_-] is evaluated under LC_ALL=C,
+    # preventing UTF-8 locale collation from admitting uppercase characters.
+    if ! matches_ascii_pattern "$key" "[a-z0-9_-]+"; then
+      viol "$path" "frontmatter field name" "invalid key: $key"
+      continue
+    fi
 
     # For the model_tier enum field, check the value against the closed list.
     if [ "$key" = "model_tier" ]; then
@@ -143,11 +152,12 @@ check_filename() {
     viol "$path" "filename" "non-ASCII characters in filename: $base"
     return
   fi
-  case "$base" in
-    *[!A-Za-z0-9._-]*)
-      viol "$path" "filename" "invalid characters in filename: $base"
-      return ;;
-  esac
+  # Use matches_ascii_pattern so [A-Za-z0-9._-] is evaluated under LC_ALL=C,
+  # preventing UTF-8 locale collation from widening the matched character set.
+  if ! matches_ascii_pattern "$base" "[A-Za-z0-9._-]+"; then
+    viol "$path" "filename" "invalid characters in filename: $base"
+    return
+  fi
 
   # Strip the final extension to get the stem.
   local stem="${base%.*}"
@@ -182,11 +192,11 @@ check_filename() {
   esac
 
   # The remaining tail must match ^[a-z0-9-]+$.
-  case "$tail" in
-    *[!a-z0-9-]*)
-      viol "$path" "filename" "slug tail has invalid characters ('$tail' in '$base')"
-      ;;
-  esac
+  # Use matches_ascii_pattern so [a-z0-9-] is evaluated under LC_ALL=C,
+  # preventing UTF-8 locale collation from admitting uppercase characters.
+  if ! matches_ascii_pattern "$tail" "[a-z0-9-]+"; then
+    viol "$path" "filename" "slug tail has invalid characters ('$tail' in '$base')"
+  fi
 }
 
 # check_directory PATH
@@ -200,10 +210,11 @@ check_directory() {
     viol "$path" "directory name" "non-ASCII characters: $name"
     return
   fi
-  case "$name" in
-    *[!a-z0-9._-]*)
-      viol "$path" "directory name" "invalid characters: $name" ;;
-  esac
+  # Use matches_ascii_pattern so [a-z0-9._-] is evaluated under LC_ALL=C,
+  # preventing UTF-8 locale collation from admitting uppercase characters.
+  if ! matches_ascii_pattern "$name" "[a-z0-9._-]+"; then
+    viol "$path" "directory name" "invalid characters: $name"
+  fi
 }
 
 # check_branch NAME
@@ -214,10 +225,11 @@ check_branch() {
     viol "--branch" "git branch name" "non-ASCII characters: $name"
     return
   fi
-  case "$name" in
-    *[!a-zA-Z0-9._/-]*)
-      viol "--branch" "git branch name" "invalid characters: $name" ;;
-  esac
+  # Use matches_ascii_pattern so [a-zA-Z0-9._/-] is evaluated under LC_ALL=C,
+  # preventing UTF-8 locale collation from widening the matched character set.
+  if ! matches_ascii_pattern "$name" "[a-zA-Z0-9._/-]+"; then
+    viol "--branch" "git branch name" "invalid characters: $name"
+  fi
 }
 
 # check_commit MESSAGE
@@ -270,10 +282,11 @@ check_commit() {
       viol "--commit" "conventional-commit scope" "non-ASCII scope: $cscope"
       return
     fi
-    case "$cscope" in
-      *[!a-z0-9-]*)
-        viol "--commit" "conventional-commit scope" "invalid scope '$cscope'" ;;
-    esac
+    # Use matches_ascii_pattern so [a-z0-9-] is evaluated under LC_ALL=C,
+    # preventing UTF-8 locale collation from admitting uppercase characters.
+    if ! matches_ascii_pattern "$cscope" "[a-z0-9-]+"; then
+      viol "--commit" "conventional-commit scope" "invalid scope '$cscope'"
+    fi
   fi
 }
 
@@ -321,6 +334,7 @@ done
 fail=0
 
 # Check branch and commit tokens if provided.
+# Empty --branch "" or --commit "" is treated as not-provided and skipped.
 [ -n "$branch_arg" ] && check_branch "$branch_arg"
 [ -n "$commit_arg" ] && check_commit "$commit_arg"
 

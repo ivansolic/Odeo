@@ -212,4 +212,93 @@ out="$(bash "$SCRIPT" --commit "chore(deps): x" \
   "$TMP/docs/prds/PRD-001-demo.md" 2>&1)"; rc=$?
 assert_exit "commit with ASCII scope passes" 0 "$rc"
 
+# ---------------------------------------------------------------------------
+# Locale-safety tests (Cases 15-18): uppercase-only ASCII must be rejected
+# regardless of the runner's locale. These pin the fix for the locale bug:
+# case patterns like *[!a-z0-9_-]* are locale-sensitive and fail open under a
+# UTF-8 locale (e.g. en_US.UTF-8 makes [a-z] collate to include uppercase).
+#
+# Each case runs BOTH under the default environment AND under en_US.UTF-8 (and
+# de_AT.UTF-8 if available) to catch a regression regardless of CI locale.
+# ---------------------------------------------------------------------------
+
+# Helper: run the guard under a specific locale and assert exit code + substring.
+assert_locale() {
+  # desc locale expected_exit expected_substr command_args...
+  local desc="$1" test_locale="$2" want_exit="$3" want_substr="$4"
+  shift 4
+  local out rc
+  out="$(LC_ALL="$test_locale" bash "$SCRIPT" "$@" 2>&1)"; rc=$?
+  assert_exit "$desc [locale=$test_locale]" "$want_exit" "$rc"
+  assert_contains "$desc: surface '$want_substr' present [locale=$test_locale]" "$want_substr" "$out"
+}
+
+# Collect the UTF-8 locales we want to exercise (skip any not installed).
+# Capture all locales first to avoid a broken-pipe from locale -a under pipefail
+# (grep -q exits early after a match, causing locale -a to get SIGPIPE, which
+# makes the pipe exit non-zero and trips set -o pipefail).
+UTF8_LOCALES=""
+all_locales="$(locale -a 2>/dev/null)"
+for l in en_US.UTF-8 de_AT.UTF-8; do
+  if printf "%s\n" "$all_locales" | grep -qxF "$l" 2>/dev/null; then
+    UTF8_LOCALES="$UTF8_LOCALES $l"
+  fi
+done
+
+# Case 15: Frontmatter key with bare uppercase ASCII (Id:) must fail.
+# A regression would show as the key passing under a UTF-8 locale.
+cat > "$TMP/docs/prds/PRD-003-locale-key.md" <<'MD'
+---
+Id: x
+status: draft
+---
+MD
+out="$(bash "$SCRIPT" "$TMP/docs/prds/PRD-003-locale-key.md" 2>&1)"; rc=$?
+assert_exit "uppercase frontmatter key (Id:) fails (default locale)" 1 "$rc"
+assert_contains "uppercase key: surface 'field name'" "field name" "$out"
+
+for l in $UTF8_LOCALES; do
+  assert_locale "uppercase frontmatter key (Id:) fails" "$l" 1 "field name" \
+    "$TMP/docs/prds/PRD-003-locale-key.md"
+done
+
+# Case 16: Filename slug tail with bare uppercase ASCII (BadName) must fail.
+# PRD-002-BadName.md: after stripping the PRD-002- prefix, tail is "BadName".
+cat > "$TMP/docs/prds/PRD-002-BadName.md" <<'MD'
+---
+id: PRD-002
+status: draft
+---
+MD
+out="$(bash "$SCRIPT" "$TMP/docs/prds/PRD-002-BadName.md" 2>&1)"; rc=$?
+assert_exit "uppercase slug tail (BadName) fails (default locale)" 1 "$rc"
+assert_contains "uppercase slug: surface 'filename'" "filename" "$out"
+
+for l in $UTF8_LOCALES; do
+  assert_locale "uppercase slug tail (BadName) fails" "$l" 1 "filename" \
+    "$TMP/docs/prds/PRD-002-BadName.md"
+done
+
+# Case 17: Directory with bare uppercase ASCII name (BadDir) must fail.
+LOCALE_BADDIR="$TMP/BadDir"
+mkdir -p "$LOCALE_BADDIR"
+out="$(bash "$SCRIPT" "$LOCALE_BADDIR" 2>&1)"; rc=$?
+assert_exit "uppercase directory name (BadDir) fails (default locale)" 1 "$rc"
+assert_contains "uppercase dir: surface 'directory'" "directory" "$out"
+
+for l in $UTF8_LOCALES; do
+  assert_locale "uppercase directory name (BadDir) fails" "$l" 1 "directory" \
+    "$LOCALE_BADDIR"
+done
+
+# Case 18: Commit scope with bare uppercase ASCII (Auth) must fail.
+out="$(bash "$SCRIPT" --commit "feat(Auth): x" "$TMP/docs/prds/PRD-001-demo.md" 2>&1)"; rc=$?
+assert_exit "uppercase commit scope (Auth) fails (default locale)" 1 "$rc"
+assert_contains "uppercase scope: surface 'scope'" "scope" "$out"
+
+for l in $UTF8_LOCALES; do
+  assert_locale "uppercase commit scope (Auth) fails" "$l" 1 "scope" \
+    --commit "feat(Auth): x" "$TMP/docs/prds/PRD-001-demo.md"
+done
+
 exit $fail
