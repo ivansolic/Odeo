@@ -3,7 +3,8 @@ id: USR-002
 title: Choose output language at setup
 prd: PRD-001
 order: 2
-depends_on: none (pairs with USR-001 as the safety net before USR-003)
+depends_on: none (pairs with USR-001 as the safety net before USR-005)
+covers: R1 R5
 ---
 
 # USR-002: Choose output language at setup

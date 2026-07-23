@@ -4,6 +4,7 @@ title: Generate prose in the chosen language (mechanics stay English)
 prd: PRD-001
 order: 5
 depends_on: USR-002 (the setting), USR-001 (guard in place first)
+covers: R2 R3 R4
 ---
 
 # USR-005: Generate prose in the chosen language

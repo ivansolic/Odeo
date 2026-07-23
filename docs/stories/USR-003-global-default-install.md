@@ -4,6 +4,7 @@ title: Set a global default language at plugin install
 prd: PRD-001
 order: 3
 depends_on: USR-002 (resolution + storage model)
+covers: R5
 ---
 
 # USR-003: Set a global default language at plugin install

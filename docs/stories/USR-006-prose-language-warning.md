@@ -4,6 +4,7 @@ title: Warn on prose-language mismatch
 prd: PRD-001
 order: 6
 depends_on: USR-002, USR-005
+covers: R7
 ---
 
 # USR-006: Warn on prose-language mismatch

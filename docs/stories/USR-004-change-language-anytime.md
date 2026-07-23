@@ -4,6 +4,7 @@ title: Change output language at any time
 prd: PRD-001
 order: 4
 depends_on: USR-002, USR-003
+covers: R5
 ---
 
 # USR-004: Change output language at any time

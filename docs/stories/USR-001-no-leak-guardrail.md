@@ -4,6 +4,7 @@ title: No-leak guardrail for machine surfaces
 prd: PRD-001
 order: 1
 depends_on: none
+covers: R3 R6
 ---
 
 # USR-001: No-leak guardrail for machine surfaces
