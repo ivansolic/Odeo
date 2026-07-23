@@ -3,6 +3,12 @@
 # A story/PRD may enter the build only with a FRESH, PASSING eval record that
 # covers it. Run: bash tests/spec-gate.test.sh
 set -uo pipefail
+# Fake, throwaway git identity for the temp repos these tests build. Not a real
+# address (example.com is reserved, RFC 2606); never committed to a real repo or
+# pushed. Makes fixture commits work regardless of the runner's git config (CI has
+# none), so a missing ambient identity cannot masquerade as a gate failure.
+export GIT_AUTHOR_NAME=test GIT_AUTHOR_EMAIL=test@example.com
+export GIT_COMMITTER_NAME=test GIT_COMMITTER_EMAIL=test@example.com
 TEST_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 GATE="$TEST_DIR/../bin/spec-gate.sh"
 pass=0; fail=0
