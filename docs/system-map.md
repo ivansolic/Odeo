@@ -125,7 +125,15 @@ Recurring loops are reminded via nudges (max one, easy to decline); you always r
 | `pm-reviewer` | PM documents vs rubrics; eval records; blind scoring in A/B tests. |
 | `skill-reviewer` | Skill files vs the authoring standard. |
 | `codebase-analyst` | Maps an existing codebase (read-only). |
-Plus deterministic scorers (tests, `privacy-scan.sh`) and the human as the final gate.
+Plus deterministic scorers (tests, `privacy-scan.sh`, and the gates below) and the human as the final gate.
+
+## Deterministic gates (in `bin/`, run directly; exit 0 = clean, exit 1 = violation, exit 2 = usage error)
+| Script | What it does |
+|---|---|
+| `coverage-check.sh` | PRD requirement coverage: every R<n> in a PRD must be claimed by a story `covers:` field. Standalone, invoked by `/build`. |
+| `spec-gate.sh` | Spec entry gate: artifact must be committed, covered by a passing eval record newer than the last commit, and reviewed on the strong tier. Invoked by `/build`. |
+| `merge-gate.sh` | Merge entry gate: not on main, clean working tree, a review record exists for the branch, boundary check passes. Invoked by `/merge`. |
+| `language-guard.sh` | No-leak gate for machine surfaces: checks that frontmatter field names and enum values, filenames, directory names, branch names, and commit type/scope are ASCII and allowlist-conforming, so enabling a non-English output language cannot corrupt project mechanics. Standalone, explicitly invoked; exit 0/1/2. |
 
 ## Utility scripts (in `bin/`, run directly)
 | Script | What it does |
