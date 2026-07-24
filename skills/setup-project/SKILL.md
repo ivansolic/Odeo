@@ -154,6 +154,15 @@ it off with one answer). When yes, it also turns on teaching comments in built
 code: comments explain intent and connections, and are updated with the code
 they describe.
 
+**I2. Output language for generated docs**
+> "Which language should I WRITE your documents in, PRDs, user stories,
+>  plans, review write-ups? Code, comments, filenames, and commit messages
+>  always stay English. English (default), German, Croatian, or French?"
+Record it in the CLAUDE.md Conventions section as the single canonical line
+`output_language: <code>` where <code> is one of en|de|hr|fr (default en if
+skipped). Same line `bin/init-project.sh` writes at scaffold time;
+re-running setup updates it. Do not add a change-anytime command here.
+
 **J. Security & Data** (do not skip, fills the Security & Data section):
 First tell the user:
 
