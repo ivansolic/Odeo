@@ -17,12 +17,19 @@ set -euo pipefail
 TEMPLATES_DIR="${CLAUDE_TEMPLATES_DIR:-$HOME/.claude-templates}"
 HAS_UI=""          # empty = ask; true/false = set explicitly by a flag
 PROJECT_NAME=""
-for arg in "$@"; do
-  case "$arg" in
-    --no-ui|--no-design) HAS_UI=false ;;
-    --ui) HAS_UI=true ;;
-    -*) echo "Unknown option: $arg"; exit 1 ;;
-    *) [[ -z "$PROJECT_NAME" ]] && PROJECT_NAME="$arg" ;;
+LANGUAGE=""        # empty = ask interactively or use the en default
+
+# The while/case/shift form is required to consume the value token of a
+# two-token flag like --language <code>. A for-arg loop cannot do that because
+# it has no mechanism to advance past the value to the next argument.
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --no-ui|--no-design) HAS_UI=false; shift ;;
+    --ui)       HAS_UI=true; shift ;;
+    --language) [ "$#" -ge 2 ] || { echo "--language needs a value (en|de|hr|fr)" >&2; exit 1; }
+                LANGUAGE="$2"; shift 2 ;;
+    -*)         echo "Unknown option: $1" >&2; exit 1 ;;
+    *)          [[ -z "$PROJECT_NAME" ]] && PROJECT_NAME="$1"; shift ;;
   esac
 done
 
@@ -71,6 +78,15 @@ if [[ ${#MISSING[@]} -gt 0 ]]; then
   exit 1
 fi
 
+# Validate any explicitly provided language code before touching the filesystem.
+# An invalid explicit flag is a programmer error; fail fast before any mkdir.
+if [[ -n "$LANGUAGE" ]]; then
+  case "$LANGUAGE" in
+    en|de|hr|fr) ;;
+    *) echo "Unknown language: $LANGUAGE (allowed: en de hr fr)" >&2; exit 1 ;;
+  esac
+fi
+
 # Resolve whether this project has a UI (controls the design layer)
 if [[ -z "$HAS_UI" ]]; then
   if [[ -t 0 ]]; then
@@ -78,6 +94,26 @@ if [[ -z "$HAS_UI" ]]; then
     case "$_ans" in [Nn]*) HAS_UI=false ;; *) HAS_UI=true ;; esac
   else
     HAS_UI=true   # non-interactive default: include the design layer
+  fi
+fi
+
+# Resolve the output language. A flag value was already validated above.
+# In interactive mode, ask once with a short menu (Enter skips to English).
+# In non-interactive mode, the safe default is English.
+if [[ -z "$LANGUAGE" ]]; then
+  if [[ -t 0 ]]; then
+    echo ""
+    echo "  Output language for generated docs (PRDs, stories, plans, reviews)."
+    echo "  Code and mechanics always stay English."
+    read -r -p "  Language? [E]nglish (default) / [d]e German / [h]r Croatian / [f]r French: " _lang_ans || _lang_ans=""
+    case "$_lang_ans" in
+      [Dd]*) LANGUAGE=de ;;
+      [Hh]*) LANGUAGE=hr ;;
+      [Ff]*) LANGUAGE=fr ;;
+      *)     LANGUAGE=en ;;   # Enter/skip/English -> en
+    esac
+  else
+    LANGUAGE=en   # non-interactive default
   fi
 fi
 
@@ -145,6 +181,27 @@ if $HAS_UI; then
   mkdir -p design
   cp "$TEMPLATES_DIR/design/tokens.json" design/tokens.json
   cp "$TEMPLATES_DIR/design/README.md" design/README.md
+fi
+
+# Persist the chosen output language as the canonical single line.
+# Machine surfaces stay English; this only tells generators which language
+# to write user-facing prose in (resolved by bin/resolve-language.sh).
+# Both branches use mktemp + mv for consistency (arch-review IMPORTANT-2);
+# under init-project.sh's `set -e`, a failed awk/sed aborts before mv, so no
+# half-written CLAUDE.md.new is ever left in the scaffold for `git add -A`.
+if grep -qE '^output_language:' CLAUDE.md; then
+  tmp_claude="$(mktemp)"
+  sed -E "s/^output_language:.*/output_language: ${LANGUAGE}/" CLAUDE.md > "$tmp_claude"
+  mv "$tmp_claude" CLAUDE.md
+elif grep -qE '^## Conventions' CLAUDE.md; then
+  tmp_claude="$(mktemp)"
+  awk -v line="output_language: ${LANGUAGE}" '
+    { print }
+    /^## Conventions/ && !done { print ""; print line; done=1 }
+  ' CLAUDE.md > "$tmp_claude"
+  mv "$tmp_claude" CLAUDE.md
+else
+  printf '\noutput_language: %s\n' "${LANGUAGE}" >> CLAUDE.md
 fi
 
 echo "  → writing .gitignore"
