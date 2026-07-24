@@ -189,8 +189,9 @@ explicit user go.
 "USR-012 (session timer) is ready: clear ACs. How do you want to build this?
  with me (live, in your editor) or for me (agents on a plan you approve)?"
 > for me
-"Model plan: thinking/reviews on <session model, resolved now>, building on
- <builder tier, resolved now>. Continue, or change?"
+"Model plan: thinking/reviews on <session model, resolved now> at effort <session
+ effort>, building on <builder tier> at effort high. Continue, or change?
+ (`/model` for model, `/effort` for effort)"
 > continue
 worktree-parallel-check: only USR-012 chosen, nothing overlaps -> proceed
 architect -> docs/plans/2026-07-14-usr-012-timer.md (approved: no, model_plan: recorded)
