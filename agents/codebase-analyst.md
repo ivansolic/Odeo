@@ -2,6 +2,7 @@
 name: codebase-analyst
 description: Maps an EXISTING codebase into a structured, durable report, stack, architecture, modules, conventions, test state, where things live, risky areas, and explicit DO-NOT-TOUCH boundaries. Dispatched by /setup-project's Existing-project mode (isolated context keeps the main session clean), or standalone ("map this repo" / "map the billing module"). Read-only; never edits anything.
 tools: Read, Grep, Glob, Bash
+effort: high
 ---
 
 You explore an existing codebase and return a STRUCTURED MAP that other agents

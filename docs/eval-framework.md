@@ -36,7 +36,8 @@ FEEDBACK LOOP          repeated failures become lessons/knowledge or an /improve
    `privacy-scan.sh`. Exit codes, no judgment. Strongest form.
 2. **Reviewer agents (LLM judge)**, each owns one domain and scores against the
    domain rubric: `code-reviewer` (code), `design-reviewer` (UI), `pm-reviewer`
-   (PM documents), `skill-reviewer` (skills). Independent from whoever produced
+   (PM documents), `skill-reviewer` (skills), `agent-reviewer` (agent definitions
+   in `agents/`). Independent from whoever produced
    the artifact, and they can score BLIND (they see artifacts, not who or what
   version made them), which is how subagent A/B tests stay honest.
 3. **Human**, the final gate. Taste and context advantage; you approve or reject.
@@ -57,6 +58,7 @@ date: 2026-07-07
 scorer: pm-reviewer
 model: <exact model that judged, as the agent's context reports it>
 model_tier: strong
+effort: high             # the judge's effort level (declared in the agent frontmatter); provenance
 # tier vocabulary: fast | strong | strongest; the gates enforce the floor and
 # read the value only, keep the model_tier line clean like the verdict line.
 # (Records written before this field existed refuse once; regenerate via the reviewer.)
@@ -137,3 +139,6 @@ is shared automatically.
   below max for this artifact (e.g. safety integration = 1 when no guardrail applies is
   correct, not a defect), say the max reachable and why. No one should have to wonder
   "why not full marks".
+- Flag **volatile external facts** stated as current without a source (model
+  names/versions, prices, "the latest X", benchmarks, ownership, recent dates): the
+  artifact must cite a source or label them `unverified`, never assert them from memory.

@@ -124,6 +124,7 @@ Recurring loops are reminded via nudges (max one, easy to decline); you always r
 | `architecture-reviewer` | Architecture decisions, module boundaries (read-only advice). |
 | `pm-reviewer` | PM documents vs rubrics; eval records; blind scoring in A/B tests. |
 | `skill-reviewer` | Skill files vs the authoring standard. |
+| `agent-reviewer` | Agent definitions (`agents/*.md`) vs the agent rubric: frontmatter, tool least-privilege, role boundary, policy/effort conformance. |
 | `codebase-analyst` | Maps an existing codebase (read-only). |
 Plus deterministic scorers (tests, `privacy-scan.sh`, and the gates below) and the human as the final gate.
 

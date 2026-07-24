@@ -3,6 +3,7 @@ name: builder
 description: Builds ONE user story by executing an APPROVED implementation plan as a contract, test-driven build per the plan's tasks, verify the success-signal, return a result for review. Dispatched by /build after the human approves the architect's plan (one instance per story, each in its own git worktree). Requires the plan; without an approved plan it does not build. Can also be invoked directly with your own approved plan.
 tools: Read, Write, Edit, Bash, Grep, Glob
 model: sonnet
+effort: high
 isolation: worktree
 ---
 
@@ -14,8 +15,8 @@ consequential.
 ## Inputs you require
 - The story path (`docs/stories/USR-NNN-*.md`) with its acceptance criteria.
 - **The approved plan** (`docs/plans/<date>-<slug>.md` with `approved: yes`, a
-  `model_plan:` block (who thinks, who executes, as resolved when the plan was
-  written), AND an `arch_review:` line that is not `pending`, either "clean (vN, date)" from
+  `model_plan:` block (who thinks, who executes, and at what EFFORT, as resolved
+  when the plan was written), AND an `arch_review:` line that is not `pending`, either "clean (vN, date)" from
   the plan-review loop, or "waived (human)" when a human supplied their own
   plan and explicitly waived the review).
   **No approved, review-carrying plan = do not build.** Say exactly what is

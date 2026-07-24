@@ -35,15 +35,20 @@ Ask a plain diagnostic and recommend, so a non-expert can choose well:
 The user picks (or names the mode when invoking); default toward with-me while learning.
 
 **Model plan, asked before any work.** Resolve LIVE what the harness is
-actually running (session model for judgment; the builder's tier alias for
-execution) and put it as a question, never bake names into this file:
-> "Model plan: thinking/reviews on <session model as resolved now>, building
->  on <builder tier as resolved now>. Continue with these, or change
->  (/model for the session; say so for this run)?"
-In for-me mode, write the answer into the plan file as `model_plan:` (the
-builder's contract requires it); in with-me mode the spoken question is the
-announcement. If judgment would run below the strong tier, say so in the same
-breath (question, not a block, the choice is the user's).
+actually running, model AND effort, for both roles (session model + effort for
+judgment; the builder's tier + declared `high` effort for execution), and put it
+as a question. Never bake model names into this file; speak in tier + effort:
+> "Model plan: thinking/reviews on <session model as resolved now> at effort
+>  <session effort as resolved now>, building on <builder tier> at effort high.
+>  Continue, or change? (on this host: `/model` for model, `/effort` for effort;
+>  or say a change for this run.)"
+The change mechanism is per host (Claude Code: `/model` + `/effort`; other hosts
+use their equivalent from the per-host adapter in AGENTS.md), so the same step
+works everywhere. In for-me mode, write the answer into the plan file as
+`model_plan:` including the effort for each role (the builder's contract requires
+it); in with-me mode the spoken question is the announcement. If judgment would
+run below the strong tier OR below `high` effort, say so in the same breath
+(question, not a block, the choice is the user's).
 
 **Plan-first is the default in BOTH modes, and in for-me it is enforced by the
 pipeline.** With me: you enter plan mode and approve before building. For me: the

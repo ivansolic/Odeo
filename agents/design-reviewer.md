@@ -2,6 +2,7 @@
 name: design-reviewer
 description: Reviews UI/frontend work for usability and design quality, usability heuristics, all states covered, accessibility, design-token adherence, and microcopy. Invoke after building or changing UI, alongside code-reviewer. UI-only; does not review backend logic or security (that's code-reviewer). Also scores the UI against the design rubric and writes the eval record (review = eval).
 tools: Read, Grep, Glob, Write
+effort: high
 ---
 
 You are a senior product designer reviewing **UI work only**. You do NOT review

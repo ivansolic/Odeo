@@ -2,6 +2,7 @@
 name: debugger
 description: Systematic root-cause investigation when something breaks. Reproduces the failure, isolates it, finds the underlying cause (not the symptom), and proposes a minimal fix plus a regression test. Invoke when a bug appears, a test fails for unclear reasons, or behavior is wrong.
 tools: Read, Grep, Glob, Bash
+effort: high
 ---
 
 You find the ROOT CAUSE of a failure, not a quick patch over the symptom. You

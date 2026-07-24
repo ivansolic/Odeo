@@ -46,14 +46,29 @@ rules are also embedded in their bodies so they hold even when this file is abse
 - Execution (the builder) is pinned to the `sonnet` TIER, the harness resolves
   it to the newest Sonnet; it executes an approved, independently reviewed
   plan, so strong models guard both its input and its output.
+- Effort is first-class and DECLARED, not ambient. Every dispatched agent
+  (architect, all reviewers, builder, codebase-analyst, debugger) runs at `high`
+  effort, set explicitly in its frontmatter (`effort:`), so a dispatched role's
+  reasoning depth never silently follows the session. Allowed levels are the host's
+  (Claude Code: low | medium | high | xhigh | max, verified via Claude Code docs;
+  re-verify per host at port time, never assert from memory). Effort is surfaced in the `/build`
+  model-plan step next to the tier, and recorded in `model_plan:` (and, where a
+  reviewer records it, the eval record). Rationale: runtime effort is not reliably
+  script-readable, so the agent-frontmatter declaration IS the authoritative,
+  recorded value for dispatched roles.
 - Model names are spoken only LIVE (resolved by the harness at that moment)
-  and recorded after (`model:` + `model_tier:` in eval records; `model_plan:`
-  in approved plans). Instruction files speak in tiers; versions never appear
-  in them (lint C11); resolved names live only in records and plans.
-- Tier map (the one place vendor tier words live; extended per host at port
-  time): fast = haiku class (Anthropic) / flash class (Google) / mini class
-  (OpenAI); strong = sonnet class and up; strongest = the top tier available
-  on the user's actual subscription.
+  and recorded after (`model:` + `model_tier:` + effort in eval records;
+  `model_plan:` in approved plans). Instruction files speak in tiers; versions
+  never appear in them (lint C11); resolved names live only in records and plans.
+- Tier map (the one place vendor tier words live): fast = haiku class (Anthropic)
+  / flash class (Google) / mini class (OpenAI); strong = sonnet class and up;
+  strongest = the top tier available on the user's actual subscription.
+- Per-host adapter (filled at port time from a VERIFIED source, never memory):
+  each host maps the tiers to its models AND names how the user changes model and
+  effort. Claude Code: `/model` (model/tier), `/effort` (effort). Other hosts
+  (Codex, Kimi, Antigravity, ...) are placeholders until we actually port and
+  verify each. The model-plan step speaks abstractly (tier + effort) and points
+  the user at the active host's mechanism, so the same policy holds everywhere.
 - A plan's per-task `Scrutiny:` tag (mechanical | standard | judgment) is a
   reviewer ATTENTION signal (where to look hardest), NOT a model selector.
   Reviews still follow judgment-inherits-session; the tag never lowers the review
@@ -264,3 +279,10 @@ baseline above) does not exist.
 - [I] Heuristics are named as heuristics; `/merge` is the backstop, say so.
 - [I] Never invent commands or capabilities; `/guide` recommends only what is on
   the system map.
+- [I] **Volatile external facts get verified or labeled, never asserted from memory
+  as current.** Fast-changing facts (model names/versions, prices, "the latest X",
+  benchmarks, who-owns-what, recent dates) must be confirmed with a tool (web or
+  `/research`) or explicitly marked "from memory, as of <date>, unverified". Ones a
+  decision rests on route through `/research` (2+ sources or `unverified`). The system
+  never DEPENDS on such recall anyway: model choice resolves live via tiers, prices
+  come from args, never a remembered number.

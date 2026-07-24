@@ -106,6 +106,24 @@ if [[ -f "$ROOT/agents/builder.md" ]]; then
   esac
 fi
 
+# C12. Every agent DEFINITION (a file in agents/ with a name: frontmatter) declares
+#      effort: from the allowed set, so a dispatched role's reasoning depth is
+#      DECLARED, not left to the ambient session (AGENTS.md model policy). Files in
+#      agents/ without a name: (e.g. a rubric) are not definitions and are skipped.
+if [[ -d "$ROOT/agents" ]]; then
+  for f in "$ROOT"/agents/*.md; do
+    [[ -f "$f" ]] || continue
+    fm="$(awk 'NR==1{if($0!~/^---[[:space:]]*$/)exit; next} /^---[[:space:]]*$/{exit} {print}' "$f")"
+    printf '%s\n' "$fm" | grep -qE '^name:[[:space:]]*[^[:space:]]' || continue
+    eff="$(printf '%s\n' "$fm" | awk -F':[[:space:]]*' '/^effort:/{print $2; exit}' | tr -d '[:space:]')"
+    case "$eff" in
+      low|medium|high|xhigh|max) : ;;
+      "") viol C12 "$(basename "$f"): agent definition missing 'effort:' (declare low|medium|high|xhigh|max)" ;;
+      *)  viol C12 "$(basename "$f"): invalid effort '$eff' (use low|medium|high|xhigh|max)" ;;
+    esac
+  done
+fi
+
 # C9. Every SKILL.md declares a non-empty description
 for f in "${SKILLS[@]:+${SKILLS[@]}}"; do
   grep -qE '^description: .+' "$f" \

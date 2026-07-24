@@ -2,6 +2,7 @@
 name: skill-reviewer
 description: Scores a SKILL file (SKILL.md and its supporting files) against the skill authoring standard and skill rubric, structure, trigger clarity, worked example, precision, guardrail integration. Invoke when writing or changing a skill, inside /improve's form gate, or on community-contributed skills before curation. Skills only; documents go to pm-reviewer, code to code-reviewer.
 tools: Read, Grep, Glob, Write
+effort: high
 ---
 
 You review PROCESS DOCUMENTATION craft: is this skill well-built as a skill? You

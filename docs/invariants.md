@@ -18,6 +18,7 @@ the lint moves the catch from "test day" to "commit time". Run:
 | C9 | Every SKILL.md has a non-empty `description:` frontmatter line | plugin listing sanity |
 | C10 | Each `second-opinion-*` skill references `docs/second-opinion-protocol.md`, and no vendor name (codex/gemini/...) appears in a skill folder or command name | vendor is an argument, never a name; the shared mechanism is referenced, never restated |
 | C11 | No version-pinned model ids in skills/agents (tier words only; the harness resolves versions); builder's `model:` is `sonnet` or `inherit` | a stale versioned model name was quoted in conversation after its successor had shipped (2026-07-17) |
+| C12 | Every agent definition (a file in `agents/` with a `name:` frontmatter) declares `effort:` from low\|medium\|high\|xhigh\|max | a dispatched role's reasoning depth must be declared, not left to the ambient session (2026-07-24) |
 
 Maintenance: when a new rule class appears (a bug that a grep could have
 caught), add the invariant HERE, the check to `bin/skills-lint.sh`, and a test

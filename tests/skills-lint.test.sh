@@ -24,7 +24,7 @@ clean_root() { # a minimal root that passes every check
   touch "$d/bin/privacy-scan.sh"
   mkskill "$d" alpha "" "Use when the user wants alpha things."
   mkskill "$d" beta "disable-model-invocation: true\n" "Explicit command, any description."
-  printf -- '---\nname: code-reviewer\n---\nOnly you write the verdict.\n## History\n' > "$d/agents/code-reviewer.md"
+  printf -- '---\nname: code-reviewer\neffort: high\n---\nOnly you write the verdict.\n## History\n' > "$d/agents/code-reviewer.md"
   printf -- 'baseline\n' > "$d/global/CLAUDE.md"
   printf -- 'baseline\n' > "$d/AGENTS.md"
   printf -- 'map\n' > "$d/docs/system-map.md"
@@ -37,6 +37,16 @@ d="$(clean_root)"; check "clean fixture passes" 0 "$d"; rm -rf "$d"
 # C1: auto-invoked skill without "Use when" -> fail
 d="$(clean_root)"; mkskill "$d" gamma "" "Does gamma things, invoked by the model."
 check "C1 flags auto skill without Use-when" 1 "$d"; rm -rf "$d"
+
+# C12: an agent definition (has name:) missing effort: -> fail
+d="$(clean_root)"; printf -- '---\nname: lonely\n---\nbody\n' > "$d/agents/lonely.md"
+check "C12 flags an agent without effort:" 1 "$d"; rm -rf "$d"
+# C12: an agent with an invalid effort value -> fail
+d="$(clean_root)"; printf -- '---\nname: lonely\neffort: turbo\n---\nbody\n' > "$d/agents/lonely.md"
+check "C12 flags an agent with invalid effort" 1 "$d"; rm -rf "$d"
+# C12: a non-definition file in agents/ (no name:, e.g. a rubric) is NOT required to carry effort
+d="$(clean_root)"; printf -- '# Agent rubric\nno frontmatter here\n' > "$d/agents/agent-rubric.md"
+check "C12 ignores a non-definition agents/ file" 0 "$d"; rm -rf "$d"
 
 # C2: tunnel mention without teardown -> fail; with teardown -> pass
 d="$(clean_root)"; mkskill "$d" share "disable-model-invocation: true\n" "Shares things." "Start a cloudflared tunnel for the user."
@@ -87,7 +97,7 @@ check "C11 flags versioned model id" 1 "$d"; rm -rf "$d"
 # C11: builder frontmatter model must be sonnet or inherit
 d="$(clean_root)"; printf -- '---\nname: builder\nmodel: haiku\ntools: Read\n---\nOnly you write the verdict.\n## History\n' > "$d/agents/builder.md"
 check "C11 flags builder on a non-sonnet tier" 1 "$d"; rm -rf "$d"
-d="$(clean_root)"; printf -- '---\nname: builder\nmodel: sonnet\ntools: Read\n---\nbody\n' > "$d/agents/builder.md"
+d="$(clean_root)"; printf -- '---\nname: builder\nmodel: sonnet\neffort: high\ntools: Read\n---\nbody\n' > "$d/agents/builder.md"
 check "C11 passes builder on sonnet" 0 "$d"; rm -rf "$d"
 
 # C11: prose model name with version -> fail; old-style id -> fail; in AGENTS.md -> fail
@@ -99,7 +109,7 @@ d="$(clean_root)"; printf -- 'baseline\nOpus 4.8 is great.\n' > "$d/AGENTS.md"
 check "C11 flags versioned name in AGENTS.md" 1 "$d"; rm -rf "$d"
 
 # C11: builder model with trailing whitespace must still pass
-d="$(clean_root)"; printf -- '---\nname: builder\nmodel: sonnet \ntools: Read\n---\nbody\n' > "$d/agents/builder.md"
+d="$(clean_root)"; printf -- '---\nname: builder\nmodel: sonnet \neffort: high\ntools: Read\n---\nbody\n' > "$d/agents/builder.md"
 check "C11 tolerates trailing whitespace on builder model" 0 "$d"; rm -rf "$d"
 
 # C10: a second-opinion skill without the protocol reference -> fail
