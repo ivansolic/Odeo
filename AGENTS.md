@@ -171,6 +171,13 @@ baseline above) does not exist.
 - [E] `privacy-scan.sh` before anything leaves the machine (exit 1 = blocked).
 - [E] Secrets in commits: `secret-scan.sh` gate in `/commit-push` + pre-commit hook.
 - [E] The personal layer (memory) never enters a public repo (gitignore).
+- [E] Internal build artifacts (`docs/internal-paths.txt`: evals, plans, prds,
+  stories, research, dogfood/audit checklists, `.claude/`) never reach the public
+  repo. It is published ONLY via `publish-snapshot.sh` (clean snapshot, verified by
+  `publish-guard.sh`), and the pre-push hook (contract A) refuses every other push to the
+  public remote.
+  Fail-closed: any committed path on NEITHER `docs/internal-paths.txt` nor
+  `docs/public-paths.txt` blocks the publish until a human classifies it.
 - [E] Public tunnels are time-boxed: `share-tunnel.sh` shuts itself down at the
   TTL (default 60 min), a forgotten share cannot stay public. [I] Preview
   deploys are recorded in `docs/prototypes/.shares`; `/start` reminds about old

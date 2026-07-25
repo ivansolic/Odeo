@@ -135,11 +135,13 @@ Plus deterministic scorers (tests, `privacy-scan.sh`, and the gates below) and t
 | `spec-gate.sh` | Spec entry gate: artifact must be committed, covered by a passing eval record newer than the last commit, and reviewed on the strong tier. Invoked by `/build`. |
 | `merge-gate.sh` | Merge entry gate: not on main, clean working tree, a review record exists for the branch, boundary check passes. Invoked by `/merge`. |
 | `language-guard.sh` | No-leak gate for machine surfaces: checks that frontmatter field names and enum values, filenames, directory names, branch names, and commit type/scope are ASCII and allowlist-conforming, so enabling a non-English output language cannot corrupt project mechanics. Standalone, explicitly invoked; exit 0/1/2. |
+| `publish-guard.sh` | Publish leak gate. Refuses internal artifacts (denylist `docs/internal-paths.txt`) and, with `--require-allowlist`, any path not on the KEEP-PUBLIC allowlist `docs/public-paths.txt` (fail-closed: an unclassified committed path blocks the publish until a human classifies it). Privacy is advisory (exit 3, human reviews); denylist/allowlist are hard (exit 1). Reads paths NUL-delimited. Also runs inside the pre-push hook as the public-remote backstop. |
 
 ## Utility scripts (in `bin/`, run directly)
 | Script | What it does |
 |---|---|
 | `token-report.py` | Per-agent token (and optional cost) breakdown of a session transcript, so build economics are measured, not guessed. Prices passed as args, never hardcoded. |
+| `publish-snapshot.sh` | The only sanctioned publish path: materializes tracked HEAD (`git archive`, no history), strips the denylist, verifies with `publish-guard --require-allowlist` (fail-closed), and emits a clean snapshot dir. The pre-push hook (contract A) refuses every other push to the public remote (`CLAUDE_PUBLIC_REMOTE`, default `origin`) unless `CLAUDE_PUBLISH_SNAPSHOT=1`, which only this script sets after the human confirms any advisory privacy findings. |
 
 ## Second opinion (paid cross-model review, human-invoked only)
 An external vendor model reviews one artifact; OUR matching reviewer compares the
