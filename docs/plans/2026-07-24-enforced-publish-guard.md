@@ -1,5 +1,5 @@
 # Plan: Enforced publish guard (internal-artifact leak prevention)
-approved: no
+approved: yes (human, 2026-07-25)
 model_plan:
   judgment: Opus 4.8 (session, strongest tier) effort high
   builder: sonnet tier (per AGENTS.md tier map) effort high
@@ -8,8 +8,23 @@ arch_review: pending (v1 review: 3 BLOCKING + 2 important. Revised v2: push-cont
   so non-ASCII names cannot bypass the denylist (Task 2/3, BLOCKING-2); privacy-scan is
   ADVISORY exit 3, denylist is the hard gate exit 1 (Task 2/4, BLOCKING-1, empirically only
   docs/privacy-guard.md false-positives); ref-shapes covered by contract A hard-refuse
-  (IMPORTANT-4); gitignore-vs-denylist sync note (Task 6, IMPORTANT-5). NEEDS re-review
-  next session before build.)
+  (IMPORTANT-4); gitignore-vs-denylist sync note (Task 6, IMPORTANT-5).
+  v2 re-review verdict CLEAN-WITH-NITS: all 3 BLOCKING + 2 IMPORTANT confirmed CLOSED. One
+  new IMPORTANT: the denylist is fail-open, so a FUTURE committed-but-internal directory
+  nobody adds to the denylist (e.g. docs/postmortems/) would ship. Revised v3 closes it by
+  making the publish path FAIL-CLOSED: a KEEP-PUBLIC allowlist (docs/public-paths.txt, second
+  single-source list) + a guard --require-allowlist mode; the snapshot REFUSES (exit 1) any
+  materialized path not covered by the allowlist, so an unclassified path blocks publish
+  instead of leaking. Invariant reframed toward committed-path coverage (Task 6). Two v2
+  NITs (symlink enumeration, snapshot-dir-is-a-separate-repo seam) folded in as notes.
+  v3 re-review verdict CLEAN-WITH-NITS: v2 IMPORTANT confirmed CLOSED (fail-closed via
+  allowlist + --require-allowlist hard gate; forgotten-future-internal-dir scenario walked
+  through and fails exit 1, snapshot deleted); both v2 NITs FOLDED; exit-logic unambiguous;
+  invariant now committed-path coverage. Two new doc-accuracy NITs raised and FOLDED here:
+  (NIT-1) allowlist seed completed with privacy-guard.md, skill-authoring-standard.md,
+  second-opinion-protocol.md; (NIT-2) Task 5 real-tree snapshot expected exit 3 (advisory
+  privacy on privacy-guard.md), guard-on-snapshot exit 0 is the completeness proof. No
+  BLOCKING/IMPORTANT open. arch_review: CLEAN. Awaiting human approval to flip `approved`.)
 
 ## Header
 Goal: Make it physically impossible for internal build artifacts (todo/lessons,
@@ -34,6 +49,16 @@ Constraints:
   - English-only comments; no em/en dashes; no version-pinned names (C11); chmod +x.
   - The denylist is a SINGLE source of truth (`docs/internal-paths.txt`); guard and
     snapshot builder both read it (env-overridable path for tests).
+  - FAIL-CLOSED publish (v3): a denylist alone is fail-open (anything unlisted ships), so a
+    future committed-but-internal path nobody denylists would leak. To make that impossible,
+    the PUBLISH PATH is allowlist-gated: a second single-source list `docs/public-paths.txt`
+    (KEEP-PUBLIC) enumerates what may be published, and the snapshot REFUSES (exit 1) any
+    materialized path not covered by it. Denylist and allowlist are complementary: denylist =
+    "definitely internal, strip it"; allowlist = "confirmed public, everything else is
+    unclassified and blocks the publish until a human classifies it". docs/ is the mixed zone,
+    so the allowlist NEVER lists `docs/` as a whole (that would re-open the hole); it lists
+    only the specific public docs entries. Env-overridable path for tests
+    (`CLAUDE_PUBLIC_PATHS`, default `docs/public-paths.txt`).
   - Denylist (public snapshot EXCLUDES exactly these; they stay in the working repo):
       .claude/tasks/todo.md
       .claude/tasks/lessons.md
@@ -48,9 +73,17 @@ Constraints:
       docs/prds/           (directory prefix)
       docs/stories/        (directory prefix)
       docs/research/       (directory prefix)
-  - KEEP PUBLIC (never flagged): skills/, agents/, bin/, tests/, README, ROADMAP,
-    the standard/format docs (plan-format.md, eval-framework.md, invariants.md,
-    system-map.md), docs/checklists/review-calibration.md, docs/examples/.
+  - KEEP-PUBLIC allowlist seed (`docs/public-paths.txt`): the wholly-public top-level dirs
+    coarsely (skills/, agents/, bin/, tests/, project-templates/, global/, .github/) plus the
+    public root files (README.md, ROADMAP.md, INSTALL.md, install.sh, LICENSE, CONTRIBUTING.md,
+    CODE_OF_CONDUCT.md, AGENTS.md, BEGINNERS-GUIDE.md, WORKFLOW.md, CLAUDE.md, .gitignore) plus
+    ONLY the specific public docs entries (docs/examples/, docs/checklists/review-calibration.md,
+    and each public docs root file: plan-format.md, eval-framework.md, invariants.md,
+    system-map.md, internal-paths.txt, public-paths.txt, privacy-guard.md,
+    skill-authoring-standard.md, second-opinion-protocol.md, and any other public docs/*.md
+    the dry-run reveals). NEVER `docs/` as a whole. The builder completes this list against the real
+    HEAD tree and PROVES completeness via the Task 5 dry-run (snapshot must exit 0): any public
+    path missing from the allowlist makes the dry-run fail, which is the forcing function.
   - Success signal MUST include a DRY-RUN proving the guard FAILS on the current
     working tree (internal paths present) and PASSES on a snapshot with them removed.
   - Do-not-touch: `bin/privacy-scan.sh` is REUSED, not modified. The existing
@@ -62,16 +95,21 @@ Constraints:
 
 ## File map (before any tasks)
 - docs/internal-paths.txt          CREATE: single-source denylist globs (commented).
+- docs/public-paths.txt            CREATE: single-source KEEP-PUBLIC allowlist globs
+                                   (commented). Fail-closed side of the publish gate.
 - bin/publish-guard.sh             CREATE: deterministic guard. dir arg and/or stdin
-                                   file list; exit 1 naming any denylist match; runs
-                                   privacy-scan on publishable files; exit 2 usage. +x.
+                                   file list; exit 1 naming any denylist match; optional
+                                   --require-allowlist mode also exit 1 on any path NOT
+                                   covered by the allowlist (unclassified); runs privacy-scan
+                                   on publishable files; exit 2 usage. +x.
 - tests/publish-guard.test.sh      CREATE: mktemp fixtures, RED first.
 - bin/install-git-guards.sh        MODIFY: extend pre-push hook to also run the
                                    denylist check for the public remote; preserve the
                                    no-direct-main body + pre-commit.
 - bin/publish-snapshot.sh          CREATE: clean public tree = tracked HEAD content
-                                   minus denylist, verified by publish-guard +
-                                   privacy-scan; emits the snapshot dir path. +x.
+                                   minus denylist, verified by publish-guard
+                                   --require-allowlist (denylist HARD + allowlist HARD +
+                                   privacy ADVISORY); emits the snapshot dir path. +x.
 - tests/publish-snapshot.test.sh   CREATE: mktemp git repo fixture.
 - tests/install-git-guards.test.sh CREATE: hook-install assertions.
 - docs/invariants.md               MODIFY: prose note (denylist single source).
@@ -80,19 +118,28 @@ Constraints:
 
 ## Tasks
 
-### Task 1: single-source denylist file
+### Task 1: single-source denylist + KEEP-PUBLIC allowlist files
 - Scrutiny: standard
-- Test first: none of its own; Task 2's RED run first exercises it (committed
+- Test first: none of its own; Task 2's RED run first exercises both (committed
   separately for a clean history entry).
-- Implement: create `docs/internal-paths.txt` with a commented header explaining the
-  match rules (trailing "/" = directory prefix; no trailing "/" = exact repo-relative
-  file; # and blank ignored) and the KEEP-PUBLIC reminder, then the 13 denylist
-  entries exactly as listed in Constraints.
+- Implement:
+  - `docs/internal-paths.txt` with a commented header explaining the match rules
+    (trailing "/" = directory prefix; no trailing "/" = exact repo-relative file; # and
+    blank ignored) and a pointer to the allowlist, then the 13 denylist entries exactly
+    as listed in Constraints.
+  - `docs/public-paths.txt` with the SAME commented match-rule header and a note that it
+    is the fail-closed KEEP-PUBLIC side (publish refuses anything not covered here; NEVER
+    add `docs/` as a whole), then the allowlist seed entries from Constraints. The builder
+    MUST reconcile this list against the real HEAD tree so the Task 5 dry-run snapshot
+    exits 0 (add any public path the dry-run flags as unclassified).
 - Verify: `grep -vE '^#|^$' docs/internal-paths.txt | wc -l` prints `13`;
-  `grep -c '^docs/' docs/internal-paths.txt` prints `5`.
-- Produces: the denylist; env override name `CLAUDE_INTERNAL_PATHS` (default
-  `docs/internal-paths.txt` resolved at the repo root).
-- Commit: `chore(publish-guard): add internal-paths denylist as single source of truth`
+  `grep -c '^docs/' docs/internal-paths.txt` prints `5`; `docs/public-paths.txt` has a
+  non-empty entry list and does NOT contain a bare `docs/` line
+  (`grep -qxE 'docs/' docs/public-paths.txt` must FAIL).
+- Produces: both lists; env overrides `CLAUDE_INTERNAL_PATHS` (default
+  `docs/internal-paths.txt`) and `CLAUDE_PUBLIC_PATHS` (default `docs/public-paths.txt`),
+  resolved at the repo root.
+- Commit: `chore(publish-guard): add internal-paths denylist and public-paths allowlist as single sources of truth`
 
 ### Task 2: bin/publish-guard.sh (TDD, RED first)
 - Scrutiny: judgment (security core; matching + privacy integration).
@@ -117,23 +164,40 @@ Constraints:
   9. Env override: `CLAUDE_INTERNAL_PATHS` at a temp denylist listing only `docs/foo/`;
      `docs/foo/x.md` -> exit 1; real `docs/plans/` NOT flagged (file is the only source).
   10. Usage: no dir arg AND no stdin, or nonexistent dir -> exit 2.
+  11. ALLOWLIST (fail-closed): with `--require-allowlist` and a temp allowlist covering
+      `README.md` + `skills/`, a dir holding `README.md`, `skills/x/SKILL.md` -> exit 0.
+  12. ALLOWLIST catches the forgotten-internal-dir: with `--require-allowlist`, a dir holding
+      a NEW `docs/postmortems/p.md` that is in NEITHER list -> exit 1, message names it as an
+      unclassified path (this is the v3 IMPORTANT-fix case: a denylist alone would pass it).
+  13. ALLOWLIST precedence: with `--require-allowlist`, a dir holding both `docs/plans/p.md`
+      (denylisted) and an unclassified `docs/postmortems/p.md` -> exit 1 (denylist reported
+      first / both are hard). WITHOUT `--require-allowlist`, the unclassified path alone
+      -> exit 0 (allowlist enforcement is opt-in; the hook backstop does not require it).
 - Implement: `bin/publish-guard.sh`, `chmod +x`. `set -uo pipefail`. Resolve repo root
   from `$0`; `DENYLIST="${CLAUDE_INTERNAL_PATHS:-$ROOT/docs/internal-paths.txt}"`
-  (missing -> exit 2). Parse optional dir arg (`-` = also read stdin); no dir + stdin is
-  a TTY -> exit 2. Build the candidate list NUL-DELIMITED (BLOCKING-2, so git C-quoting of
-  non-ASCII names cannot defeat the match): dir arg -> `( cd dir && find . -type f -print0 )`
-  stripped of leading `./`; stdin -> `read -r -d ''`; dedup. Callers piping git MUST use
+  (missing -> exit 2). Parse a leading `--require-allowlist` flag (default off); when set,
+  `ALLOWLIST="${CLAUDE_PUBLIC_PATHS:-$ROOT/docs/public-paths.txt}"` (missing -> exit 2). Then
+  parse optional dir arg (`-` = also read stdin); no dir + stdin is a TTY -> exit 2. Build the
+  candidate list NUL-DELIMITED (BLOCKING-2, so git C-quoting of non-ASCII names cannot defeat
+  the match): dir arg -> `( cd dir && find . \( -type f -o -type l \) -print0 )` stripped of
+  leading `./` (v2-NIT: include symlinks so a symlinked internal path cannot slip the dir-mode
+  scan); stdin -> `read -r -d ''`; dedup. Callers piping git MUST use
   `git ls-tree -r -z --name-only` (NUL). Never parse newline-delimited path lists. Load
   denylist under `LC_ALL=C` into `dir_prefixes` (trailing `/`) and `exact_files`. Match:
   exact equality, or `case "$cand" in "$prefix"*)` (prefix always ends `/`, so
-  `docs/plans/` does not match `docs/plans-summary.md`). On match:
-  `echo "publish-guard: BLOCK internal path present: $cand" >&2; deny=1`. Privacy is a
-  SEPARATE, ADVISORY tier (BLOCKING-1): locate `$ROOT/bin/privacy-scan.sh`; for each
-  NON-denylisted candidate readable as a file (only when a dir arg gave real content), run
+  `docs/plans/` does not match `docs/plans-summary.md`). On denylist match:
+  `echo "publish-guard: BLOCK internal path present: $cand" >&2; deny=1`. ALLOWLIST tier
+  (only when `--require-allowlist`): load `$ALLOWLIST` the SAME way (LC_ALL=C, dir_prefixes +
+  exact_files); a candidate that matches NEITHER the denylist NOR the allowlist is
+  unclassified -> `echo "publish-guard: BLOCK unclassified path (not in public-paths.txt): $cand" >&2; unclassified=1`.
+  (A denylisted path is already handled by `deny`; do not double-report it as unclassified.)
+  Privacy is a SEPARATE, ADVISORY tier (BLOCKING-1): locate `$ROOT/bin/privacy-scan.sh`; for
+  each NON-denylisted candidate readable as a file (only when a dir arg gave real content), run
   it; a finding -> `echo "publish-guard: privacy finding (review): $cand" >&2; priv=1` (do
-  NOT fold into deny). End: `deny` set -> exit 1 (hard, internal path). Else `priv` set ->
-  exit 3 (advisory, human must review privacy findings). Else
-  `echo "publish-guard: clean (N files checked)."; exit 0`.
+  NOT fold into deny). End (hard gates win over advisory): `deny` OR `unclassified` set ->
+  exit 1 (hard: internal path present, or an unclassified path that must be added to one of
+  the two lists before publishing). Else `priv` set -> exit 3 (advisory, human must review
+  privacy findings). Else `echo "publish-guard: clean (N files checked)."; exit 0`.
   Header documents that stdin-only mode checks denylist membership only (no bodies to
   scan); the snapshot builder always passes a real dir, so the publish path gets privacy.
 - Verify: `bash tests/publish-guard.test.sh` all GREEN; `test -x bin/publish-guard.sh`.
@@ -179,17 +243,24 @@ Constraints:
 - Test first: `tests/publish-snapshot.test.sh` (CREATE): mktemp `git init`, commit public
   files (README.md, skills/x/SKILL.md, docs/checklists/review-calibration.md) + internal
   (docs/plans/p.md, docs/evals/e.md, .claude/tasks/todo.md); point CLAUDE_INTERNAL_PATHS at
-  a fixture denylist. Cases: (1) build -> exit 0; snapshot HAS README + review-calibration,
-  LACKS docs/plans, docs/evals, .claude/tasks/todo.md. (2) plant a fake secret in README ->
-  exit 1, no publishable snapshot. (3) re-run over same HEAD -> exit 0 (fresh temp dir).
-  Run FIRST -> FAIL (RED).
+  a fixture denylist AND a fixture allowlist (via CLAUDE_PUBLIC_PATHS) covering README.md,
+  skills/, docs/checklists/review-calibration.md. Cases: (1) build -> exit 0; snapshot HAS
+  README + review-calibration, LACKS docs/plans, docs/evals, .claude/tasks/todo.md. (2) plant
+  a fake secret in README -> exit 3 (advisory privacy), snapshot KEPT for review. (3) re-run
+  over same HEAD -> exit 0 (fresh temp dir). (4) v3 FAIL-CLOSED case: commit a NEW
+  `docs/postmortems/p.md` that is in NEITHER the fixture denylist NOR the fixture allowlist
+  -> build exit 1, "unclassified", no publishable snapshot (this is the forgotten-future-dir
+  guarantee). Run FIRST -> FAIL (RED).
 - Implement: `bin/publish-snapshot.sh`, `chmod +x`. `set -uo pipefail`. Require a git repo
   (else exit 2). Resolve root, denylist, guard (missing -> exit 2). Output dir: `$1` or
   `mktemp -d`. Materialize tracked HEAD content: `git archive --format=tar HEAD | tar -x -C
   "$out"` (only tracked files at HEAD; history never copied). Strip denylist from the
   materialized tree (dir-prefix -> `rm -rf -- "$out/$entry"`; exact -> `rm -f`). Verify in
-  two tiers (BLOCKING-1): (a) DENYLIST is a HARD gate , run the guard's denylist check on
-  `"$out"`; any internal path -> "verification FAILED", `rm -rf "$out"`, exit 1. (b) PRIVACY
+  two tiers (BLOCKING-1): (a) HARD gate , run `bin/publish-guard.sh --require-allowlist "$out"`
+  (denylist AND allowlist both enforced): any internal path OR any path not covered by the
+  KEEP-PUBLIC allowlist (unclassified) -> "verification FAILED", `rm -rf "$out"`, exit 1. This
+  is the fail-closed guarantee (v3): a forgotten-future-internal dir that never made it into
+  the denylist is not on the allowlist either, so it fails here instead of shipping. (b) PRIVACY
   is ADVISORY , privacy-scan is a "redact or confirm each is a generic example" net by its
   own design and false-positives on legit public docs (empirically `docs/privacy-guard.md`
   trips because it DOCUMENTS the patterns). So privacy findings are SURFACED per file and
@@ -207,35 +278,49 @@ Constraints:
 - Implement / Verify (run from repo root, capture output):
   1. `git ls-tree -r --name-only HEAD | bin/publish-guard.sh; echo "exit=$?"` ->
      exit 1, names docs/plans/*, docs/evals/*, docs/prds/*, docs/stories/*, docs/research/*.
-  2. `snap="$(bin/publish-snapshot.sh)"; echo "exit=$?"; bin/publish-guard.sh "$snap";
+  2. `snap="$(bin/publish-snapshot.sh)"; echo "exit=$?"; bin/publish-guard.sh --require-allowlist "$snap";
      echo "guard-on-snapshot=$?"; find "$snap" -path '*docs/plans*' -o -path '*docs/evals*'`
-     -> snapshot exit 0, guard-on-snapshot exit 0, find prints nothing.
+     -> snapshot build exit 3 EXPECTED on the real tree (advisory privacy finding on
+     docs/privacy-guard.md, which DOCUMENTS the secret patterns; snapshot is KEPT, human
+     confirms it is a generic documented example, not a leak). The completeness proof is the
+     next check: guard-on-snapshot exit 0, and find prints nothing. guard-on-snapshot exit 0
+     with --require-allowlist PROVES docs/public-paths.txt covers the entire real public tree
+     (any missing public path would surface here as unclassified; add it). Do NOT edit
+     docs/privacy-guard.md to force snapshot exit 0; exit 3 is the correct advisory outcome.
   Paste both transcripts into the commit body.
 - Commit: `test(publish-guard): dry-run proof, guard fails on working tree, passes on snapshot`
 
 ### Task 6: docs (invariants, system-map, AGENTS.md) + memory note
 - Scrutiny: standard.
-- Test first: none (docs). Prose invariant, NOT a new skills-lint check (that would widen
-  scope; see Risks 6).
+- Test first: none (docs). Prose invariant; the mechanical enforcement is the allowlist gate
+  built in Tasks 2/4, not a new skills-lint check (see Risks 6).
 - Implement:
   - `docs/system-map.md`: add publish-guard.sh + publish-snapshot.sh rows; note the
-    pre-push extension (public remote, CLAUDE_PUBLIC_REMOTE).
-  - `AGENTS.md` under "### 2. Privacy and data": one [E] bullet , internal artifacts
-    (docs/internal-paths.txt) never reach the public repo: publish-guard.sh + pre-push
-    backstop refuse them; public repo published only via publish-snapshot.sh (clean,
-    privacy-scanned). No em/en dashes.
-  - `docs/invariants.md`: prose line , the publish denylist lives ONLY in
-    docs/internal-paths.txt; guard, hook, and snapshot all read it. ALSO (IMPORTANT-5):
-    state the gitignore-vs-denylist relationship , the `.gitignore` "Internal build
-    artifacts" block and `docs/internal-paths.txt` are two lists with different jobs
-    (gitignore governs `git archive`/tracking; the denylist governs the guard/snapshot).
-    Every path in the gitignore internal block MUST also appear in the denylist; note this
-    invariant so the two cannot silently drift (a small future skills-lint check can enforce
-    it, deferred).
+    pre-push extension (public remote, CLAUDE_PUBLIC_REMOTE) and the two lists
+    (internal-paths.txt denylist + public-paths.txt allowlist).
+  - `AGENTS.md` under "### 2. Privacy and data": one [E] bullet , internal artifacts never
+    reach the public repo: publish-guard.sh + pre-push backstop refuse them, and the public
+    repo is published only via publish-snapshot.sh, which is FAIL-CLOSED (refuses any path not
+    on the docs/public-paths.txt allowlist, so an unclassified path blocks publish). No em/en
+    dashes.
+  - `docs/invariants.md`: prose lines. (1) The publish lists live ONLY in
+    docs/internal-paths.txt (denylist) and docs/public-paths.txt (allowlist); guard, hook, and
+    snapshot all read them, no second copies. (2) FAIL-CLOSED invariant (the real guarantee,
+    reframed from IMPORTANT-5's original direction): every COMMITTED path must be classified as
+    EITHER internal (denylist) OR public (allowlist); the publish snapshot mechanically REFUSES
+    any unclassified path (publish-guard --require-allowlist, exit 1), so a future
+    committed-but-internal directory that nobody denylists cannot silently ship, it blocks the
+    publish until a human classifies it. This replaces the fragile "remember to add it to the
+    denylist" discipline with enforcement. (3) The `.gitignore` "Internal build artifacts" block
+    and docs/internal-paths.txt are two lists with different jobs (gitignore governs
+    `git archive`/tracking; the denylist governs guard/snapshot); gitignored internal paths are
+    belt-and-suspenders (git archive omits them anyway). No separate skills-lint drift check is
+    needed, the allowlist gate at publish time IS the mechanical enforcement.
   - Commit body includes a MEMORY note for the human (do NOT edit MEMORY.md):
-    never-publish-internal-artifacts enforcement now exists; denylist source =
-    docs/internal-paths.txt.
-- Verify: `bin/skills-lint.sh .` exit 0; grep confirms the three docs mention the scripts.
+    never-publish-internal-artifacts enforcement now exists and is FAIL-CLOSED; sources =
+    docs/internal-paths.txt (denylist) + docs/public-paths.txt (allowlist).
+- Verify: `bin/skills-lint.sh .` exit 0; grep confirms the three docs mention the scripts
+  and both lists.
 - Commit: `docs(publish-guard): register guard, snapshot, and pre-push backstop`
 
 ## Task order
@@ -252,14 +337,22 @@ Sequential: 1 (denylist) -> 2 (guard, TDD) -> 3 (hook) and 4 (snapshot) both dep
    history); the hook is only a backstop. OPEN: the exact public-repo push mechanism (fresh
    repo vs orphan branch vs subtree) from the snapshot dir is out of scope; the builder
    emits the verified snapshot dir path and the human decides who pushes it. Flag if you
-   want the push step included.
+   want the push step included. NOTE (v2 NIT): the emitted snapshot dir is a SEPARATE repo
+   the working-repo pre-push hook does not govern; it is trusted because it was guard-verified
+   (--require-allowlist) at build time, and it contains no history to leak. Pushing it is safe
+   precisely because contract A keeps the working repo unpushable and the snapshot is clean by
+   construction.
 3. Directory-prefix (trailing `/`) vs exact-file (no slash) matching; `docs/plans/` does
    not match `docs/plans-summary.md` (test 6). Confirm the trailing-slash convention.
 4. stdin mode does not run privacy-scan (no bodies); only the dir mode (publish-snapshot,
    the real path) does. Secrets on commits are already covered by the pre-commit
    secret-scan. Confirm the split.
 5. CLAUDE_PUBLIC_REMOTE default origin, overridable. Noted, not open.
-6. Invariant as PROSE, not a new skills-lint C-rule (scope). ASK if mechanical enforcement
-   of "denylist only in internal-paths.txt" is wanted now.
-7. NOT doing: no gitignore change, no history rewrite, no automated push of the snapshot,
-   no new lint rule. Pull any in at the gate if wanted.
+6. RESOLVED in v3: the drift risk (a future committed-but-internal path nobody denylists) is
+   now enforced MECHANICALLY, not by prose. The KEEP-PUBLIC allowlist + snapshot
+   --require-allowlist gate REFUSES any unclassified path at publish time (fail-closed), which
+   is a stronger and better-placed guarantee than a skills-lint text check would have been. The
+   invariant text (Task 6) now describes this enforcement rather than a discipline to remember.
+7. NOT doing: no gitignore change, no history rewrite, no automated push of the snapshot. (v3
+   DOES add the allowlist as the mechanical drift guard, reversing v2's "no new enforcement".)
+   Pull anything else in at the gate if wanted.
