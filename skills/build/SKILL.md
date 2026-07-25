@@ -121,6 +121,17 @@ Present these as a clear choice, and say what happens if the user just says "go"
   parallel; explain why and stay sequential.
 - **Oversight is structural:** the plan gate is not optional in Mode B. The
   architect's plan is what you approve; builders only run against an approved plan.
+- **Foreground vs background (a supervision tradeoff, not a free win).**
+  Foreground = supervised: the builder's Write/Bash actions prompt the user, who
+  can interrupt any moment. A LONE builder ALWAYS runs foreground. Background is the
+  ONLY way to run builders in PARALLEL (you cannot run many foreground, blocking
+  agents at once), but a background agent CANNOT answer permission prompts, so
+  parallel builds need permissions pre-arranged (a broader allow-list) and are
+  therefore LESS supervised by construction.
+  So: default to single foreground builds; treat parallel as a higher-trust,
+  EXPLICIT opt-in (trust the plan, keep to 2-4, lean on worktree isolation +
+  boundary-check + code-review + explicit per-story merge as the net). NEVER
+  background a LONE builder: no concurrency to gain, all of the downside.
 
 ### B4. Watch in the editor? (always offer, once)
 The builder works headless in a worktree, a DIFFERENT folder from the one the
@@ -217,5 +228,6 @@ approves what gets saved. If they decline, drop it, no nagging.)
 - `/merge` is never self-triggered: user invocation or an explicit yes, only.
 - Never merge without explicit approval. Your review is the bottleneck: keep parallel builders to 2-4.
 - **No builder without an approved plan**, the plan gate is structural, not advisory.
+- **Never background a LONE builder** (no concurrency to gain, all the downside); background is the parallel-only, higher-trust opt-in described in B3. Default = single builder, foreground.
 - While learning: start with with-me or a single builder; raise parallelism as trust grows.
 - Uses built-in agents (worktree isolation, background), not a custom orchestrator.
