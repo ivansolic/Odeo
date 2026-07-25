@@ -36,8 +36,13 @@ usage() {
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 PRIVACY="$ROOT/bin/privacy-scan.sh"
 
-REQUIRE_ALLOWLIST=0
-if [ "${1:-}" = "--require-allowlist" ]; then REQUIRE_ALLOWLIST=1; shift; fi
+REQUIRE_ALLOWLIST=0; POSITIONAL=""; HAVE_POS=0
+for a in "$@"; do
+  case "$a" in
+    --require-allowlist) REQUIRE_ALLOWLIST=1 ;;
+    *) POSITIONAL="$a"; HAVE_POS=1 ;;
+  esac
+done
 
 DENYLIST="${CLAUDE_INTERNAL_PATHS:-$ROOT/docs/internal-paths.txt}"
 [ -f "$DENYLIST" ] || { echo "publish-guard: denylist not found: $DENYLIST" >&2; exit 2; }
@@ -48,11 +53,11 @@ fi
 
 # Mode: a directory argument, or '-' / no argument for a NUL list on stdin.
 MODE=""; DIR=""
-if [ "$#" -eq 0 ] || [ "${1:-}" = "-" ]; then
+if [ "$HAVE_POS" = 0 ] || [ "$POSITIONAL" = "-" ]; then
   [ -t 0 ] && usage
   MODE=stdin
 else
-  DIR="$1"
+  DIR="$POSITIONAL"
   [ -d "$DIR" ] || { echo "publish-guard: not a directory: $DIR" >&2; exit 2; }
   MODE=dir
 fi
@@ -63,6 +68,9 @@ load_list() { # $1=file ; prints "exacts\n\034\nprefixes" (0x1c separator)
   local file="$1" exacts="" prefixes="" line
   while IFS= read -r line || [ -n "$line" ]; do
     line="${line%$'\r'}"
+    # trim leading/trailing whitespace so a padded entry cannot silently go inert
+    line="${line#"${line%%[![:space:]]*}"}"
+    line="${line%"${line##*[![:space:]]}"}"
     case "$line" in ''|'#'*) continue;; esac
     case "$line" in
       */) prefixes="${prefixes}${line}"$'\n' ;;

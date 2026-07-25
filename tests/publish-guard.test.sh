@@ -116,6 +116,18 @@ d2="$TMP/c13b"; mkfile "$d2/docs/postmortems/q.md"
 out="$("$SCRIPT" "$d2" 2>&1)"; rc=$?
 assert_exit "no allowlist mode: unclassified path allowed -> 0" 0 "$rc"
 
+# 14) Nit-1: a padded denylist entry must NOT go inert (whitespace is trimmed)
+padded="$TMP/padded-deny.txt"; printf '   docs/plans/   \n' > "$padded"
+d="$TMP/c14"; mkfile "$d/docs/plans/p.md"
+out="$(CLAUDE_INTERNAL_PATHS="$padded" "$SCRIPT" "$d" 2>&1)"; rc=$?
+assert_exit "padded denylist entry still matches -> 1" 1 "$rc"
+
+# 15) Nit-2: --require-allowlist is honored even when it follows the dir arg
+d="$TMP/c15"; mkfile "$d/README.md"; mkfile "$d/docs/postmortems/p.md"
+out="$("$SCRIPT" "$d" --require-allowlist 2>&1)"; rc=$?
+assert_exit "flag after dir still enforces allowlist -> 1" 1 "$rc"
+assert_contains "names unclassified (flag-after-dir)" "docs/postmortems/p.md" "$out"
+
 echo
 if [ "$fail" = 0 ]; then echo "ALL PASS"; else echo "SOME FAILED"; fi
 exit "$fail"

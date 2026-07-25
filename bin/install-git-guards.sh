@@ -60,7 +60,13 @@ while read -r _local_ref local_sha remote_ref _remote_sha; do
       echo "pre-push: REFUSED, publish-guard.sh not found for the public-remote safety check." >&2
       exit 1
     fi
-    if ! git ls-tree -r -z --name-only "$local_sha" | "$guard" -; then
+    git ls-tree -r -z --name-only "$local_sha" | "$guard" -
+    pst=( "${PIPESTATUS[@]}" ); lst=${pst[0]}; gst=${pst[1]}
+    if [ "$lst" -ne 0 ]; then
+      echo "pre-push: REFUSED, could not enumerate the pushed tree for '$public_remote' (fail closed)." >&2
+      exit 1
+    fi
+    if [ "$gst" -ne 0 ]; then
       echo "pre-push: REFUSED, an internal path is present in the tree pushed to '$public_remote'." >&2
       exit 1
     fi

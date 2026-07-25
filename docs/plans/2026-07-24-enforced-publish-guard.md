@@ -276,8 +276,9 @@ Constraints:
 - Scrutiny: standard (mandated proof, not new logic).
 - Test first: none (evidence step, recorded in the commit body).
 - Implement / Verify (run from repo root, capture output):
-  1. `git ls-tree -r --name-only HEAD | bin/publish-guard.sh; echo "exit=$?"` ->
+  1. `git ls-tree -r -z --name-only HEAD | bin/publish-guard.sh -; echo "exit=$?"` ->
      exit 1, names docs/plans/*, docs/evals/*, docs/prds/*, docs/stories/*, docs/research/*.
+     (NUL-delimited `-z` is required: the guard reads NUL, not newlines.)
   2. `snap="$(bin/publish-snapshot.sh)"; echo "exit=$?"; bin/publish-guard.sh --require-allowlist "$snap";
      echo "guard-on-snapshot=$?"; find "$snap" -path '*docs/plans*' -o -path '*docs/evals*'`
      -> snapshot build exit 3 EXPECTED on the real tree (advisory privacy finding on

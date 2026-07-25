@@ -37,6 +37,9 @@ fi
 # Strip the denylist from the materialized tree (single source of truth).
 while IFS= read -r line || [ -n "$line" ]; do
   line="${line%$'\r'}"
+  # trim leading/trailing whitespace so a padded entry cannot silently go inert
+  line="${line#"${line%%[![:space:]]*}"}"
+  line="${line%"${line##*[![:space:]]}"}"
   case "$line" in ''|'#'*) continue;; esac
   case "$line" in
     */) rm -rf -- "$OUT/${line%/}" ;;
