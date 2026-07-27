@@ -1,8 +1,8 @@
 ---
 artifact: skills/build/SKILL.md
 type: skill
-artifact_version: 3
-date: 2026-07-25
+artifact_version: 4
+date: 2026-07-27
 scorer: skill-reviewer
 model: claude-opus-4-8[1m]
 model_tier: strongest
@@ -12,11 +12,14 @@ verdict: PASS
 previous_total: 10/10
 ---
 
-Scope: form review of the foreground-default guardrail additions, prompted by a
-real incident (a LONE builder dispatched in the BACKGROUND could not answer
-permission prompts, was denied Read/Bash/Write, and began improvising
-bash-heredoc workarounds). Two additions: a B3 dial bullet (lines 124-135) and a
-Safety-rules bullet (line 232). Whole skill re-scored for consistency.
+Scope: form review of the for-me editor-policy change. Mode B (for-me) no longer
+offers to open/add the worktree to the user's editor; that live-watch affordance
+now belongs solely to with-me (Mode A). Three coordinated edits: B4 retitled
+"Orientation (for-me does NOT open the editor)" with the interactive `code --add`
+offer replaced by a one-line orientation note; the "Editor (both modes, one rule)"
+paragraph's closing sentence split by mode with a cross-reference to B4; the
+worked-example line swapped from the old `code --add` offer to a headless-review
+parenthetical. Whole skill re-scored for consistency.
 
 ## Skill: build  (explicit command)
 
@@ -24,78 +27,72 @@ Safety-rules bullet (line 232). Whole skill re-scored for consistency.
 - trigger clarity 2: `disable-model-invocation: true` + description opens "Build
   one or more ready user stories. Two modes you choose..." with an example
   invocation. Correct explicit-command format, untouched by this change.
-- structure 2: Still follows the body shape and is lean (234 lines < 500), no
-  supporting files so the one-level rule is not at risk. The new guardrail lands
-  in the two right places: the decision-point (B3 dials) AND the terse Safety
-  list, which is the intended layering. The B3 bullet is dense (12 lines) but
-  within the file's established style; not a wall of text.
-- worked example 2: Lines 199-217 remain concrete with real values
+- structure 2: Still follows the body shape and is lean (232 lines < 500); no
+  supporting files, so the one-level rule is not at risk. The change is a net
+  simplification: B4 (lines 136-141) drops an interactive branch for a one-line
+  orientation note, and the "Editor (both modes)" paragraph now carries a crisp
+  two-clause split (lines 65-66). No wall of text.
+- worked example 2: Lines 196-214 remain concrete with real values
   (`docs/plans/2026-07-14-usr-012-timer.md`, `../dogfood-usr-012`, `12/12
-  APPROVE`). The example is a single foreground build, so it is consistent with
-  the new default; nothing to change.
-- precision 2: Exact throughout. The new bullet names the exact mechanism
-  ("Write/Bash actions prompt the user"), the exact ceiling ("keep to 2-4"), and
-  the exact net ("worktree isolation + boundary-check + code-review + explicit
-  per-story merge"). No TBDs or vague steps.
-- safety integration 2: The rule strengthens, does not weaken or contradict, the
-  existing guardrails. It is consistent with "Default is one story at a time
-  (sequential)" (B3), "parallel = background agents" (B5 step 4, now EXPLAINED
-  rather than merely asserted), "keep parallel builders to 2-4" (line 230), and
-  "start with with-me or a single builder" (line 233). It does not contradict the
-  mechanism fact on line 234 ("Uses built-in agents ... background"): line 234
-  states a capability, line 232 states the policy governing its use.
+  APPROVE`). The refreshed line 210 "(builder runs headless in its worktree;
+  nothing changes in your editor, you review at the gate)" mirrors B4 exactly, so
+  the example does not lag the edited step.
+- precision 2: Exact throughout. B4 names the exact review locus ("B6: diff +
+  reviewer verdicts") and the exact reason ("a still editor is not mistaken for a
+  stall"). No TBDs, no vagueness.
+- safety integration 2: References guardrails without restating them, and weakens
+  none. The change removes a display-only affordance; the plan gate (B5.3,
+  "No builder runs without an approved plan"), the ENFORCED `boundary-check.sh`
+  (B6), and the merge gate (B7) are all untouched. Zero enforcement changed.
 
 ## Total: 10/10   ## Verdict: PASS (threshold 8/10, no zero)
 
 ## Consistency verdict (the gating question)
-CORRECT and internally consistent. The core logic holds: a lone builder
-foreground is supervised (answerable prompts, interruptible); backgrounding a
-lone builder is all downside with zero concurrency gain; parallel REQUIRES
-background, which requires pre-arranged (broader) permissions, hence LESS
-supervised by construction. No contradiction found against B3, B5, or the Safety
-list. CLEAR and actionable: no ambiguity on when background is allowed (parallel
-only, explicit opt-in) versus forbidden (any lone builder).
+CORRECT and internally consistent.
+- Mode A (with-me) STILL opens/reveals the editor: A4 `code -r .` and
+  `code -r -g <file>` are intact (line 79), and the "Editor (both modes)"
+  paragraph reaffirms "With-me opens the editor by default" (line 65). Not
+  contradicted anywhere.
+- The "reuse, never multiply / `code -r` / `code --add`" rule still stands
+  (lines 60-64) for with-me and for the spec-doc skills that reference it; it is
+  now correctly scoped by the closing sentence so it no longer implies for-me
+  opens the editor.
+- Nothing dangles: the surviving `code --add` mention is in the general rule
+  statement, not a for-me instruction; the B4 cross-reference resolves; the worked
+  example no longer carries the removed offer.
+- The mode distinction is sharper (for-me = review the RESULT at the gate;
+  with-me = watch live), and the orientation value the removed offer used to
+  provide is preserved by the explicit "nothing changes in their editor by
+  design ... say this once" note in B4.
 
 ## Ceiling
-Max reachable: 10/10, achieved. Nothing is structurally capped: explicit command
-(trigger clarity judged on plain what-you-get, achieved) and the change genuinely
-touches a guardrail (safety integration reaches 2). Full marks stand because the
-one non-blocking nit below does not cross any rubric level boundary.
+Max reachable: 10/10, achieved. Explicit command (trigger clarity judged on plain
+what-you-get, achieved); the change touches guardrail-adjacent text (editor policy
+per mode), so safety integration reaches 2. Nothing is structurally capped.
 
 ## Non-blocking nits (would tighten, do not lower any score)
-1. Reasoning duplicated across the two bullets. B3 (124-135) and Safety (232) both
-   spell out "parallel-only, opt-in, needs pre-arranged permissions, so LESS
-   supervised." The standard says reference a guardrail, do not restate it. The
-   Safety bullet ideally points at the B3 rationale rather than re-arguing it.
-   Suggested Safety line: "Never background a LONE builder (no concurrency to gain,
-   all the downside); background is the parallel-only, higher-trust opt-in in B3.
-   Default = single builder, foreground." This keeps the rule, drops the second
-   copy of the argument.
-2. One strained clause in B3: "the SAME exposure that makes backgrounding a lone
-   builder wrong, just accepted deliberately for concurrency" packs the whole
-   argument into a sub-clause and then overlaps the very next sentence ("NEVER
-   background a LONE builder..."). Consider cutting that clause; the following
-   sentence already carries it.
-3. Emphatic caps (LONE, ONLY, SAME, LESS, NEVER) are heavier than the standard's
-   "never shouting" note, but match this file's existing register (ENFORCED,
-   ALWAYS, STOP). Consistent with the skill, so not a defect here; worth a
-   file-wide pass someday.
+1. The "for-me does NOT open the editor" policy is now stated three times (B4
+   title, B4 body, and the "Editor (both modes)" paragraph). Slightly more than
+   "reference, don't restate", though each lands at a different reading entry
+   point, so it is defensible. Shortest form would let B4 own the rule and have
+   lines 65-66 point at it.
 
-No em/en dashes present in the additions; English only. Confirmed.
+No em/en dashes present; English only. Confirmed.
 
 ## Map duty
-No command surface added or altered (a policy dial on the existing `/build`), so
-no `docs/system-map.md` delta is required. Not a finding.
+No command surface added or altered (an editor-policy change on the existing
+`/build`), so no `docs/system-map.md` delta is required. Not a finding.
 
 ## Round-by-round
-- Round 1 (2026-07-25): 10/10 PASS. All five criteria held at 2; the guardrail is
-  correct, consistent, and clearly placed. No criterion moved from the version-2
-  baseline, and none was at risk.
+- Round 1 (2026-07-27): 10/10 PASS. All five criteria held at 2. The
+  editor-policy change is internally consistent (A4 intact, cross-references
+  resolve, no dangling for-me editor reference) and touches no gate.
 
 ## Vs previous version
-Version 2 (2026-07-24) scored 10/10 on the model-plan/effort change. Version 3
-adds the foreground-default guardrail. Score holds at 10/10; no regression on any
-criterion. The additions raise real-world safety without harming form.
+Version 3 (2026-07-25) scored 10/10 on the foreground-default guardrail. Version 4
+removes the for-me editor-open offer. Score holds at 10/10; no regression on any
+criterion. The change sharpens the mode contract and reduces surface without
+weakening safety.
 
 ## History
 - Round 1 (2026-07-24, Opus 4.8, strongest): 9/10 PASS. Model-plan/effort change;
@@ -104,12 +101,17 @@ criterion. The additions raise real-world safety without harming form.
   to mirror the step. Gap closed.
 - Round 3 (2026-07-25, Opus 4.8, strongest): 10/10 PASS. Foreground-default
   guardrail added in B3 + Safety rules. Correct and internally consistent with
-  Mode B, B3 dials, B5, and the 2-4 / single-builder rules; no contradiction with
-  the "background" mechanism note on line 234. Three non-blocking nits (reasoning
-  duplicated across the two bullets, one strained clause, caps register); none
-  crosses a rubric boundary, so 10/10 stands.
+  Mode B, B3 dials, B5, and the 2-4 / single-builder rules.
+- Round 4 (2026-07-27, Opus 4.8, strongest): 10/10 PASS. For-me editor-open offer
+  removed (B4 retitle + orientation note, "Editor (both modes)" cross-reference
+  split, worked-example line refreshed). Mode A editor step A4 confirmed intact
+  and uncontradicted; the "reuse never multiply / code -r / code --add" rule still
+  governs with-me and the spec-doc skills; no dangling for-me editor reference; no
+  gate touched (plan gate, B6 boundary-check, merge gate unaffected). One
+  non-blocking nit (policy stated three times); crosses no rubric boundary, so
+  10/10 stands.
 
-Note: this is a form review. The guardrail is partly behavioral (whether the
-agent actually refuses to background a lone builder and pre-arranges permissions
-before parallel at runtime); recommend an `/improve` subagent test to confirm the
+Note: this is a form review. The delta is partly behavioral (whether the agent
+actually refrains from offering `code --add` in for-me and delivers the one-line
+orientation instead); recommend an `/improve` subagent test to confirm the runtime
 behavior. The file form is clean and ships.

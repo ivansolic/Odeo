@@ -62,8 +62,8 @@ trivial fix (which skips `/build` entirely).
 window, never a new instance (no second dock icon). If `code` is not on PATH,
 try `cursor` (same flags); if neither exists, skip opening, and once per project
 mention that installing VS Code or Cursor unlocks the live view. With-me opens
-the editor by default (you watch and steer live); for-me offers to add the
-worktree(s) to your window, see B4.
+the editor by default (you watch and steer live); for-me does NOT open the editor
+(delegated, you review the result at the gate), see B4.
 
 ---
 
@@ -133,14 +133,12 @@ Present these as a clear choice, and say what happens if the user just says "go"
   boundary-check + code-review + explicit per-story merge as the net). NEVER
   background a LONE builder: no concurrency to gain, all of the downside.
 
-### B4. Watch in the editor? (always offer, once)
-The builder works headless in a worktree, a DIFFERENT folder from the one the
-user has open, which is why nothing appears to change in their editor. So offer:
-"Want me to add the worktree(s) to your VS Code window so you can watch? The
-Explorer and Source Control panels update live as the builder works (changed
-lines get gutter marks automatically), no window-switching needed." If yes:
-`code --add <worktree-folder>` (adds to the EXISTING window; never a new
-instance). Fallback `cursor --add`; neither installed -> skip gracefully.
+### B4. Orientation (for-me does NOT open the editor)
+The builder works headless in its own worktree, a DIFFERENT folder from the one
+the user has open, so nothing changes in their editor by design. Do NOT offer to
+add the worktree to the editor: for-me is delegated, the user reviews the RESULT
+at the gate (B6: diff + reviewer verdicts), not keystroke-by-keystroke. Say this
+once so a still editor is not mistaken for a stall. Live watching is with-me (Mode A).
 
 ### B5. Plan (architect), review the plan, then gate, then dispatch (builders)
 1. **Dispatch the `architect`** with the chosen stories (+ the overlap-check
@@ -209,7 +207,7 @@ architect -> docs/plans/2026-07-14-usr-012-timer.md (approved: no, model_plan: r
 architecture-reviewer on the plan: fits inherited architecture, 1 note (shown)
 "Plan + independent check above. Approve, change, or reject?"
 > approve                                   (flips approved: yes)
-"Want me to add the worktree to your VS Code window to watch? (code --add)"
+(builder runs headless in its worktree; nothing changes in your editor, you review at the gate)
 builder in ../dogfood-usr-012 -> success-signal checklist all pass
 code-reviewer 12/12 APPROVE -> docs/evals/code-USR-012.md (branch: field set)
 "Approved and ready. Run /merge when you want it integrated."   <- ENDS here
