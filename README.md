@@ -150,7 +150,7 @@ claude-cofounder/
 # 1. Clone and install the system
 git clone https://github.com/ivansolic/claude-cofounder.git
 cd claude-cofounder
-./install.sh                 # add --link for live updates on `git pull`
+./install.sh                 # asks your doc language once; --link for live updates on `git pull`
 source ~/.bash_profile       # or ~/.zshrc
 
 # 2. Scaffold and open a project

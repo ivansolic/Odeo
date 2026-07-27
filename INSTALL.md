@@ -105,7 +105,7 @@ cd claude-cofounder
 ```
 
 `install.sh` puts everything where Claude Code reads it:
-- `~/.claude/CLAUDE.md`, global baseline instructions + the Security Baseline
+- `~/.claude/CLAUDE.md`, global baseline instructions + the Security Baseline + your chosen output-language default
 - `~/.claude/skills/`, all skills, available in every project: the workflow commands (`/build`, `/merge`, `/learn`, ...) and the auto-applying skills (TDD, ux-design)
 - `~/.claude/agents/`, the subagents (`architect`, `builder`, `code-reviewer`, ...), available everywhere
 - `~/.claude-templates/`, project-specific scaffolding templates + `presets/`
@@ -121,6 +121,13 @@ It will NOT overwrite an existing `~/.claude/CLAUDE.md` (it saves the baseline t
 
 > **Tip:** `./install.sh --link` symlinks instead of copying, so a later
 > `git pull` updates your installed system live, handy if you'll improve it.
+
+> **Language:** on first install Odeo asks once which language to write your
+> documents in (PRDs, stories, plans, reviews), English (default), German,
+> Croatian, or French; code, filenames, and commit messages always stay English.
+> Press Enter to keep English. It is asked only once (re-running never re-prompts).
+> For a scripted or non-interactive install, pass `--lang <code>` (`en`|`de`|`hr`|`fr`)
+> or set `ODEO_INSTALL_LANG`; a non-interactive install defaults to English without prompting.
 
 Then reload your shell so the PATH and env var take effect:
 ```bash
