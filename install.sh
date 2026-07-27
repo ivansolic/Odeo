@@ -18,7 +18,15 @@ set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LINK=false
-[[ "${1:-}" == "--link" ]] && LINK=true
+INSTALL_LANG="${ODEO_INSTALL_LANG:-}"   # optional non-interactive global-language default (en|de|hr|fr)
+while [[ "$#" -gt 0 ]]; do
+  case "$1" in
+    --link) LINK=true; shift ;;
+    --lang) [[ "$#" -ge 2 ]] || { echo "--lang needs a value (en|de|hr|fr)" >&2; exit 1; }
+            INSTALL_LANG="$2"; shift 2 ;;
+    *) shift ;;
+  esac
+done
 
 place() { # place <src> <dest>
   local src="$1" dest="$2"
@@ -103,6 +111,36 @@ if [[ -e ~/.claude/CLAUDE.md ]]; then
   echo "      Baseline saved to ~/.claude/claude-cofounder-baseline.md, merge what you want."
 else
   cp "$REPO_DIR/global/CLAUDE.md" ~/.claude/CLAUDE.md
+fi
+
+# 4a. Global output-language default (one-time). Written to the same
+#     ~/.claude/CLAUDE.md line that bin/resolve-language.sh reads for the GLOBAL
+#     precedence level. Asked EXACTLY ONCE: the writer is idempotent, so a re-run
+#     (or a later project setup) never re-prompts, and a skip records English.
+#     Machine surfaces stay English regardless of the code stored.
+echo "  → global output language (one-time)"
+if [[ -L ~/.claude/CLAUDE.md ]]; then
+  echo "    ! ~/.claude/CLAUDE.md is a symlink (into the repo); leaving it untouched."
+  echo "      Set your language per-project at setup, or edit your own global file."
+elif [[ -f ~/.claude/CLAUDE.md ]] && grep -qE '^output_language:' ~/.claude/CLAUDE.md; then
+  echo "    already set, leaving it unchanged."
+elif [[ -n "$INSTALL_LANG" ]]; then
+  "$REPO_DIR/bin/set-global-language.sh" "$INSTALL_LANG" || { echo "    ! invalid --lang '$INSTALL_LANG' (en|de|hr|fr)"; exit 1; }
+elif [[ -t 0 ]]; then
+  echo ""
+  echo "    Language for the docs Odeo generates for you (PRDs, stories, plans, reviews)."
+  echo "    Code, comments, filenames, and commit messages always stay English."
+  read -r -p "    Language? [E]nglish (default) / [d]e German / [h]r Croatian / [f]r French: " _glang || _glang=""
+  case "$_glang" in
+    [Dd]*) _code=de ;;
+    [Hh]*) _code=hr ;;
+    [Ff]*) _code=fr ;;
+    *)     _code=en ;;
+  esac
+  "$REPO_DIR/bin/set-global-language.sh" "$_code"
+else
+  # Non-interactive install (CI, piped): default English, never hang on a prompt.
+  "$REPO_DIR/bin/set-global-language.sh" en
 fi
 
 # 4b. Community knowledge base (shared, read-only secondary source)
