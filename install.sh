@@ -24,7 +24,7 @@ while [[ "$#" -gt 0 ]]; do
     --link) LINK=true; shift ;;
     --lang) [[ "$#" -ge 2 ]] || { echo "--lang needs a value (en|de|hr|fr)" >&2; exit 1; }
             INSTALL_LANG="$2"; shift 2 ;;
-    *) shift ;;
+    *) echo "install: unknown option: $1 (use --link and/or --lang <code>)" >&2; exit 1 ;;
   esac
 done
 
@@ -137,7 +137,7 @@ elif [[ -t 0 ]]; then
     [Ff]*) _code=fr ;;
     *)     _code=en ;;
   esac
-  "$REPO_DIR/bin/set-global-language.sh" "$_code"
+  "$REPO_DIR/bin/set-global-language.sh" "$_code" || { echo "    ! could not set language '$_code'"; exit 1; }
 else
   # Non-interactive install (CI, piped): default English, never hang on a prompt.
   "$REPO_DIR/bin/set-global-language.sh" en
