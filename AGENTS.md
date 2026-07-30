@@ -43,6 +43,12 @@ rules are also embedded in their bodies so they hold even when this file is abse
   CLAUDE.md (`session_model_preference: strongest | strong-default`), never as
   a model name. With-me users can use `/model opusplan` (plan on the strong
   tier, execution on sonnet, automatically).
+- "The strongest you have" is resolved LIVE against the CURRENT official model
+  lineup (models-overview + a second source), never from memory or a cached model
+  table; the lineup changes often. If the SESSION model is not the strongest
+  available, say so before running judgment and name the stronger model + how to
+  switch (`/model`), especially for architecture-critical work; do not silently
+  run judgment below the strongest available.
 - Execution (the builder) is pinned to the `sonnet` TIER, the harness resolves
   it to the newest Sonnet; it executes an approved, independently reviewed
   plan, so strong models guard both its input and its output.
@@ -62,7 +68,8 @@ rules are also embedded in their bodies so they hold even when this file is abse
   never appear in them (lint C11); resolved names live only in records and plans.
 - Tier map (the one place vendor tier words live): fast = haiku class (Anthropic)
   / flash class (Google) / mini class (OpenAI); strong = sonnet class and up;
-  strongest = the top tier available on the user's actual subscription.
+  strongest = the top tier available on the user's actual subscription, resolved
+  LIVE from the current official lineup (never asserted from memory or a cached table).
 - Per-host adapter (filled at port time from a VERIFIED source, never memory):
   each host maps the tiers to its models AND names how the user changes model and
   effort. Claude Code: `/model` (model/tier), `/effort` (effort). Other hosts

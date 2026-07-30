@@ -36,7 +36,9 @@ The user picks (or names the mode when invoking); default toward with-me while l
 
 **Model plan, asked before any work.** Resolve LIVE what the harness is
 actually running, model AND effort, for both roles (session model + effort for
-judgment; the builder's tier + declared `high` effort for execution), and put it
+judgment; the builder's tier + declared `high` effort for execution), AND the
+STRONGEST model available on this host right now (resolve from the current
+official lineup live, never from a cached table, the lineup changes often). Put it
 as a question. Never bake model names into this file; speak in tier + effort:
 > "Model plan: thinking/reviews on <session model as resolved now> at effort
 >  <session effort as resolved now>, building on <builder tier> at effort high.
@@ -47,8 +49,11 @@ use their equivalent from the per-host adapter in AGENTS.md), so the same step
 works everywhere. In for-me mode, write the answer into the plan file as
 `model_plan:` including the effort for each role (the builder's contract requires
 it); in with-me mode the spoken question is the announcement. If judgment would
-run below the strong tier OR below `high` effort, say so in the same breath
-(question, not a block, the choice is the user's).
+run below the STRONGEST model available on this host (resolve the current lineup
+live, never from a cached table) OR below `high` effort, say so in the same breath,
+name the stronger model and how to switch (`/model`), and for architecture-critical
+work (plans, security, reviews) recommend switching up first (question, not a block,
+the choice is the user's).
 
 **Plan-first is the default in BOTH modes, and in for-me it is enforced by the
 pipeline.** With me: you enter plan mode and approve before building. For me: the
