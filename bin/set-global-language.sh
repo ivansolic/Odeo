@@ -22,6 +22,11 @@
 # CHANGE the global default; install.sh never passes it, so the install-time
 # "asked exactly once, never silently overwritten" guarantee is unaffected.
 #
+# The no-flag path is unchanged for every NON-SYMLINK input. One deliberate delta:
+# a symlinked config is now refused on BOTH paths (it previously appended through
+# the link, which under a --link install would have written into the repo's tracked
+# global/CLAUDE.md). install.sh cannot reach it, since it skips symlinks first.
+#
 # Exit codes:
 #   0  line present after the call (freshly written, changed, or already set)
 #   1  invalid code, or a symlinked config that must not be rewritten
@@ -35,15 +40,19 @@ usage() { echo "usage: set-global-language.sh <code> [--overwrite]  (code: en de
 
 CODE=""
 OVERWRITE=0
+SEEN_CODE=0
 while [ "$#" -gt 0 ]; do
   case "$1" in
     --overwrite) OVERWRITE=1; shift ;;
     -*)          usage ;;
-    *)           [ -z "$CODE" ] || usage   # a second bare token is a usage error
-                 CODE="$1"; shift ;;
+    *)           # A second bare token is a usage error. Counted rather than inferred
+                 # from emptiness, so an explicit empty argument stays a usage error
+                 # (matching what USR-003 shipped) instead of being treated as "no code".
+                 [ "$SEEN_CODE" -eq 0 ] || usage
+                 CODE="$1"; SEEN_CODE=1; shift ;;
   esac
 done
-[ -n "$CODE" ] || usage
+[ "$SEEN_CODE" -eq 1 ] || usage
 
 # Valid language codes. Literal, self-contained list (matches resolve-language.sh
 # and init-project.sh: each file stands alone, no cross-sourcing). The set MUST
@@ -84,7 +93,13 @@ if [ "$HAS_LINE" -eq 1 ]; then
   # ones, and write THROUGH the path so the file keeps its mode. Not atomic
   # (a failure mid-write leaves a truncated file); accepted for a one-line
   # config edit, same tradeoff as set-project-language.sh.
+  if [ ! -w "$GLOBAL_CONFIG" ]; then
+    echo "set-global-language: $GLOBAL_CONFIG is not writable" >&2
+    exit 1
+  fi
   tmp="$(mktemp)" || { echo "set-global-language: could not create a temp file" >&2; exit 1; }
+  # Clean up the temp file even on a signal (every explicit error path also removes it).
+  trap 'rm -f "$tmp"' EXIT
   if ! awk -v line="output_language: $CODE" '
     /^output_language:/ { if (!seen) { print line; seen=1 } ; next }
     { print }

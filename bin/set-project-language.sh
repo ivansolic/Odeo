@@ -47,7 +47,14 @@ if [ ! -f "$TARGET" ]; then
   exit 1
 fi
 
+if [ ! -w "$TARGET" ]; then
+  echo "set-project-language: $TARGET is not writable" >&2
+  exit 1
+fi
+
 tmp="$(mktemp)" || { echo "set-project-language: could not create a temp file" >&2; exit 1; }
+# Clean up the temp file even on a signal (every explicit error path also removes it).
+trap 'rm -f "$tmp"' EXIT
 
 # Same three branches, in the same order, and the same anchor and emitted line as
 # bin/init-project.sh, so both writers produce an identical canonical line.

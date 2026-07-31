@@ -84,7 +84,13 @@ assert_eq "both writers accept the SAME subset" "$p_accept" "$g_accept"
 
 # 4) THE FIFTH COPY: bin/init-project.sh is do-not-touch here, so it is checked textually
 #    rather than by invoking the scaffolder (which would create a whole project tree).
-assert_true "init-project.sh case arm still en|de|hr|fr" "grep -qE '^[[:space:]]*en\|de\|hr\|fr\)' \"$BIN/init-project.sh\""
+#    Extract the case ARMS rather than grepping for one expected arm: a grep for the
+#    expected pattern stays satisfied when an EXTRA arm is added (e.g. `es) ;;`), which
+#    would let the scaffolder accept a code the resolver degrades away. Comparing the
+#    full arm list catches both directions, addition and removal.
+arms="$(sed -n '/case "\$LANGUAGE" in/,/esac/p' "$BIN/init-project.sh" \
+        | grep -oE '^[[:space:]]*[a-z|]+\)' | tr -d ' \t)')"
+assert_eq "init-project.sh accepts exactly the expected set" "en|de|hr|fr" "$arms"
 assert_true "init-project.sh message still lists the set" "grep -q '(allowed: $EXPECTED)' \"$BIN/init-project.sh\""
 
 echo

@@ -126,6 +126,26 @@ assert_exit "no flag on existing value -> 0" 0 "$rc"
 assert_eq "value still fr" "output_language: fr" "$(grep '^output_language:' "$cfg")"
 assert_contains "says already set" "already set" "$out"
 
+# 17) symlink + NO existing line + --overwrite -> still refused before any write.
+#     This is the REAL --link shape: the repo's tracked global/CLAUDE.md carries no
+#     output_language: line, so case 15 (symlink + existing line) did not cover it.
+printf '# G\n' > "$TMP/real17.md"
+ln -sf "$TMP/real17.md" "$TMP/link17.md"
+out="$(CLAUDE_GLOBAL_CONFIG="$TMP/link17.md" "$SCRIPT" de --overwrite 2>&1)"; rc=$?
+assert_exit "symlink + no line + flag -> 1" 1 "$rc"
+assert_contains "says symlink (no-line case)" "symlink" "$out"
+assert_eq "target still has no language line" 0 "$(grep -c '^output_language:' "$TMP/real17.md")"
+
+# 18) symlink + NO existing line + NO flag -> also refused. This is the one place the
+#     no-flag path deliberately DIFFERS from what USR-003 shipped (it used to append
+#     through the link into a tracked file). Safer, unreachable from install.sh (which
+#     skips symlinks before calling), and pinned here so the delta is not accidental.
+printf '# G\n' > "$TMP/real18.md"
+ln -sf "$TMP/real18.md" "$TMP/link18.md"
+out="$(CLAUDE_GLOBAL_CONFIG="$TMP/link18.md" "$SCRIPT" de 2>&1)"; rc=$?
+assert_exit "symlink + no line + no flag -> 1" 1 "$rc"
+assert_eq "target untouched (no-flag case)" 0 "$(grep -c '^output_language:' "$TMP/real18.md")"
+
 echo
 if [ "$fail" = 0 ]; then echo "ALL PASS"; else echo "SOME FAILED"; fi
 exit "$fail"

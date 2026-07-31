@@ -62,6 +62,9 @@ through unchanged so the script refuses it:
 | Croatian, Hrvatski | `hr` |
 | French, Francais | `fr` |
 
+Codes are lowercase: lowercase the code the user typed before passing it (`DE` -> `de`).
+That is not picking a code and never widens the set.
+
 ## Worked example
 Working in `~/code/shop`, whose CLAUDE.md carries `output_language: en`, with a
 global default of `de`:
