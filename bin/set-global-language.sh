@@ -14,21 +14,36 @@
 # frontmatter keys, commit types, code) stay English regardless of the code stored.
 #
 # Usage:
-#   set-global-language.sh <code>        # code in: en de hr fr
+#   set-global-language.sh <code>                # code in: en de hr fr
+#   set-global-language.sh <code> --overwrite    # CHANGE an existing value
+#
+# Without --overwrite it is idempotent by design (see above): an existing line is
+# left alone. --overwrite is the explicit opt-in the /language command uses to
+# CHANGE the global default; install.sh never passes it, so the install-time
+# "asked exactly once, never silently overwritten" guarantee is unaffected.
 #
 # Exit codes:
-#   0  line present after the call (freshly written, or already set)
-#   1  invalid code
-#   2  usage error (wrong number of args)
+#   0  line present after the call (freshly written, changed, or already set)
+#   1  invalid code, or a symlinked config that must not be rewritten
+#   2  usage error (wrong number of args, or an unknown flag)
 #
 # The global config path is overridable via CLAUDE_GLOBAL_CONFIG so tests never
 # touch the real $HOME/.claude/CLAUDE.md (matches bin/resolve-language.sh).
 set -uo pipefail
 
-usage() { echo "usage: set-global-language.sh <code>  (code: en de hr fr)" >&2; exit 2; }
+usage() { echo "usage: set-global-language.sh <code> [--overwrite]  (code: en de hr fr)" >&2; exit 2; }
 
-[ "$#" -eq 1 ] || usage
-CODE="$1"
+CODE=""
+OVERWRITE=0
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --overwrite) OVERWRITE=1; shift ;;
+    -*)          usage ;;
+    *)           [ -z "$CODE" ] || usage   # a second bare token is a usage error
+                 CODE="$1"; shift ;;
+  esac
+done
+[ -n "$CODE" ] || usage
 
 # Valid language codes. Literal, self-contained list (matches resolve-language.sh
 # and init-project.sh: each file stands alone, no cross-sourcing). The set MUST
@@ -43,11 +58,44 @@ fi
 
 GLOBAL_CONFIG="${CLAUDE_GLOBAL_CONFIG:-$HOME/.claude/CLAUDE.md}"
 
-# Idempotence gate. The grep runs against $GLOBAL_CONFIG ONLY; this script takes no
-# project-dir argument and never inspects a project CLAUDE.md, so the gate can never
-# be confused by a project-level line. If a global line already exists, leave it.
+# Idempotence gate (USR-003's "asked exactly once"): WITHOUT --overwrite an existing
+# line is left exactly as it is. The grep runs against $GLOBAL_CONFIG ONLY; this
+# script takes no project-dir argument and never inspects a project CLAUDE.md, so the
+# gate can never be confused by a project-level line.
+HAS_LINE=0
 if [ -f "$GLOBAL_CONFIG" ] && grep -qE '^output_language:' "$GLOBAL_CONFIG"; then
+  HAS_LINE=1
+fi
+if [ "$HAS_LINE" -eq 1 ] && [ "$OVERWRITE" -ne 1 ]; then
   echo "set-global-language: global output language already set, leaving it unchanged."
+  exit 0
+fi
+
+# About to write. Refuse a symlinked config: under a --link install
+# ~/.claude/CLAUDE.md points at the repo's tracked global/CLAUDE.md, and writing
+# through it would mutate a committed file.
+if [ -L "$GLOBAL_CONFIG" ]; then
+  echo "set-global-language: $GLOBAL_CONFIG is a symlink (--link install); refusing to rewrite it. Set the language for this project instead." >&2
+  exit 1
+fi
+
+if [ "$HAS_LINE" -eq 1 ]; then
+  # --overwrite: replace at the position of the FIRST line, drop any further
+  # ones, and write THROUGH the path so the file keeps its mode. Not atomic
+  # (a failure mid-write leaves a truncated file); accepted for a one-line
+  # config edit, same tradeoff as set-project-language.sh.
+  tmp="$(mktemp)" || { echo "set-global-language: could not create a temp file" >&2; exit 1; }
+  if ! awk -v line="output_language: $CODE" '
+    /^output_language:/ { if (!seen) { print line; seen=1 } ; next }
+    { print }
+  ' "$GLOBAL_CONFIG" > "$tmp"; then
+    rm -f "$tmp"; echo "set-global-language: rewrite failed for $GLOBAL_CONFIG" >&2; exit 1
+  fi
+  if ! cat "$tmp" > "$GLOBAL_CONFIG"; then
+    rm -f "$tmp"; echo "set-global-language: could not write $GLOBAL_CONFIG" >&2; exit 1
+  fi
+  rm -f "$tmp"
+  echo "set-global-language: global output language changed to $CODE."
   exit 0
 fi
 

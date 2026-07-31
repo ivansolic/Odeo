@@ -62,6 +62,70 @@ out="$(CLAUDE_GLOBAL_CONFIG="$cfg" "$SCRIPT" hr 2>&1)"; rc=$?
 assert_exit "absent config -> 0 (created)" 0 "$rc"
 assert_eq "created with one hr line" "output_language: hr" "$(grep '^output_language:' "$cfg" 2>/dev/null)"
 
+# --- USR-004 cases (--overwrite, the explicit change path). Cases 1 to 8 above are
+# --- USR-003's regression suite and must never be edited. These are inserted BEFORE
+# --- the summary block on purpose: anything after `exit "$fail"` would never run.
+
+# 9) --overwrite CHANGES an existing value
+cfg="$TMP/c9.md"; printf '# G\noutput_language: fr\n' > "$cfg"
+out="$(CLAUDE_GLOBAL_CONFIG="$cfg" "$SCRIPT" de --overwrite 2>&1)"; rc=$?
+assert_exit "overwrite existing -> 0" 0 "$rc"
+assert_eq "exactly one line" 1 "$(grep -c '^output_language:' "$cfg")"
+assert_eq "value changed to de" "output_language: de" "$(grep '^output_language:' "$cfg")"
+assert_contains "surrounding content kept" "# G" "$(cat "$cfg")"
+assert_contains "says changed" "changed" "$out"
+
+# 10) --overwrite on a config with NO line still writes fresh
+cfg="$TMP/c10.md"; printf '# G\n' > "$cfg"
+out="$(CLAUDE_GLOBAL_CONFIG="$cfg" "$SCRIPT" hr --overwrite 2>&1)"; rc=$?
+assert_exit "overwrite with no existing line -> 0" 0 "$rc"
+assert_eq "one hr line" "output_language: hr" "$(grep '^output_language:' "$cfg")"
+
+# 11) --overwrite collapses pre-existing duplicates
+cfg="$TMP/c11.md"; printf '# G\noutput_language: fr\noutput_language: de\n' > "$cfg"
+out="$(CLAUDE_GLOBAL_CONFIG="$cfg" "$SCRIPT" hr --overwrite 2>&1)"; rc=$?
+assert_exit "collapse duplicates -> 0" 0 "$rc"
+assert_eq "duplicates collapsed" 1 "$(grep -c '^output_language:' "$cfg")"
+assert_eq "value hr" "output_language: hr" "$(grep '^output_language:' "$cfg")"
+
+# 12) flag order independence
+cfg="$TMP/c12.md"; printf '# G\noutput_language: fr\n' > "$cfg"
+out="$(CLAUDE_GLOBAL_CONFIG="$cfg" "$SCRIPT" --overwrite de 2>&1)"; rc=$?
+assert_exit "flag before code -> 0" 0 "$rc"
+assert_eq "value de (flag first)" "output_language: de" "$(grep '^output_language:' "$cfg")"
+
+# 13) --overwrite with an invalid code refuses and touches nothing
+cfg="$TMP/c13.md"; printf '# G\noutput_language: fr\n' > "$cfg"; cp "$cfg" "$TMP/c13.orig"
+out="$(CLAUDE_GLOBAL_CONFIG="$cfg" "$SCRIPT" klingon --overwrite 2>&1)"; rc=$?
+assert_exit "invalid code with flag -> 1" 1 "$rc"
+assert_contains "names the bad code" "klingon" "$out"
+assert_contains "lists allowed set" "en de hr fr" "$out"
+if cmp -s "$cfg" "$TMP/c13.orig"; then echo "ok: config byte-identical after refusal"; else echo "FAIL: config changed on refusal"; fail=1; fi
+
+# 14) unknown flag is a usage error
+cfg="$TMP/c14.md"; printf '# G\n' > "$cfg"
+out="$(CLAUDE_GLOBAL_CONFIG="$cfg" "$SCRIPT" --nope de 2>&1)"; rc=$?
+assert_exit "unknown flag -> 2" 2 "$rc"
+assert_contains "usage on unknown flag" "usage" "$out"
+
+# 15) a symlinked global config is refused BEFORE any write (--link install would
+#     otherwise mutate the repo's tracked global/CLAUDE.md through the link)
+printf '# G\noutput_language: fr\n' > "$TMP/real.md"
+ln -sf "$TMP/real.md" "$TMP/link.md"
+out="$(CLAUDE_GLOBAL_CONFIG="$TMP/link.md" "$SCRIPT" de --overwrite 2>&1)"; rc=$?
+assert_exit "symlinked config -> 1" 1 "$rc"
+assert_contains "says symlink" "symlink" "$out"
+assert_eq "target file untouched" "output_language: fr" "$(grep '^output_language:' "$TMP/real.md")"
+
+# 16) REGRESSION, restated on purpose: WITHOUT the flag an existing value is still
+#     left alone. Duplicates case 2 deliberately, as the guard against a future
+#     default-flip that would break USR-003's "asked exactly once".
+cfg="$TMP/c16.md"; printf '# G\noutput_language: fr\n' > "$cfg"
+out="$(CLAUDE_GLOBAL_CONFIG="$cfg" "$SCRIPT" de 2>&1)"; rc=$?
+assert_exit "no flag on existing value -> 0" 0 "$rc"
+assert_eq "value still fr" "output_language: fr" "$(grep '^output_language:' "$cfg")"
+assert_contains "says already set" "already set" "$out"
+
 echo
 if [ "$fail" = 0 ]; then echo "ALL PASS"; else echo "SOME FAILED"; fi
 exit "$fail"
