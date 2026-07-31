@@ -22,6 +22,7 @@ Build-to-learn:       /prototype -> findings -> promote at the right phase (by s
 | `/setup-design` | Design system setup: tokens as the styling source of truth (UI projects). |
 | `/start` | You-are-here: reads project state, tells you the next step + pending loop reminders. |
 | `/focus` | Fence this session's edits to one directory (`/focus <dir>`); a PreToolUse hook refuses edits elsewhere until `/focus off`. A focus aid under the permanent DO-NOT-TOUCH boundaries. |
+| `/language` | Show or change the language generated documents are written in: `/language` reports the current language and where it is set, `/language de` sets this project, `/language de --global` sets your default for all projects (en, de, hr, fr). |
 
 ## 2. Discovery & research
 | Command | What it does |

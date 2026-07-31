@@ -788,6 +788,7 @@ trusting auto-invocation.
 | Improve a skill/rubric with evidence | `/improve` (A/B test, you keep or revert) |
 | Weekly listen to your users | `/product-signal` (themes + trend vs last week) |
 | Configure a new project (stack, commands) | `/setup-project` (once per project, first thing) |
+| Change the language of generated documents | `/language` (shows it) · `/language de` (this project) · `/language de --global` (all projects) |
 | Import an existing PRD | Paste it, or "Read docs/prds/... and evaluate it" |
 | Triage external requests | `/interview-synthesis` then `/prioritize` |
 | Run the whole discovery cycle | `/discover` (brainstorm -> personas -> journey -> OST -> experiments) |
