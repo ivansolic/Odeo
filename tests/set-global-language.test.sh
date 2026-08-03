@@ -146,6 +146,15 @@ out="$(CLAUDE_GLOBAL_CONFIG="$TMP/link18.md" "$SCRIPT" de 2>&1)"; rc=$?
 assert_exit "symlink + no line + no flag -> 1" 1 "$rc"
 assert_eq "target untouched (no-flag case)" 0 "$(grep -c '^output_language:' "$TMP/real18.md")"
 
+# 19) an unwritable config must FAIL, not report a false success. Before the fix this
+#     printed "set to de" and exited 0 with nothing written, so the caller (and
+#     /language --global) believed the change had landed.
+cfg="$TMP/c19.md"; printf '# G\n' > "$cfg"; chmod 444 "$cfg"
+out="$(CLAUDE_GLOBAL_CONFIG="$cfg" "$SCRIPT" de 2>&1)"; rc=$?
+chmod 644 "$cfg"
+assert_exit "unwritable config (append path) -> 1" 1 "$rc"
+assert_eq "nothing was written" 0 "$(grep -c '^output_language:' "$cfg")"
+
 echo
 if [ "$fail" = 0 ]; then echo "ALL PASS"; else echo "SOME FAILED"; fi
 exit "$fail"

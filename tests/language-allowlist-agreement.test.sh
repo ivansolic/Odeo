@@ -88,10 +88,23 @@ assert_eq "both writers accept the SAME subset" "$p_accept" "$g_accept"
 #    expected pattern stays satisfied when an EXTRA arm is added (e.g. `es) ;;`), which
 #    would let the scaffolder accept a code the resolver degrades away. Comparing the
 #    full arm list catches both directions, addition and removal.
-arms="$(sed -n '/case "\$LANGUAGE" in/,/esac/p' "$BIN/init-project.sh" \
-        | grep -oE '^[[:space:]]*[a-z|]+\)' | tr -d ' \t)')"
+#    Match every `<label>) ;;` arm ANYWHERE on a line (not just at line start), so a
+#    second arm glued onto an existing line (`en|de|hr|fr) ;; es) ;;`) is caught too. The
+#    label charset is deliberately WIDE ([^ );]+) so a locale tag (`pt-br`), an uppercase
+#    arm (`ES`), or a digit-bearing label cannot slip past; each would otherwise be
+#    accepted by the scaffolder and then degraded to English by the resolver. The `*)`
+#    default arm ends in `exit 1 ;;` (no `)` before `;;`), so it is not captured here and
+#    is asserted separately below.
+case_body="$(sed -n '/case "\$LANGUAGE" in/,/esac/p' "$BIN/init-project.sh")"
+arms="$(printf '%s\n' "$case_body" \
+        | grep -oE '[^ );]+\)[[:space:]]*;;' \
+        | sed -E 's/\)[[:space:]]*;;$//' | tr '\n' ' ')"
+arms="${arms% }"
 assert_eq "init-project.sh accepts exactly the expected set" "en|de|hr|fr" "$arms"
 assert_true "init-project.sh message still lists the set" "grep -q '(allowed: $EXPECTED)' \"$BIN/init-project.sh\""
+#    The default arm must still REFUSE (exit 1): keeping its message while dropping the
+#    exit would make the scaffolder accept every code with only a warning.
+assert_true "init-project.sh default arm still exits 1" "printf '%s\\n' \"\$case_body\" | grep -qE '^[[:space:]]*\\*\\).*exit 1'"
 
 echo
 if [ "$fail" = 0 ]; then echo "ALL PASS"; else echo "SOME FAILED"; fi

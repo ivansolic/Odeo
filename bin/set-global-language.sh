@@ -121,6 +121,13 @@ mkdir -p "$(dirname "$GLOBAL_CONFIG")"
 # Append the canonical line on its own line. Appended (not inserted at an anchor)
 # because the user global CLAUDE.md has no guaranteed structure; resolve-language.sh
 # reads the first ^output_language: match anywhere, so a trailing line is read fine.
-printf '\noutput_language: %s\n' "$CODE" >> "$GLOBAL_CONFIG"
+# The write MUST be checked: an unwritable config would otherwise print success and
+# exit 0 with nothing written (a false success, and a lie about the exit contract
+# above). A -w pre-check cannot replace this, because the file may legitimately not
+# exist yet at this point.
+if ! printf '\noutput_language: %s\n' "$CODE" >> "$GLOBAL_CONFIG"; then
+  echo "set-global-language: could not write $GLOBAL_CONFIG" >&2
+  exit 1
+fi
 echo "set-global-language: global output language set to $CODE."
 exit 0
