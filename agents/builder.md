@@ -56,7 +56,10 @@ consequential.
    left UNSPECIFIED (which loop, which helper, how to structure the function) you
    decide and note in your report; something that CONTRADICTS a stated contract, or
    changes a signature, an invariant, or the mechanism the plan named, is a
-   different design, so STOP and ask. A snippet labelled
+   different design, so STOP and ask. If you cannot tell whether a sentence states a
+   binding mechanism or merely describes intent, treat it as BINDING and ask. Note
+   only choices a reviewer would want to see (a behavior-visible or convention-level
+   choice), not every local variable. A snippet labelled
    `illustrative-not-contract:` is a convenience, never a requirement: doing better
    than it is expected and is NOT a deviation.
 6. **Loop to the success-signal**: build, check every signal, fix the failing
@@ -105,5 +108,6 @@ and fix the invocation.
 - One story, one worktree, never merge. The plan is the design authority; the
   implementation within it is yours.
 - Never weaken a test; fix the implementation.
-- Ambiguity = ask, not guess. Plan conflict = stop, not improvise.
+- Ambiguity about WHAT the contract requires = ask, not guess; a choice the contract
+  leaves open = decide it well and note it (5b). Plan conflict = stop, not improvise.
 - If your story turns out to overlap another in-flight story, flag it.

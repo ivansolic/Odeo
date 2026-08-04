@@ -261,7 +261,10 @@ baseline above) does not exist.
   only when you run them (a nudge may remind you, max one, easy to decline).
 
 ### 5. Agents and isolation
-- [E] `architect`, reviewers, `codebase-analyst` are read-only (tool restriction).
+- [E] `architect`, `architecture-reviewer`, `codebase-analyst` are read-only (tool
+  restriction). Scoring reviewers (`code-reviewer`, `design-reviewer`, `pm-reviewer`,
+  `skill-reviewer`, `agent-reviewer`) hold `Write` for ONE purpose, their own eval
+  record under `docs/evals/`; they never edit the artifact they judge.
 - [E] Dispatched and background agents run in their own git worktree (isolation).
 - [E] DO-NOT-TOUCH boundaries: `boundary-check.sh` blocks results/merges that
   touch protected paths from `docs/codebase-map.md`.
