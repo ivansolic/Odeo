@@ -36,8 +36,8 @@ Serves: <the north star this work advances, one line: the strategy bet or the
   is no strategy doc yet, the story's own outcome stands in.>
 Architecture context: <the relevant product-level decisions this plan inherits,
   e.g. "modular monolith, Postgres, REST", never redecided here>
-Constraints: <copied verbatim from the spec/story + do-not-touch boundaries
-  that apply, from docs/codebase-map.md if it exists>
+Constraints: <copied verbatim from the spec/story. Boundaries live in the
+  Do-not-touch section below, not here, so they have one home.>
 
 ## Design decisions (resolved, so the builder does not guess)
 <each decision the build depends on, with its reason, so no task re-opens it. Write
@@ -47,15 +47,17 @@ Constraints: <copied verbatim from the spec/story + do-not-touch boundaries
 
 ## Contracts (declared once, referenced by name)
 <every interface crossing task boundaries, declared HERE and nowhere else, so tasks
- reference and never redefine it. Write `none` on a single-task plan with no shared
- interface. Declared BEFORE the tasks that cite it.>
+ reference and never redefine it. Write `none` whenever no interface crosses a task
+ boundary, however many tasks the plan has. Declared BEFORE the tasks that cite it.>
 ### C1: language status line
 - Kind: stdout format + exit contract   (one entry may carry both when they are one
   observable surface; split them only if tasks consume them separately)
 - Declaration: `language-status.sh <project-dir>` prints exactly `<code> <scope>`,
   scope in `project | global | default`; exit 0 on success, 2 on usage error.
   <For an EXTERNAL entry shared across a batch, state it BY REFERENCE to the
-  declaring plan, never copied.>
+  declaring plan, never copied. Cross-plan references are legal only within ONE
+  batch approved at the same gate: see the human-floor rule in AGENTS.md
+  Guardrails 1, which governs.>
 - Produced by: Task 1        (or: <plan-file> Task N, external, declared there)
 - Consumed by: Task 4        (within-plan only, and DERIVED: the task-side
   `Consumes:` is authoritative and the two must agree as a set. External consumers
@@ -66,9 +68,9 @@ Constraints: <copied verbatim from the spec/story + do-not-touch boundaries
 
 ## File map (before any tasks)
 <every file this plan creates or modifies, with its responsibility>
-- src/billing/invoice.ts      MODIFY: add issueInvoice(); owns invoice lifecycle
-- src/billing/invoice.test.ts CREATE: tests for issueInvoice
-- src/routes/billing.ts       MODIFY: POST /invoices endpoint, validation at boundary
+- bin/language-status.sh        CREATE: prints the effective language and its scope
+- tests/language-status.test.sh CREATE: tests for language-status.sh
+- skills/language/SKILL.md      CREATE: the /language command surface
 
 ## Tasks
 <the smallest independently testable units, in dependency order; each task:>
@@ -88,7 +90,8 @@ Constraints: <copied verbatim from the spec/story + do-not-touch boundaries
   later ones") rather than the lines that implement it. Snippets only under the
   exception in Rules below, labelled.>
 - Consumes / Produces: <REFERENCES into the Contracts section, never new
-  definitions: local `C1 (Invoice)`, cross-plan `<plan-file> C1 (Invoice)`.>
+  definitions: local `C1 (language status line)`, cross-plan
+  `<plan-file> C1 (language status line)`.>
 - Verify: <exact command(s) and expected output>
 - Commit: <the conventional commit message>
 
@@ -105,8 +108,9 @@ Constraints: <copied verbatim from the spec/story + do-not-touch boundaries
 
 ## Do-not-touch boundaries
 <files and behaviors this plan must NOT change, with the reason for each. Write
- `none` plus one line of why on a greenfield plan; the enforced boundary list lives
- in docs/codebase-map.md, this section names only what THIS plan must respect.>
+ `none` plus one line of why whenever no boundary applies (a greenfield repo, or an
+ existing one with no mapped boundaries near this work); the enforced list lives in
+ docs/codebase-map.md, this section names only what THIS plan must respect.>
 
 ## Risks / open questions
 <anything ambiguous the builder must ASK about rather than decide alone>
@@ -142,11 +146,21 @@ Constraints: <copied verbatim from the spec/story + do-not-touch boundaries
      lines its own syntax needs. "Host language" means the language of the file being
      created: when the artifact ITSELF is a `sed`/`awk` program, the exception does
      not apply.
-  2. The literal label `illustrative-not-contract:` on the snippet. An UNLABELED
-     code block in a plan is a rubric failure (criterion 3). The label means the
-     builder may do better and is never bound to transcribe it.
+  2. The literal label `illustrative-not-contract:` on the line IMMEDIATELY BEFORE
+     the opening fence, so it is greppable and unambiguous. An UNLABELED code block
+     inside an `Implement:` field is a rubric failure (criterion 3). The label means
+     the builder may do better and is never bound to transcribe it.
   3. A one-line reason why the characters are load-bearing. If the reason cannot be
      named, prose sufficed.
+
+  Worked example, inside a task's `Implement:` field:
+
+  illustrative-not-contract: exact escaping, easy to get wrong by hand
+  ```
+  sed -E 's/^output_language:[[:space:]]*//'
+  ```
+  The contract is the behavior ("strip the key and any following whitespace"); the
+  snippet only saves the builder from re-deriving the character class.
 - DRY and YAGNI apply: no speculative structures the story doesn't need.
 - The plan INHERITS product-level architecture; if the story seems to require
   changing it, the plan must say so and STOP for a human/ADR decision.
@@ -156,15 +170,19 @@ Constraints: <copied verbatim from the spec/story + do-not-touch boundaries
 - On existing codebases: respect conventions and DO-NOT-TOUCH boundaries from
   `docs/codebase-map.md`; the plan lists which boundaries are nearby.
 
-## Plan rubric (checked at the human gate; 0-2 per criterion)
+## Plan rubric (0-2 per criterion)
+Scored by `architecture-reviewer` during plan review, which is the actor that can
+walk the reference graph and the labels, and read again by the human at the gate.
 ```
 1. Executability   0 needs interpretation / 1 mostly / 2 context-free builder could run it.
                    "Could run it" = every signature, behavior rule, invariant, test case,
                    verify command and unspecified-decision boundary is present, such that
                    TWO competent builders would produce functionally equivalent code.
 2. File map        0 missing / 1 partial / 2 complete with responsibilities
-3. Task quality    0 vague steps, OR any unlabeled code block (a plan carrying an
-                   implementation is not a contract) / 1 mixed, or one dangling
+3. Task quality    0 vague steps, OR an unlabeled code block inside an `Implement:`
+                   field (a plan carrying an implementation is not a contract;
+                   fenced commands under `Verify:` are not code blocks in this
+                   sense) / 1 mixed, or one dangling
                    reference / 2 right-sized units (each worth its own reviewer gate),
                    exact signatures + exact behavior and test cases, verify commands,
                    and a CLEAN reference graph: every Consumes/Produces entry resolves

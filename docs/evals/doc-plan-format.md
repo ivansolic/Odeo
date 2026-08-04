@@ -3,277 +3,232 @@ artifact: docs/plan-format.md
 covers: docs/plan-format.md docs/skill-authoring-standard.md skills/build/SKILL.md
 type: standard
 branch: chore/adr-001-contracts-not-code
-artifact_version: 1
+commit: f8f8da6
+artifact_version: 2
 date: 2026-08-04
 scorer: skill-reviewer
 model: claude-opus-5[1m]
 model_tier: strongest
 effort: high
-scores: { trigger_clarity: 2, structure: 1, worked_example: 1, precision: 1, safety_integration: 1 }
-total: 6/10
+scores: { trigger_clarity: 2, structure: 2, worked_example: 1, precision: 1, safety_integration: 1 }
+total: 7/10
 verdict: CHANGES-REQUIRED
-previous_total: n/a
+previous_total: 6/10
 ---
 
-Scope: form review of the ADR-001 instruction changes at commit `aee5ab1`, three
-files. Judged as an AUTHORING STANDARD (a format agents must produce and a rubric
-the human gate scores), not as a `SKILL.md`; the five rubric criteria are read in
-that register (trigger clarity = does the reader know what the document governs
-and when it binds). Decision under review:
-`docs/decisions/ADR-001-plans-carry-contracts-not-code.md` (accepted v5), whose
-change table is treated as the contract these edits must satisfy.
+Scope: form re-review at HEAD `f8f8da6` of the instruction changes covered by v1,
+judged as an AUTHORING STANDARD (a format agents must produce plus a rubric a gate
+scores), not as a `SKILL.md`. `agents/architecture-reviewer.md` and `AGENTS.md` were
+read as EVIDENCE for finding closure only; `agents/` definitions are
+`agent-reviewer`'s artifact and are not scored here.
+
+Verification method note: this session had no shell, so state was verified by
+READING every file at HEAD and comparing against the line-quoted content in v1 of
+this record, not by reading the diff. Every closure claim below is anchored to a
+line that exists at HEAD.
 
 ## Artifact: docs/plan-format.md + 2 coordinated files  (format spec, not invoked)
 
 ## Scores
-- trigger clarity 2: `:3-8` "The implementation plan is the CONTRACT between
-  planning and building ... **What \"exactly\" binds:** signatures, paths, behavior
-  rules, test cases, verify commands, and boundaries. NOT the implementation shape,
-  which is the builder's to choose within those." Scope, audience and binding force
-  are stated in the first eight lines, and `:12-16` states where the artifact lives
-  and what refuses to run without it. ADR change 6 satisfied at this site.
-- structure 1: three structural defects. Leftover duplicate fields at `:64-68`
-  (F1), no mandatory/conditional convention on the five new sections (F2), and
-  declaration-after-use ordering: `## Tasks` at `:47` cites `C1 (Invoice)` at `:65`
-  while `## Contracts` only opens at `:75` (F7). Lean (163 lines) and no supporting
-  files, so the size and one-level rules are not at risk.
-- worked example 1: the five new sections are placeholder-only. `:79` is
-  "### C1: <name>" and no entry is ever filled, while the task template at `:65`
-  cites a concrete `C1 (Invoice)` that the document itself never declares, so the
-  doc's own reference does not resolve inside the doc. The Rules snippet exception
-  (`:120-133`) shows no labelled snippet at all. Contrast `:43-45`, where the
-  pre-existing File map DOES carry real values (`src/billing/invoice.ts MODIFY:
-  add issueInvoice(); owns invoice lifecycle`). ADR change 3 required inline
-  generic worked examples for the new sections; the placeholders are inline and
-  generic (no denylisted `docs/plans/` path is referenced, which is correct) but
-  they are not worked.
-- precision 1: exact in most places and it forbids placeholders itself (`:106`),
-  but five load-bearing ambiguities remain: the snippet UNIT is undefined
-  (`:124` "at most ONE such snippet per task", F5), the label's placement is
-  undefined (`:129`, F6), criterion 3 assigns no score level to a violation
-  (`:150-157`, F3), `Kind:` multiplicity and `Declaration: <the exact thing,
-  verbatim>` misfit the non-textual kinds (`:80-82`, F10), and `Consumes:` exists
-  twice with two different meanings (F1).
-- safety integration 1: references rather than restates in the places it touches
-  ("Test-first is unaffected: the builder writes the failing test first (per the
-  project's dev-rigor)", `:117-119`; `Scrutiny` non-coupling untouched at `:50-54`;
-  `docs/codebase-map.md` still named as the boundary source at `:140-141`). But the
-  ONE new safety-relevant affordance, a cross-plan `Consumes:` at `:65` and
-  `:153-156`, never points at the human-floor rule that bounds it
-  (`AGENTS.md:165-170`, "revising a declaring plan after approval invalidates its
-  consumers' approval"), so a scorer at the gate can approve a cross-plan
-  reference without learning what approving it binds. Reaches 2 with one clause
-  (F4). Nothing contradicts or restates a guardrail, so not 0.
+- trigger clarity 2 (unchanged): `:5-8` "**What \"exactly\" binds** (this list is
+  canonical; other files cite it rather than restating it): signatures, paths,
+  behavior rules, INVARIANTS, named mechanisms, test cases, verify commands, and
+  boundaries. NOT the implementation shape". The list now declares itself canonical
+  and names the two additions, so the one-name-per-concept rule has a single home
+  the other files point at. Scope, audience and binding force still in the first
+  eleven lines.
+- structure 2 (was 1): the three defects that decided the 1 are closed. Only one
+  `Consumes / Produces:` field survives, at `:90-91`, placed before `Verify:` (F1).
+  The optionality convention now exists in two places, per-section escapes at
+  `:44`, `:50-51`, `:97`, `:108-109` and the general rule at `:117-120` ("A
+  deliberate `none` plus its one-line reason is NOT a placeholder ... An EMPTY
+  heading is a failure"), so the small-story walk no longer produces an empty
+  heading (F2). `## Design decisions` `:42` and `## Contracts` `:48` now precede
+  `## File map` `:67` and `## Tasks` `:73`, so nothing is cited before it is
+  declared (F7). Reorder checked for positional breakage: `:67` "(before any
+  tasks)", `:51` "Declared BEFORE the tasks that cite it", `:9` "see the Implement
+  field and the Rules below" and `:89` "under the exception in Rules below" are all
+  still true at the new order; no section is referenced by position anywhere. 183
+  lines, no supporting files, so the size and one-level rules are not at risk.
+- worked example 1 (unchanged): the sentence that decided v1's 1 is still true at
+  HEAD. `:90-91` cites "local `C1 (Invoice)`, cross-plan `<plan-file> C1
+  (Invoice)`" while the only declared entry is `:52` "### C1: language status
+  line", so the document's own single cross-reference example does not resolve
+  inside the document, in the file whose rubric fails a plan for a dangling
+  reference (F14). The Contracts entry itself is now genuinely worked (`:52-64`,
+  real Kind, Declaration, Produced by, Consumed by, two real Invariants), Design
+  decisions carries a real bullet (`:45-46`) and Success signal a real row
+  (`:104`), which is the improvement; but the snippet exception, the one construct
+  the rubric attaches a 0 to, still ships without a single labelled instance
+  (`:145-147` states the label, shows none), and its placement is still
+  unspecified (F6 open). One of the two hardest constructs worked, and the
+  cross-reference broken, is not yet "directly imitable".
+- precision 1 (unchanged): four of the five v1 ambiguities are closed. The snippet
+  unit is now defined (`:139` "one fenced block containing one construct, so two
+  regexes in one fence is two snippets and fails", F5), criterion 3 is scorable
+  (`:166-176`, F3), `Kind:` multiplicity and the exit-contract Declaration are
+  resolved by construction (`:53-56` "one entry may carry both when they are one
+  observable surface; split them only if tasks consume them separately" plus a
+  Declaration that enumerates "exit 0 on success, 2 on usage error", F10), and the
+  duplicate field is gone (F1). Four exactness gaps remain and two are new: the
+  label's position is still undefined (`:145`, F6), score 0 fires on "any
+  unlabeled code block" with no scope limit while the format itself invites a
+  fenced `Verify:` block (`:92`, F13), `Constraints:` at `:39-40` still claims the
+  do-not-touch job that `:106-109` now also holds with no statement of which is
+  authoritative (F8), and `C1 (Invoice)` names an entry that does not exist (F14).
+  Two of those decide a gate outcome, so this is "mostly exact", not exact
+  throughout.
+- safety integration 1 (unchanged): the artifact still references rather than
+  restates where it touches a guardrail (`:131-133` test-first "per the project's
+  dev-rigor", `:76-80` Scrutiny non-coupling, `:109` and `:156-157`
+  `docs/codebase-map.md` as the enforced boundary source). The specific gap named
+  in v1 is still open IN THIS FILE: the cross-plan affordance at `:57-59` and
+  `:172-176` never points at the rule that bounds it (`AGENTS.md:165-170`,
+  "revising a declaring plan after approval invalidates its consumers' approval"),
+  and the rubric header at `:159` still reads "checked at the human gate" alone.
+  The system half of that gap IS closed, `AGENTS.md:169-170` now names
+  "Detector: `architecture-reviewer` during plan review" and
+  `agents/architecture-reviewer.md:17-24` carries the checks, but a human reading
+  only `docs/plan-format.md` at the gate still cannot learn what approving a
+  cross-plan reference binds. One clause at `:159` or `:57-59` moves this to 2.
+  Nothing contradicts or restates a guardrail, so not 0.
 
-## Total: 6/10   ## Verdict: CHANGES-REQUIRED (threshold 8/10, no zero)
+## Total: 7/10   ## Verdict: CHANGES-REQUIRED (threshold 8/10, no zero)
 
 ## Ceiling
-Max reachable 10/10; nothing structurally caps. Trigger clarity is judged as a
-scope statement (the correct format for a non-invoked spec) and already scores 2.
-Safety integration can reach 2 because a guardrail genuinely applies here (plan
-approval, human floor); worked example can reach 2 because a filled Contracts
-entry and a labelled snippet are both writable inline and generically.
+Max reachable 10/10, nothing structurally caps. Safety integration can reach 2
+because a guardrail genuinely applies (plan approval, human floor) and needs only
+a pointer; worked example can reach 2 with one name fix plus one labelled snippet;
+precision can reach 2 with three wording edits. The three remaining blocking-class
+items are each one or two lines of text, so the gap to PASS is small and mechanical.
 
-## Findings
+## Prior findings: closure status at f8f8da6
 
-### Blocking
-**F1 (High) `docs/plan-format.md:64-68`, the old definition-site fields survived
-the edit.** The template now carries `- Consumes / Produces: <REFERENCES into the
-Contracts section...>` at `:64-65` AND, after `Verify:`, `- Consumes:
-<interfaces/types this task needs, from which task or existing code>` (`:67`) and
-`- Produces: <interfaces/types the next tasks may use>` (`:68`). The surviving
-pair is the per-task definition site ADR change 3 replaces ("`Consumes:`/`Produces:`
-become references to Contracts, not definition sites"), it now straddles `Verify:`
-in the field order, and it makes criterion 3 unscorable: a plan that fills `:67`
-prose-style and omits `:64` cannot be judged. Fix: delete `:67-68` and keep one
-field placed before `Verify:`.
+| # | v1 severity | Status at HEAD | Evidence |
+|---|---|---|---|
+| F1 | High | CLOSED | Only one field remains, `:90-91` "- Consumes / Produces: <REFERENCES into the Contracts section, never new definitions>", placed before `Verify:` `:92`. No `<interfaces/types this task needs>` pair survives anywhere in the file. Criterion 3 is now scorable against a single definition site, and `:121-123` ("Interfaces declared once, in `Contracts`") agrees with it instead of the old consumes/produces wording. |
+| F2 | High | PARTIALLY CLOSED | The convention exists and the probe passes: a one-script three-task plan can now be written with no empty heading, because `:117-120` authorizes `none` plus a reason generally ("it is how a small story fills the sections that genuinely do not apply") and `:97` allows a one-line `Task order`. Residual: two of the three per-section escapes are written for a NARROWER case than the one they must cover. `:50-51` says "Write `none` on a single-task plan with no shared interface", but my probe plan has THREE tasks and no interface crossing a boundary, which the section text does not authorize and only the general rule does; `:108-109` says "on a greenfield plan", which does not cover a brownfield repo with no `docs/codebase-map.md`. A strict scorer reading the section as the enumeration of allowed cases still finds a conflict. Fix: `:50-51` "Write `none` plus one line of why when no interface crosses a task boundary"; `:108-109` "Write `none` plus one line of why when this plan is near no existing boundary". |
+| F3 | High | CLOSED (with one residual, see F13) | `:166-176` now assigns levels: 0 "vague steps, OR any unlabeled code block (a plan carrying an implementation is not a contract)", 1 "mixed, or one dangling reference", 2 a clean graph with set equality stated operationally ("the set of tasks listing `Consumes: C<n>` EQUALS that entry's `Consumed by:` set"), cross-plan checked "one-directionally, resolution only", and the Success-signal row count tied to the criterion count. Two-scorer test: the four common cases (clean graph, one dangling reference, an unlabeled block, vague steps) now land on the same level for both scorers. Two uncommon cases fall to the catch-all 1 by default rather than by statement, a `Consumed by:` set mismatch and a row-count mismatch, which agrees between scorers but means a broken graph cannot be blocked by this criterion alone. Worth one clause, not blocking. |
+| F4 | High | PARTIALLY CLOSED | The operative half is closed: `agents/architecture-reviewer.md:17-24` now carries "the reference graph (every `Consumes:`/`Produces:` resolves to a named `Contracts` entry, within-plan `Consumed by:` sets match the tasks that cite them, cross-plan references cite `<plan-file> C<n>`), any code block missing the `illustrative-not-contract:` label, and any interface with two definition sites", and names itself the detector for the human-floor rule, matching `AGENTS.md:169-170`. The check now has a competent holder. Residual: `docs/plan-format.md:159` still reads "## Plan rubric (checked at the human gate; 0-2 per criterion)", so the format doc alone still assigns an N-task graph walk to a possibly non-engineer human. Fix as v1 proposed: "checked by `architecture-reviewer` during plan review and confirmed at the human gate". This same clause is what moves safety integration to 2. |
+| F5 | Medium | CLOSED | `:139` "at most ONE such snippet per task, meaning one fenced block containing one construct, so two regexes in one fence is two snippets and fails". The formatting loophole named in v1 is closed by definition, and the `awk`-in-shell allowance at `:141-144` still reads correctly against it. |
+| F6 | Medium | OPEN | `:145` is still "The literal label `illustrative-not-contract:` on the snippet", with no position. The rubric fails an unlabeled block at 0 (`:166-167`), so the greppability of a blocking condition is still undefined. Fix unchanged: "on the line immediately before the opening fence (or as the fence info string), so `grep -B1` finds it". |
+| F7 | Medium | CLOSED | Order at HEAD: Header `:31`, Design decisions `:42`, Contracts `:48`, File map `:67`, Tasks `:73`, Task order `:95`, Success signal `:99`, Do-not-touch `:106`, Risks `:111`. Contracts is declared two sections before the task template that cites it. The author placed the pair BEFORE `File map` rather than between it and `Tasks` as v1 proposed; both satisfy declaration-before-use and no positional reference breaks, so this is an acceptable variant, not a deviation. |
+| F8 | Medium | PARTIALLY CLOSED | `:108-109` now states the authority chain downward ("the enforced boundary list lives in docs/codebase-map.md, this section names only what THIS plan must respect"), which was the substance of the concern. Residual: `:39-40` `Constraints:` still reads "copied verbatim from the spec/story + do-not-touch boundaries that apply, from docs/codebase-map.md if it exists", so two plan-level fields still claim the same content and neither says which one an architect fills. Fix: trim `:39-40` to spec constraints and add "boundaries live in `## Do-not-touch boundaries`". |
+| F9 | Medium | CLOSED (as asked) | `:52-64` is a filled entry: `### C1: language status line`, Kind "stdout format + exit contract", a Declaration with the literal output shape and both exit codes, `Produced by: Task 1`, `Consumed by: Task 4`, and two Invariants that are real constraints ("the `<code>` field always equals `resolve-language.sh`'s output; an invalid project value reports scope `global`, never `project`"). The second half of v1's fix note, "add one labelled-snippet example under Rules in the same pass", was NOT done, which is why worked example stays at 1 together with F14. |
+| F10 | Low | CLOSED | `:53-54` "one entry may carry both when they are one observable surface; split them only if tasks consume them separately" answers the multiplicity choice, and `:55-56` shows the exit contract stated as an enumeration, which is the verbatim-referent gap v1 named. |
+| F11 | Low | CLOSED | Repo-wide grep for `ADR-001` outside `docs/decisions/` returns nothing: `docs/plan-format.md`, `docs/skill-authoring-standard.md`, `agents/architect.md` and `agents/code-reviewer.md` are clean. `docs/plan-format.md:9` now points inside itself ("see the Implement field and the Rules below") and `docs/skill-authoring-standard.md:45-49` stands on its own text. No publish-snapshot dangle remains. |
+| F12 | Low | CLOSED | `docs/skill-authoring-standard.md:71` now reads "a preserved write path once reported success while writing nothing", with no story id. The observed-evidence requirement at `:63-65` still holds (the claim is a real history, stated without the internal identifier), and the cell is one clause shorter, closer to the file's own "One line each" (`:60`). |
 
-**F2 (High) `docs/plan-format.md:71-99`, no section is marked mandatory or
-conditional.** Walk the format for a small story (one script, three tasks, no
-cross-plan sharing): `Design decisions` and `Success signal` fill naturally,
-`Task order and parallelism` collapses to one line, and `Do-not-touch boundaries`
-(greenfield) and sometimes `Contracts` (three tasks with no interface crossing a
-boundary) have nothing to say. The document already knows how to mark this,
-`:50` "(optional; omitted = standard)" for `Scrutiny`, and did not do it for the
-new sections, so the format will produce empty headings, which `:106` ("No
-placeholders") then reads as a failure either way. Fix: one line under
-`## Structure`: "Every section is required; where a section has nothing, write
-`none` plus one line of why (`Contracts: none, no interface crosses a task
-boundary`). `Task order and parallelism` may be a single line (`sequential,
-T1 -> T2 -> T3`)."
+## New findings introduced by the fixes
 
-**F3 (High) `docs/plan-format.md:150-157`, criterion 3 is not consistently
-scorable.** Three gaps: (a) "`Consumed by:` and the task-side `Consumes:` must
-AGREE" does not say the sets must be equal, so a scorer can accept a one-sided
-listing; (b) no level is assigned to a violation, and "An UNLABELED code block is
-a failure here" can be read as 0 or as 1, which decides whether the plan is
-blocked at all (threshold: no criterion at 0); (c) the 0 and 1 descriptors
-("vague steps" / "mixed") were not updated, so the new conditions have no landing
-place below 2. Fix: define agreement as "the tasks listed in `Consumed by:` are
-exactly the tasks whose `Consumes:` names that entry", and add "a dangling
-reference, a `Consumed by:` disagreement, or an UNLABELED code block caps this
-criterion at 0".
+**F13 (Medium) `docs/plan-format.md:166-167` vs `:92`, the new score 0 has no
+scope limit.** Criterion 3 now blocks a plan for "any unlabeled code block", and
+the same document tells the architect to write "Verify: <exact command(s) and
+expected output>" (`:92`), which architects routinely fence. Two scorers can
+disagree on whether a fenced verify command or an expected-output block is an
+unlabeled code block, and that disagreement decides a 0, which the threshold
+blocks outright. The rewrite turned a soft over-reach in v1's wording into a hard
+one. Fix: "0 vague steps, OR an unlabeled code block in `Implement:` (a plan
+carrying an implementation is not a contract); verify commands and expected output
+are not snippets and need no label."
 
-**F4 (High) `docs/plan-format.md:143` + `agents/architecture-reviewer.md:12-20`,
-the reference-graph check has no competent holder.** The rubric header says
-"checked at the human gate", the human in this system is explicitly allowed to be
-a non-engineer, and the ADR's own consequence list claims non-engineer legibility
-only for `Design decisions` and `Success signal`. Criterion 3 nonetheless asks
-that human to verify an N-task bidirectional reference graph by hand, while the
-actor the ADR names as detector (change 14) has a plan-review mode that mentions
-neither the plan rubric, nor resolution, nor the `illustrative-not-contract:`
-label. Fix: add to `agents/architecture-reviewer.md` plan-review mode "check that
-every `Consumes:`/`Produces:` resolves to a named Contracts entry, that
-`Consumed by:` agrees with the task-side `Consumes:`, and that every code block
-carries `illustrative-not-contract:`", and change `:143` to "checked by
-`architecture-reviewer` during plan review and confirmed at the human gate".
+**F14 (Medium) `docs/plan-format.md:90-91` vs `:52`, the doc's own cross-reference
+is dangling.** The task template cites `C1 (Invoice)` twice; the declared entry is
+`C1: language status line`. An architect imitating the template writes a reference
+to a name the Contracts section does not carry, and this is the exact class
+criterion 3 caps at 1 ("one dangling reference"). Fix, one line: change `:90-91`
+to "local `C1 (language status line)`, cross-plan `<plan-file> C1 (language status
+line)`". This is the cheapest single edit in this record and it is what holds
+worked example at 1.
 
-### Important
-**F5 (Medium) `docs/plan-format.md:120-126`, the snippet unit is undefined, so the
-one-per-task cap is gameable by formatting.** Three probe cases: an `awk` program
-with braces inside a shell script is correctly ALLOWED (`:126-128`, host language
-is the shell, and "counts as ONE however many lines its syntax needs"); a 4-line
-shell function body in a plan for a shell script is correctly FORBIDDEN (`:125`,
-"no function bodies and no host-language block bodies"); but two separate regexes
-in one task are NOT clearly forbidden, because an architect can put both inside a
-single labelled fence and satisfy the letter of "at most ONE such snippet per
-task". That is the same class the rule claims to have closed ("a line cap is
-gameable by formatting", `:120-121`). Fix: "ONE snippet = one labelled fenced
-block carrying ONE load-bearing expression; two expressions are two snippets even
-inside one fence."
+**F15 (Low) `docs/plan-format.md:45-46`, `:52-64`, `:69-71`, `:104`, four unrelated
+example threads.** The install `--overwrite` flag, the language status line, the
+billing invoice files and a German PRD test each illustrate one section. Separate
+threads are acceptable for a template where sections are read independently, but
+NOT for the two sections that must cross-reference each other, which is how F14
+arose. Fix (optional, after F14): keep the language thread in `Contracts`, the
+task template and the File map, and leave the other two as they are.
 
-**F6 (Medium) `docs/plan-format.md:129`, the label's position is unspecified**
-("The literal label `illustrative-not-contract:` on the snippet") while the rubric
-fails an unlabeled block and the ADR calls the three conditions "all greppable".
-Fix: "on the line immediately before the opening fence (or as the fence info
-string), so `grep -B1` finds it".
-
-**F7 (Medium) `docs/plan-format.md:47-99`, declaration after use.** `## Tasks`
-precedes `## Design decisions` (`:71`) and `## Contracts` (`:75`), so a linear
-reader meets `Consumes: C1` before C1 exists and meets the decisions meant to stop
-guessing after the tasks that would guess. The practice the ADR cites as proof put
-design decisions early (USR-003 `:37`, USR-004 `:32`) and the signal sections late.
-Fix: move `Design decisions` and `Contracts` between `File map` and `Tasks`; leave
-`Task order and parallelism`, `Success signal`, `Do-not-touch boundaries` and
-`Risks` after.
-
-**F8 (Medium) `docs/plan-format.md:38-39` vs `:98-99`, two plan-level homes for
-do-not-touch.** Header `Constraints:` still says "copied verbatim from the
-spec/story + do-not-touch boundaries that apply, from docs/codebase-map.md" and
-the new section repeats the job, with no statement of which is authoritative, while
-the ENFORCED source is `docs/codebase-map.md` (`bin/boundary-check.sh:6-7,20,33`).
-A second copy of the truth inside the document that forbids second copies. Fix:
-trim `Constraints:` to spec constraints and add "boundaries live in
-`## Do-not-touch boundaries`, derived from `docs/codebase-map.md`, which remains
-the enforced source".
-
-**F9 (Medium) `docs/plan-format.md:75-88`, fill one Contracts entry.** The hardest
-new construct ships without a single worked instance, and `:65` already promises
-one. Fix, staying on the doc's existing Invoice thread and inline/generic per ADR
-change 3:
-```
-### C1: Invoice
-- Kind: type
-- Declaration: `type Invoice = { id: string; customerId: string; cents: number; issuedAt: string }`
-- Produced by: Task 1
-- Consumed by: Task 2, Task 3
-- Invariants: `cents` is a non-negative integer in minor units; `issuedAt` is UTC
-  ISO-8601; an issued invoice is never mutated, a correction is a new invoice
-```
-Add one labelled-snippet example under Rules in the same pass (it also closes F6
-by showing the placement).
-
-### Minor
-**F10 (Low) `docs/plan-format.md:80-82`, the C1 shape fits the repo's interface
-kinds with two wording gaps.** Test: writing the real contract for
-`bin/language-status.sh` (one stdout line `<code> <scope>`, exit 0 on success and
-2 on usage error) forces a choice the template does not make, one entry with two
-kinds or two entries, and `Declaration: <the exact thing, verbatim>` has no
-verbatim referent for an exit contract. The five fields otherwise fit all four
-kinds this repo produces (shell exit contract, stdout format, file-line format,
-CLI flag set), and `Invariants:` is where the resolver-is-the-only-source rule
-lands cleanly. Fix: "one `Kind:` per entry (an artifact with both a stdout format
-and an exit contract gets two entries); `Declaration:` is verbatim for
-type/signature/format kinds and an exhaustive enumeration for an exit contract
-(`0 = status on stdout; 2 = usage error, nothing on stdout`)."
-
-**F11 (Low) `docs/plan-format.md:8,115` and `docs/skill-authoring-standard.md:49`,
-a public file instructs the reader to see an internal document.** Both files are
-on the publish allowlist (`docs/public-paths.txt:43,46`) while
-`docs/internal-paths.txt:34` classifies `docs/decisions/` internal, so "see the
-Implement field and ADR-001" dangles in the snapshot. The rules themselves are
-self-sufficient, so the fix is cosmetic: write "(ADR-001, internal decision
-record)" or drop the "see" instruction at `:8`.
-
-**F12 (Low) `docs/skill-authoring-standard.md:71`, the replacement row cites an
-internal story ID in a public file** ("USR-004's frozen append tail carried a
-false-success bug"), and its right cell is three clauses against the file's own
-"One line each" (`:60`). The ADR prescribed this wording (change 11) and the
-observed-evidence requirement (`:63-65`) is met, so this is presentation only; the
-claim survives rephrasing: "a frozen append tail in this repo's history reported
-exit 0 with nothing written".
-
-## ADR-001 change-table conformance (the three sites in scope)
-| # | Site | Status |
+## ADR change-table conformance (the three sites in scope)
+| # | Site | Status at HEAD |
 |---|---|---|
-| 1 | Implement field + snippet exception | met (`:57-63` behavior/invariants/no code, conditions at `:120-133`), weakened by F5 and F6 |
-| 2 | reframe "complete code does not waive test-first" | met, `:115-119`, replaced not reworded |
-| 3 | five sections + Consumes/Produces become references + inline generic examples | PARTIAL: sections present, examples inline and generic with no denylisted path, but the old definition-site fields survive (F1), no optionality convention (F2), no worked entry (F9) |
-| 4 | criterion 3 resolution clause | present with the required placeholder citation form (`<plan-file> C<n>`), not consistently scorable (F3), unheld (F4) |
-| 5 | criterion 1 equivalence definition | met, `:145-148`, "TWO competent builders would produce functionally equivalent code" |
-| 6 | define what "exactly" binds, plan-format + build SKILL | met at all three sites (`docs/plan-format.md:5-8`, `skills/build/SKILL.md:30-31,98-100`) |
-| 11 | skill-authoring-standard row REPLACED | met, and the replacement is an observed shortcut, so `:63-65` is respected; F12 is presentation |
-| 12 | privacy-scan principle scoped | met, `docs/skill-authoring-standard.md:45-49`, "different domains, both single-source" |
+| 1 | Implement field + snippet exception | met (`:81-89` behavior/invariants/mechanism/no code, conditions at `:134-149`), F5 closed, still weakened by F6 |
+| 2 | reframe "complete code does not waive test-first" | met, `:129-133`, replaced not reworded |
+| 3 | five sections + Consumes/Produces become references + inline generic examples | met on the definition-site change (F1) and on a worked Contracts entry (F9); still PARTIAL on the escape wording (F2) and on the internal reference (F14); no denylisted `docs/plans/` path referenced |
+| 4 | criterion 3 resolution clause | met and now scorable (`:166-176`), held by a competent detector (`agents/architecture-reviewer.md:17-24`, `AGENTS.md:169-170`); `:159` still names the human gate alone |
+| 5 | criterion 1 equivalence definition | met, `:161-164` |
+| 6 | define what "exactly" binds, plan-format + build SKILL | met and strengthened: `:5-8` declares itself canonical and adds INVARIANTS and named mechanisms; `skills/build/SKILL.md:30,97-98` still agrees |
+| 11 | skill-authoring-standard row REPLACED | met, and F12 closed (no internal id, tighter cell) |
+| 12 | privacy-scan principle scoped | met, `docs/skill-authoring-standard.md:45-49` |
 
-Coordinated sites outside this diff were spot-checked and agree: `agents/architect.md:10-11,43-50,70-72`,
-`agents/builder.md:52-61,93-96`, `agents/code-reviewer.md:36`, `docs/internal-paths.txt:31-34`,
-`AGENTS.md:165-170`. No contradiction found between them and the three files reviewed.
-
-## skills/build/SKILL.md (the smallest change, and it is clean)
-`:30-31` ("a builder agent builds to that plan's contract in its own worktree")
-and `:98-100` ("holds the plan's contract exactly: signatures, behavior,
-invariants, tests, verify, boundaries; the implementation within it is the
-builder's") match `docs/plan-format.md:5-8` and `agents/builder.md:52-61`. The
-description, the gates (spec gate, plan gate, `boundary-check.sh`, merge) and the
-worked example are untouched, and the file stays under the size limit (239 lines).
-Nothing here needs reverting; the CHANGES-REQUIRED verdict is driven by
-`docs/plan-format.md`. Its own record (`docs/evals/skill-build.md`, v5, 10/10) is
-now one version stale and should be refreshed in the same pass that closes F1-F4.
+## skills/build/SKILL.md
+Unchanged in substance and still consistent with the canonical list: `:30`
+("builder agent builds to that plan's contract in its own worktree") and `:97-98`
+("holds the plan's contract exactly"). No new finding. Its own record
+(`docs/evals/skill-build.md` v5, 10/10) is not invalidated by anything here.
 
 ## House style
-No em or en dashes and no non-Latin characters in any of the three files (grep,
-zero matches each). English throughout. No versions, dates or "currently" added.
-The new sections reference no denylisted `docs/plans/` file, which ADR change 3
-required, and the cross-plan example uses the placeholder form `<plan-file> C1
-(Invoice)`, matching `:13`.
+No em or en dashes and no non-Latin characters in `docs/plan-format.md`,
+`docs/skill-authoring-standard.md` or `skills/build/SKILL.md`. English throughout.
+No versions, dates or "currently" introduced. No internal path or story id in a
+publish-allowlisted file (F11, F12 closed).
 
 ## Map duty
-No command surface added or altered (a format spec plus two wordings), so no
-`docs/system-map.md` delta is required. `docs/system-map.md:77` ("`builder`
-(executes the approved plan, own worktree)") does not carry the "exactly" wording
-ADR change 6 targeted, so it is not stale. Not a finding.
+Still no command surface added or altered (a format spec plus wordings), so no
+`docs/system-map.md` delta is required. Checked `docs/system-map.md:77`, it does
+not carry the "exactly" wording and is not stale. Not a finding.
+
+## Top fixes (in cost order, all three reach 10/10)
+1. `:90-91`: rename the cited entry to `C1 (language status line)` so the doc's own
+   reference resolves (F14), and add one labelled snippet under Rules with the
+   label on the line before the fence (F9 remainder + F6). Moves worked example to
+   2 and removes one precision gap.
+2. `:159`: "checked by `architecture-reviewer` during plan review and confirmed at
+   the human gate", and one clause at `:57-59` pointing at the approval rule a
+   cross-plan reference invokes (`AGENTS.md` Guardrails 1). Moves safety
+   integration to 2 and closes F4.
+3. `:166-167` scope the score-0 trigger to `Implement:` blocks (F13), `:39-40` trim
+   `Constraints:` to spec constraints (F8), `:50-51` and `:108-109` widen the two
+   narrow escapes (F2 residual). Moves precision to 2.
 
 ## Round-by-round
 - Round 1 (2026-08-04, Opus 5 (1M), strongest): 6/10 CHANGES-REQUIRED. Four
-  blocking findings, all in `docs/plan-format.md`: a leftover duplicate
-  `Consumes:`/`Produces:` pair that contradicts the change it implements, no
-  mandatory/conditional convention for the five new sections (small stories will
-  produce empty headings), a criterion 3 that two scorers can score differently,
-  and a reference-graph check assigned to a non-engineer gate with no reviewer
-  support. Five Medium, three Low.
+  blocking findings, five Medium, three Low.
+- Round 2 (2026-08-04, Opus 5 (1M), strongest), at `f8f8da6`: 7/10
+  CHANGES-REQUIRED. Blocking set essentially closed (F1, F3, F5 fully; F2 and F4
+  on their operative half), structure moved 1 to 2, and three of the four
+  remaining items are one-line text edits. Two new Medium defects were introduced
+  by the fixes themselves (F13 by the criterion-3 rewrite, F14 by filling C1 with
+  a name the task template does not cite).
 
 ## Vs previous version
-No prior record for `docs/plan-format.md`, so no regression baseline; this is
-artifact_version 1 of this record. The nearest neighbour,
-`docs/evals/skill-build.md` v5 (10/10 PASS), covers a file also touched here and
-is unaffected by these findings.
+6/10 to 7/10, improved, no criterion regressed. Structure 1 to 2 (F1, F2, F7).
+Worked example, precision and safety integration each stay at 1, and each for a
+DIFFERENT reason than a lack of effort: worked example because the exact v1
+sentence ("the doc's own reference does not resolve inside the doc") survives the
+fix in a new form (F14) and the snippet still has no instance; precision because
+one of the five v1 gaps (F6) is untouched and two new ones appeared (F13, F14);
+safety integration because the pointer that would close it moved into
+`agents/architecture-reviewer.md` and `AGENTS.md` but not into this file. The
+reorder (F7) introduced no defect: no section is referenced by position, and
+`Contracts` forward-citing `Task 1` is inherent to declaring before use and is
+resolved by `:60-63` making the task-side `Consumes:` authoritative. The
+criterion-3 rewrite left no level unreachable and no case double-counted; its only
+flaw is the unscoped score-0 trigger (F13).
 
 ## History
-- Round 1 (2026-08-04, `claude-opus-5[1m]`, strongest, effort high): 6/10
-  CHANGES-REQUIRED, record created.
+- v1 (2026-08-04, `claude-opus-5[1m]`, strongest, effort high, commit `aee5ab1`):
+  6/10 CHANGES-REQUIRED, record created. F1-F4 blocking.
+- v2 (2026-08-04, `claude-opus-5[1m]`, strongest, effort high, commit `f8f8da6`):
+  7/10 CHANGES-REQUIRED, record REGENERATED at the new HEAD (v1 was stale for the
+  gate). Changed: closure status for F1-F12 recorded with HEAD evidence, structure
+  rescored 1 to 2, two new findings added (F13, F14) plus one Low (F15), and the
+  top-fix list reduced to three one-line edits. Verdict unchanged in value, and it
+  is now held by a much smaller set of defects than in v1.
 
-Note: this is a FORM review. The producibility and scorability failures above are
-readable in the file and do not need runtime evidence. Once F1-F4 are closed, the
-remaining risk is behavioral (does the architect actually declare contracts once
-and reference them, and does the plan reviewer catch a dangling reference), which
-is an `/improve` subagent test, not a form review.
+Note: this remains a FORM review, verified by reading the files at HEAD (no shell
+in this session). Once F13, F14 and the F4 clause are closed, what is left is
+BEHAVIORAL: does the architect declare each interface once and reference it, and
+does `architecture-reviewer` actually catch a dangling reference and a missing
+label in a real plan. That is an `/improve` subagent test, not a form review, and
+this record should not be read as evidence about it.
