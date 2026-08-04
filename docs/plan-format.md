@@ -2,6 +2,10 @@
 
 The implementation plan is the CONTRACT between planning and building: the
 `architect` produces it, the human approves it, the `builder` executes it exactly.
+**What "exactly" binds:** signatures, paths, behavior rules, test cases, verify
+commands, and boundaries. NOT the implementation shape, which is the builder's to
+choose within those. The plan states the promises the code must keep; it does not
+contain the code (see the Implement field and ADR-001).
 The quality bar: **a context-free builder (or an unfamiliar developer) can execute
 it alone, without asking what was meant.**
 
@@ -51,15 +55,48 @@ Constraints: <copied verbatim from the spec/story + do-not-touch boundaries
 - Test first (per the project's dev-rigor style): <the exact test to write,
   named, with the expected failure>
 - Implement: <exact function signatures, paths, and the change, no "add
-  validation", write WHICH validation, on WHICH field, with WHAT rule.
-  When the change is mechanical enough to write out, PUT THE EXACT CODE HERE:
-  the builder transcribes and tests it, which is cheaper and more precise than
-  a prose description it has to reconstruct. For genuinely novel logic, describe
-  the approach and let the builder work it out under test.>
+  validation", write WHICH validation, on WHICH field, with WHAT rule. State the
+  BEHAVIOR and the INVARIANTS (what must remain true), not the code: the code is
+  the builder's, the promises are yours. Where a mechanism is a design decision,
+  state the mechanism ("replace in place, keeping the first match and dropping
+  later ones") rather than the lines that implement it. Snippets only under the
+  exception in Rules below, labelled.>
+- Consumes / Produces: <REFERENCES into the Contracts section, never new
+  definitions: local `C1 (Invoice)`, cross-plan `<plan-file> C1 (Invoice)`.>
 - Verify: <exact command(s) and expected output>
 - Consumes: <interfaces/types this task needs, from which task or existing code>
 - Produces: <interfaces/types the next tasks may use>
 - Commit: <the conventional commit message>
+
+## Design decisions (resolved, so the builder does not guess)
+<each decision the build depends on, with its reason, so no task re-opens it:
+ "the flag is opt-in, so the install-time guarantee holds by construction">
+
+## Contracts (declared once, referenced by name)
+<every interface crossing task boundaries, declared HERE and nowhere else. This is
+ what replaces per-task interface definitions: at 3 files that was a chain, at 40 it
+ is an unreadable mesh.>
+### C1: <name>
+- Kind: type | signature | file format | exit contract | CLI | stdout format
+- Declaration: <the exact thing, verbatim. For an EXTERNAL entry shared across a
+  batch, BY REFERENCE to the declaring plan, never copied.>
+- Produced by: Task N        (or: <plan-file> Task N, external, declared there)
+- Consumed by: Task M, Task P   (within-plan only, and DERIVED: the task-side
+  `Consumes:` is authoritative and the two must agree. External consumers are
+  deliberately NOT listed, so this plan cannot go stale when a consumer is written.)
+- Invariants: <what must remain true; this is where "entries are trimmed before
+  classification, and a padded entry must still match" lives>
+
+## Task order and parallelism
+<which tasks are independent (safe to build in parallel) and which are sequential>
+
+## Success signal (every acceptance criterion mapped to a concrete check)
+| Criterion | Proven by |
+|---|---|
+| <the AC, in the story's words> | <the exact command or observation> |
+
+## Do-not-touch boundaries
+<files and behaviors this plan must NOT change, with the reason for each>
 
 ## Risks / open questions
 <anything ambiguous the builder must ASK about rather than decide alone>
@@ -75,10 +112,25 @@ Constraints: <copied verbatim from the spec/story + do-not-touch boundaries
   setup/config steps into the task that needs them; split only where a reviewer
   could meaningfully reject. Each task is still one cycle: test, fail, implement,
   pass, commit.
-- **Complete code in a task does NOT waive test-first.** The builder still writes
-  the failing test first (per the project's dev-rigor), watches it fail, THEN
-  transcribes the plan's code to make it pass. Code in the plan is the intended
-  implementation, never a licence to skip the test.
+- **The plan carries contracts, not implementations** (ADR-001). A task states
+  signatures, behavior, invariants, test cases and verify commands; it does not
+  contain the code. Test-first is unaffected: the builder writes the failing test
+  first (per the project's dev-rigor), watches it fail, THEN implements to satisfy
+  the contract.
+- **Snippet exception**, for cases where the exact characters are load-bearing and
+  easy to get wrong (a regex, shell quoting, a `sed`/`awk` expression, a format
+  string). All three conditions required:
+  1. Shape and one-per-task, never a line count (a line cap is gameable by
+     formatting): at most ONE such snippet per task, no function bodies and no
+     host-language block bodies, never a whole file, class or task implementation.
+     A `sed`/`awk`/regex program counts as ONE however many lines its syntax needs.
+     "Host language" means the language of the file being created: when the artifact
+     ITSELF is a `sed`/`awk` program, the exception does not apply.
+  2. The literal label `illustrative-not-contract:` on the snippet. An UNLABELED
+     code block in a plan is a rubric failure (criterion 3). The label means the
+     builder may do better and is never bound to transcribe it.
+  3. A one-line reason why the characters are load-bearing. If the reason cannot be
+     named, prose sufficed.
 - DRY and YAGNI apply: no speculative structures the story doesn't need.
 - The plan INHERITS product-level architecture; if the story seems to require
   changing it, the plan must say so and STOP for a human/ADR decision.
@@ -90,11 +142,19 @@ Constraints: <copied verbatim from the spec/story + do-not-touch boundaries
 
 ## Plan rubric (checked at the human gate; 0-2 per criterion)
 ```
-1. Executability   0 needs interpretation / 1 mostly / 2 context-free builder could run it
+1. Executability   0 needs interpretation / 1 mostly / 2 context-free builder could run it.
+                   "Could run it" = every signature, behavior rule, invariant, test case,
+                   verify command and unspecified-decision boundary is present, such that
+                   TWO competent builders would produce functionally equivalent code.
 2. File map        0 missing / 1 partial / 2 complete with responsibilities
 3. Task quality    0 vague steps / 1 mixed / 2 right-sized units (each worth its own
-                   reviewer gate), exact signatures + exact code where mechanical,
-                   verify commands, consumes/produces stated
+                   reviewer gate), exact signatures + exact behavior and test cases,
+                   verify commands, consumes/produces stated. Every Consumes/Produces
+                   entry RESOLVES to a named Contracts entry (this plan's, or
+                   `<plan-file> C<n>` in the same batch) and every Contracts entry
+                   names its producing task; within a plan, `Consumed by:` and the
+                   task-side `Consumes:` must AGREE (cross-plan references are checked
+                   one-directionally). An UNLABELED code block is a failure here.
 4. Constraint fit  0 ignores architecture or boundaries / 1 partial / 2 inherits explicitly,
                    do-not-touch respected, escalations flagged
 5. Honesty         0 hides ambiguity / 1 some / 2 risks and open questions listed for the

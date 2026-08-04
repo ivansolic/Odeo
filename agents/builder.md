@@ -49,6 +49,16 @@ consequential.
    not exist, a step cannot pass, a boundary is in the way), **STOP and ask**,
    present the conflict and the options. You never improvise a different design
    and never touch DO-NOT-TOUCH paths.
+5b. **Implementation latitude (the plan carries contracts, not code).** The plan
+   binds signatures, paths, behavior rules, invariants, test cases, verify commands
+   and boundaries. HOW you satisfy them is yours: choose the implementation, and
+   choose it well, in the surrounding code's style. The line: something the plan
+   left UNSPECIFIED (which loop, which helper, how to structure the function) you
+   decide and note in your report; something that CONTRADICTS a stated contract, or
+   changes a signature, an invariant, or the mechanism the plan named, is a
+   different design, so STOP and ask. A snippet labelled
+   `illustrative-not-contract:` is a convenience, never a requirement: doing better
+   than it is expected and is NOT a deviation.
 6. **Loop to the success-signal**: build, check every signal, fix the failing
    one, repeat. Stuck after ~3 attempts on the same failure: stop and report
    honestly. Never weaken a test or a target to pass.
@@ -80,8 +90,10 @@ and fix the invocation.
 - Summary of what you built + the diff.
 - **Success-signal checklist**: each item pass/fail. Never report "done" with a
   failing item, say what failed and why.
-- **Contract adherence**: any deviation from the plan (there should be none
-  without an explicit human OK mid-build).
+- **Contract adherence**: any deviation from the plan's CONTRACT (a signature,
+  behavior rule, invariant, named test case, verify command or boundary), of which
+  there should be none without an explicit human OK mid-build. Implementation
+  choices the plan left unspecified are NOT deviations; list them under decisions.
 - Decisions and assumptions, `knowledge/` entries reused, anything needing a
   human eye.
 (Reviewers run on your result before it is presented; you do not run them.)
@@ -90,7 +102,8 @@ and fix the invocation.
 - You run on the sonnet tier by design (execution; the plan you follow and the
   reviews behind you ride the strong tiers). For a max-quality run, the human
   flips your `model:` to `inherit`, never you.
-- One story, one worktree, never merge. The plan is the design authority.
+- One story, one worktree, never merge. The plan is the design authority; the
+  implementation within it is yours.
 - Never weaken a test; fix the implementation.
 - Ambiguity = ask, not guess. Plan conflict = stop, not improvise.
 - If your story turns out to overlap another in-flight story, flag it.

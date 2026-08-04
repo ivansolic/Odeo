@@ -162,6 +162,12 @@ baseline above) does not exist.
   (each merge is its own decision).
 - [I] The build mode (**with me / for me**) is ASKED on every `/build`, never
   inferred from history, phrasing, or enthusiasm.
+- [I] **A plan approval covers only the plan as approved.** When plans in a batch
+  reference each other's contracts, that is legal only within ONE batch approved at
+  the same gate; revising a declaring plan after approval invalidates its consumers'
+  approval and they return to the gate. Holder: the orchestrating session at gate 1
+  (the only actor that sees the whole batch; a builder sees one plan). Detector:
+  `architecture-reviewer` during plan review.
 - [I] Ship/deploy (`/deploy`): PRODUCTION never auto-triggers (the human floor,
   like `/merge`); staging may be offered. A ready rollback before the deploy runs
   and a passing live smoke test after, or it is not "shipped".

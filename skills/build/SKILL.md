@@ -27,7 +27,7 @@ Ask a plain diagnostic and recommend, so a non-expert can choose well:
 >    and can interrupt any moment. Best when the work is still fuzzy or you want
 >    to watch and learn.
 >  - **for me**, delegated: the architect writes a plan, YOU approve it, then a
->    builder agent executes exactly that plan in its own worktree and presents
+>    builder agent builds to that plan's contract in its own worktree and presents
 >    the result for your review. Best when the story is clearly defined.
 >  Is this work clearly defined (clear acceptance criteria), or still fuzzy?
 >  Clear -> I'd recommend *for me*. Fuzzy or you want to steer -> *with me*."
@@ -95,7 +95,9 @@ For one or several stories. The pipeline, always in this order:
 architect (plans ALL chosen stories, read-only)
   -> architecture-reviewer checks each plan (read-only, independent)
   -> YOU approve the plan(s)                      [gate 1: the contract]
-  -> builder per story (own worktree, executes the plan exactly)
+  -> builder per story (own worktree, holds the plan's contract exactly:
+     signatures, behavior, invariants, tests, verify, boundaries; the
+     implementation within it is the builder's)
   -> reviewers (code-reviewer, + design-reviewer if UI)
   -> YOU approve each result                       [gate 2]
   -> /merge (serialized)                           [gate 3: your approval again]

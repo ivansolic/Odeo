@@ -43,7 +43,10 @@ The proven shape (adapt, don't pad):
   Exact paths, names, commands.
 - No time-sensitive facts (versions, dates, "currently") that rot.
 - Pre-written scripts over agent-generated code for critical operations
-  (the `privacy-scan.sh` principle).
+  (the `privacy-scan.sh` principle). This is about SHIPPED artifacts: a critical
+  operation lives in a deterministic script in `bin/`, not in agent improvisation.
+  It is not a licence to pre-write implementations inside plan documents, which
+  carry contracts (ADR-001); different domains, both single-source.
 - Explanation template where teaching is needed: WHAT, EXAMPLE, WHY, WHERE IT
   LIVES, CONCLUSION + limits.
 - Never weaken or restate a guardrail; reference it.
@@ -65,7 +68,7 @@ Worked example (a build-time loophole):
 
 | Tempting shortcut | The reality |
 |---|---|
-| "The plan already has the code, so I can skip the test" | Complete code in the plan is the intended implementation, not proof it runs; write the failing test first, then transcribe. |
+| "The plan says preserve this block exactly, so I need not check it" | A frozen block is unexamined, not verified; USR-004's frozen append tail carried a false-success bug (exit 0 with nothing written). State the invariant and test it. |
 | "This task is tagged `mechanical`, a quick skim is fine" | The `Scrutiny:` tag guides attention, not coverage; the change still gets a full correctness and security read. |
 
 ## Documentation duties

@@ -27,3 +27,8 @@ docs/plans/
 docs/prds/
 docs/stories/
 docs/research/
+# ADRs cite internal plans, evals and lessons as evidence, and record pre-launch
+# state; the RULES they decide ship publicly via docs/plan-format.md, the reasoning
+# stays here. Do not "restore" this to public: an ADR published without its
+# denylisted citations dangles every reference and leaks internal review scores.
+docs/decisions/
