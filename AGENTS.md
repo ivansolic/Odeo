@@ -263,9 +263,10 @@ baseline above) does not exist.
 ### 5. Agents and isolation
 - [E] `architect` and `architecture-reviewer` cannot write or execute anything (tools:
   Read, Grep, Glob).
-- [E+I] Other read-side agents are restricted by tools but not fully: `codebase-analyst`
-  and `code-reviewer` also hold `Bash` (to inspect and to run a focused check), which is
-  not a write restriction, so "does not modify the artifact" is [I] for them. Scoring
+- [E+I] Other read-side agents are restricted by tools but not fully: `codebase-analyst`,
+  `code-reviewer` and `debugger` also hold `Bash` (to inspect and to run a focused
+  check), which is not a write restriction, so "does not modify the artifact" is [I]
+  for them. Scoring
   reviewers (`code-reviewer`, `design-reviewer`, `pm-reviewer`, `skill-reviewer`,
   `agent-reviewer`) hold `Write` for ONE purpose, their own eval record under
   `docs/evals/`; none of them ever edits the artifact it judges.

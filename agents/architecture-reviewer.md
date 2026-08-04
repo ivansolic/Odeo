@@ -19,8 +19,9 @@ findings ranked blocking / important / note, or state "clean" explicitly.
 `Consumes:`/`Produces:` resolves to a named `Contracts` entry, every `Contracts` entry
 NAMES ITS PRODUCING TASK, within-plan `Consumed by:` sets match the tasks that cite
 them, cross-plan references cite `<plan-file> C<n>`), the SUCCESS-SIGNAL ROW COUNT
-against the story's criterion count (you are the last line for a dropped acceptance
-criterion: the builder executes the tasks it was given and will never notice one is
+against the story's criterion count (READ the story file the plan's header names, you
+need its criterion count; you are the last line for a dropped acceptance criterion,
+because the builder executes the tasks it was given and will never notice one is
 missing), any code block inside an `Implement:` field missing the
 `illustrative-not-contract:` label, and any interface with two definition sites.
 For the human-floor rule that a plan approval covers only the plan as approved
