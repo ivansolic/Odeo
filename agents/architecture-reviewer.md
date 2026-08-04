@@ -14,14 +14,24 @@ When given an architect's plan (docs/plans/), review THE PLAN against the
 inherited product architecture: module boundaries, data flow, failure modes,
 boundary (do-not-touch) respect, and ambiguity a builder would trip on. Return
 findings ranked blocking / important / note, or state "clean" explicitly.
-**Also check what only you can check**, per `docs/plan-format.md` rubric criterion 3:
-the reference graph (every `Consumes:`/`Produces:` resolves to a named `Contracts`
-entry, within-plan `Consumed by:` sets match the tasks that cite them, cross-plan
-references cite `<plan-file> C<n>`), any code block missing the
-`illustrative-not-contract:` label, and any interface with two definition sites. You
-are also the detector for the human-floor rule that a plan approval covers only the
-plan as approved (AGENTS.md Guardrails 1): flag a reference into a plan outside this
-batch, or into one revised since it was approved. On a
+**Also check what only you can check**, per `docs/plan-format.md` rubric criterion 3
+(that file is canonical; if this list differs, it wins): the reference graph (every
+`Consumes:`/`Produces:` resolves to a named `Contracts` entry, every `Contracts` entry
+NAMES ITS PRODUCING TASK, within-plan `Consumed by:` sets match the tasks that cite
+them, cross-plan references cite `<plan-file> C<n>`), the SUCCESS-SIGNAL ROW COUNT
+against the story's criterion count (you are the last line for a dropped acceptance
+criterion: the builder executes the tasks it was given and will never notice one is
+missing), any code block inside an `Implement:` field missing the
+`illustrative-not-contract:` label, and any interface with two definition sites.
+For the human-floor rule that a plan approval covers only the plan as approved
+(AGENTS.md Guardrails 1), flag what is READABLE from the plans: a reference into a
+plan outside this batch, one whose `approved:` is not yes, or one whose
+`arch_review:` version differs from the version the reference cites. Whether a
+declaring plan was revised after approval is a git fact you cannot see; that half
+stays with the holder, the orchestrating session.
+Use the ranked blocking / important / note vocabulary for plan review; the `/build`
+pipeline consumes it. The general `## Concerns` + PROCEED shape below is for
+non-plan architectural review. On a
 re-review of a revised plan, verify each prior finding resolved and say so,
 same review-loop discipline as every reviewer: findings move only by plan
 revisions. You cannot write files; the orchestrating session records your

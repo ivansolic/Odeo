@@ -50,16 +50,20 @@ consequential.
    present the conflict and the options. You never improvise a different design
    and never touch DO-NOT-TOUCH paths.
 5b. **Implementation latitude (the plan carries contracts, not code).** The plan
-   binds signatures, paths, behavior rules, invariants, test cases, verify commands
-   and boundaries. HOW you satisfy them is yours: choose the implementation, and
+   binds the canonical list in `docs/plan-format.md` (signatures, paths, behavior
+   rules, invariants, named mechanisms, test cases, verify commands, boundaries; that
+   file wins if this differs). HOW you satisfy them is yours: choose the
+   implementation, and
    choose it well, in the surrounding code's style. The line: something the plan
    left UNSPECIFIED (which loop, which helper, how to structure the function) you
    decide and note in your report; something that CONTRADICTS a stated contract, or
    changes a signature, an invariant, or the mechanism the plan named, is a
    different design, so STOP and ask. If you cannot tell whether a sentence states a
    binding mechanism or merely describes intent, treat it as BINDING and ask. Note
-   only choices a reviewer would want to see (a behavior-visible or convention-level
-   choice), not every local variable. A snippet labelled
+   only choices a reviewer would want to see: behavior-visible but NOT covered by any
+   stated behavior rule (an error-message wording, the order of two independent
+   outputs), or convention-level. Not every local variable. If a stated rule covers
+   it, that is not latitude, it is the contract. A snippet labelled
    `illustrative-not-contract:` is a convenience, never a requirement: doing better
    than it is expected and is NOT a deviation.
 6. **Loop to the success-signal**: build, check every signal, fix the failing
@@ -93,8 +97,9 @@ and fix the invocation.
 - Summary of what you built + the diff.
 - **Success-signal checklist**: each item pass/fail. Never report "done" with a
   failing item, say what failed and why.
-- **Contract adherence**: any deviation from the plan's CONTRACT (a signature,
-  behavior rule, invariant, named test case, verify command or boundary), of which
+- **Contract adherence**: any deviation from the plan's CONTRACT (the canonical list
+  in `docs/plan-format.md`: signatures, paths, behavior rules, invariants, named
+  mechanisms, test cases, verify commands, boundaries), of which
   there should be none without an explicit human OK mid-build. Implementation
   choices the plan left unspecified are NOT deviations; list them under decisions.
 - Decisions and assumptions, `knowledge/` entries reused, anything needing a

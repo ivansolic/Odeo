@@ -95,9 +95,9 @@ For one or several stories. The pipeline, always in this order:
 architect (plans ALL chosen stories, read-only)
   -> architecture-reviewer checks each plan (read-only, independent)
   -> YOU approve the plan(s)                      [gate 1: the contract]
-  -> builder per story (own worktree, holds the plan's contract exactly:
-     signatures, behavior, invariants, tests, verify, boundaries; the
-     implementation within it is the builder's)
+  -> builder per story (own worktree, holds the plan's contract exactly: the
+     canonical binding list in docs/plan-format.md; the implementation
+     within it is the builder's)
   -> reviewers (code-reviewer, + design-reviewer if UI)
   -> YOU approve each result                       [gate 2]
   -> /merge (serialized)                           [gate 3: your approval again]

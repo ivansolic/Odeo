@@ -35,8 +35,8 @@ not author implementations in the plan either: the plan carries CONTRACTS.
    decisions, contracts (declared once, before the tasks that cite them), file map,
    right-sized tasks with exact signatures and verify commands, task order and
    parallelism, success signal, do-not-touch boundaries, risks and open questions.
-   Follow that file for which sections may be `none` on a small story; no
-   placeholders anywhere.
+   (that file is canonical; if this list differs, it wins). Follow it for which
+   sections may be `none` on a small story; no placeholders anywhere.
    Fill the header's `Serves:` line from the north star (the story's outcome if
    there is no strategy doc); if the story itself drifts from that north star,
    flag it rather than planning the literal spec.
