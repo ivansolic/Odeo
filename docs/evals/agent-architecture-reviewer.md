@@ -2,143 +2,105 @@
 artifact: architecture-reviewer
 type: agent-definition
 branch: chore/adr-001-contracts-not-code
-artifact_version: 2
+artifact_version: 4
 date: 2026-08-04
 scorer: agent-reviewer
 model: claude-opus-5[1m]
 model_tier: strongest
 effort: high
-scores: { trigger_clarity: 1, tool_least_privilege: 2, role_boundary: 2, policy_conformance: 2, instruction_quality: 1 }
-total: 8/10
+scores: { trigger_clarity: 1, tool_least_privilege: 2, role_boundary: 2, policy_conformance: 2, instruction_quality: 2 }
+total: 9/10
 verdict: PASS
-previous_total: 10/10 (set-level, docs/evals/agent-set-model-policy.md, different scope)
+previous_total: 9/10
 ---
 
-# Agent: architecture-reviewer (first per-file review, at HEAD f8f8da6)
+# Agent: architecture-reviewer (round 3, at HEAD 93536c7)
 
-Scored `agents/architecture-reviewer.md` against `agents/agent-rubric.md`, cross-checked
-against `AGENTS.md` (Guardrails 1, 3 and 5) and `docs/plan-format.md` (structure + plan
-rubric criterion 3).
+Narrow re-review: verified ONLY the one edit claimed for this file (the story-file input
+clause on the success-signal row-count check). Everything cleared in rounds 1 and 2 carries
+forward, evidence re-checked at this HEAD, not re-argued.
 
-Scope note: reviewed as a FOURTH file this round because its plan-review mode was
-materially changed on this branch (the reference-graph and label checks, plus being named
-as the detector for the cross-plan approval rule). `artifact_version: 2` = the second
-state of this file, the first that has ever been scored per-file.
+Version note: `artifact_version: 4` = the fourth reviewed state (v2 = f8f8da6, v3 = f4e295a,
+v4 = 93536c7). Numbering continued per the round-2 rationale.
 
 Method note: no Bash in this reviewer's grant; scored the file as it stands at HEAD.
 
-## Scores
+## Scores (all carried, none moved)
 
-- **trigger/description clarity: 1** , `:3` states what ("Architectural review by a staff
-  engineer ... Evaluates module boundaries, data flow, failure modes, and 2-year
-  maintainability") and a when ("Invoke when making architectural decisions, adding major
-  features, or before big refactors"), and "Read-only analysis, produces recommendations,
-  never edits code" is a clean capability boundary. Two gaps hold it at 1: the description
-  never mentions PLAN REVIEW, which is now a first-class dispatched mode
-  (`skills/build/SKILL.md:156` dispatches it in the plan-review loop) and the mode that
-  carries a guardrail duty; and there is no not-for lane (what belongs to `code-reviewer`
-  versus this agent). The rubric's 2 requires what it does AND when AND the scope boundary.
+- **trigger/description clarity: 1** (unchanged, third round) , `:3` is byte-identical: no
+  mention of PLAN REVIEW (a first-class dispatched mode, `skills/build/SKILL.md:156`, and the
+  mode carrying a Guardrails-1 duty) and no not-for lane. Deliberately deferred by the author;
+  see the follow-up below. It is the only thing holding this file off 10.
+- **tool least-privilege: 2** , `tools: Read, Grep, Glob` (`:4`), loop closed at `:38-39`.
+  Re-verified against AGENTS.md:264-265, which after this commit still names this agent in the
+  `[E]` "cannot write or execute anything" bullet, accurately.
+- **role boundary: 2** , the readable-versus-holder split at `:27-32` unchanged.
+- **policy conformance: 2** , `effort: high`, no `model:` line, C11 clean, no `isolation:`
+  needed, tools match the guardrail.
+- **instruction quality: 2** , the round-2 Minor is closed, and placed better than what I
+  proposed: the input requirement now sits WITH the check it serves instead of as a separate
+  sentence that could read as general advice. No movement is possible from a Minor closure at
+  this level; the criterion was already at 2.
 
-- **tool least-privilege: 2** , `tools: Read, Grep, Glob` (`:4`) is exactly the read-only
-  set AGENTS.md:264 requires, with no Write even though the agent produces a verdict, and
-  the body closes that loop instead of assuming it: "You cannot write files; the
-  orchestrating session records your verdict in the plan's `arch_review:` frontmatter"
-  (`:27-28`). Correctly NOT on the Write-holding list in AGENTS.md:265-267, since its
-  outcome is recorded by the session rather than in its own eval record. Nothing exceeds
-  the role.
+## Total: 9/10   ## Verdict: PASS (threshold >= 8/10, no criterion at 0)
 
-- **role boundary: 2** , one job (architecture judgment) applied to two artifact kinds,
-  code-in-place and a plan, with the plan mode explicitly scoped to what only it can see
-  ("**Also check what only you can check**", `:17`) and to review, not authorship
-  ("findings move only by plan revisions", `:25-26`). It does not take the architect's job
-  (it never proposes the plan text) and does not take the human's ("You are also the
-  detector", not the holder; AGENTS.md:169-170 keeps the holder at the orchestrating
-  session). Re-review discipline is stated ("verify each prior finding resolved and say
-  so", `:24-25`).
+## Ceiling: 10/10 reachable, blocked by criterion 1 only
+Two clauses in `:3`. No structural cap. Not closed in this round by the author's choice.
 
-- **policy conformance: 2** , `effort: high` declared from the allowed set, no `model:`
-  line so judgment inherits the session (AGENTS.md:41-42), no version-pinned id (C11
-  clean), no `isolation:` which is correct for a role that mutates nothing, tools match
-  Guardrails 5. The plan-review mode cites its authorities correctly: `docs/plan-format.md`
-  rubric criterion 3 (`:17`) and AGENTS.md Guardrails 1 (`:22-23`).
+## Round-by-round
+Round 1 (f8f8da6): 8/10, 2 Important + 1 Minor.
+Round 2 (f4e295a): 9/10, 1 Minor + 2 Nits.
+Round 3 (93536c7): 9/10 PASS. The Minor closed; no criterion moved (none could).
 
-- **instruction quality: 1** , the general review contract is strong and specific (six
-  named question sets, an exact output block, a PROCEED/PROCEED WITH MODIFICATIONS/
-  RECONSIDER recommendation, "Be concrete. 'This coupling will hurt' is useless. Say
-  where, why, what breaks, and when", `:105`). Three defects in the newly added plan-review
-  mode cost the point, all of them specification gaps rather than vagueness: a duty it
-  cannot fully discharge with its tools, an incomplete restatement of the rubric clause it
-  cites, and two competing output shapes with no precedence. All three are detailed below.
+## Closure verified
+- **CLOSED (was Minor), the row-count check named an input it never told the agent to get** ,
+  `:21-25` now reads "the SUCCESS-SIGNAL ROW COUNT against the story's criterion count (READ
+  the story file the plan's header names, you need its criterion count; you are the last line
+  for a dropped acceptance criterion, because the builder executes the tasks it was given and
+  will never notice one is missing)". The check is now self-sufficient: what to count, where to
+  get the counted thing, and why it matters, in one place.
 
-## Total: 8/10   ## Verdict: PASS (threshold >= 8/10, no criterion at 0)
+## Findability of the check (the failure mode this round was about)
+Judged deliberately, since a check nobody can find is the defect we just closed: **the
+parenthetical does NOT need breaking up.** The check's name carries the block's caps convention
+("SUCCESS-SIGNAL ROW COUNT") and the new instruction opens with an imperative in the same
+convention ("READ the story file"), so both the check and its input survive scanning even
+inside a four-line parenthetical. Two honest caveats, neither a finding:
+- The parenthetical now carries two kinds of content, a binding instruction and a rationale. An
+  instruction inside parentheses can read as an aside; the capitalised imperative is what
+  prevents that here, so do not lowercase it in a later cleanup.
+- If the declined structural Nit is ever taken, the natural split is to lift the input
+  requirement out of the parenthetical and leave the rationale inside it.
 
-## Ceiling: 10/10 reachable
-No criterion structurally caps this agent. Criterion 1 needs two clauses in `:3` (the
-plan-review mode and a not-for lane); criterion 5 needs the detector duty scoped to the
-tool grant, two rubric clauses added, and one sentence saying which output shape applies
-in plan mode.
-
-## Findings
-
-- **Important, `:22-24`, half of the detector duty is beyond this agent's tools** , it is
-  told to "flag a reference into a plan outside this batch, or into one revised since it
-  was approved". The first half is checkable with Read/Grep (read the referenced plan's
-  frontmatter). The second is not: "revised since it was approved" is a fact about git
-  history, and this agent has no Bash, no git, and no view of approval timestamps. The plan
-  format offers no revision marker it could use either, `arch_review: clean (vN, date)`
-  versions the REVIEW, not the post-approval revision. So a duty AGENTS.md:169-170 assigns
-  here is, in its most important half (the one that invalidates a consumer's approval),
-  undischargeable as written. Two concrete fixes, either works:
-  (a) scope the duty to what the tools can see, "flag a reference into a plan that is not
-  in this batch, or whose `approved:` is not `yes`, or whose `arch_review:` version differs
-  from the version the reference cites", and leave revision-after-approval detection with
-  the holder (the orchestrating session, which has git); or
-  (b) make it readable, require cross-plan references to cite the approved version
-  (`<plan-file> C<n> @v<N>`) so a mismatch is visible in the plan text alone.
-  Note this is the second time this duty has needed a home: round 1 removed it from
-  `architect` because that agent could not discharge it either. Landing it here is right on
-  the merits (this agent does read the plans), but the tool-limited half still needs the
-  holder.
-- **Important, `:17-22`, the enumeration of "what only you can check" drops two clauses of
-  the rubric criterion it cites** , `docs/plan-format.md:169-176` criterion 3 requires,
-  besides the three checks listed, that "every Contracts entry names its producing task"
-  and that "the Success signal row count equals the story's criterion count". Neither
-  appears here, and the success-signal count is exactly the mechanical completeness check a
-  plan reviewer is the last line for (the builder will not notice a missing acceptance
-  criterion; it executes the tasks it was given). This is the same defect class that was
-  just fixed in `agents/architect.md:33-39` (a partial restatement of a referenced spec),
-  so consistency argues for the same treatment. Fix: add both clauses, and add the
-  precedence marker "(that rubric is canonical; if this list differs, it wins)".
-- **Minor, `:15-16` against `:70-101`, two output shapes with no precedence** , plan-review
-  mode says "Return findings ranked blocking / important / note, or state 'clean'
-  explicitly", while the Output Format section says unconditionally "Return your review in
-  this structure" with `## Concerns` and a PROCEED/RECONSIDER recommendation. The
-  plan-mode vocabulary is the one the pipeline consumes (`skills/build/SKILL.md:162-165`
-  records `arch_review: clean (v<N>, <date>)` and presents "v1: 2 blocking findings -> v2:
-  1 -> v3: clean"), so the ambiguity is resolvable but unresolved in the file. Fix: one
-  sentence in the mode block, "in this mode the ranked blocking / important / note list
-  plus an explicit `clean` REPLACES the Output Format below".
-- **Note, not scored, `:12-28`** , this agent is the natural plan-time detector for the
-  new-UI-surface design-wiring requirement (AGENTS.md:241-243, currently guarded at plan
-  time only by the architect's own `agents/architect.md:57-63` and caught late by
-  `design-reviewer`'s tokens dimension). Adding it to the plan-review checklist would close
-  the gap earlier. Role-design suggestion, outside the rubric.
+## Open (carried, author-declined this round)
+- **Minor, `:3`, the description names neither the plan-review mode nor a not-for lane** , the
+  ceiling blocker. Assessed as low-risk rather than merely cosmetic: plan-review dispatch is
+  always by name (`skills/build/SKILL.md:151-156`), so no routing depends on `:3`. What the gap
+  costs is discoverability, a reader of the description alone cannot tell that this agent holds
+  a Guardrails-1 detector duty. Correctly deferred; worth carrying as an explicit follow-up
+  rather than being forgotten between branches.
+- **Nit, `:12-39`, the mode block is a 28-line single paragraph carrying five duties** ,
+  declined. Recorded because it is the same class of risk as the defect just fixed: each duty
+  is individually clear, but length is what makes a duty missable. Fix remains four sub-bullets
+  under the existing heading, no wording changes.
+- **Nit, `:35`** , the rewrap artifact ("... non-plan architectural review. On a /
+  re-review ...") is still present; declined, cosmetic.
 
 ## Integrity
-House voice, consistent with the sibling reviewers; the plan-review block matches the
-vocabulary used in `agents/architect.md` and `docs/plan-format.md`. Nothing reads as copied
-from another project.
+House voice; the plan-review block matches the vocabulary in `agents/architect.md` and
+`docs/plan-format.md`. Nothing reads as copied from another project.
 
 ## Vs previous version
-No prior per-file record. `docs/evals/agent-set-model-policy.md` (2026-07-24) covered this
-file inside an eight-agent SET at 10/10, judging only the model-policy frontmatter axis
-(it quotes this file's description for the read-only claim and its tools line against
-guardrail 5, nothing else), so 10/10 set-level -> 8/10 per-file is a change of scope and of
-axis, not a measured regression. Round 1 for this file; the plan-review mode being scored
-here did not exist in a comparable form at that record's date.
+Held at 9/10 with the last behavioural Minor closed. No regression. Baseline is the round-2
+per-file record (v3).
 
 ## History
 - 2026-08-04 v2 (f8f8da6): first per-file review, after the plan-review mode gained the
   reference-graph and label checks and the Guardrails-1 detector duty. Round 1 = 8/10 PASS,
-  two Important open (undischargeable half of the detector duty, incomplete criterion-3
-  enumeration).
+  two Important open.
+- 2026-08-04 v3 (f4e295a): scoped re-review, all three claimed closures confirmed. Round 2 =
+  9/10 PASS; instruction quality 1 -> 2; the `@vN` recommendation withdrawn; one Minor (story
+  input) + 2 Nits open.
+- 2026-08-04 v4 (93536c7): narrow re-review of the story-file input clause, confirmed closed
+  and well placed; findability judged adequate without breaking up the parenthetical. Round 3 =
+  9/10 PASS, held. `:3` and both Nits open by the author's choice.
