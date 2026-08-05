@@ -19,13 +19,18 @@ commit_at() { # commit_at <repo> <time> <msg>
   ( cd "$1" && GIT_AUTHOR_DATE="$2" GIT_COMMITTER_DATE="$2" git commit -qm "$3" ) >/dev/null 2>&1
 }
 make_repo() { local d; d="$(mktemp -d)"; ( cd "$d" && git init -q -b main && echo a > a.txt && git add -A ) >/dev/null 2>&1; commit_at "$d" "$T1" init; echo "$d"; }
+# Fixtures carry a well-formed PRE-CUTOFF date by default, so cases that are not about
+# the reviewed_commit cutoff keep testing exactly what they claim. The gate refuses a
+# record with no `date:` (a missing date must never exempt one from the anchor), so the
+# date is part of a minimal valid record, not decoration.
+PRE_CUTOFF_DATE='2026-07-21'
 record() { # record <repo> <branch-field> <frontmatter-verdict> [body] [tier-lines]
   local body="${4:-## Verdict
 $3}" tier="${5:-model_tier: strong}"
-  ( cd "$1" && mkdir -p docs/evals && printf -- '---\nartifact: code\nbranch: %s\nverdict: %s\n%s\n---\n%s\n' "$2" "$3" "$tier" "$body" > docs/evals/code-review.md && git add -A ) >/dev/null 2>&1
+  ( cd "$1" && mkdir -p docs/evals && printf -- '---\nartifact: code\nbranch: %s\ndate: %s\nverdict: %s\n%s\n---\n%s\n' "$2" "$PRE_CUTOFF_DATE" "$3" "$tier" "$body" > docs/evals/code-review.md && git add -A ) >/dev/null 2>&1
 }
 record_no_verdict() { # record_no_verdict <repo> <branch-field>
-  ( cd "$1" && mkdir -p docs/evals && printf -- '---\nartifact: code\nbranch: %s\n---\n## Verdict\nAPPROVE\n' "$2" > docs/evals/code-review.md && git add -A ) >/dev/null 2>&1
+  ( cd "$1" && mkdir -p docs/evals && printf -- '---\nartifact: code\nbranch: %s\ndate: %s\n---\n## Verdict\nAPPROVE\n' "$2" "$PRE_CUTOFF_DATE" > docs/evals/code-review.md && git add -A ) >/dev/null 2>&1
 }
 check() { local name="$1" want="$2" repo="$3"; ( cd "$repo" && bash "$GATE" ) >/dev/null 2>&1; local rc=$?
   if [[ $rc -eq $want ]]; then echo "ok   - $name"; pass=$((pass+1)); else echo "FAIL - $name (rc=$rc want=$want)"; fail=$((fail+1)); fi; }
@@ -151,10 +156,14 @@ check "refuses dirty working tree" 1 "$d"; rm -rf "$d"
 
 # --- EVERY matching record must approve (a PASS must not mask a sibling refusal) ---
 # named_record <repo> <filename> <branch-field> <verdict> [extra-frontmatter-lines]
+# Supplies a pre-cutoff `date:` ONLY when the caller did not pass its own, so cases that
+# exercise the cutoff control their own date and cases that do not stay valid records.
 named_record() {
+  local extra="${5:-}" datel=""
+  case "$extra" in *date:*) : ;; *) datel="date: $PRE_CUTOFF_DATE" ;; esac
   ( cd "$1" && mkdir -p docs/evals \
-    && printf -- '---\nartifact: x\nbranch: %s\nverdict: %s\nmodel_tier: strong\n%s\n---\n## Verdict\n%s\n' \
-       "$3" "$4" "${5:-}" "$4" > "docs/evals/$2" && git add -A ) >/dev/null 2>&1
+    && printf -- '---\nartifact: x\nbranch: %s\n%s\nverdict: %s\nmodel_tier: strong\n%s\n---\n## Verdict\n%s\n' \
+       "$3" "$datel" "$4" "$extra" "$4" > "docs/evals/$2" && git add -A ) >/dev/null 2>&1
 }
 
 # 8. Two matching records, one APPROVE and one REQUEST CHANGES -> refuse.
@@ -252,5 +261,52 @@ named_record "$d" "r.md" "feature/x" "APPROVE" "date: 2026-08-05
 reviewed_commit: deadbeefdeadbeefdeadbeefdeadbeefdeadbeef"
 commit_at "$d" "$T3" rec
 check "refuses an unresolvable reviewed_commit" 1 "$d"; rm -rf "$d"
+
+# --- the cutoff must be fail-closed: no date and no malformed date may EXEMPT ---
+# Each of these carries a VALID reviewed_commit where noted, so the refusal must come
+# from the date handling itself and not merely from a missing anchor.
+
+# 19. No `date:` at all -> refuse. Otherwise omitting one field bypasses the anchor.
+#     Written directly, since named_record now supplies a date when the caller omits one.
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T2" code
+( cd "$d" && mkdir -p docs/evals && printf -- '---\nartifact: x\nbranch: feature/x\nverdict: APPROVE\nmodel_tier: strong\n---\nbody\n' > docs/evals/r.md && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T3" rec
+check "refuses a record with no date: field" 1 "$d"; rm -rf "$d"
+
+# 20. Malformed date in a form that sorts BEFORE the cutoff (DD-MM-YYYY) -> refuse.
+#     A valid anchor is present, so only the malformed date can cause the refusal.
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T2" code
+sha="$( cd "$d" && git rev-parse HEAD )"
+named_record "$d" "r.md" "feature/x" "APPROVE" "date: 05-08-2026
+reviewed_commit: $sha"
+commit_at "$d" "$T3" rec
+check "refuses a malformed date that would sort pre-cutoff" 1 "$d"; rm -rf "$d"
+
+# 21. Malformed date with single-digit parts, valid anchor -> refuse on the format.
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T2" code
+sha="$( cd "$d" && git rev-parse HEAD )"
+named_record "$d" "r.md" "feature/x" "APPROVE" "date: 2026-8-5
+reviewed_commit: $sha"
+commit_at "$d" "$T3" rec
+check "refuses a malformed date (single-digit month/day)" 1 "$d"; rm -rf "$d"
+
+# 22. Non-date junk -> refuse.
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T2" code
+sha="$( cd "$d" && git rev-parse HEAD )"
+named_record "$d" "r.md" "feature/x" "APPROVE" "date: today
+reviewed_commit: $sha"
+commit_at "$d" "$T3" rec
+check "refuses a non-date value in date:" 1 "$d"; rm -rf "$d"
+
+# 23. Regression guard: a WELL-FORMED pre-cutoff date is still exempt (no over-refusal).
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T2" code
+named_record "$d" "r.md" "feature/x" "APPROVE" "date: 2026-07-21"
+commit_at "$d" "$T3" rec
+check "still exempts a well-formed pre-cutoff date" 0 "$d"; rm -rf "$d"
 
 echo ""; echo "passed: $pass, failed: $fail"; [[ $fail -eq 0 ]]

@@ -16,6 +16,10 @@
 # Used by: /merge (must run this and stop on non-zero before any rebase/merge).
 
 set -uo pipefail
+# Deterministic collation: the cutoff comparison sorts ISO dates as strings, and `<`
+# inside [[ ]] is locale-collated. Matches bin/{language,publish}-guard.sh.
+LC_ALL=C
+export LC_ALL
 
 BASE_REF="${1:-main}"
 
@@ -119,7 +123,26 @@ while IFS= read -r record; do
   # --- content anchor: does this review describe the code being merged? ---
   rec_date="$(frontmatter_field "$record" "date")"
   reviewed="$(frontmatter_field "$record" "reviewed_commit")"
-  if [[ -n "$rec_date" && ! "$rec_date" < "$RC_CUTOFF" ]]; then
+
+  # The cutoff is FAIL-CLOSED: a missing or malformed date must never exempt a record,
+  # or omitting one field would bypass the anchor. Only a well-formed YYYY-MM-DD
+  # strictly before the cutoff is exempt. (Before this: no `date:` was exempt, and
+  # `05-08-2026` sorted below the cutoff so it was exempt too. Both were bypasses.)
+  if [[ -z "$rec_date" ]]; then
+    echo "merge-gate: REFUSED, record has no 'date:' field ($record)." >&2
+    echo "Every record declares the date it was written (docs/eval-framework.md);" >&2
+    echo "without it the reviewed_commit requirement could be bypassed by omission." >&2
+    exit 1
+  fi
+  case "$rec_date" in
+    [0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]) : ;;
+    *)
+      echo "merge-gate: REFUSED, malformed 'date: $rec_date' ($record)." >&2
+      echo "Records use ISO YYYY-MM-DD; any other form cannot be compared to the cutoff." >&2
+      exit 1 ;;
+  esac
+
+  if [[ ! "$rec_date" < "$RC_CUTOFF" ]]; then
     if [[ -z "$reviewed" ]]; then
       echo "merge-gate: REFUSED, record has no 'reviewed_commit:' field ($record)." >&2
       echo "Records dated $RC_CUTOFF or later must name the commit they reviewed, so the" >&2
