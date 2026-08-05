@@ -63,63 +63,90 @@ if [[ -z "$records" ]]; then
   exit 1
 fi
 
-# Pick the newest matching record (by git commit time).
-record=""; rec_time=0
-while IFS= read -r r; do
-  t="$(git log -1 --format=%ct -- "$r" 2>/dev/null || echo 0)"
-  [[ "$t" -gt "$rec_time" ]] && { rec_time="$t"; record="$r"; }
+# 3b. EVERY matching record must approve. Checking only one (the "newest") let a
+#     PASS mask a sibling REQUEST CHANGES, and with records committed together the
+#     tie-break fell to filesystem enumeration order, so the outcome depended on
+#     file NAMES. Demonstrated: with one APPROVE and one REQUEST CHANGES present,
+#     two of four naming orders passed. Loop, and refuse on the first non-approval.
+#     Verdicts are read ONLY from frontmatter (between the first two '---' lines);
+#     reviewer prose in the body (e.g. an honest "was REQUEST CHANGES, now resolved"
+#     history) must never flip the gate. Deny by default: no verdict does not pass.
+#
+#     REVIEWED_COMMIT cutoff: records dated on/after $RC_CUTOFF must declare the
+#     commit they reviewed, and the gate verifies no CODE moved since. Older records
+#     are exempt, so shipping this needed no hand migration of existing records.
+RC_CUTOFF="2026-08-05"
+
+while IFS= read -r record; do
+  [[ -n "$record" ]] || continue
+
+  # --- verdict ---
+  verdict="$(frontmatter_field "$record" "verdict" | tr '[:lower:]' '[:upper:]')"
+  case "$verdict" in
+    APPROVE|"APPROVE WITH COMMENTS"|PASS) : ;;
+    "")
+      echo "merge-gate: REFUSED, no 'verdict:' field in the record's frontmatter ($record)." >&2
+      echo "Re-run the reviewer; a record must declare one clean frontmatter verdict." >&2
+      exit 1 ;;
+    *)
+      echo "merge-gate: REFUSED, a review for '$branch' did not approve (verdict: $verdict)." >&2
+      echo "($record). Fix the findings and re-run the reviewer, never edit the record by hand." >&2
+      echo "Every record carrying 'branch: $branch' must approve, not just one." >&2
+      exit 1 ;;
+  esac
+
+  # --- model tier floor: judgment must not ride a fast tier silently ---
+  tier="$(frontmatter_field "$record" "model_tier")"
+  waiver="$(frontmatter_field "$record" "model_waiver")"
+  case "$tier" in
+    strong|strongest) : ;;
+    fast)
+      if [[ "$waiver" != "human" ]]; then
+        echo "merge-gate: REFUSED, judgment record was produced on a FAST-tier model ($record)." >&2
+        echo "Re-run the reviewer on a strong tier, or add an explicit 'model_waiver: human' line." >&2
+        exit 1
+      fi ;;
+    "")
+      echo "merge-gate: REFUSED, record has no 'model_tier:' field ($record)." >&2
+      echo "Re-run the reviewer; records declare the tier that judged (fast|strong|strongest)." >&2
+      exit 1 ;;
+    *)
+      echo "merge-gate: REFUSED, unknown model_tier '$tier' ($record)." >&2
+      echo "Vocabulary is exactly: fast | strong | strongest (tier words, never vendor names)." >&2
+      exit 1 ;;
+  esac
+
+  # --- content anchor: does this review describe the code being merged? ---
+  rec_date="$(frontmatter_field "$record" "date")"
+  reviewed="$(frontmatter_field "$record" "reviewed_commit")"
+  if [[ -n "$rec_date" && ! "$rec_date" < "$RC_CUTOFF" ]]; then
+    if [[ -z "$reviewed" ]]; then
+      echo "merge-gate: REFUSED, record has no 'reviewed_commit:' field ($record)." >&2
+      echo "Records dated $RC_CUTOFF or later must name the commit they reviewed, so the" >&2
+      echo "gate can verify the review covers the code being merged (timestamps cannot)." >&2
+      exit 1
+    fi
+    if ! git rev-parse --verify --quiet "${reviewed}^{commit}" >/dev/null; then
+      echo "merge-gate: REFUSED, 'reviewed_commit: $reviewed' is not a commit in this repo ($record)." >&2
+      exit 1
+    fi
+    if ! git diff --quiet "$reviewed" HEAD -- . ':(exclude)docs/evals'; then
+      echo "merge-gate: REFUSED, code changed after the reviewed commit ($record)." >&2
+      echo "Reviewed $reviewed, but non-evals files differ at HEAD." >&2
+      echo "Re-run the reviewer so the record covers what merges; never re-date a record." >&2
+      exit 1
+    fi
+  fi
 done <<< "$records"
 
-# 3b. Verdict check, read ONLY from the record's frontmatter (between the first
-#     two '---' lines). KEPT IN SYNC with bin/spec-gate.sh's verdict parsing. The frontmatter 'verdict:' field is the single source of
-#     truth; reviewer prose in the body (e.g. honestly documented "was REQUEST
-#     CHANGES, now resolved" history) must never flip the gate. Deny by default:
-#     a record without a frontmatter verdict does not pass.
-verdict="$(awk '
-  NR==1 { if ($0 !~ /^---[[:space:]]*$/) exit; next }   # frontmatter must OPEN the file
-  /^---[[:space:]]*$/ { exit }                          # closing delimiter ends the search
-  /^verdict:/ { sub(/^verdict:[[:space:]]*/, ""); print; exit }
-' "$record")"
-verdict="$(printf '%s' "$verdict" | tr '[:lower:]' '[:upper:]' | tr -d '\r')"
-verdict="${verdict#"${verdict%%[![:space:]]*}"}"   # trim leading whitespace
-verdict="${verdict%"${verdict##*[![:space:]]}"}"   # trim trailing whitespace
-case "$verdict" in
-  APPROVE|"APPROVE WITH COMMENTS"|PASS) : ;;  # the exact approval vocabulary, nothing else
-  "")
-    echo "merge-gate: REFUSED, no 'verdict:' field in the record's frontmatter ($record)." >&2
-    echo "Re-run the reviewer; a record must declare one clean frontmatter verdict." >&2
-    exit 1 ;;
-  *)
-    echo "merge-gate: REFUSED, the latest review for '$branch' did not approve (verdict: $verdict)." >&2
-    echo "($record). Fix the findings and re-run the reviewer, never edit the record by hand." >&2
-    exit 1 ;;
-esac
-
-# 3c. Model tier floor: judgment must not ride a fast-tier model silently.
-#     Tier words only (fast|strong|strongest), no vendor names, portable to
-#     any host. Explicit human waiver is the loud override.
-tier="$(frontmatter_field "$record" "model_tier")"
-waiver="$(frontmatter_field "$record" "model_waiver")"
-case "$tier" in
-  strong|strongest) : ;;
-  fast)
-    if [[ "$waiver" != "human" ]]; then
-      echo "merge-gate: REFUSED, judgment record was produced on a FAST-tier model ($record)." >&2
-      echo "Re-run the reviewer on a strong tier, or add an explicit 'model_waiver: human' line." >&2
-      exit 1
-    fi ;;
-  "")
-    echo "merge-gate: REFUSED, record has no 'model_tier:' field ($record)." >&2
-    echo "Re-run the reviewer; records declare the tier that judged (fast|strong|strongest)." >&2
-    exit 1 ;;
-  *)
-    echo "merge-gate: REFUSED, unknown model_tier '$tier' ($record)." >&2
-    echo "Vocabulary is exactly: fast | strong | strongest (tier words, never vendor names)." >&2
-    exit 1 ;;
-esac
-
-# 3d. Freshness: the review must be newer than the last CODE commit, a review
-#     of older code does not cover what you are merging now.
+# 3d. Freshness (ordering, kept as a cheap backstop alongside the content anchor
+#     above): the newest record must not predate the last CODE commit.
+rec_time=0
+while IFS= read -r r; do
+  [[ -n "$r" ]] || continue
+  t="$(git log -1 --format=%ct -- "$r" 2>/dev/null || echo 0)"
+  [[ "$t" -gt "$rec_time" ]] && rec_time="$t"
+done <<< "$records"
 last_code="$(git log -1 --format=%ct -- . ":(exclude)docs/evals" 2>/dev/null || echo 0)"
 if [[ "$rec_time" -lt "$last_code" ]]; then
   echo "merge-gate: REFUSED, the review record is OLDER than the last code change." >&2

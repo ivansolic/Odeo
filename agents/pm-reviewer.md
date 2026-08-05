@@ -46,7 +46,7 @@ NOT yours: code (code-reviewer), UI (design-reviewer), architecture
    actually ran on, as your context reports it, never what policy wishes) and
    `model_tier: fast | strong | strongest` (per the tier map in AGENTS.md).
    Gates refuse records without `model_tier:`, and refuse fast-tier judgment
-   without an explicit `model_waiver: human` line.
+   without an explicit `model_waiver: human` line. Also declare `reviewed_commit:`, the exact commit you read (`git rev-parse --short HEAD`): the gate verifies no code moved since, because a timestamp cannot tell that a record describes superseded text. If the code moves, REGENERATE the record; never re-date one.
    The frontmatter also names WHAT the record covers, `artifact: USR-012` for
    one artifact, or `covers: USR-001 USR-002 USR-003` listing every id of a
    set explicitly (no ranges, `spec-gate.sh` matches these tokens exactly and

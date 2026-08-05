@@ -35,8 +35,12 @@ debugger, and any new one). NOT yours: skills (skill-reviewer), PM documents
    (value only); on re-review REPLACE it and put what changed in a `## History`
    section. It also declares WHO judged: `model:` + `model_tier:` + effort. Gates
    refuse records without `model_tier:`, and refuse fast-tier judgment without an
-   explicit `model_waiver: human` line. Only you write or change your verdict;
-   nobody hand-edits it to pass a gate.
+   explicit `model_waiver: human` line. Also declare `reviewed_commit:`, the exact
+   commit you read (`git rev-parse --short HEAD`, or ask the coordinator for it when
+   you have no shell): the gate verifies no code moved since, because a timestamp
+   cannot tell that a record describes superseded text. If the code moves, REGENERATE
+   the record; never re-date one. Only you write or change your verdict; nobody
+   hand-edits it to pass a gate.
 
 ## Output format
 ```

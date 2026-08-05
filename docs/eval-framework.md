@@ -53,6 +53,11 @@ docs/evals/PRD-007.md
 artifact: PRD-007        # or covers: USR-001 USR-002 ... for a set (spec-gate matches these)
 type: prd
 branch: feature/usr-007-password-reset   # required for code/UI records; merge-gate matches on it
+reviewed_commit: 4f2a1c9  # the commit you actually read. merge-gate verifies no non-evals
+                          # file moved since, because a timestamp cannot tell that a record
+                          # describes superseded text. Required on records dated 2026-08-05
+                          # or later; earlier records are exempt (no hand migration).
+                          # If the code moves, REGENERATE the record, never re-date it.
 artifact_version: 3
 date: 2026-07-07
 scorer: pm-reviewer

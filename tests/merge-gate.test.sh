@@ -149,4 +149,108 @@ record "$d" "feature/x" "APPROVE"; commit_at "$d" "$T3" rec
 ( cd "$d" && echo dirty >> a.txt ) >/dev/null 2>&1
 check "refuses dirty working tree" 1 "$d"; rm -rf "$d"
 
+# --- EVERY matching record must approve (a PASS must not mask a sibling refusal) ---
+# named_record <repo> <filename> <branch-field> <verdict> [extra-frontmatter-lines]
+named_record() {
+  ( cd "$1" && mkdir -p docs/evals \
+    && printf -- '---\nartifact: x\nbranch: %s\nverdict: %s\nmodel_tier: strong\n%s\n---\n## Verdict\n%s\n' \
+       "$3" "$4" "${5:-}" "$4" > "docs/evals/$2" && git add -A ) >/dev/null 2>&1
+}
+
+# 8. Two matching records, one APPROVE and one REQUEST CHANGES -> refuse.
+#    The refuser sorts LAST alphabetically, so a "first/newest wins" gate would pass it.
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T2" code
+named_record "$d" "a-approve.md" "feature/x" "APPROVE"
+named_record "$d" "z-refuse.md"  "feature/x" "REQUEST CHANGES"
+commit_at "$d" "$T3" recs
+check "refuses when ANY matching record does not approve (refuser last)" 1 "$d"; rm -rf "$d"
+
+# 9. Same, refuser sorting FIRST, so neither ordering can hide it.
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T2" code
+named_record "$d" "a-refuse.md"  "feature/x" "REQUEST CHANGES"
+named_record "$d" "z-approve.md" "feature/x" "APPROVE"
+commit_at "$d" "$T3" recs
+check "refuses when ANY matching record does not approve (refuser first)" 1 "$d"; rm -rf "$d"
+
+# 10. Two matching records, both approving -> pass (must not over-refuse).
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T2" code
+named_record "$d" "a-approve.md" "feature/x" "APPROVE"
+named_record "$d" "z-pass.md"    "feature/x" "PASS"
+commit_at "$d" "$T3" recs
+check "passes when EVERY matching record approves" 0 "$d"; rm -rf "$d"
+
+# 11. A refusing record for ANOTHER branch must not be pulled in.
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T2" code
+named_record "$d" "mine.md"  "feature/x"     "APPROVE"
+named_record "$d" "other.md" "feature/other" "REQUEST CHANGES"
+commit_at "$d" "$T3" recs
+check "ignores a refusing record naming a different branch" 0 "$d"; rm -rf "$d"
+
+# 12. A SECOND record missing model_tier -> refuse (every record is checked).
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T2" code
+named_record "$d" "a-approve.md" "feature/x" "APPROVE"
+( cd "$d" && printf -- '---\nartifact: x\nbranch: feature/x\nverdict: APPROVE\n---\nbody\n' > docs/evals/z-notier.md && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T3" recs
+check "refuses when a SECOND record lacks model_tier" 1 "$d"; rm -rf "$d"
+
+# --- reviewed_commit: the review must describe the code being merged ---
+# Required only on records dated on/after the cutoff, so older records stay valid
+# without a hand migration.
+
+# 13. Post-cutoff record whose reviewed_commit is the code being merged -> pass.
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T2" code
+sha="$( cd "$d" && git rev-parse HEAD )"
+named_record "$d" "r.md" "feature/x" "APPROVE" "date: 2026-08-05
+reviewed_commit: $sha"
+commit_at "$d" "$T3" rec
+check "passes when reviewed_commit matches the merged code" 0 "$d"; rm -rf "$d"
+
+# 14. Post-cutoff record with NO reviewed_commit -> refuse.
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T2" code
+named_record "$d" "r.md" "feature/x" "APPROVE" "date: 2026-08-05"
+commit_at "$d" "$T3" rec
+check "refuses a post-cutoff record with no reviewed_commit" 1 "$d"; rm -rf "$d"
+
+# 15. Pre-cutoff record with no reviewed_commit -> pass (no migration needed).
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T2" code
+named_record "$d" "r.md" "feature/x" "APPROVE" "date: 2026-07-21"
+commit_at "$d" "$T3" rec
+check "exempts a pre-cutoff record from reviewed_commit" 0 "$d"; rm -rf "$d"
+
+# 16. Code changed AFTER the reviewed_commit -> refuse. This is the hole timestamps
+#     cannot see: the record is newer than the code but reviewed an earlier state.
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T2" code
+sha="$( cd "$d" && git rev-parse HEAD )"
+( cd "$d" && echo c >> a.txt && git add -A ) >/dev/null 2>&1; commit_at "$d" "$T3" more-code
+named_record "$d" "r.md" "feature/x" "APPROVE" "date: 2026-08-05
+reviewed_commit: $sha"
+commit_at "$d" "$T3" rec
+check "refuses when code changed after reviewed_commit" 1 "$d"; rm -rf "$d"
+
+# 17. An evals-only commit after reviewed_commit must NOT count as a code change.
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T2" code
+sha="$( cd "$d" && git rev-parse HEAD )"
+named_record "$d" "r.md" "feature/x" "APPROVE" "date: 2026-08-05
+reviewed_commit: $sha"
+commit_at "$d" "$T3" rec-only
+check "an evals-only commit does not invalidate reviewed_commit" 0 "$d"; rm -rf "$d"
+
+# 18. Unresolvable reviewed_commit sha -> refuse (deny by default).
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T2" code
+named_record "$d" "r.md" "feature/x" "APPROVE" "date: 2026-08-05
+reviewed_commit: deadbeefdeadbeefdeadbeefdeadbeefdeadbeef"
+commit_at "$d" "$T3" rec
+check "refuses an unresolvable reviewed_commit" 1 "$d"; rm -rf "$d"
+
 echo ""; echo "passed: $pass, failed: $fail"; [[ $fail -eq 0 ]]

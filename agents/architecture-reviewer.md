@@ -1,6 +1,6 @@
 ---
 name: architecture-reviewer
-description: Architectural review by a staff engineer. Invoke when making architectural decisions, adding major features, or before big refactors. Evaluates module boundaries, data flow, failure modes, and 2-year maintainability. Read-only analysis, produces recommendations, never edits code.
+description: Architectural review by a staff engineer. Invoke when making architectural decisions, adding major features, or before big refactors. Also the PLAN reviewer: in plan-review mode it checks an architect's plan (reference graph, labels, dropped acceptance criteria) and is the detector for the rule that a plan approval covers only the plan as approved. Evaluates module boundaries, data flow, failure modes, and 2-year maintainability. Read-only analysis, produces recommendations, never edits code. Not for shipped code (code-reviewer), UI (design-reviewer), or PM documents (pm-reviewer).
 tools: Read, Grep, Glob
 effort: high
 ---

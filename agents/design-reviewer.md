@@ -100,7 +100,7 @@ change your verdict, nobody edits your record by hand.
    actually ran on, as your context reports it, never what policy wishes) and
    `model_tier: fast | strong | strongest` (per the tier map in AGENTS.md).
    Gates refuse records without `model_tier:`, and refuse fast-tier judgment
-   without an explicit `model_waiver: human` line.
+   without an explicit `model_waiver: human` line. Also declare `reviewed_commit:`, the exact commit you read (`git rev-parse --short HEAD`): the gate verifies no code moved since, because a timestamp cannot tell that a record describes superseded text. If the code moves, REGENERATE the record; never re-date one.
 
 ## Rules for yourself
 - Be concrete: name the file/element and the specific issue.
