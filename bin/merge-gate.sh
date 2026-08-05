@@ -72,9 +72,15 @@ fi
 branch_lc="$(printf '%s' "$branch" | tr '[:upper:]' '[:lower:]')"
 records=""
 unparseable=""
-# Every entry, any name, symlinks included. NO `-name '*.md'` filter here: the old grep
-# had none, so a `z-refuse.txt` carrying a refusal used to be seen, and re-adding a
-# filter would fail OPEN. `-type l` matters too; a symlinked record was invisible.
+# Every TRACKED entry, any name, symlinks included. Two deliberate choices:
+#   - no `-name '*.md'` filter: the old grep had none, so a `z-refuse.txt` carrying a
+#     refusal used to be seen, and re-adding a filter would fail OPEN;
+#   - `git ls-files`, not `find`: find walks the filesystem, so a GITIGNORED file was
+#     invisible to the clean-tree check above but visible to the tripwire below, and every
+#     merge was blocked. `.DS_Store` is the real instance, since Finder creates one in any
+#     folder a human opens. Tracked-only excludes junk by construction while keeping
+#     symlinks and non-.md records, which a name filter would not. Nothing is lost: an
+#     untracked non-ignored file is already refused by the clean-tree check.
 while IFS= read -r r; do
   [[ -n "$r" ]] || continue
 
@@ -85,6 +91,9 @@ while IFS= read -r r; do
   # uppercase. Keying it on "frontmatter does not parse" is immune to all of that at once,
   # and it never fires on a record that parsed and merely lacks a branch field (PM and
   # design records), even one quoting a branch line in its body.
+  # KEPT IN SYNC with frontmatter_field above (and bin/spec-gate.sh): both must agree
+  # on what "parseable" means, or the tripwire would skip a file the reader can read, or
+  # refuse one it cannot, and guarantee 3 would silently reopen.
   if ! awk '
     NR==1 { if ($0 !~ /^---[[:space:]]*$/) exit 1; next }
     /^---[[:space:]]*$/ { found=1; exit 0 }
@@ -110,13 +119,13 @@ while IFS= read -r r; do
   fi
 
   [[ "$(frontmatter_field "$r" "branch")" == "$branch_lc" ]] && records="${records}${r}"$'\n'
-done < <(find docs/evals \( -type f -o -type l \) 2>/dev/null | sort)
+done < <(git ls-files docs/evals 2>/dev/null | sort)
 records="${records%$'\n'}"
 unparseable="${unparseable%$'\n'}"
 
 if [[ -n "$unparseable" ]]; then
   echo "merge-gate: REFUSED, docs/evals contains file(s) whose frontmatter does not parse:" >&2
-  printf '  %s\n' $unparseable >&2
+  printf '%s\n' "$unparseable" | sed 's/^/  /' >&2
   echo "The gate cannot tell which branch such a file reviews, so it cannot be skipped:" >&2
   echo "a malformed REFUSAL would hide behind a sibling approval. Frontmatter must OPEN" >&2
   echo "the file and close with '---'. Re-run the reviewer to regenerate it." >&2

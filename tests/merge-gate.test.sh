@@ -554,4 +554,36 @@ named_record "$d" "mine.md" "feature/x" "APPROVE"
 commit_at "$d" "$T3" recs
 check "does not trip on a branchless record quoting a branch line" 0 "$d"; rm -rf "$d"
 
+# --- untracked junk under docs/evals must not block a merge ---
+# `find` walks the filesystem, so a gitignored file is invisible to the clean-tree check
+# but visible to the tripwire, and every merge is blocked. .DS_Store is the real instance:
+# Finder creates it in any folder a human opens. Enumerating tracked files excludes junk
+# by construction, and keeps symlinks and non-.md records, which a name filter would not.
+
+# 48. A gitignored .DS_Store in docs/evals must NOT block the merge.
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T2" code
+named_record "$d" "r.md" "feature/x" "APPROVE"
+( cd "$d" && printf '.DS_Store\n' > .gitignore && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T3" rec
+( cd "$d" && printf 'binary junk' > docs/evals/.DS_Store ) >/dev/null 2>&1
+check "ignores gitignored junk under docs/evals" 0 "$d"; rm -rf "$d"
+
+# 49. An UNTRACKED unparseable file is caught by the clean-tree check instead, so nothing
+#     is lost: it still refuses, just with the accurate reason.
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T2" code
+named_record "$d" "r.md" "feature/x" "APPROVE"
+commit_at "$d" "$T3" rec
+( cd "$d" && printf 'not a record\n' > docs/evals/stray.md ) >/dev/null 2>&1
+check "refuses an untracked stray file (via the clean-tree check)" 1 "$d"; rm -rf "$d"
+
+# 50. A TRACKED unparseable record still refuses (the guarantee must survive the change).
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T2" code
+named_record "$d" "a-approve.md" "feature/x" "APPROVE"
+( cd "$d" && mkdir -p docs/evals && printf 'Title\n---\nbranch: feature/x\nverdict: REQUEST CHANGES\nmodel_tier: strong\n---\nb\n' > docs/evals/z.md && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T3" recs
+check "still refuses a TRACKED unparseable record" 1 "$d"; rm -rf "$d"
+
 echo ""; echo "passed: $pass, failed: $fail"; [[ $fail -eq 0 ]]
