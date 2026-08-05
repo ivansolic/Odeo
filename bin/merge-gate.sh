@@ -71,14 +71,31 @@ fi
 #    frontmatter_field lowercases, so the comparison lowercases the branch too.
 branch_lc="$(printf '%s' "$branch" | tr '[:upper:]' '[:lower:]')"
 records=""
-suspects=""
-# -type l too: a symlinked record was invisible to `-type f` alone.
+unparseable=""
+# Every entry, any name, symlinks included. NO `-name '*.md'` filter here: the old grep
+# had none, so a `z-refuse.txt` carrying a refusal used to be seen, and re-adding a
+# filter would fail OPEN. `-type l` matters too; a symlinked record was invisible.
 while IFS= read -r r; do
   [[ -n "$r" ]] || continue
 
-  # A duplicated `branch:` key is checked HERE, before enrolment, because a decoy first
-  # line makes the record enrol under the wrong branch (or not at all) and its verdict
-  # is then never read. Checked for every file, not just enrolled ones.
+  # TRIPWIRE (fail-closed), on PARSEABILITY, not on matching a branch line. Enrolling by
+  # frontmatter closed the CRLF/regex/body holes, but a record the parser CANNOT read then
+  # silently did not enrol, so a malformed REFUSAL hid behind a sibling APPROVE. Keying the
+  # tripwire on a literal `branch: <x>` line was itself evadable by padding, a tab, or
+  # uppercase. Keying it on "frontmatter does not parse" is immune to all of that at once,
+  # and it never fires on a record that parsed and merely lacks a branch field (PM and
+  # design records), even one quoting a branch line in its body.
+  if ! awk '
+    NR==1 { if ($0 !~ /^---[[:space:]]*$/) exit 1; next }
+    /^---[[:space:]]*$/ { found=1; exit 0 }
+    END { exit !found }
+  ' "$r" 2>/dev/null; then
+    unparseable="${unparseable}${r}"$'\n'
+    continue
+  fi
+
+  # A duplicated `branch:` key is checked before enrolment: a decoy first line makes the
+  # record enrol under the wrong branch, and its verdict is then never read.
   nbranch="$(awk '
     NR==1 { if ($0 !~ /^---[[:space:]]*$/) exit; next }
     /^---[[:space:]]*$/ { exit }
@@ -92,41 +109,17 @@ while IFS= read -r r; do
     exit 1
   fi
 
-  fm_branch="$(frontmatter_field "$r" "branch")"
-  if [[ "$fm_branch" == "$branch_lc" ]]; then
-    records="${records}${r}"$'\n'
-    continue
-  fi
-  # A record whose frontmatter PARSED and names a different branch is legitimately not
-  # ours: skip it, and never mind what its body says. The tripwire below is only for
-  # records whose frontmatter did not parse at all.
-  [[ -n "$fm_branch" ]] && continue
-  # TRIPWIRE (fail-closed). Enrolling by frontmatter closed the CRLF, regex and body
-  # holes, but it also meant a record the parser CANNOT read simply did not enrol, so a
-  # malformed REFUSAL became invisible behind a sibling APPROVE. The old grep-based gate
-  # refused those. So: any file carrying an EXACT `branch: <this branch>` line that did
-  # not enrol through frontmatter is a refusal, not a skip. Exact-line and CR-tolerant,
-  # so a longer branch name (`feature/xyz` while on `feature/x`) is not a false hit, and
-  # this scan can only ever REFUSE, never approve.
-  if awk -v want="branch: $branch_lc" '
-    { line=$0; sub(/\r$/, "", line)
-      sub(/^[[:space:]]+/, "", line); sub(/[[:space:]]+$/, "", line)
-      lc=tolower(line)
-      if (lc == want) { found=1; exit } }
-    END { exit !found }
-  ' "$r" 2>/dev/null; then
-    suspects="${suspects}${r}"$'\n'
-  fi
-done < <(find docs/evals \( -type f -o -type l \) -name '*.md' 2>/dev/null | sort)
+  [[ "$(frontmatter_field "$r" "branch")" == "$branch_lc" ]] && records="${records}${r}"$'\n'
+done < <(find docs/evals \( -type f -o -type l \) 2>/dev/null | sort)
 records="${records%$'\n'}"
-suspects="${suspects%$'\n'}"
+unparseable="${unparseable%$'\n'}"
 
-if [[ -n "$suspects" ]]; then
-  echo "merge-gate: REFUSED, a file names 'branch: $branch' but its frontmatter does not parse:" >&2
-  printf '  %s\n' $suspects >&2
-  echo "A record the gate cannot read must not be skipped, or a malformed REFUSAL hides" >&2
-  echo "behind a sibling approval. Frontmatter must OPEN the file and carry one branch:" >&2
-  echo "line. Re-run the reviewer to regenerate it." >&2
+if [[ -n "$unparseable" ]]; then
+  echo "merge-gate: REFUSED, docs/evals contains file(s) whose frontmatter does not parse:" >&2
+  printf '  %s\n' $unparseable >&2
+  echo "The gate cannot tell which branch such a file reviews, so it cannot be skipped:" >&2
+  echo "a malformed REFUSAL would hide behind a sibling approval. Frontmatter must OPEN" >&2
+  echo "the file and close with '---'. Re-run the reviewer to regenerate it." >&2
   exit 1
 fi
 

@@ -506,4 +506,52 @@ case "$out" in
 esac
 rm -rf "$d"
 
+# --- the tripwire must not depend on how the branch line is spelled ---
+# Matching the literal LINE let internal whitespace and case evade it, which brought the
+# v2 Critical straight back. The tripwire now fires on "frontmatter does not parse",
+# which is independent of spacing, case, and whether a branch line is present at all.
+
+# 43. Two spaces after `branch:` in a malformed record + a sibling APPROVE -> refuse.
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T2" code
+named_record "$d" "a-approve.md" "feature/x" "APPROVE"
+( cd "$d" && mkdir -p docs/evals && printf -- 'Title\n---\nbranch:  feature/x\ndate: 2026-07-21\nverdict: REQUEST CHANGES\nmodel_tier: strong\n---\nb\n' > docs/evals/z.md && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T3" recs
+check "refuses a malformed record with padded branch value" 1 "$d"; rm -rf "$d"
+
+# 44. A TAB instead of a space -> refuse.
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T2" code
+named_record "$d" "a-approve.md" "feature/x" "APPROVE"
+( cd "$d" && mkdir -p docs/evals && printf -- 'Title\n---\nbranch:\tfeature/x\ndate: 2026-07-21\nverdict: REQUEST CHANGES\nmodel_tier: strong\n---\nb\n' > docs/evals/z.md && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T3" recs
+check "refuses a malformed record with a tab before the value" 1 "$d"; rm -rf "$d"
+
+# 45. UPPERCASE branch value in a malformed record -> refuse (pins the case handling).
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T2" code
+named_record "$d" "a-approve.md" "feature/x" "APPROVE"
+( cd "$d" && mkdir -p docs/evals && printf -- 'Title\n---\nbranch: FEATURE/X\ndate: 2026-07-21\nverdict: REQUEST CHANGES\nmodel_tier: strong\n---\nb\n' > docs/evals/z.md && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T3" recs
+check "refuses a malformed record with an uppercase branch value" 1 "$d"; rm -rf "$d"
+
+# 46. A NON-.md refusing record must not be masked by a name filter. The old grep gate
+#     had no filter and refused this; a filter on the tripwire scan would fail open.
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T2" code
+named_record "$d" "a-approve.md" "feature/x" "APPROVE"
+( cd "$d" && mkdir -p docs/evals && printf -- '---\nbranch: feature/x\ndate: 2026-07-21\nverdict: REQUEST CHANGES\nmodel_tier: strong\n---\nb\n' > docs/evals/z-refuse.txt && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T3" recs
+check "sees a non-.md record that refuses" 1 "$d"; rm -rf "$d"
+
+# 47. A record that PARSES but merely lacks a branch field must NOT trip the wire, even
+#     when it quotes an exact branch line in its body (PM and design records have no
+#     branch field, so they are exactly what reaches this path).
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T2" code
+named_record "$d" "mine.md" "feature/x" "APPROVE"
+( cd "$d" && mkdir -p docs/evals && printf -- '---\nartifact: PRD-007\ndate: 2026-07-21\nverdict: PASS\nmodel_tier: strong\n---\nExample frontmatter:\n```\nbranch: feature/x\n```\n' > docs/evals/prd.md && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T3" recs
+check "does not trip on a branchless record quoting a branch line" 0 "$d"; rm -rf "$d"
+
 echo ""; echo "passed: $pass, failed: $fail"; [[ $fail -eq 0 ]]

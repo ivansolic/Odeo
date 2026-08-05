@@ -2,215 +2,181 @@
 artifact: merge-gate-all-records
 type: code
 branch: fix/merge-gate-all-records
-reviewed_commit: 419b495
+reviewed_commit: 744edbe
 date: 2026-08-05
 scorer: code-reviewer
 model: claude-opus-5[1m] (Opus 5, 1M context)
 model_tier: strong
 effort: high
-record_version: 2
-scores: { correctness: 0, security: 0, performance: 2, readability: 1, testing: 1, conventions: 1 }
-total: 5/12
+record_version: 3
+scores: { correctness: 1, security: 1, performance: 2, readability: 1, testing: 1, conventions: 2 }
+total: 8/12
 verdict: REQUEST CHANGES
-previous_total: 4/12
+previous_total: 5/12
 ---
 
 ## Scope reviewed
 
-`419b495` on top of `9517d2a` and `8e2c23a`, reviewed as one logical change to the
-`/merge` [E] guardrail. The dispatcher supplied `419b495` and I verified it myself
-rather than trusting it: `git rev-parse 419b495` equals `git rev-parse HEAD`, tree
-clean. That is the reciprocal duty this change adds at AGENTS.md:163-168 working as
-designed on its first real use.
+`744edbe` on top of `419b495`, `9517d2a` and `8e2c23a`, one logical change to the
+`/merge` [E] guardrail. Dispatcher supplied `744edbe`; verified myself,
+`git rev-parse 744edbe` == `git rev-parse HEAD`, tree clean, `~/bin/merge-gate.sh`
+md5-matches the repo (`8d5edf2a…`). The v2 record was committed inside `744edbe`
+unaltered (verdict, total, version and the Critical's text intact).
 
-The v1 record was committed inside `419b495`. I verified it went in byte-identical
-(md5 `21362ffc…`, verdict and scores intact), so no one edited a reviewer's record to
-move a gate. This file overwrites it, which is the documented flow: one record per
-artifact, git history is the archive.
-
-Evidence base: the 50-assertion gate suite (control 50/50), skills-lint clean, my own
-fixtures for every edge the coordinator asked about, and 7 mutations of the new gate.
+Evidence: the 58-assertion suite (control 58/58), plus 20 of my own fixtures and 3
+mutations. My first mutation probe was itself broken (relative gate path inside the
+fixture repos, rc=127); I caught it and re-ran with absolute paths, and one of the
+three "gaps" it reported dissolved once the probe worked. Noted because the same
+failure hit the coordinator this round.
 
 ## Verdict
 
-REQUEST CHANGES
-
-One Critical outstanding. It is narrower than v1's and was introduced by the fix for
-v1's C1 rather than being an original hole, but it is a fail-open in the exact
-property this branch exists to guarantee, and the OLD gate caught it.
+REQUEST CHANGES, and this is the narrow one. No Critical. Three mechanical edits below
+take it to APPROVE; nothing here needs a redesign.
 
 ## Verified closed
 
-- **C1 enumeration** (`bin/merge-gate.sh:61-78`). All four sub-cases fixed and
-  independently reproduced: LF APPROVE + CRLF REQUEST CHANGES now refuses (was 0); a
-  CRLF-only APPROVE is still FOUND and passes, so the fix did not pass case 24 by
-  making CRLF records unreadable, and case 25 pins that, which is the right instinct;
-  on `fix/a.b` a record naming `fix/aXb` refuses (was 0); a `branch:` line in the body
-  no longer enrols (was 1). The per-machine-grep note in the comment is a real addition
-  and correct: my own first run hid the bug because ugrep 7.5.0 was on the interactive
-  PATH while the gate resolved `/usr/bin/grep`.
-- **C2 anchor** (`bin/merge-gate.sh:183-206`). Every edge behaves: uppercase hex passes
-  (frontmatter_field lowercases first), 7-char passes, 6-char refuses, a TREE sha
-  refuses via `^{commit}`, `HEAD` and a branch name refuse on the hex case, a
-  non-ancestor refuses. `$branch` can never be empty (unborn and detached HEAD both
-  yield the literal `HEAD`), so there is no empty-branch enrolment hole. An ambiguous
-  short prefix is fail-closed by construction (`rev-parse --verify --quiet` returns
-  non-zero on "short SHA1 is ambiguous"); I could not manufacture a 4-char collision in
-  400 commits, so that one is reasoned, not demonstrated.
-- **C3 the one-sided contract**. All four no-Bash reviewers
-  (`agents/design-reviewer.md:103`, `pm-reviewer.md:49`, `skill-reviewer.md:38`,
-  `agent-reviewer.md:41`) now state they have no shell, that the dispatcher supplies the
-  sha, that they must ASK if it was not given, and that they must never transcribe,
-  guess or copy one, with omission named as the safe failure.
-  `agents/code-reviewer.md:142` keeps its own resolution and is told the others cannot.
-  AGENTS.md:163-168 carries the reciprocal `[I]` duty. The contract is two-sided now.
-- **C4 install drift**. `md5 ~/bin/merge-gate.sh bin/merge-gate.sh` both
-  `7b8b244a6aa830944b4e8c6181834e08`. The fix is live on the path `/merge` uses.
-- **I2** case 18 asserts the message; **I3** closed by case 32 (second-record stale
-  anchor); **I5** duplicate `verdict:` refuses (case 33); **N1** closed by case 34 (day
-  before the cutoff still exempt); **N4** the header docblock states the plural rule.
-- Both mutations I named are now caught, independently reproduced: deleting the
-  rev-parse block and gating the anchor on the first record only both fail the suite.
-
-## Critical (must fix before merge)
-
-- **`bin/merge-gate.sh:70-75` — the rewritten enumeration SKIPS what it cannot parse, so
-  a malformed refusal is masked by a sibling approval. Fail-open regression: the old
-  gate refused these, `419b495` passes them.** Two demonstrated shapes, one root cause:
-  1. A record whose frontmatter does not open the file (a title line above the `---`,
-     the exact shape case 6g exists for because it happened in this repo before) with
-     `branch: feature/x` + `verdict: REQUEST CHANGES`, alongside a valid APPROVE:
-     old **1**, `9517d2a` **1**, `419b495` **0**.
-  2. A record with two `branch:` lines, decoy first (`feature/other`), ours second,
-     carrying REQUEST CHANGES, alongside a valid APPROVE: old **1**, `419b495` **0**
-     (first-wins in `frontmatter_field`).
-  Case 6g still passes only because its malformed record is the ONLY one, so the gate
-  refuses via "no record"; it no longer tests what its comment claims.
-  Root cause: enumeration cannot distinguish "not a record for this branch" from "a file
-  that looks like one and failed to parse". Silent skipping is fail-open in a masking
-  gate. Fix, one mechanism for both, keeping frontmatter as the only thing that can
-  APPROVE:
-  ```bash
-  # Tripwire: a file that names this branch but did NOT enrol through frontmatter is a
-  # record that failed to parse, not a record that is absent. Skipping it would let a
-  # malformed refusal be masked by a sibling approval, so refuse and name the file.
-  # grep -F is safe here precisely because this scan can only ever REFUSE: its quirks
-  # (CRLF, body matches) make the gate stricter or equal, never looser.
-  while IFS= read -r r; do
-    [[ -n "$r" ]] || continue
-    case $'\n'"$records"$'\n' in *$'\n'"$r"$'\n'*) continue ;; esac
-    echo "merge-gate: REFUSED, $r names 'branch: $branch' but did not parse as a" >&2
-    echo "record for it (frontmatter must open the file, exactly one 'branch:' line)." >&2
-    exit 1
-  done < <(grep -rlF "branch: ${branch}" docs/evals 2>/dev/null || true)
-  ```
-  Add both shapes RED-first, and give case 6g a valid APPROVE sibling so it tests the
-  skip rather than the absence.
+- **The v2 Critical is closed for both demonstrated shapes.** Malformed frontmatter
+  (title line above `---`) carrying a refusal alongside a valid APPROVE now refuses
+  (was 0); two `branch:` lines with a decoy first now refuses (was 0). The tripwire's
+  placement is right: it fires only when the frontmatter branch is EMPTY, so a record
+  that parsed and names another branch is still legitimately skipped and its body still
+  ignored.
+- **No false positive on any path asked about.** Verified individually: a record for
+  another branch whose body names ours passes (case 27's property preserved); a record
+  with no branch field and no mention passes; `docs/evals` absent refuses with the
+  correct "no review record" message, not a tripwire message; a dangling symlink is
+  ignored without error (awk's open failure is swallowed and `nbranch` falls back to 0);
+  a malformed second-opinion record using `related_branch:` passes, which
+  `skills/second-opinion-code/SKILL.md:59` depends on. One false-positive path does
+  exist but is not in that list; see Important 3.
+- **Generic dup-key check** catches duplicated `branch`, `date`, `verdict`,
+  `model_tier` and `reviewed_commit` (verified each). Replacing the bespoke `vcount`
+  with one generic check was the right call.
+- **`-type l`** closes the symlinked-record hole; **`skills/merge/SKILL.md:56`** now
+  matches the gate's real output exactly.
+- **My (c) items are all covered**: case 40 is the tree-identical non-ancestor fixture I
+  handed over (case 31 refused via the tree diff, so the ancestor check was unpinned);
+  case 41 pins branch equality against substring; case 42 asserts the success line's
+  content.
+- **spec-gate deferral condition met**: `.claude/tasks/todo.md:243` carries it as an
+  unchecked item, including the `bin/spec-gate.sh:61` stale sync note. The judgment
+  stands: defensible deferral, not a Critical.
+- One honest non-finding: deleting the tripwire's `sub(/\r$/,"",line)` leaves the suite
+  green, but the mutant is behaviourally EQUIVALENT, because the trailing-whitespace
+  trim already removes `\r` (`[[:space:]]` includes CR). CR-tolerance is delivered
+  twice over. Not a test gap, and I am recording it so it is not mistaken for one.
 
 ## Important (should fix)
 
-- **`tests/merge-gate.test.sh` case 31 passes for the wrong reason**, the same class
-  fixed in case 18. Removing `merge-base --is-ancestor` leaves the fixture refusing, via
-  the tree diff, because the side commit adds `o.txt`. Verified: with the check removed
-  it still prints "REFUSED, code changed after the reviewed commit". The fixture that
-  isolates the check is a non-ancestor with an IDENTICAL non-evals tree, which I built
-  and confirmed goes GREEN against the mutant:
-  ```bash
-  ( cd "$d" && git branch side HEAD && git checkout -q side \
-    && git commit -q --amend -m "same tree, different sha" && git checkout -q feature/x )
-  side="$( cd "$d" && git rev-parse side )"   # tree-identical, not an ancestor
-  ```
-  With that anchor the full gate refuses on "is not an ancestor of HEAD". Assert the
-  message too.
-- **`bin/merge-gate.sh:70-75` — enumeration equality is only half pinned.** Mutation
-  M-a, `==` to `== *"$branch_lc"*`, keeps the suite at 50/50: case 26 covers regex
-  metacharacters, nothing covers a superstring. Fix: a record naming
-  `feature/x-extended` while on `feature/x`, expecting refuse.
-- **`bin/merge-gate.sh:107-119` — the duplicate-field check covers `verdict:` only, and
-  the other first-wins fields are live bypasses of the same shape.** Verified on
-  `419b495`: two `date:` lines with a pre-cutoff value first exempts the record from the
-  anchor entirely (exit 0); two `model_tier:` lines with `strong` first bypasses the
-  tier floor (exit 0). Generalise instead of adding one-offs, which also replaces the
-  bespoke `vcount` block:
-  ```bash
-  dup="$(awk '
-    NR==1 { if ($0 !~ /^---[[:space:]]*$/) exit; next }
-    /^---[[:space:]]*$/ { exit }
-    match($0, /^[A-Za-z_][A-Za-z0-9_]*:/) { k=substr($0,1,RLENGTH-1); if (++c[k]==2) print k }
-  ' "$record")"
-  [[ -z "$dup" ]] || { echo "merge-gate: REFUSED, duplicate frontmatter field(s) in $record: $dup" >&2; exit 1; }
-  ```
-  This also closes shape 2 of the Critical at the field level.
-- **`skills/merge/SKILL.md:56` still documents the old success line**
-  (`record: code-feature-usr-012-timer.md`); the gate now prints `N record(s) checked: …`.
-  The gate half of I1 is fixed and correct, the doc half is not, and this is the line an
-  operator reads to know what a pass looks like. Nothing asserts the success text either
-  (`check()` discards stdout), so mutating the listing away leaves the suite green.
-- **A symlinked record is invisible to enumeration** (`-type f` does not match
-  `-type l`), so a symlinked REQUEST CHANGES record is masked by a sibling approval:
-  old **0**, new **0**. Pre-existing, not a regression, consistent with
-  `bin/spec-gate.sh`, but it is the same masking class as the Critical and costs one
-  edit: `find docs/evals \( -type f -o -type l \) -name '*.md'`. The tripwire above
-  would also catch it.
-- **`bin/spec-gate.sh` deferral: defensible, and I would keep it out of this commit.**
-  In order of weight: the AGENTS.md `[E]` bullet is scoped to `/merge`
-  (`merge-gate.sh`) at line 156, so nothing is overstated; spec-gate's enrolment via
-  `covers_id` is already the correct frontmatter-and-string-equality shape, so only the
-  selection is wrong and the fix is small; and bundling it would mix two logical changes
-  against one-change-per-commit while denying it its own RED-first cases. One condition:
-  the deferral currently lives only in a commit body, and a commit message is not a
-  backlog. Add an unchecked item to `.claude/tasks/todo.md` naming spec-gate's
-  one-record selection, or it gets found the way this one was.
+1. **`bin/merge-gate.sh:74-76` and `:108` — the tripwire compares the whole LINE
+   literally, so an internal-whitespace variant evades it and the v2 Critical shape
+   returns.** Verified: malformed frontmatter + `branch:  feature/x` (two spaces) or
+   `branch:\tfeature/x` (tab) carrying REQUEST CHANGES, alongside a valid APPROVE,
+   exits **0**. Not a regression (the old grep required a single space too), but the
+   guard's stated coverage ("a record the gate cannot read must not be skipped") is
+   wider than the mechanism, which is the lessons.md 2026-08-03 pattern one level down.
+   Fix: compare the PARSED value the way `frontmatter_field` does, not the literal line,
+   which kills every whitespace variant at once:
+   ```awk
+   { line=$0; sub(/\r$/,"",line); sub(/^[[:space:]]+/,"",line)
+     if (index(tolower(line), "branch:") == 1) {
+       v=substr(line, 8); sub(/^[[:space:]]+/,"",v); sub(/[[:space:]]+$/,"",v)
+       if (tolower(v) == want) { found=1; exit } } }
+   ```
+   with `want="$branch_lc"`. Stronger alternative worth considering: fire the tripwire on
+   "the frontmatter itself does not parse" rather than on a branch-line match at all.
+   Then no spacing, casing or fencing subtlety can evade it, and Important 3 disappears
+   too. Cost: an unrelated broken record blocks every branch, which is arguably correct
+   since it is broken.
+2. **`bin/merge-gate.sh:108` — `-name '*.md'` makes a non-`.md` refusing record
+   invisible, and this one IS a fail-open regression.** A record saved as
+   `docs/evals/z-refuse.txt` or `.markdown` with `verdict: REQUEST CHANGES` is masked by
+   a sibling APPROVE: old **1** (the old `grep -rl docs/evals/` had no name filter),
+   new **0**. Graded Important rather than Critical on plausibility, not on kind: it is
+   the same masking class, but nothing in the system produces a non-`.md` record, every
+   reviewer is instructed to write `.md`, and all 20 existing records are `.md`. Fix:
+   drop the name filter from the tripwire scan, which is safe precisely because that
+   scan can only ever REFUSE: `find docs/evals \( -type f -o -type l \) 2>/dev/null | sort`.
+3. **`bin/merge-gate.sh:96-101` — one false-positive path, with a misleading message.**
+   A record with no `branch:` field at all that quotes an exact `branch: <this branch>`
+   line anywhere, including inside a fenced code block, becomes a suspect and refuses
+   the merge (verified). PM and design records have no branch field, so they are exactly
+   the files that reach the tripwire. The direction is fail-closed, so it is not a
+   security hole, but the message says "its frontmatter does not parse" when in fact the
+   frontmatter parsed fine and simply has no `branch:` field, which sends the operator
+   hunting for the wrong defect on the strictest gate in the repo. Fix: distinguish the
+   two conditions in the message, or adopt the "frontmatter does not parse" trigger from
+   Important 1, which removes the path entirely.
+4. **Two live mutations survive the 58-assertion suite**, both in the tripwire's
+   normalization, both verified live before reporting (each flips a real fixture from
+   refuse to pass):
+   - dropping `lc=tolower(line)`: a `Branch: feature/x` malformed refuser goes 1 -> 0,
+     suite stays 58/58.
+   - dropping the leading/trailing whitespace trims: an indented `  branch: feature/x`
+     malformed refuser goes 1 -> 0, suite stays 58/58.
+   The comment claims exact-line, CR-tolerant matching; the case and indent tolerance
+   are real but unpinned. Fix: one fixture each, or fold them in when Important 1 lands
+   and pin the parsed-value comparison instead.
 
 ## Nitpicks (optional)
 
-- Recursion into `docs/evals/` subdirectories is unpinned: mutating to `-maxdepth 1` is
-  not caught (no subdirectory fixture). Behaviour matches the old gate, so nothing is
-  broken, but an archive convention under `docs/evals/` would silently start blocking
-  merges. Pin the intent either way.
-- The 7-char floor is a policy bound, not a safety one: git resolves a 6-char prefix
-  here. One word in the comment stops someone hardening it as load-bearing.
-- Enumeration spawns one awk per `.md` under `docs/evals/` (20 files today). Right trade
-  for correctness; if that directory reaches the hundreds, read all fields for a record
-  in one awk pass instead of one pass per field.
+- `bin/merge-gate.sh:100` — `printf '  %s\n' $suspects` is unquoted, so a suspect path
+  with spaces splits across lines and a `*` globs. Diagnostic path only, after the
+  decision. Use a `while read` loop over `$suspects`.
+- `model_waiver` is the sixth field the gate reads and is absent from the dup-key list.
+  It is genuinely safe (to loosen anything you would need `human` to win, which a single
+  line already does), but adding it costs nothing and removes the need for anyone to
+  re-derive that argument.
+- The dup-key awk calls `split("branch date verdict …", k, " ")` inside the per-key loop,
+  so it re-splits five times per line. Hoist it to `BEGIN`.
+- Enumeration now runs two awk passes per file plus five per enrolled record. Fine at 20
+  records; if `docs/evals/` reaches the hundreds, read all fields in one pass.
 
 ## Scores
 
-correctness 0/2 (the enumeration rewrite reintroduces fail-open masking, and the old
-gate caught it) · security 0/2 (same finding; a bypass of the one property this [E]
-guardrail promises) · performance 2/2 · readability 1/2 (clear, well-motivated
-comments, but the silent-skip behaviour behind the Critical is not visible from
-reading, the duplicate check is a one-off where a general one belongs, and SKILL.md
-drifted) · testing 1/2 (50 assertions, case 25's anti-cheat and cases 32/34 are real
-work, but case 31 passes for the wrong reason, M-a survives, and the success line is
-unasserted) · conventions 1/2 (`./install.sh` run and md5-verified, lint clean, two
-named mutations proven caught; against that, case 31 is a coverage claim not proven by
-mutation, the repeat offense in lessons.md 2026-08-03, and the deferral is not in the
-backlog)
+correctness 1/2 (one fail-open regression remains, non-`.md` records, plus the
+whitespace evasion of the new tripwire; no Critical) · security 1/2 (same two narrow
+masking paths on the guardrail whose whole job is to prevent masking) · performance 2/2
+· readability 1/2 (the tripwire's rationale comments are genuinely good, but its message
+misdiagnoses the case it most often fires on, and the unquoted `printf` and re-split awk
+are sloppy edges) · testing 1/2 (58 assertions, cases 35-42 all real and well-aimed, six
+guards mutation-proven one at a time, and they caught their own broken harness, which is
+the rule working; against that, two live mutations still survive and the two masking
+shapes above have no fixtures) · conventions 2/2 (install synced and md5-verified, lint
+clean, spec-gate deferral in the ledger per the stated condition, mutation discipline
+applied AND self-audited with the broken probe reported rather than hidden; the
+claim-wider-than-mechanism issue is scored under correctness and testing, not
+double-counted here)
 
-**total 5/12** (threshold: >=9, no zero)
+**total 8/12** (threshold: >=9, no zero)
 
 ## Ceiling
 
-12/12 remains reachable; nothing here structurally caps a criterion.
+12/12 remains reachable. The three edits that close it: parsed-value comparison in the
+tripwire (Important 1), drop `-name '*.md'` from the tripwire scan (Important 2), and a
+fixture each for case-folding and indent (Important 4). Important 3 comes free with 1.
 
-## Regression note vs v1 (4/12 at `9517d2a`)
+## Regression note vs v2 (5/12 at `419b495`)
 
-Better, and by more than the total suggests. Three of four Criticals are closed with
-evidence, every Important but one is closed, and the anchor is genuinely tight now
-(hex-only, peeled, ancestor-checked). The total moved 4 -> 5 only because a single
-Critical zeroes two dimensions worth four points and one is outstanding. The character
-of the remaining Critical also changed: v1's was an original hole that ordinary
-cross-platform tooling would trigger; v2's is narrower, needs an already-malformed
-record, and was introduced by the fix for v1's. What did not improve is the class of
-defect: silent skipping in enumeration, twice, from opposite directions.
+Better, and the trajectory is now clearly convergent: 4 -> 5 -> 8, and for the first
+time there is no Critical. The v2 Critical is closed for both shapes I demonstrated, the
+dup-key generalisation closed two bypasses I found, and the three test gaps I named are
+all covered by real fixtures rather than by shapes that pass for the wrong reason. Two
+things to note without softening them. First, the defect class persisted for a third
+round in a narrower form: enumeration still has ways to skip a record silently
+(whitespace variant, non-`.md`), which is why correctness and security are 1 rather than
+2. Second, the good sign is that this round's residue was found only by attacking the
+new guard's normalization, not by attacking the design, and the coordinator's own
+self-audit caught a broken probe before reporting it, which is exactly the discipline
+lessons.md asks for.
 
 ## Provenance note
 
-`model_tier: strong` is declared, not `strongest`: this ran on Opus 5 (opus class,
-above the strong floor), but I did not resolve the live model lineup, and per
-lessons.md 2026-07-27 "strongest" is a claim about the currently-available top tier and
-must not be asserted from memory.
+`model_tier: strong` is declared, not `strongest`: this ran on Opus 5 (opus class, above
+the strong floor), but I did not resolve the live model lineup, and per lessons.md
+2026-07-27 "strongest" is a claim about the currently-available top tier and must not be
+asserted from memory.
 
 ## History
 
@@ -218,9 +184,15 @@ must not be asserted from memory.
   to CRLF and treating the branch as a regex; `reviewed_commit: HEAD` a permanent
   bypass; the anchor contract one-sided across four no-Bash reviewers; the fix not
   installed, so `/merge` still ran the vulnerable gate. Six Importants.
-- v2 (2026-08-05, `419b495`): REQUEST CHANGES, 5/12. All four v1 Criticals verified
-  closed. One new Critical: the enumeration rewrite silently skips unparseable records,
-  so a malformed REQUEST CHANGES is masked by a sibling APPROVE, a fail-open the old
-  gate caught. Five Importants, of which case 31's wrong-reason pass and the
-  duplicate-field generalisation are the substantive ones. spec-gate deferral judged
-  defensible, conditional on it entering the backlog.
+- v2 (2026-08-05, `419b495`): REQUEST CHANGES, 5/12. All four v1 Criticals closed. One
+  new Critical: the enumeration rewrite silently skipped unparseable records, so a
+  malformed REQUEST CHANGES was masked by a sibling APPROVE, a fail-open the old gate
+  caught. Five Importants. spec-gate deferral judged defensible, conditional on it
+  entering the backlog.
+- v3 (2026-08-05, `744edbe`): REQUEST CHANGES, 8/12. No Critical. The v2 Critical closed
+  for both demonstrated shapes; dup-key generalisation and `-type l` closed the
+  bypasses found alongside it; the three test gaps covered. Four Importants remain, all
+  mechanical: the tripwire evades on internal whitespace, non-`.md` records are still
+  masked (a regression), one false-positive path with a misleading message, and two live
+  mutations survive the suite. Deferral condition met at
+  `.claude/tasks/todo.md:243`.
