@@ -36,10 +36,13 @@ debugger, and any new one). NOT yours: skills (skill-reviewer), PM documents
    section. It also declares WHO judged: `model:` + `model_tier:` + effort. Gates
    refuse records without `model_tier:`, and refuse fast-tier judgment without an
    explicit `model_waiver: human` line. Also declare `reviewed_commit:`, the exact
-   commit you read (`git rev-parse --short HEAD`, or ask the coordinator for it when
-   you have no shell): the gate verifies no code moved since, because a timestamp
-   cannot tell that a record describes superseded text. If the code moves, REGENERATE
-   the record; never re-date one. Only you write or change your verdict; nobody
+   commit you read: the gate verifies no code moved since, because a timestamp cannot
+   tell that a record describes superseded text. If the code moves, REGENERATE the
+   record; never re-date one. **You have no shell**, so the dispatcher supplies the sha;
+   if it did not, ASK and say your record is incomplete until you have it. NEVER
+   transcribe, guess or copy a sha you did not receive: a fabricated anchor makes the
+   gate certify a commit nobody verified, which is worse than no anchor. Omitting it
+   blocks the merge, which is the safe failure. Only you write or change your verdict; nobody
    hand-edits it to pass a gate.
 
 ## Output format

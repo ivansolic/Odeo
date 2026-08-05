@@ -5,7 +5,8 @@
 # Refuses the merge path unless the mechanical preconditions hold:
 #   1. not on main/master (integration happens from a story branch)
 #   2. clean working tree (no uncommitted work sneaks into a merge)
-#   3. a review record exists for this branch in docs/evals/ (review happened)
+#   3. EVERY review record carrying this branch in docs/evals/ approves, declares its
+#      model_tier, and (from RC_CUTOFF on) names the commit it reviewed
 #   4. do-not-touch boundaries respected (delegates to boundary-check.sh if present)
 #
 # It cannot verify judgment (was the review GOOD?), that stays with the reviewers
@@ -57,9 +58,24 @@ if [[ -n "$(git status --porcelain)" ]]; then
   exit 1
 fi
 
-# 3. Review record exists for this branch, EXACT match on the record's
-#    "branch:" field (content, not filename), so an unrelated record can't pass.
-records="$(grep -rl "^branch: ${branch}\$" docs/evals/ 2>/dev/null || true)"
+# 3. Review record exists for this branch: exact STRING equality against the record's
+#    FRONTMATTER `branch:` field, the same way bin/spec-gate.sh enrols records.
+#    A `grep -rl "^branch: $branch$"` was wrong three ways and each one failed OPEN:
+#      - `$` does not match before `\r` on system grep, so a CRLF record was invisible
+#        to enumeration and a sibling APPROVE carried the gate (behaviour also varied
+#        with whichever grep was on PATH, so it did not reproduce everywhere);
+#      - the branch was interpolated as a REGEX, so on `fix/a.b` a record naming
+#        `fix/aXb` satisfied the gate;
+#      - it matched a `branch:` line ANYWHERE in the file, body included, while every
+#        other field is read from frontmatter only.
+#    frontmatter_field lowercases, so the comparison lowercases the branch too.
+branch_lc="$(printf '%s' "$branch" | tr '[:upper:]' '[:lower:]')"
+records=""
+while IFS= read -r r; do
+  [[ -n "$r" ]] || continue
+  [[ "$(frontmatter_field "$r" "branch")" == "$branch_lc" ]] && records="${records}${r}"$'\n'
+done < <(find docs/evals -type f -name '*.md' 2>/dev/null | sort)
+records="${records%$'\n'}"
 if [[ -z "$records" ]]; then
   echo "merge-gate: REFUSED, no review record in docs/evals/ carries 'branch: $branch'." >&2
   echo "Run code-reviewer (and design-reviewer if UI) first; review = eval record" >&2
@@ -83,8 +99,23 @@ RC_CUTOFF="2026-08-05"
 
 while IFS= read -r record; do
   [[ -n "$record" ]] || continue
+  checked="${checked:-}${checked:+, }${record}"
+  n_checked=$(( ${n_checked:-0} + 1 ))
 
   # --- verdict ---
+  # Exactly ONE verdict line. frontmatter_field takes the FIRST match, so two lines
+  # let an approval shadow a refusal; the framework already says one clean verdict.
+  vcount="$(awk '
+    NR==1 { if ($0 !~ /^---[[:space:]]*$/) exit; next }
+    /^---[[:space:]]*$/ { exit }
+    index($0, "verdict:") == 1 { n++ }
+    END { print n+0 }
+  ' "$record")"
+  if [[ "$vcount" -gt 1 ]]; then
+    echo "merge-gate: REFUSED, $vcount 'verdict:' lines in the frontmatter ($record)." >&2
+    echo "Exactly one verdict is the gate's source of truth; re-run the reviewer." >&2
+    exit 1
+  fi
   verdict="$(frontmatter_field "$record" "verdict" | tr '[:lower:]' '[:upper:]')"
   case "$verdict" in
     APPROVE|"APPROVE WITH COMMENTS"|PASS) : ;;
@@ -149,8 +180,28 @@ while IFS= read -r record; do
       echo "gate can verify the review covers the code being merged (timestamps cannot)." >&2
       exit 1
     fi
+    # The anchor must name an IMMUTABLE commit. A symbolic ref (`HEAD`, a branch name)
+    # resolves fine and then never goes stale, which is a permanent bypass, and `HEAD`
+    # is the likeliest wrong value because reviewers are told to run `rev-parse HEAD`.
+    case "$reviewed" in
+      *[!0-9a-f]* | "" )
+        echo "merge-gate: REFUSED, 'reviewed_commit: $reviewed' is not a commit sha ($record)." >&2
+        echo "Use the hex sha the reviewer read (7 to 40 hex chars), never a ref like HEAD" >&2
+        echo "or a branch name: a moving ref can never go stale, so it proves nothing." >&2
+        exit 1 ;;
+    esac
+    if [[ "${#reviewed}" -lt 7 || "${#reviewed}" -gt 40 ]]; then
+      echo "merge-gate: REFUSED, 'reviewed_commit: $reviewed' is not 7 to 40 hex chars ($record)." >&2
+      exit 1
+    fi
+    # ^{commit} is load-bearing: `rev-parse --verify` alone accepts a tree or blob sha.
     if ! git rev-parse --verify --quiet "${reviewed}^{commit}" >/dev/null; then
       echo "merge-gate: REFUSED, 'reviewed_commit: $reviewed' is not a commit in this repo ($record)." >&2
+      exit 1
+    fi
+    if ! git merge-base --is-ancestor "$reviewed" HEAD 2>/dev/null; then
+      echo "merge-gate: REFUSED, 'reviewed_commit: $reviewed' is not an ancestor of HEAD ($record)." >&2
+      echo "The review sits on a different line of history than what you are merging." >&2
       exit 1
     fi
     if ! git diff --quiet "$reviewed" HEAD -- . ':(exclude)docs/evals'; then
@@ -188,5 +239,5 @@ if [[ -n "$checker" ]]; then
   fi
 fi
 
-echo "merge-gate: preconditions hold (branch '$branch', record: $(printf '%s' "$record" | head -1))."
+echo "merge-gate: preconditions hold (branch '$branch', ${n_checked:-0} record(s) checked: ${checked:-none})."
 exit 0

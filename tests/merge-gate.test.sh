@@ -203,7 +203,7 @@ check "ignores a refusing record naming a different branch" 0 "$d"; rm -rf "$d"
 d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1
 commit_at "$d" "$T2" code
 named_record "$d" "a-approve.md" "feature/x" "APPROVE"
-( cd "$d" && printf -- '---\nartifact: x\nbranch: feature/x\nverdict: APPROVE\n---\nbody\n' > docs/evals/z-notier.md && git add -A ) >/dev/null 2>&1
+( cd "$d" && mkdir -p docs/evals && printf -- '---\nartifact: x\nbranch: feature/x\nverdict: APPROVE\n---\nbody\n' > docs/evals/z-notier.md && git add -A ) >/dev/null 2>&1
 commit_at "$d" "$T3" recs
 check "refuses when a SECOND record lacks model_tier" 1 "$d"; rm -rf "$d"
 
@@ -262,6 +262,21 @@ reviewed_commit: deadbeefdeadbeefdeadbeefdeadbeefdeadbeef"
 commit_at "$d" "$T3" rec
 check "refuses an unresolvable reviewed_commit" 1 "$d"; rm -rf "$d"
 
+# 18b. ...and it must refuse because the SHA does not resolve, not because git diff
+#      happened to error. Without asserting the message this case passed even with the
+#      whole rev-parse block deleted.
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T2" code
+named_record "$d" "r.md" "feature/x" "APPROVE" "date: 2026-08-05
+reviewed_commit: deadbeefdeadbeefdeadbeefdeadbeefdeadbeef"
+commit_at "$d" "$T3" rec
+out="$( cd "$d" && bash "$GATE" 2>&1 )"
+case "$out" in
+  *"is not a commit in this repo"*) echo "ok   - names the unresolvable sha as the reason"; pass=$((pass+1)) ;;
+  *) echo "FAIL - names the unresolvable sha as the reason (got: $(printf '%s' "$out" | grep -m1 REFUSED))"; fail=$((fail+1)) ;;
+esac
+rm -rf "$d"
+
 # --- the cutoff must be fail-closed: no date and no malformed date may EXEMPT ---
 # Each of these carries a VALID reviewed_commit where noted, so the refusal must come
 # from the date handling itself and not merely from a missing anchor.
@@ -308,5 +323,110 @@ commit_at "$d" "$T2" code
 named_record "$d" "r.md" "feature/x" "APPROVE" "date: 2026-07-21"
 commit_at "$d" "$T3" rec
 check "still exempts a well-formed pre-cutoff date" 0 "$d"; rm -rf "$d"
+
+# --- enumeration must not depend on line endings, regex, or body text ---
+
+# 24. A CRLF record that REFUSES must still be seen. With a grep `$` anchor its
+#     `branch:` line ends in \r, so on system grep the record is invisible and the
+#     sibling APPROVE carries the gate. Enumeration must read frontmatter, not regex.
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T2" code
+named_record "$d" "a-approve.md" "feature/x" "APPROVE"
+( cd "$d" && mkdir -p docs/evals && printf -- '---\r\nartifact: x\r\nbranch: feature/x\r\ndate: 2026-07-21\r\nverdict: REQUEST CHANGES\r\nmodel_tier: strong\r\n---\r\nbody\r\n' > docs/evals/z-refuse.md && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T3" recs
+check "sees a CRLF record that refuses" 1 "$d"; rm -rf "$d"
+
+# 25. A CRLF record alone that APPROVES must still be FOUND (not "no record"), so the
+#     fix cannot pass case 24 by making CRLF records merely unreadable.
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T2" code
+( cd "$d" && mkdir -p docs/evals && printf -- '---\r\nartifact: x\r\nbranch: feature/x\r\ndate: 2026-07-21\r\nverdict: APPROVE\r\nmodel_tier: strong\r\n---\r\nbody\r\n' > docs/evals/only.md && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T3" rec
+check "accepts a CRLF record that approves" 0 "$d"; rm -rf "$d"
+
+# 26. The branch name must be compared as a STRING, not a regex. On branch fix/a.b a
+#     record naming fix/aXb must NOT satisfy the gate.
+d="$(make_repo)"; ( cd "$d" && git checkout -qb fix/a.b && echo b >> a.txt && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T2" code
+named_record "$d" "r.md" "fix/aXb" "APPROVE"
+commit_at "$d" "$T3" rec
+check "does not treat the branch name as a regex" 1 "$d"; rm -rf "$d"
+
+# 27. A `branch:` line in the BODY must not enrol a record (frontmatter only).
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T2" code
+named_record "$d" "mine.md" "feature/x" "APPROVE"
+( cd "$d" && mkdir -p docs/evals && printf -- '---\nartifact: x\nbranch: feature/other\ndate: 2026-07-21\nverdict: REQUEST CHANGES\nmodel_tier: strong\n---\nbranch: feature/x\n' > docs/evals/body.md && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T3" recs
+check "ignores a branch: line in the body" 0 "$d"; rm -rf "$d"
+
+# --- the anchor must name an immutable commit ---
+
+# 28. `reviewed_commit: HEAD` -> refuse. A moving ref can never go stale, and it is the
+#     likeliest wrong value since reviewers are told to run `git rev-parse --short HEAD`.
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T2" code
+named_record "$d" "r.md" "feature/x" "APPROVE" "date: 2026-08-05
+reviewed_commit: HEAD"
+commit_at "$d" "$T3" rec
+check "refuses a symbolic reviewed_commit (HEAD)" 1 "$d"; rm -rf "$d"
+
+# 29. A branch NAME as the anchor -> refuse (same reason).
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T2" code
+named_record "$d" "r.md" "feature/x" "APPROVE" "date: 2026-08-05
+reviewed_commit: feature/x"
+commit_at "$d" "$T3" rec
+check "refuses a branch name as reviewed_commit" 1 "$d"; rm -rf "$d"
+
+# 30. A TREE sha (valid object, not a commit) -> refuse. Guards the ^{commit} peel,
+#     which a plain --verify does not enforce.
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T2" code
+tree="$( cd "$d" && git rev-parse HEAD^{tree} )"
+named_record "$d" "r.md" "feature/x" "APPROVE" "date: 2026-08-05
+reviewed_commit: $tree"
+commit_at "$d" "$T3" rec
+check "refuses a tree sha as reviewed_commit" 1 "$d"; rm -rf "$d"
+
+# 31. A commit that is NOT an ancestor of HEAD -> refuse (a review of another line).
+d="$(make_repo)"; ( cd "$d" && git checkout -qb other && echo o > o.txt && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T2" sidecommit
+side="$( cd "$d" && git rev-parse HEAD )"
+( cd "$d" && git checkout -q main && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T2" code
+named_record "$d" "r.md" "feature/x" "APPROVE" "date: 2026-08-05
+reviewed_commit: $side"
+commit_at "$d" "$T3" rec
+check "refuses a reviewed_commit that is not an ancestor of HEAD" 1 "$d"; rm -rf "$d"
+
+# --- per-record coverage of the anchor, and duplicate fields ---
+
+# 32. A SECOND record's stale anchor must be caught (the first one is fine).
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T2" code
+old="$( cd "$d" && git rev-parse HEAD )"
+( cd "$d" && echo c >> a.txt && git add -A ) >/dev/null 2>&1; commit_at "$d" "$T3" more
+new="$( cd "$d" && git rev-parse HEAD )"
+named_record "$d" "a-ok.md"   "feature/x" "APPROVE" "date: 2026-08-05
+reviewed_commit: $new"
+named_record "$d" "z-stale.md" "feature/x" "APPROVE" "date: 2026-08-05
+reviewed_commit: $old"
+commit_at "$d" "$T3" recs
+check "catches a stale anchor on a SECOND record" 1 "$d"; rm -rf "$d"
+
+# 33. Two `verdict:` lines -> refuse, whichever order (an approval must not shadow one).
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T2" code
+( cd "$d" && mkdir -p docs/evals && printf -- '---\nartifact: x\nbranch: feature/x\ndate: 2026-07-21\nverdict: APPROVE\nverdict: REQUEST CHANGES\nmodel_tier: strong\n---\nb\n' > docs/evals/r.md && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T3" rec
+check "refuses two verdict: lines (approval first)" 1 "$d"; rm -rf "$d"
+
+# 34. Cutoff pinned from BELOW too: the day before the cutoff stays exempt.
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T2" code
+named_record "$d" "r.md" "feature/x" "APPROVE" "date: 2026-08-04"
+commit_at "$d" "$T3" rec
+check "exempts the day before the cutoff" 0 "$d"; rm -rf "$d"
 
 echo ""; echo "passed: $pass, failed: $fail"; [[ $fail -eq 0 ]]
