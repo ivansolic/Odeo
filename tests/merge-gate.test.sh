@@ -429,4 +429,81 @@ named_record "$d" "r.md" "feature/x" "APPROVE" "date: 2026-08-04"
 commit_at "$d" "$T3" rec
 check "exempts the day before the cutoff" 0 "$d"; rm -rf "$d"
 
+# --- a record the parser cannot read must REFUSE, never be skipped ---
+# Enumerating by frontmatter fixed the CRLF/regex/body holes but introduced a worse one:
+# an unparseable record simply did not enrol, so its refusal became invisible behind a
+# sibling APPROVE. The old grep-based gate refused these. Each case pairs a malformed
+# REFUSAL with a valid APPROVE, so only a fail-closed tripwire can catch it.
+
+# 35. Frontmatter does not OPEN the file (title line above ---), carrying a refusal.
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T2" code
+named_record "$d" "a-approve.md" "feature/x" "APPROVE"
+( cd "$d" && mkdir -p docs/evals && printf -- 'Review Title\n---\nbranch: feature/x\ndate: 2026-07-21\nverdict: REQUEST CHANGES\nmodel_tier: strong\n---\nb\n' > docs/evals/z-malformed.md && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T3" recs
+check "refuses an unparseable record that names the branch" 1 "$d"; rm -rf "$d"
+
+# 36. Two `branch:` lines, decoy first, so frontmatter_field reads the wrong one.
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T2" code
+named_record "$d" "a-approve.md" "feature/x" "APPROVE"
+( cd "$d" && mkdir -p docs/evals && printf -- '---\nbranch: feature/decoy\nbranch: feature/x\ndate: 2026-07-21\nverdict: REQUEST CHANGES\nmodel_tier: strong\n---\nb\n' > docs/evals/z-two-branch.md && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T3" recs
+check "refuses a record with two branch: lines" 1 "$d"; rm -rf "$d"
+
+# 37. Two `date:` lines, pre-cutoff first, would skip the anchor entirely.
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T2" code
+( cd "$d" && mkdir -p docs/evals && printf -- '---\nbranch: feature/x\ndate: 2026-07-21\ndate: 2026-08-05\nverdict: APPROVE\nmodel_tier: strong\n---\nb\n' > docs/evals/r.md && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T3" rec
+check "refuses two date: lines" 1 "$d"; rm -rf "$d"
+
+# 38. Two `model_tier:` lines, strong first, would bypass the fast-tier floor.
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T2" code
+( cd "$d" && mkdir -p docs/evals && printf -- '---\nbranch: feature/x\ndate: 2026-07-21\nverdict: APPROVE\nmodel_tier: strong\nmodel_tier: fast\n---\nb\n' > docs/evals/r.md && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T3" rec
+check "refuses two model_tier: lines" 1 "$d"; rm -rf "$d"
+
+# 39. A SYMLINKED record must not be invisible (`find -type f` alone misses it).
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T2" code
+named_record "$d" "a-approve.md" "feature/x" "APPROVE"
+( cd "$d" && mkdir -p docs/evals real && printf -- '---\nbranch: feature/x\ndate: 2026-07-21\nverdict: REQUEST CHANGES\nmodel_tier: strong\n---\nb\n' > real/r.md && ln -s ../../real/r.md docs/evals/z-link.md && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T3" recs
+check "sees a symlinked record that refuses" 1 "$d"; rm -rf "$d"
+
+# 40. Non-ancestor with an IDENTICAL tree, so only the ancestor check can refuse it.
+#     Case 31's fixture differed in content, so deleting merge-base left the suite green.
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T2" code
+( cd "$d" && git branch side && git checkout -q side && GIT_AUTHOR_DATE="$T2" GIT_COMMITTER_DATE="$T2" git commit -q --amend -m amended-same-tree && git checkout -q feature/x ) >/dev/null 2>&1
+side="$( cd "$d" && git rev-parse side )"
+named_record "$d" "r.md" "feature/x" "APPROVE" "date: 2026-08-05
+reviewed_commit: $side"
+commit_at "$d" "$T3" rec
+check "refuses a non-ancestor even with an identical tree" 1 "$d"; rm -rf "$d"
+
+# 41. The branch comparison must be EQUALITY, not substring: on branch `feature/x` a
+#     record naming `feature/xyz` must not enrol (guards `==` becoming a glob match).
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T2" code
+named_record "$d" "r.md" "feature/xyz" "APPROVE"
+commit_at "$d" "$T3" rec
+check "does not enrol a superstring branch name" 1 "$d"; rm -rf "$d"
+
+# 42. The success line must name the records it checked (it once printed an empty
+#     variable left behind by the loop's final EOF read).
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T2" code
+named_record "$d" "a-approve.md" "feature/x" "APPROVE"
+named_record "$d" "z-pass.md"    "feature/x" "PASS"
+commit_at "$d" "$T3" recs
+out="$( cd "$d" && bash "$GATE" 2>&1 )"
+case "$out" in
+  *"2 record(s) checked"*a-approve.md*z-pass.md*) echo "ok   - success line names every record checked"; pass=$((pass+1)) ;;
+  *) echo "FAIL - success line names every record checked (got: $(printf '%s' "$out" | tail -1))"; fail=$((fail+1)) ;;
+esac
+rm -rf "$d"
+
 echo ""; echo "passed: $pass, failed: $fail"; [[ $fail -eq 0 ]]

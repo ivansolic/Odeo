@@ -53,7 +53,7 @@ human floor.
 ## Worked example
 ```
 > /merge                          (on feature/usr-012-timer, reviewed, you approved)
-merge-gate: preconditions hold (branch 'feature/usr-012-timer', record: code-feature-usr-012-timer.md)
+merge-gate: preconditions hold (branch 'feature/usr-012-timer', 1 record(s) checked: docs/evals/code-feature-usr-012-timer.md)
 fetch + rebase onto origin/main: clean
 tests + typecheck: green
 gh pr merge --squash: merged

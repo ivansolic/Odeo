@@ -71,11 +71,65 @@ fi
 #    frontmatter_field lowercases, so the comparison lowercases the branch too.
 branch_lc="$(printf '%s' "$branch" | tr '[:upper:]' '[:lower:]')"
 records=""
+suspects=""
+# -type l too: a symlinked record was invisible to `-type f` alone.
 while IFS= read -r r; do
   [[ -n "$r" ]] || continue
-  [[ "$(frontmatter_field "$r" "branch")" == "$branch_lc" ]] && records="${records}${r}"$'\n'
-done < <(find docs/evals -type f -name '*.md' 2>/dev/null | sort)
+
+  # A duplicated `branch:` key is checked HERE, before enrolment, because a decoy first
+  # line makes the record enrol under the wrong branch (or not at all) and its verdict
+  # is then never read. Checked for every file, not just enrolled ones.
+  nbranch="$(awk '
+    NR==1 { if ($0 !~ /^---[[:space:]]*$/) exit; next }
+    /^---[[:space:]]*$/ { exit }
+    index($0, "branch:") == 1 { n++ }
+    END { print n+0 }
+  ' "$r" 2>/dev/null || echo 0)"
+  if [[ "$nbranch" -gt 1 ]]; then
+    echo "merge-gate: REFUSED, $nbranch 'branch:' lines in the frontmatter ($r)." >&2
+    echo "A decoy first line makes a record enrol under the wrong branch and hides its" >&2
+    echo "verdict. Exactly one branch: line; re-run the reviewer." >&2
+    exit 1
+  fi
+
+  fm_branch="$(frontmatter_field "$r" "branch")"
+  if [[ "$fm_branch" == "$branch_lc" ]]; then
+    records="${records}${r}"$'\n'
+    continue
+  fi
+  # A record whose frontmatter PARSED and names a different branch is legitimately not
+  # ours: skip it, and never mind what its body says. The tripwire below is only for
+  # records whose frontmatter did not parse at all.
+  [[ -n "$fm_branch" ]] && continue
+  # TRIPWIRE (fail-closed). Enrolling by frontmatter closed the CRLF, regex and body
+  # holes, but it also meant a record the parser CANNOT read simply did not enrol, so a
+  # malformed REFUSAL became invisible behind a sibling APPROVE. The old grep-based gate
+  # refused those. So: any file carrying an EXACT `branch: <this branch>` line that did
+  # not enrol through frontmatter is a refusal, not a skip. Exact-line and CR-tolerant,
+  # so a longer branch name (`feature/xyz` while on `feature/x`) is not a false hit, and
+  # this scan can only ever REFUSE, never approve.
+  if awk -v want="branch: $branch_lc" '
+    { line=$0; sub(/\r$/, "", line)
+      sub(/^[[:space:]]+/, "", line); sub(/[[:space:]]+$/, "", line)
+      lc=tolower(line)
+      if (lc == want) { found=1; exit } }
+    END { exit !found }
+  ' "$r" 2>/dev/null; then
+    suspects="${suspects}${r}"$'\n'
+  fi
+done < <(find docs/evals \( -type f -o -type l \) -name '*.md' 2>/dev/null | sort)
 records="${records%$'\n'}"
+suspects="${suspects%$'\n'}"
+
+if [[ -n "$suspects" ]]; then
+  echo "merge-gate: REFUSED, a file names 'branch: $branch' but its frontmatter does not parse:" >&2
+  printf '  %s\n' $suspects >&2
+  echo "A record the gate cannot read must not be skipped, or a malformed REFUSAL hides" >&2
+  echo "behind a sibling approval. Frontmatter must OPEN the file and carry one branch:" >&2
+  echo "line. Re-run the reviewer to regenerate it." >&2
+  exit 1
+fi
+
 if [[ -z "$records" ]]; then
   echo "merge-gate: REFUSED, no review record in docs/evals/ carries 'branch: $branch'." >&2
   echo "Run code-reviewer (and design-reviewer if UI) first; review = eval record" >&2
@@ -102,18 +156,26 @@ while IFS= read -r record; do
   checked="${checked:-}${checked:+, }${record}"
   n_checked=$(( ${n_checked:-0} + 1 ))
 
-  # --- verdict ---
-  # Exactly ONE verdict line. frontmatter_field takes the FIRST match, so two lines
-  # let an approval shadow a refusal; the framework already says one clean verdict.
-  vcount="$(awk '
+  # --- no duplicate keys ---
+  # frontmatter_field takes the FIRST match, so a duplicated key lets a benign value
+  # shadow a real one. Generic on purpose: a bespoke check for `verdict:` alone left the
+  # same hole on `date:` (pre-cutoff first skips the anchor) and `model_tier:` (strong
+  # first bypasses the fast-tier floor).
+  dup="$(awk '
     NR==1 { if ($0 !~ /^---[[:space:]]*$/) exit; next }
     /^---[[:space:]]*$/ { exit }
-    index($0, "verdict:") == 1 { n++ }
-    END { print n+0 }
+    {
+      for (i = 1; i <= 5; i++) {
+        split("branch date verdict model_tier reviewed_commit", k, " ")
+        if (index($0, k[i] ":") == 1) n[k[i]]++
+      }
+    }
+    END { for (key in n) if (n[key] > 1) printf "%s(%d) ", key, n[key] }
   ' "$record")"
-  if [[ "$vcount" -gt 1 ]]; then
-    echo "merge-gate: REFUSED, $vcount 'verdict:' lines in the frontmatter ($record)." >&2
-    echo "Exactly one verdict is the gate's source of truth; re-run the reviewer." >&2
+  if [[ -n "$dup" ]]; then
+    echo "merge-gate: REFUSED, duplicated frontmatter key(s) in $record: $dup" >&2
+    echo "Each of branch/date/verdict/model_tier/reviewed_commit appears exactly once;" >&2
+    echo "a duplicate lets one value shadow another. Re-run the reviewer." >&2
     exit 1
   fi
   verdict="$(frontmatter_field "$record" "verdict" | tr '[:lower:]' '[:upper:]')"
