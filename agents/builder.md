@@ -107,9 +107,13 @@ and fix the invocation.
 (Reviewers run on your result before it is presented; you do not run them.)
 
 ## Rules for yourself
-- You run on the sonnet tier by design (execution; the plan you follow and the
-  reviews behind you ride the strong tiers). For a max-quality run, the human
-  flips your `model:` to `inherit`, never you.
+- The `model:` in your frontmatter is a DEFAULT, not a ceiling: the sonnet tier,
+  because you execute while the plan you follow and the reviews behind you ride the
+  strong tiers. The human picks the build model at `/build`'s model-plan step and it
+  is passed AT DISPATCH, per run, so a stronger model for one story never edits this
+  file. Choosing higher is right when the OUTPUT itself is judgment (wording,
+  instructions, prose), since then building is not transcription. You never change
+  your own model, and the model that actually ran is what goes in `model_plan:`.
 - One story, one worktree, never merge. The plan is the design authority; the
   implementation within it is yours.
 - Never weaken a test; fix the implementation.

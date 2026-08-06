@@ -34,16 +34,37 @@ Ask a plain diagnostic and recommend, so a non-expert can choose well:
 
 The user picks (or names the mode when invoking); default toward with-me while learning.
 
-**Model plan, asked before any work.** Resolve LIVE what the harness is
-actually running, model AND effort, for both roles (session model + effort for
-judgment; the builder's tier + declared `high` effort for execution), AND the
-STRONGEST model available on this host right now (resolve from the current
-official lineup live, never from a cached table, the lineup changes often). Put it
-as a question. Never bake model names into this file; speak in tier + effort:
-> "Model plan: thinking/reviews on <session model as resolved now> at effort
->  <session effort as resolved now>, building on <builder tier> at effort high.
->  Continue, or change? (on this host: `/model` for model, `/effort` for effort;
->  or say a change for this run.)"
+**Model plan, asked before any work, and the BUILD model is the user's choice too.**
+
+Resolve LIVE, never from anything written down:
+- the model the session is ACTUALLY running and its effort (this is the judgment
+  role: plans, reviews). Do not infer it from earlier in the conversation or from
+  what the environment said when the session STARTED, because the user may have
+  changed it since with `/model`. If it cannot be resolved with certainty, ASK
+  ("run `/model` and tell me what it reports") rather than stating a guess: a
+  fabricated model name in a `model_plan:` or an eval record violates the
+  never-fabricate rule and has happened.
+- the models AVAILABLE on this host right now, as the harness reports them, so the
+  user picks from what exists instead of from a list someone typed months ago.
+- which of those is the STRONGEST, for the recommendation below.
+
+Then ask, as ONE question with both roles in it:
+> "Model plan.
+>  Judgment (plans, reviews): <session model, resolved now> at effort <resolved now>.
+>  Build (executes the plan): which model? <list what this host offers now>.
+>  Default is the builder's declared tier (`sonnet`), which is cheaper and is the
+>  right call when the plan is precise and the work is mechanical. Choose higher when
+>  the OUTPUT ITSELF is judgment (wording, instructions, prose), because then the
+>  building is not transcription.
+>  Continue, or change? (`/model` changes the session model, `/effort` the effort;
+>  or name a build model for this run.)"
+
+The user's build choice is passed AT DISPATCH, per run, and is never written into
+`agents/builder.md` or any other file. That is deliberate: `AGENTS.md` bans
+version-pinned model ids in instruction files (lint C11 enforces it on
+`builder.md`) because a version baked into a file goes stale the day a new model
+ships, and this repo has already been burned by exactly that. Per-run dispatch
+gives the user a real choice with no file to go stale.
 The change mechanism is per host (Claude Code: `/model` + `/effort`; other hosts
 use their equivalent from the per-host adapter in AGENTS.md), so the same step
 works everywhere. In for-me mode, write the answer into the plan file as
@@ -169,7 +190,10 @@ once so a still editor is not mistaken for a stall. Live watching is with-me (Mo
    **No builder runs without an approved plan that carries an `arch_review:`
    line**, both are the builder's contract preconditions.
 4. **Dispatch one `builder` per approved story**, each in its own git worktree +
-   branch (built-in isolation; parallel = background agents). Each builder
+   branch (built-in isolation; parallel = background agents), **on the model the
+   user chose in the model-plan step**, passed at dispatch and recorded in the
+   plan's `model_plan:` line so the contract states who actually built. If the user
+   named no model, the builder's declared tier applies. Each builder
    executes its plan as a contract: success-signal, green baseline, tasks in
    order (dev-rigor style from CLAUDE.md), loop to the signal, stop-and-ask on
    any plan conflict. Then run `code-reviewer` (plus `design-reviewer` if UI) on
