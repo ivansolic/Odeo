@@ -2,196 +2,225 @@
 artifact: gate-ignore-untracked-evals
 type: code
 branch: fix/gate-ignore-untracked-evals
-reviewed_commit: cd5a985
+reviewed_commit: c4de1b6
 date: 2026-08-06
 scorer: code-reviewer
 model: claude-opus-5[1m] (Opus 5, 1M context)
 model_tier: strong
 effort: high
-record_version: 1
-scores: { correctness: 0, security: 1, performance: 2, readability: 2, testing: 1, conventions: 1 }
-total: 7/12
-verdict: REQUEST CHANGES
-previous_total: 11/12
+record_version: 2
+scores: { correctness: 2, security: 2, performance: 2, readability: 2, testing: 1, conventions: 2 }
+total: 11/12
+verdict: APPROVE WITH COMMENTS
+previous_total: 7/12
 ---
 
 ## Scope reviewed
 
-`cd5a985`, one commit closing the two fail-closed Importants left by
-`docs/evals/code-fix-merge-gate-all-records.md` (v4, 11/12, `0316b7e`). Verified myself:
-`git rev-parse --short HEAD` == `cd5a985`, tree clean, branch `fix/gate-ignore-untracked-evals`.
-Three files: `bin/merge-gate.sh` (enumeration switched to `git ls-files`, one comment
-marker, one quoting nit), `docs/eval-framework.md` (+15 lines documenting the invariant),
-`tests/merge-gate.test.sh` (cases 48 to 50).
+`c4de1b6`, the second state of this branch (`cd5a985` -> `c4de1b6`), closing the Critical
+and the two Importants of v1. Verified myself: `git rev-parse --short HEAD` == `c4de1b6`,
+tree clean, `md5 -q bin/merge-gate.sh` == `md5 -q ~/bin/merge-gate.sh` == `1e6b52b2`, so the
+gate that `/merge` runs is the gate I read. Files: `bin/merge-gate.sh` (+2 guards, `-z`
+enumeration, `-r` check), `docs/eval-framework.md` (wording), `tests/merge-gate.test.sh`
+(cases 51 to 55).
 
-Evidence I produced myself, in throwaway repos, against the real script: the gate suite
-(66/66 green at HEAD), one code mutation (`-uno` at line 56), one fixture probing the
-untracked assumption under a git config, one probing non-ASCII record names, a
-conflicted-index probe, a subdirectory invocation, and a side-by-side run of the
-pre-change gate (`cd5a985^:bin/merge-gate.sh`) on the identical repo.
+`record_version` goes 1 -> 2 (the field this record already carried, and the precedent in
+`docs/evals/code-fix-merge-gate-all-records.md`, which reached `record_version: 4`).
+
+Evidence, my own fixtures re-run against `c4de1b6` at the time of writing rather than
+recalled: the gate suite (71/71), single-guard mutation probes, behaviour probes, two
+NUL-pipeline probes, and the suite re-run against each single-guard mutation.
 
 ## Verdict
 
-REQUEST CHANGES. The `.DS_Store` fix is right and the tests are honest, but the change
-traded a fail-CLOSED defect for a fail-OPEN one, which is the exact pattern the parent
-branch spent four rounds on. Guarantee 1 (any non-approving record refuses) now depends on
-`git status --porcelain` reporting untracked files, which is client-configurable. Under
-`status.showUntrackedFiles=no` an uncommitted REQUEST CHANGES record is invisible to BOTH
-the clean-tree check and the enumeration, and the merge passes. The pre-change gate refused
-the same repo. Fix is one flag; the guarantee should not rest on an ambient config.
+APPROVE WITH COMMENTS. The Critical is closed in every configuration state I can construct,
+and closed with the stronger of the two options: the CLI flag makes the guarantee
+config-independent, and the explicit stray check makes it true by construction rather than
+by inheritance. Nothing the previous version refused now passes, except the one input that
+was refused BY MISTAKE. One Important remains, a testing gap on the flag, non-blocking.
 
-## Critical
+## (a) Every v1 finding, closed or open
 
-1. **`bin/merge-gate.sh:56` (and the claim at `:82-83`), guarantee 1 fails open when
-   `status.showUntrackedFiles` is off.** The enumeration no longer sees untracked records,
-   and the comment justifies that with "Nothing is lost: an untracked non-ignored file is
-   already refused by the clean-tree check". That is true only under git's default
-   untracked reporting, and line 56 does not pin it. Reproduced with post-cutoff records
-   in the current flow: a committed `code-x.md` APPROVE, an uncommitted `design-x.md`
-   REQUEST CHANGES (a second reviewer's record, a new filename, so no tracked file is
-   modified), both anchored at HEAD, plus `git config status.showUntrackedFiles no`:
-   - `cd5a985`: `merge-gate: preconditions hold ... 1 record(s) checked` , exit 0.
-   - `cd5a985^` (the `find` version), identical repo: REFUSED, verdict REQUEST CHANGES,
-     exit 1.
-   The suite does catch the in-code form of this (mutating line 56 to
-   `git status --porcelain -uno` fails case 49, 65/66), but not the ambient-config form,
-   because the tests inherit the developer's git config. Fix, line 56, command line beats
-   config:
-   ```bash
-   if [[ -n "$(git status --porcelain --untracked-files=normal)" ]]; then
-   ```
-   Stronger, and it makes the documented claim true by construction instead of by
-   assumption, so I would add it as well as the flag (it also gives the accurate reason
-   rather than "uncommitted changes present"):
-   ```bash
-   stray="$(git ls-files --others --exclude-standard docs/evals)"
-   [[ -z "$stray" ]] || { echo "merge-gate: REFUSED, untracked file(s) under docs/evals:" >&2
-     printf '%s\n' "$stray" | sed 's/^/  /' >&2
-     echo "The gate reads TRACKED records. Commit them, or remove the stray file." >&2; exit 1; }
-   ```
-   Test to pin it (fixture-local config, no env plumbing in `check`): case 49 duplicated
-   with `( cd "$d" && git config status.showUntrackedFiles no )` before the check, expecting 1.
+- **Critical 1 (guarantee 1 failed open under `status.showUntrackedFiles=no`): CLOSED.**
+  `bin/merge-gate.sh:59` forces `--untracked-files=normal`, and `:68-75` refuses any
+  untracked non-ignored file under `docs/evals` by name. Re-verified with post-cutoff
+  anchored records (committed `code-x.md` APPROVE + uncommitted `design-x.md`
+  REQUEST CHANGES, a new filename so no tracked file is modified) in four states: default
+  config, repo-level `status.showUntrackedFiles=no`, the same via `GIT_CONFIG_*` env
+  (the global-config equivalent), and untracked code outside `docs/evals`. All rc=1. The v1
+  repro that gave exit 0 now refuses.
+  I also spot-checked the coordinator's claim that each guard holds alone, since the
+  redundancy argument rests on it. It holds for this class: with the flag removed the belt
+  refuses by name, with the belt removed the flag refuses generically. The two "missing"
+  mutations are indeed redundancy, with one asymmetry, see the Important below.
+- **Important 2 (`git ls-files` C-quoted unusual paths): CLOSED.** `:143` is now
+  `git ls-files -z docs/evals | LC_ALL=C sort -z -u` with `read -r -d ''` at `:100`.
+  Verified: a `docs/evals/code-café.md` APPROVE record enumerates and passes (it appears by
+  its real name in the success line), and a `docs/evals/code-résumé.md` REQUEST CHANGES
+  beside an APPROVE refuses on its VERDICT, not as unparseable. Case 55 asserts on the
+  MESSAGE rather than the exit code, which is the right technique for that distinction.
+- **Important 3 (fix not installed): CLOSED.** `~/bin/merge-gate.sh` md5 `1e6b52b2` equals
+  the repo copy, so the path `skills/merge/SKILL.md:20` names first now runs this code.
+- **Nits taken and verified:** the unreadable-index-entry message (`:113-117`) no longer
+  blames the frontmatter; `docs/eval-framework.md:88-89` now says "refuses merges from EVERY
+  branch, because the parse check runs before branch matching"; the untracked consequence is
+  no longer asserted unconditionally; the dead `2>/dev/null` on the enumeration is gone;
+  `sort -z -u` also de-duplicates the three index stages of a conflicted path, which folds
+  in the conflict nit.
+- **Nit NOT taken (the KEPT IN SYNC marker at `:110-112` is documentation, not a
+  mechanism): open, and I agree with the deferral.** Extracting `frontmatter_opens()`
+  touches `bin/spec-gate.sh`, which has its own deferred fix in the ledger; doing half of it
+  here would leave two partial refactors. Do both together, and prefer the helper over a
+  byte-identity lint: a helper removes the divergence, a lint only reports it.
 
-## Important
+## (b) Anything the previous version refused that `c4de1b6` passes
 
-2. **`bin/merge-gate.sh:122`, `git ls-files` C-quotes unusual paths, so a valid record can
-   block every merge with a wrong diagnosis.** `core.quotePath` defaults to true, so a
-   record named `docs/evals/code-café.md` is emitted as
-   `"docs/evals/code-caf\303\251.md"`, quotes and escapes included. Reproduced against the
-   real gate: the path cannot be opened, awk fails, and the gate prints
-   `REFUSED, docs/evals contains file(s) whose frontmatter does not parse` and lists the
-   quoted string. `find` handed over raw bytes and had no such failure. Same for a path
-   containing `"` or `\`. It is fail-closed, so no bad merge passes, but it is the same
-   class of defect this branch exists to remove, and the advice in the message ("re-run
-   the reviewer") is wrong for it. Fix, line 122, NUL-delimited, no quoting at all, and it
-   also removes the newline-in-filename hazard:
-   ```bash
-   done < <(git ls-files -z docs/evals 2>/dev/null | LC_ALL=C sort -z)
-   ```
-   with `while IFS= read -r -d '' r; do` at line 84. Minimal alternative if `-z` is
-   unwanted: `git -c core.quotePath=false ls-files docs/evals`. Add a fixture with a
-   non-ASCII record filename expecting 0.
+**Exactly one input, and it is the intended fix: a record whose filename contains
+non-ASCII bytes** (or `"` / `\`). `cd5a985` refused it as "frontmatter does not parse";
+`c4de1b6` reads it and judges it. That is refuse -> judge, not refuse -> pass: probe C
+confirms a non-ASCII REQUEST CHANGES still refuses, on its verdict.
 
-3. **The fix is not installed, so `/merge` on this machine still runs the pre-change
-   gate.** `~/bin/merge-gate.sh` is md5 `d6de6918...`, which is `cd5a985^`; the repo copy
-   is `07905803...`. `skills/merge/SKILL.md:20` names `~/bin` FIRST, and AGENTS.md requires
-   re-running `./install.sh` after editing anything under `bin/`. Net effect: the
-   `.DS_Store` block this branch fixes is still live where the gate actually runs, and the
-   parent branch's v1 raised this identical omission once already. Fix: `./install.sh`,
-   then verify `md5 -q ~/bin/merge-gate.sh` equals `md5 -q bin/merge-gate.sh`.
+Everything else in the diff only ADDS refusals (the flag, the stray check, the `-r` check).
+Three ways this could have gone wrong, checked rather than assumed:
+- **`sort -u` collapsing distinct records.** It compares whole NUL-delimited paths, and
+  `LC_ALL=C` is in force twice (exported at `:22-23`, inline at `:143`), so two distinct
+  paths can never compare equal. Safe.
+- **The last enumerated entry being dropped.** `read -r -d ''` silently drops an
+  unterminated tail (probed directly: two entries in, one seen). It is safe here only
+  because `sort -z` always emits a terminating NUL, including when its own input lacks one
+  (probed). Confirmed end to end: an alphabetically LAST `z-refuse.md` beside
+  `a-approve.md` refuses, and a sole `zzz-refuse.md` refuses. Worth knowing before anyone
+  removes the `| sort` stage.
+- **The `-r` check short-circuiting.** It exits on the first unreadable entry instead of
+  batching like the unparseable list. Still a refusal, so fail-closed either way.
 
-## What I checked and found sound
+The gitignored-junk fix from `cd5a985` is intact: a gitignored `.DS_Store` under
+`docs/evals` passes even with `status.showUntrackedFiles=no` (rc=0). `--exclude-standard` is
+what preserves it, and it reads the same exclude sources as `git status`, so the two guards
+cannot disagree about what "ignored" means.
 
-- **Guarantee 3 survives.** Case 50's tracked unparseable record refuses; the tracked
-  symlinked record (test line 472) and the tracked `.txt` record (line 543) are still
-  enumerated, because `git ls-files` lists both, which a `-name '*.md'` filter would not.
-- **Cases 48 to 50 are real, not vacuous.** 48 goes RED on reverting to `find`. 49 goes RED
-  on `-uno` at line 56, so it is genuinely pinning the clean-tree path it claims, within
-  the limit noted in Critical 1. 50 goes RED if the tripwire is dropped. `named_record`
-  uses `PRE_CUTOFF_DATE`, so case 48's `.gitignore` commit does not trip the anchor, which
-  is why the case passes for the right reason rather than by accident.
-- **Mutations the suite does catch:** `find` restored (48 RED), `-uno` (49 RED),
-  a re-added `*.md` pathspec (the `.txt` case RED).
-- **Index-versus-worktree cases all stay refused, ahead of the enumeration:** a tracked
-  record with uncommitted modifications, a staged-but-never-committed record, and a
-  worktree-deleted-but-tracked record are all reported by `git status --porcelain`
-  regardless of untracked configuration, so they refuse at step 2. A tracked path that is
-  absent from disk (skip-worktree, sparse checkout, assume-unchanged) lands in the
-  unparseable list, so it refuses too.
-- **Subdirectory invocation is correct.** `cd "$(git rev-parse --show-toplevel)"` at line
-  47 precedes the enumeration at line 122, and `git ls-files docs/evals` is a cwd-relative
-  pathspec, so it resolves identically. Verified by running the gate from `docs/evals/`.
-- **`docs/evals` is deliberately not gitignored** in this repo (an explicit NOTE at the end
-  of `.gitignore`), so the "records invisible because the whole directory is ignored"
-  failure does not exist here. In a downstream project that ignored `docs/evals/`, the gate
-  would refuse with "no review record", fail-closed.
-- **Submodule or nested repo under `docs/evals`:** `ls-files` does not descend into a
-  gitlink, and the gitlink path itself lands in the unparseable list, so it refuses.
-- **Performance is better,** one `git ls-files` process instead of a filesystem walk.
-- **The documented invariant matches the code** ("EVERY tracked file under `docs/evals/`
-  must be a parseable record"), with one wording defect, see nits.
+## (c) Does the stray check create a new fail-closed annoyance?
+
+**No new annoyance, and one dead message.** For any untracked non-ignored file under
+`docs/evals` the clean-tree check at `:59` fires FIRST, because `--untracked-files=normal`
+on the CLI beats the very config the stray check exists to defeat. I could not construct a
+state in which the by-name message at `:70-73` is reachable: default config prints
+"uncommitted changes present", and so does `status.showUntrackedFiles=no`.
+
+So the class people actually hit (editor temp files: `.code-x.md.swp`, `code-x.md~`, emacs
+`#code-x.md#` and `.#code-x.md`, none of which are in this repo's `.gitignore`) is refused
+exactly as it was before this branch, by step 2, with the same generic message. Verified in
+both config states. Nothing legitimate is newly blocked, because an untracked record is
+supposed to block: a record only counts once committed.
+
+Two cheap follow-ups, both nits:
+1. Move the `:64-75` block ABOVE the `:55-62` block. Then the accurate, actionable message
+   wins for the `docs/evals` case and the generic one covers everything else, the new
+   `docs/eval-framework.md` sentence "refused explicitly, by name" becomes observably true,
+   and each guard gets exactly one observable class (see the Important).
+2. Add `*~`, `*.sw[po]`, `.#*` to `.gitignore`, so an open editor buffer never blocks
+   `/merge`. Pre-existing, not caused by this diff.
+
+## Important (should fix, not blocking)
+
+**`bin/merge-gate.sh:59`, the `--untracked-files=normal` flag is untested, and the belt does
+not cover what it protects.** The redundancy is asymmetric: the stray check only looks at
+`docs/evals`, so deleting the flag reopens precondition 2 ("clean working tree") for the
+whole rest of the tree. Verified: with the flag reverted to plain `git status --porcelain`
+and `status.showUntrackedFiles=no`, an untracked `src-new.go` beside a valid record gives
+**rc=0** (uncommitted code merges), while the suite stays **71/71 green**. Removing the belt
+instead also stays 71/71, but that mutation genuinely loses only redundancy.
+
+So the answer to "one guard plus a test that pins which one" is: keep both guards, and pin
+them on the two classes that separate them.
+```bash
+# 56. Untracked file OUTSIDE docs/evals with showUntrackedFiles=no -> refuse.
+#     Only --untracked-files=normal can catch this; the docs/evals stray check cannot.
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T2" code
+named_record "$d" "code-x.md" "feature/x" "APPROVE"
+commit_at "$d" "$T3" rec
+( cd "$d" && git config status.showUntrackedFiles no && echo new > src-new.go ) >/dev/null 2>&1
+check "refuses untracked work outside docs/evals with showUntrackedFiles=no" 1 "$d"; rm -rf "$d"
+```
+With nit (c)(1) applied (stray check first), cases 51 and 52 then pin the belt by message and
+case 56 pins the flag, so neither guard can be deleted silently. That is the mutation
+discipline `AGENTS.md` and lessons.md 2026-08-03 ask for: a guard never seen failing is false
+confidence.
 
 ## Nitpicks
 
-- `docs/eval-framework.md:87` says an unparseable tracked file "refuses every merge on that
-  branch". The tripwire runs before any branch matching, so it refuses merges from EVERY
-  branch. Say so, it is the stronger and more useful warning.
-- `docs/eval-framework.md:93-95` states the untracked-file consequence unconditionally.
-  After Critical 1 is fixed it becomes true; until then it should not be asserted.
-- `bin/merge-gate.sh:122`, `git ls-files` prints a conflicted path once per stage (verified:
-  three times during a merge conflict), so the unparseable list would repeat it. Cosmetic
-  only, since the clean-tree check refuses a conflicted tree first. `--deduplicate` or
-  `sort -u` if you want it tidy.
-- `bin/merge-gate.sh:97-104`, an index entry that cannot be read on disk is reported as
-  "frontmatter does not parse", which misdiagnoses sparse checkout and skip-worktree. A
-  `[[ -r "$r" ]]` branch with its own message costs two lines. Fail-closed either way.
-- `bin/merge-gate.sh:94-96`, the KEPT IN SYNC marker is the right call and is accurate
-  (the opening-frontmatter test now has four copies here and three in `bin/spec-gate.sh`),
-  but a comment is documentation, not a mechanism, and lessons.md 2026-08-03 is precisely
-  about claims wider than mechanisms. A shared `frontmatter_opens() { awk ... }` helper, or
-  a lint asserting the copies are byte-identical, would enforce what the marker asks for.
-- `bin/merge-gate.sh:122`, the `2>/dev/null` is now dead weight: `git ls-files` on a
-  missing path exits 0 silently. Harmless, but it hides a real git error.
-- The quoted `printf ... | sed 's/^/ /'` fix at line 128 is correct: a path with spaces no
-  longer splits and a `*` no longer globs.
+- `bin/merge-gate.sh:98-99`, the sentence that caused the Critical is still there verbatim,
+  "Nothing is lost: an untracked non-ignored file is already refused by the clean-tree
+  check". It is TRUE now, but it credits only the check whose weakness was the bug, and a
+  future reader who deletes the flag will find it reassuring. Point it at both guards and
+  their line numbers.
+- `bin/merge-gate.sh:113-117`, the `-r` block sits between the TRIPWIRE comment and the awk
+  it describes, so the comment now dangles. Move the block above the comment.
+- The two ordering and hygiene nits in (c).
+
+## Guarantees re-verified at `c4de1b6`
+
+1. **Any non-approving record refuses**, including one with a non-ASCII filename, one that
+   sorts last, and one that is untracked under a config that hides it from `git status`.
+2. **A record describing moved code refuses.** Anchor logic untouched by this diff and
+   exercised incidentally by my fixtures (one probe correctly refused with "code changed
+   after the reviewed commit" when I committed a `.gitignore` after the record).
+3. **A record the gate cannot READ refuses**, now split into two accurate reasons:
+   unreadable (`:113`) and unparseable (`:118`).
+4. **The model_tier floor holds**, untouched, suite-covered.
 
 ## Scores
 
-correctness 0/2 (Critical 1: a reproduced fail-open regression of guarantee 1, with the
-pre-change gate refusing the identical repo; plus Important 2, a valid record turned into a
-permanent block) · security 1/2 (no injection, secret or authz surface, and the tier floor,
-duplicate-key and anchor checks are untouched and still hold; docked because the floor of
-guarantee 1 now rests on client git configuration rather than on the gate itself, counted
-once here rather than twice) · performance 2/2 (one process replaces a filesystem walk) ·
-readability 2/2 (the enumeration comment carries the real history and the change makes the
-code shorter; the false clause inside it is counted under correctness, not again here) ·
-testing 1/2 (48 to 50 are real, mutation-proven and pass for the right reasons, and the
-suite catches the in-code form of Critical 1; but it cannot catch the ambient-config form,
-it inherits the runner's git config, and there is no fixture for an unusual record
-filename) · conventions 1/2 (`install.sh` not re-run, so the shipped fix is absent from the
-path `skills/merge/SKILL.md` names first, a repeat of the parent branch's v1 finding;
-everything else conforms: conventional commit, mutation discipline, no dashes, RED-first
-cases)
+correctness 2/2 (Critical closed and re-verified in four configuration states; the one
+refuse -> judge change is the intended fix and its refusal path is pinned by message; the
+NUL-pipeline and `sort -u` traps checked rather than assumed) · security 2/2 (guarantee 1 no
+longer depends on client git configuration, and precondition 2 was hardened beyond what I
+asked: untracked CODE can no longer hide from the gate either) · performance 2/2 (one
+`ls-files` plus one `--others` walk scoped to `docs/evals`) · readability 2/2 (both guards
+carry a comment that names the hole and why the flag beats the config; two comment-placement
+nits, no defect) · testing 1/2 (cases 51 to 55 are RED-first, real, and 55 asserts on the
+message; but the `--untracked-files=normal` flag is unpinned, and dropping it lets
+uncommitted code through a merge with the suite still green, which I demonstrated) ·
+conventions 2/2 (install synced and md5-verified against the repo, conventional commit that
+names the reviewer's finding honestly, no dashes, RED-first cases, mutation claims
+self-checked before being reported)
 
-**total 7/12** (threshold: >=9, no zero) -> FAIL
+**total 11/12** (threshold: >=9, no zero) -> PASS
 
 ## Ceiling
 
-12/12 is reachable. Critical 1 is one flag plus an eight-line explicit check, Important 2
-is one flag or `-z`, Important 3 is running `./install.sh`, and the two new fixtures are
-copies of case 49 and case 48. Nothing here is structural.
+12/12 needs only the Important: one 7-line fixture (case 56 above), plus the two-line comment
+fix at `:98-99` if you want the file to stop pointing at the wrong guarantor. Nothing
+structural remains on this branch.
 
-## Regression note vs the parent branch (v4, 11/12, `0316b7e`)
+## Regression note vs v1 (7/12 at `cd5a985`)
 
-Worse, 11/12 -> 7/12, and worse for an instructive reason. Both Importants v4 raised are
-genuinely closed: the `.DS_Store` block is gone (case 48 proves it, and reverting to `find`
-proves the test), and the records-only invariant is documented. But v4's recommendation
-carried an assumption in its own text, "step 2 already refuses on untracked non-ignored
-files", and this branch implemented the recommendation together with the assumption without
-testing it. It does not hold under `status.showUntrackedFiles=no`. So the sequence continues
-the pattern the parent record described: each round removes the demonstrated instance and
-inherits the undemonstrated claim attached to it. The lesson from 2026-08-03 applies to a
-reviewer's suggested fix exactly as it applies to a builder's guard: the clause "nothing is
-lost" is a coverage claim, and it needed a mutation before it was written into the code as a
-comment, into `docs/eval-framework.md` as documentation, and into the commit message as a
-conclusion.
+Better, 7 -> 11, and better in the way that matters: the Critical was not patched, it was
+closed twice over, once by making the guarantee independent of client configuration and once
+by making the claim true by construction. The coordinator reproduced the fail-open before
+fixing it, which let me re-verify rather than take it on trust, and it pre-empted the two
+mutation "misses" by checking each guard alone instead of reporting them as coverage. That
+is the pattern the parent branch's four rounds kept missing: a claim in a comment was carried
+forward untested three times, into code, into docs, and into a commit message. This round
+the claim arrived with the mechanism that makes it true. The one thing still asserted rather
+than pinned is the flag itself, which is the same shape one size smaller, and that is why it
+is the only Important left.
+
+## History
+
+- v1 (2026-08-06, `cd5a985`): REQUEST CHANGES, 7/12. One Critical: enumerating tracked files
+  made guarantee 1 depend on `git status` reporting untracked files, so with
+  `status.showUntrackedFiles=no` an untracked REQUEST CHANGES record was invisible to both
+  checks and the merge passed, where the pre-change `find` version refused. Two Importants:
+  `git ls-files` C-quoted non-ASCII paths, so a valid record blocked every merge with a
+  misleading reason; and `./install.sh` had not been re-run, so `/merge` still ran the
+  pre-change gate. Six nits.
+- v2 (2026-08-06, `c4de1b6`): **APPROVE WITH COMMENTS, 11/12.** Critical closed with two
+  independent guards (CLI `--untracked-files=normal` plus an explicit refusal for untracked
+  non-ignored files under `docs/evals`), verified in four configuration states; C-quoting
+  closed with `-z` and `read -r -d ''`, which also removed the newline-in-filename hazard and
+  the conflicted-stage duplication; install synced. Cases 51 to 55 added. One Important left:
+  the flag is unpinned and the belt cannot cover what it protects, so dropping the flag lets
+  uncommitted code through a merge with the suite still green (demonstrated, fixture
+  supplied). The `.DS_Store` fix from v1 is intact under the new checks.
