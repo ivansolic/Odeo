@@ -61,25 +61,23 @@ Then ask, as ONE question with both roles in it:
 >  (wording, instructions, prose), because then building is not transcription.
 >  Continue, or change? (`/model` changes the session model, `/effort` the effort;
 >  or name the build model for this run.)"
+In WITH-ME mode drop the Build line from that question entirely: there is no builder
+agent and no dispatch, so the only lever is `/model` for the session itself.
 
-The user's build choice is passed AT DISPATCH, per run, and is never written into
-`agents/builder.md` or any other file. That is deliberate: `AGENTS.md` bans
-version-pinned model ids in instruction files (lint C11 enforces it on
-`builder.md`) because a version baked into a file goes stale the day a new model
-ships, and this repo has already been burned by exactly that. Per-run dispatch
-gives the user a real choice with no file to go stale.
+The choice goes into the PLAN as a tier word, never into an instruction file
+(`AGENTS.md` Guardrail 3, lint C11).
 The change mechanism is per host (Claude Code: `/model` + `/effort`; other hosts
 use their equivalent from the per-host adapter in AGENTS.md), so the same step
 works everywhere. In for-me mode, write the answer into the plan file as
 `model_plan:` including the effort for each role (`builder_tier:` is the line the
 builder's contract requires); in with-me mode the spoken question is the announcement.
 In with-me mode there IS no builder agent and no dispatch, so do not offer a build model
-there: the only lever is `/model` for the session itself. If judgment would
-run below the STRONGEST model available on this host (resolve the current lineup
-live, never from a cached table) OR below `high` effort, say so in the same breath,
-name the stronger model and how to switch (`/model`), and for architecture-critical
-work (plans, security, reviews) recommend switching up first (question, not a block,
-the choice is the user's).
+there: the only lever is `/model` for the session itself. If judgment would run below the strongest model in the CURRENT OFFICIAL LINEUP
+(resolved live per AGENTS.md, which tells you what EXISTS, not what this account has)
+OR below `high` effort, say so in the same breath, name the stronger model and how to
+switch (`/model`, `/effort`), and for architecture-critical work (plans, security,
+reviews) recommend switching up first. If the user says it is not on their plan, drop
+the point. Question, never a block: the choice is the user's.
 
 **Plan-first is the default in BOTH modes, and in for-me it is enforced by the
 pipeline.** With me: you enter plan mode and approve before building. For me: the
@@ -197,13 +195,17 @@ once so a still editor is not mistaken for a stall. Live watching is with-me (Mo
 4. **Dispatch one `builder` per approved story**, each in its own git worktree +
    branch (built-in isolation; parallel = background agents), **on the model the
    user chose in the model-plan step**, passed at dispatch and recorded in the
-   plan's `model_plan:` as `builder_as_dispatched:`, written by YOU (the orchestrator)
-   AFTER dispatch, verbatim from the parameter you passed. The APPROVED INTENT lives in
-   `builder_tier:` and is a tier word, present before the gate. Neither line is the
-   builder's to write; it cannot know its own model and must not edit its contract.
-   If the dispatch REJECTS the named model, stop and ask; never fall back silently and
-   never record a model the dispatch did not accept. If the user named no model, the
-   builder's declared tier applies. Each builder
+   plan's `builder_tier:` (a tier word, the APPROVED INTENT, written BEFORE the gate,
+   and immutable afterwards). The resolved model NAME goes to `code-reviewer` so it lands
+   in the eval record as `build_model_as_dispatched:`, next to the fields that already
+   carry resolved model names. Do NOT write it back into the plan: `merge-gate.sh`
+   compares every non-evals path against `reviewed_commit:`, so a post-review plan edit
+   refuses the merge and would force a full code re-review for a provenance line, which
+   nobody will pay twice. Eval records are excluded from that comparison by construction,
+   and their author regenerates them. Hand the reviewer the dispatched value the same way
+   you already hand it the commit sha. If the dispatch REJECTS the named model, stop and
+   ask; never fall back silently and never record a model the dispatch did not accept.
+   If the user named no model, the builder's declared tier applies. Each builder
    executes its plan as a contract: success-signal, green baseline, tasks in
    order (dev-rigor style from CLAUDE.md), loop to the signal, stop-and-ask on
    any plan conflict. Then run `code-reviewer` (plus `design-reviewer` if UI) on

@@ -64,6 +64,16 @@ scorer: pm-reviewer
 model: <exact model that judged, as the agent's context reports it>
 model_tier: strong
 effort: high             # the judge's effort level (declared in the agent frontmatter); provenance
+build_model_as_dispatched: <model>  # CODE records only, after a for-me build: the model
+#                         the orchestrator dispatched the BUILDER on, handed to you the
+#                         same way the commit sha is. It lives HERE and not in the plan
+#                         because merge-gate compares every non-evals path against
+#                         reviewed_commit:, so a post-review plan edit would force a full
+#                         code re-review for one provenance line, while this file is
+#                         excluded from that comparison by construction. Named "as
+#                         dispatched", not "as ran": nobody here can verify which model
+#                         the vendor served, so it discloses what was REQUESTED. Omit it
+#                         when you were given no value; never guess one.
 # tier vocabulary: fast | strong | strongest; the gates enforce the floor and
 # read the value only, keep the model_tier line clean like the verdict line.
 # (Records written before this field existed refuse once; regenerate via the reviewer.)

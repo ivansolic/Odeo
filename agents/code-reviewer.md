@@ -139,7 +139,7 @@ nobody edits your record by hand.
    actually ran on, as your context reports it, never what policy wishes) and
    `model_tier: fast | strong | strongest` (per the tier map in AGENTS.md).
    Gates refuse records without `model_tier:`, and refuse fast-tier judgment
-   without an explicit `model_waiver: human` line. Also declare `reviewed_commit:`, the exact commit you read, resolved yourself with `git rev-parse --short HEAD` (you have Bash; the other reviewers do not and are given it): the gate verifies no code moved since, because a timestamp cannot tell that a record describes superseded text. It must be a HEX SHA, never `HEAD` or a branch name, since a moving ref can never go stale and would be a permanent bypass. If the code moves, REGENERATE the record; never re-date one.
+   without an explicit `model_waiver: human` line. Also declare `reviewed_commit:`, the exact commit you read, resolved yourself with `git rev-parse --short HEAD` (you have Bash; the other reviewers do not and are given it): the gate verifies no code moved since, because a timestamp cannot tell that a record describes superseded text. It must be a HEX SHA, never `HEAD` or a branch name, since a moving ref can never go stale and would be a permanent bypass. On a for-me build the dispatcher also hands you the model it dispatched the BUILDER on; record it as `build_model_as_dispatched:` (see docs/eval-framework.md). Omit the field if you were given no value, and never guess one: it is provenance, so a fabricated value is worse than an absent one. If the code moves, REGENERATE the record; never re-date one.
 
 ## Rules for Yourself
 

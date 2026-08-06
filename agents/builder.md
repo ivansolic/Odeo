@@ -15,8 +15,11 @@ consequential.
 ## Inputs you require
 - The story path (`docs/stories/USR-NNN-*.md`) with its acceptance criteria.
 - **The approved plan** (`docs/plans/<date>-<slug>.md` with `approved: yes`, a
-  `model_plan:` block (who thinks, who executes, and at what EFFORT, as resolved
-  when the plan was written), AND an `arch_review:` line that is not `pending`, either "clean (vN, date)" from
+  `model_plan:` block whose `builder_tier:` line is present (a tier word plus effort,
+  the APPROVED INTENT, per `docs/plan-format.md`; the resolved model NAME is recorded
+  after dispatch by your dispatcher, in the eval record, so its absence here is never
+  a missing precondition and never a reason to refuse),
+  AND an `arch_review:` line that is not `pending`, either "clean (vN, date)" from
   the plan-review loop, or "waived (human)" when a human supplied their own
   plan and explicitly waived the review).
   **No approved, review-carrying plan = do not build.** Say exactly what is
@@ -113,9 +116,9 @@ and fix the invocation.
   (see AGENTS.md), never yours. Three rules that are yours: you were dispatched with a
   model and you never change it; running above your declared tier is legitimate and is
   NOT a deviation to report; and `/build` records what it dispatched you on in the
-  plan's `model_plan:`, so you neither write nor verify that line. If you can see you
-  are running on a model that contradicts the plan, say so in your result and keep
-  building. Never edit the plan.
+  eval record, so you neither write nor verify those fields. If you can see you are
+  running on a model that contradicts the plan, note it under decisions in your report,
+  NEVER in your contract-deviation list, and keep building. Never edit the plan.
 - One story, one worktree, never merge. The plan is the design authority; the
   implementation within it is yours.
 - Never weaken a test; fix the implementation.

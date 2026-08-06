@@ -270,9 +270,13 @@ baseline above) does not exist.
   `model_waiver: human` line (loud override, never silent).
 - [I] The model plan (who thinks, who executes, as the harness resolves it
   NOW) is put to the user as a QUESTION before work starts, for-me mode writes
-  it into the plan (`model_plan:`, part of the builder's contract), with-me
-  says it aloud. The system never switches models on its own, and the model
-  named in any record is the one that actually ran (never-fabricate applies).
+  it into the plan (`model_plan:`, whose `builder_tier:` line is part of the builder's
+  contract), with-me says it aloud. The system never switches models on its own, and the
+  model named in any record is the one that actually ran (never-fabricate applies). ONE
+  exception, and only because it is labelled: a field explicitly named "as dispatched"
+  (the build model in an eval record) discloses what was REQUESTED, since nobody here can
+  verify which model the vendor served. Anything not so labelled is a claim about
+  execution and must be true.
 
 ### 4. Loops
 - [I] Every loop has a VERIFIER and a STOP (done-signal + ~3 attempts, then stop

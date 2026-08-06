@@ -27,13 +27,17 @@ model_plan:             # resolved LIVE when the plan is written; the user saw
                         # cannot go stale. Present at approval; the builder's contract
                         # requires THIS line. Raise it above the default when the
                         # output is itself judgment (wording, instructions, prose).
-  builder_as_dispatched: <model>     # written by the ORCHESTRATOR after dispatch,
-                        # verbatim from the parameter it passed. Deliberately named
-                        # "as dispatched", not "as ran": nobody here can verify which
-                        # model the vendor actually served, so the field discloses what
-                        # was requested instead of claiming what executed. The builder
-                        # never writes either line; it cannot know, and it must not edit
-                        # its own approved contract.
+                        # The plan holds INTENT only and is immutable after the gate.
+                        # The resolved model NAME is NOT recorded here: merge-gate
+                        # compares every non-evals path against `reviewed_commit:`, so a
+                        # post-review plan edit refuses the merge and would force a full
+                        # code re-review for one provenance line. It goes in the eval
+                        # record as `build_model_as_dispatched:` instead, which that
+                        # comparison excludes by construction. Named "as dispatched",
+                        # not "as ran": nobody here can verify which model the vendor
+                        # actually served, so it discloses what was requested rather
+                        # than claiming what executed. Prior plans keep the older
+                        # `builder:` child; they are records of what was, never migrated.
 arch_review: pending    # set by the /build pipeline after the plan-review loop:
                         # "clean (vN, YYYY-MM-DD)" or "waived (human)" for
                         # standalone human-supplied plans. The builder requires it.
