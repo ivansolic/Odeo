@@ -53,8 +53,24 @@ if [[ "$branch" == "main" || "$branch" == "master" ]]; then
 fi
 
 # 2. Clean working tree
-if [[ -n "$(git status --porcelain)" ]]; then
+# --untracked-files=normal on the CLI beats a repo/global `status.showUntrackedFiles=no`.
+# Without it a user config could hide untracked work from this check, and (once enumeration
+# became tracked-only) an untracked REQUEST CHANGES record went completely invisible.
+if [[ -n "$(git status --porcelain --untracked-files=normal)" ]]; then
   echo "merge-gate: REFUSED, uncommitted changes present. Commit or stash first." >&2
+  exit 1
+fi
+
+# Belt for the same hole, so the claim "an untracked record is caught" is true by
+# construction rather than by relying on the check above: any untracked, non-ignored file
+# under docs/evals is a refusal. Ignored junk (.DS_Store, Thumbs.db) is excluded by
+# --exclude-standard, which is what keeps this from re-breaking macOS and Windows.
+stray="$(git ls-files --others --exclude-standard docs/evals 2>/dev/null)"
+if [[ -n "$stray" ]]; then
+  echo "merge-gate: REFUSED, untracked file(s) under docs/evals:" >&2
+  printf '%s\n' "$stray" | sed 's/^/  /' >&2
+  echo "A review record must be COMMITTED to count, and an uncommitted one could hide a" >&2
+  echo "refusal from the gate. Commit it, or remove it if it is not a record." >&2
   exit 1
 fi
 
@@ -81,7 +97,7 @@ unparseable=""
 #     folder a human opens. Tracked-only excludes junk by construction while keeping
 #     symlinks and non-.md records, which a name filter would not. Nothing is lost: an
 #     untracked non-ignored file is already refused by the clean-tree check.
-while IFS= read -r r; do
+while IFS= read -r -d '' r; do
   [[ -n "$r" ]] || continue
 
   # TRIPWIRE (fail-closed), on PARSEABILITY, not on matching a branch line. Enrolling by
@@ -94,6 +110,11 @@ while IFS= read -r r; do
   # KEPT IN SYNC with frontmatter_field above (and bin/spec-gate.sh): both must agree
   # on what "parseable" means, or the tripwire would skip a file the reader can read, or
   # refuse one it cannot, and guarantee 3 would silently reopen.
+  if [[ ! -r "$r" ]]; then
+    echo "merge-gate: REFUSED, cannot read $r (sparse checkout, skip-worktree, permissions?)." >&2
+    echo "The gate cannot judge a record it cannot open; make it readable or untrack it." >&2
+    exit 1
+  fi
   if ! awk '
     NR==1 { if ($0 !~ /^---[[:space:]]*$/) exit 1; next }
     /^---[[:space:]]*$/ { found=1; exit 0 }
@@ -119,7 +140,7 @@ while IFS= read -r r; do
   fi
 
   [[ "$(frontmatter_field "$r" "branch")" == "$branch_lc" ]] && records="${records}${r}"$'\n'
-done < <(git ls-files docs/evals 2>/dev/null | sort)
+done < <(git ls-files -z docs/evals | LC_ALL=C sort -z -u)
 records="${records%$'\n'}"
 unparseable="${unparseable%$'\n'}"
 

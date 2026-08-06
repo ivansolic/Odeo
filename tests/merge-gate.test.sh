@@ -586,4 +586,61 @@ named_record "$d" "a-approve.md" "feature/x" "APPROVE"
 commit_at "$d" "$T3" recs
 check "still refuses a TRACKED unparseable record" 1 "$d"; rm -rf "$d"
 
+# --- an untracked record must never be invisible, whatever git is configured to report ---
+# Enumerating tracked files was justified by "an untracked file is refused by the clean-tree
+# check". That holds only under git's DEFAULT untracked reporting. With
+# status.showUntrackedFiles=no the clean-tree check goes blind too, and an untracked
+# REQUEST CHANGES record became completely invisible: a fail-OPEN regression against the
+# previous `find` version, which refused it.
+
+# 51. Untracked refusing record + status.showUntrackedFiles=no -> still refuse.
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T2" code
+named_record "$d" "code-x.md" "feature/x" "APPROVE"
+commit_at "$d" "$T3" rec
+( cd "$d" && git config status.showUntrackedFiles no && mkdir -p docs/evals \
+  && printf -- '---\nbranch: feature/x\ndate: 2026-07-21\nverdict: REQUEST CHANGES\nmodel_tier: strong\n---\nx\n' > docs/evals/design-x.md ) >/dev/null 2>&1
+check "refuses an untracked record even with showUntrackedFiles=no" 1 "$d"; rm -rf "$d"
+
+# 52. Same, but the untracked stray is unparseable junk rather than a record: still refuse,
+#     so the reason cannot depend on being able to read it.
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T2" code
+named_record "$d" "code-x.md" "feature/x" "APPROVE"
+commit_at "$d" "$T3" rec
+( cd "$d" && git config status.showUntrackedFiles no && printf 'not a record\n' > docs/evals/stray.md ) >/dev/null 2>&1
+check "refuses untracked junk even with showUntrackedFiles=no" 1 "$d"; rm -rf "$d"
+
+# 53. A GITIGNORED file stays ignored even with the stray check in place (case 48 must not
+#     regress into refusing .DS_Store again).
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T2" code
+named_record "$d" "r.md" "feature/x" "APPROVE"
+( cd "$d" && printf '.DS_Store\n' > .gitignore && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T3" rec
+( cd "$d" && git config status.showUntrackedFiles no && printf 'junk' > docs/evals/.DS_Store ) >/dev/null 2>&1
+check "still ignores gitignored junk with showUntrackedFiles=no" 0 "$d"; rm -rf "$d"
+
+# 54. A record with a non-ASCII filename must enumerate. `git ls-files` C-quotes such paths
+#     when core.quotePath is on (the default), which made the gate refuse every merge.
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T2" code
+( cd "$d" && mkdir -p docs/evals && printf -- '---\nbranch: feature/x\ndate: 2026-07-21\nverdict: APPROVE\nmodel_tier: strong\n---\nx\n' > "docs/evals/code-café.md" && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T3" rec
+check "enumerates a record with a non-ASCII filename" 0 "$d"; rm -rf "$d"
+
+# 55. ...and a refusing one with a non-ASCII name must still refuse on its VERDICT, not be
+#     mistaken for an unparseable file.
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T2" code
+named_record "$d" "a-ok.md" "feature/x" "APPROVE"
+( cd "$d" && mkdir -p docs/evals && printf -- '---\nbranch: feature/x\ndate: 2026-07-21\nverdict: REQUEST CHANGES\nmodel_tier: strong\n---\nx\n' > "docs/evals/code-résumé.md" && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T3" recs
+out="$( cd "$d" && bash "$GATE" 2>&1 )"
+case "$out" in
+  *"did not approve"*) echo "ok   - non-ASCII record refuses on its verdict"; pass=$((pass+1)) ;;
+  *) echo "FAIL - non-ASCII record refuses on its verdict (got: $(printf '%s' "$out" | grep -m1 REFUSED))"; fail=$((fail+1)) ;;
+esac
+rm -rf "$d"
+
 echo ""; echo "passed: $pass, failed: $fail"; [[ $fail -eq 0 ]]
