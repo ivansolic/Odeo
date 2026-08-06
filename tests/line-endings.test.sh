@@ -101,16 +101,32 @@ fi
 # intent-to-add entry here, so an interrupted run left the tree dirty (which then makes
 # merge-gate refuse and the next run blame the canary), a read-only worktree or a stale
 # index.lock produced a spurious RED, and a tracked canary path would have been deleted.
-scratch="$(mktemp -d)"
-trap 'rm -rf "$scratch"' EXIT
-git -C "$scratch" init -q . >/dev/null 2>&1
-cp .gitattributes "$scratch/.gitattributes" 2>/dev/null || true
-printf 'x\r\ny\r\n' > "$scratch/canary.sh"
-git -C "$scratch" add -A >/dev/null 2>&1
-if [ -n "$(crlf_offenders "$scratch")" ]; then
-  ok "detector fires on a planted CRLF file (via the same code path as check 2)"
+# A FAILED mktemp must refuse, never fall through. `git -C ""` is a documented no-op, so
+# an empty $scratch does not disable the canary, it AIMS IT AT THIS REPOSITORY: `add -A`
+# staged the real tree, the detector then found the file it had just staged, and called
+# that proof. ALL PASS with a CRLF file present. The trap is armed only inside the else,
+# so an empty path can never reach `rm -rf`.
+scratch="$(mktemp -d 2>/dev/null)" || scratch=""
+if [ -z "$scratch" ] || [ ! -d "$scratch" ]; then
+  bad "could not create a scratch dir, so the detector could not be proven"
 else
-  bad "detector did NOT fire on a planted CRLF file, so check 2 proves nothing"
+  trap 'rm -rf "$scratch"' EXIT
+  git -C "$scratch" init -q . >/dev/null 2>&1
+  # The pin is WRITTEN, not copied: the lone-CR arm needs `attr/text` to resolve inside the
+  # scratch repo, so a silently failing `cp` would turn into a spurious RED.
+  printf '*.sh text eol=lf\n' > "$scratch/.gitattributes"
+  # One file per DETECTOR ARM, because the canary previously proved only the w/crlf arm:
+  # deleting the lone-CR arm left the run green, the same shape as the defect this canary
+  # exists to catch, one level down.
+  printf 'x\r\ny\r\n' > "$scratch/canary-crlf.sh"   # w/crlf
+  printf 'a\rb\rc\n'  > "$scratch/canary-cr.sh"     # w/-text + attr/text (lone CR)
+  git -C "$scratch" add -A >/dev/null 2>&1
+  n_fired="$(crlf_offenders "$scratch" | wc -l | tr -d ' ')"
+  if [ "${n_fired:-0}" -eq 2 ]; then
+    ok "both detector arms fire on planted files (same code path as check 2)"
+  else
+    bad "detector fired on ${n_fired:-0} of 2 planted files, so check 2 proves less than it claims"
+  fi
 fi
 
 echo
