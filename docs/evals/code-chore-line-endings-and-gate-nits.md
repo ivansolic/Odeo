@@ -2,144 +2,190 @@
 artifact: .gitattributes + tests/line-endings.test.sh + merge-gate reorder (cases 56, 57)
 type: code
 branch: chore/line-endings-and-gate-nits
-reviewed_commit: d1aa566
-artifact_version: 1
+reviewed_commit: 2715c2c
+artifact_version: 2
 date: 2026-08-06
 scorer: code-reviewer
 model: claude-opus-5[1m]
 model_tier: strongest
 effort: high
-scores: { correctness: 0, security: 2, performance: 2, readability: 1, testing: 0, conventions: 1 }
-total: 6/12
-verdict: REQUEST CHANGES
-previous_total: n/a
+scores: { correctness: 1, security: 2, performance: 2, readability: 2, testing: 1, conventions: 2 }
+total: 10/12
+verdict: APPROVE WITH COMMENTS
+previous_total: 6/12
 ---
 
 ## Artifact
 
-Commit `d1aa566` on `chore/line-endings-and-gate-nits`, two bundled parts:
+Branch `chore/line-endings-and-gate-nits` at `2715c2c` (v1 reviewed at `d1aa566`):
 
-1. Line endings: new `.gitattributes` (`* text=auto` plus `eol=lf` pins for
-   `*.sh *.py *.md *.txt *.json *.yml LICENSE`), new `tests/line-endings.test.sh`,
-   `.gitattributes` classified PUBLIC in `docs/public-paths.txt`, platform-support and
-   recovery prose in `README.md` and `INSTALL.md`.
-2. Gate nits: `tests/merge-gate.test.sh` cases 56 and 57, plus a reorder in
-   `bin/merge-gate.sh` moving the `docs/evals` stray check above the generic clean-tree
+1. Line endings: `.gitattributes` (`* text=auto` plus `eol=lf` pins for
+   `*.sh *.py *.md *.txt *.json *.yml *.yaml LICENSE .gitignore .gitattributes`),
+   `tests/line-endings.test.sh` (rewritten in v2 to ask git instead of grep),
+   `.gitattributes` classified PUBLIC, platform and recovery prose in `README.md` and
+   `INSTALL.md`.
+2. Gate nits: `tests/merge-gate.test.sh` cases 56 and 57, plus the reorder in
+   `bin/merge-gate.sh` putting the `docs/evals` stray check above the clean-tree
    precondition.
 
-No prior record exists for this branch (lineage: the previous record in this line is
-`docs/evals/code-fix-gate-ignore-untracked-evals.md`, v2, APPROVE WITH COMMENTS, 11/12,
-for a different branch), so `previous_total` is n/a and there is no regression comparison.
+## History
 
-## What I verified myself (measured, not read)
+- v1 (`d1aa566`): REQUEST CHANGES, 6/12, three Criticals (a recovery command that did not
+  recover, and a guard that reported ALL PASS with a CRLF file present in two ways).
+- v2 (`2715c2c`): APPROVE WITH COMMENTS, 10/12. All three Criticals closed and verified by
+  re-measurement, not by reading the fix. Regression note: BETTER (6 -> 10), correctness
+  0 -> 1, testing 0 -> 1, readability 1 -> 2 (see the calibration note under Scores),
+  conventions 1 -> 2.
+- Working-tree note (not part of `2715c2c`): while this review ran, an uncommitted edit
+  appeared in `tests/line-endings.test.sh` applying nitpick 5 (split on TAB so a path with
+  a space is named in full). I verified it: baseline green, `my script.sh` now reported by
+  its full name, no regression on an ordinary planted CRLF file. It is NOT covered by this
+  record. Committing it moves a non-evals file past `2715c2c`, so merge-gate will refuse
+  until this record is regenerated; reverting it leaves this record valid as written.
 
-- `git rev-parse --short HEAD` = `d1aa566`, matches the record.
-- Baseline: `tests/line-endings.test.sh` ALL PASS; `tests/merge-gate.test.sh` 73/73.
-- **Reorder is behaviour-preserving.** Restoring the original order (clean-tree first,
-  stray second) in an isolated clone leaves 72/73 with only case 57 RED, and deleting the
-  stray block entirely also leaves 72/73 with only case 57 RED (the refusal survives with
-  the generic message). Both blocks are read-only git queries; `git ls-files --others
-  --exclude-standard docs/evals` on a repo with no `docs/evals` exits 0 silently, so the
-  earlier position introduces no new failure path. The accept/reject SET is unchanged; only
-  the message changes. No regression.
-- **Case 56 pins the flag.** Rewriting `git status --porcelain --untracked-files=normal`
-  to `git status --porcelain` makes case 56 RED with `rc=0`: without the flag an untracked
-  `src-new.go` merges. The asymmetry claim holds.
-- **Case 57 pins the reorder** (RED under the old order, on the message, not the code).
-- **The new guard fails OPEN, twice** (both reproduced with a CRLF script present):
-  a grep without `-U` -> `ALL PASS`, exit 0; a tree where `git ls-files` yields nothing
-  -> `ALL PASS`, exit 0.
-- **The INSTALL recovery command is a no-op** on the state it claims to fix (simulated
-  Windows clone: `core.autocrlf=true`, CRLF worktree, LF index, clean status).
-  `git add --renormalize . && git checkout .` -> "Updated 0 paths from the index", CR
-  still present. `git rm --cached -r . && git reset --hard` -> CR gone.
-- **The pin assertions cover 4 of 7 pins.** Deleting `*.json`, `*.yml`, `LICENSE` and
-  `* text=auto` from `.gitattributes` leaves the test ALL PASS.
-- `.gitattributes` classification: present in `docs/public-paths.txt`, publish-guard does
-  not report it unclassified. `tests/` is public, so the INSTALL reference to
-  `tests/line-endings.test.sh` resolves in the snapshot.
-- Tracked-type census: only `.md .sh .json .txt .yml .py`, `LICENSE`, `.gitignore`,
-  `.gitattributes` and two symlinks (`.claude/agents`, `.claude/skills`). All 25
-  exec-bit files are `.sh`. No binaries. So the pin list has no LIVE gap.
-- Measured, so NOT findings: git tolerates CR in both `.gitattributes` (`check-attr` still
-  resolves `eol: lf`) and `.gitignore` (patterns still match), so the unpinned pair is not
-  a bootstrap self-defeat; the ugrep shell function on the interactive PATH is not exported
-  to child shells, and ugrep 7.5.0 handles `-qU $'\r'` identically anyway; `head -1 | grep
-  -q` does not lose to `pipefail` even on a 400 KB first line.
+## Criticals: closed, each re-measured
 
-## Findings
+- **C1 `INSTALL.md:16-26`, CLOSED.** Rebuilt my own fixture (origin with LF blobs, clone
+  with `core.autocrlf=true`, then pull `.gitattributes`) and ran the NEW command end to
+  end: before, `i/lf w/crlf` and the script dies with `set: pipefail: invalid option name`
+  plus `syntax error near unexpected token`; after `git rm --cached -r . && git reset
+  --hard`, `i/lf w/lf`, the script prints `RAN`, and `git status` is clean. The
+  discards-uncommitted-work warning and the "renormalize does not help here, the blobs are
+  already LF" explanation are both present and both accurate. `tests/line-endings.test.sh:71-75`
+  now prints the same corrected remediation, so the two cannot drift apart silently.
+- **C2 `tests/line-endings.test.sh:66-68`, CLOSED.** grep is gone from the detection path
+  (`git ls-files --eol`). With a tracked CRLF script planted AND a fake grep on PATH that
+  exits 2 on `-U`, the run is RED (`FAIL: CRLF/mixed endings in: tests/planted.test.sh`,
+  exit 1). The v1 false green is unreachable.
+- **C3 `tests/line-endings.test.sh:22-33`, CLOSED.** A non-git tree with a CRLF script
+  present now refuses immediately (`not inside a git work tree, so nothing could be
+  checked`, exit 1), and a 3-file git repo trips the floor (`only 3 tracked files
+  visible`) while still naming the CRLF file. Both RED.
+- **Pin coverage (v1 Important), CLOSED.** Re-ran every mutation: deleting `*.json`,
+  `*.yml`, `*.yaml`, `LICENSE` or `* text=auto` is RED, each with an accurate message
+  (`probe.json(unspecified)`, `an unpinned type resolves text=unspecified`). `check-attr`
+  is the right mechanism: behavioural, reformat-proof, nested-`.gitattributes`-proof.
+- **`LC_ALL=C` (v1 Important), CLOSED.** Exported once at the top, so it covers the git,
+  awk and sed calls rather than a `head` that no longer exists.
+- **Windows wording (v1 Important), CLOSED.** `README.md:21-23` and `INSTALL.md:6-13` now
+  say macOS and Linux are what this is developed and tested on, and that Windows is
+  expected to work under WSL or Git Bash but is not verified end to end. That matches the
+  evidence, which only ever showed CRLF breaking bash on any platform.
 
-### Critical
-1. `INSTALL.md:14-18`, the documented recovery is a proven no-op for the described state.
-   Replace with the measured-working sequence and the destructive-command warning:
-   "commit or stash first, then `git rm --cached -r . && git reset --hard` (this discards
-   uncommitted changes), or simply clone again."
-2. `tests/line-endings.test.sh:31,47`, `grep -qU` fails open: an erroring grep is
-   indistinguishable from a clean file, and check 2 hides the error with `2>/dev/null`.
-   Self-test the detector against a CRLF canary and `bad` if it does not fire, or drop grep
-   for `git ls-files --eol` (`w/crlf` / `w/mixed`).
-3. `tests/line-endings.test.sh:26-34,42-49`, no assertion that anything was scanned; zero
-   files reads as clean. Count scanned files and `bad` below a floor.
+## Findings at 2715c2c
 
 ### Important
-4. `tests/line-endings.test.sh:18-25`, pin assertions cover 4 of 7 pins and skip
-   `* text=auto`; a partial revert stays GREEN, so "asserts the pins exist" is wider than
-   the mechanism (repeat of lessons.md 2026-08-03). Assert behaviour via
-   `git check-attr eol -- x.sh x.py x.md x.txt x.json x.yml LICENSE` (verified: each
-   resolves `lf`), which also covers formatting variants and nested `.gitattributes`.
-5. `tests/line-endings.test.sh:47`, `LC_ALL=C` is applied to `head`, not to the `grep` that
-   does the byte test, so the stated locale independence is not achieved in check 3.
-6. `README.md:21-22`, `INSTALL.md:6-11`, Windows support is asserted flatly; the commit
-   measures only the CRLF failure modes, which reproduce on any bash. Either run the
-   install on Git Bash and WSL, or label the claim as expected-not-yet-verified.
+1. `tests/line-endings.test.sh:80-88`, **the canary does not cover check 2, which is the
+   one thing it was added for.** It re-implements the detection inline with its own awk
+   instead of calling check 2's code path. Measured: with a tracked CRLF file present, I
+   replaced check 2's awk program with `{ }` and the run printed
+   `ok: detector fires on a planted CRLF file` and `ALL PASS`, exit 0. So the guard CAN
+   still report green with a CRLF file present, via a one-line edit to the very check the
+   canary claims to prove. This is the third condition, and it is why the commit body's
+   "check 2 would otherwise pass silently if the reporting ever changed" is still wider
+   than the mechanism. Fix, verified: one shared detector, both callers using it.
+   ```bash
+   crlf_offenders() { git -C "${1:-.}" ls-files --eol | awk '$2 ~ /^w\/(crlf|mixed)$/ { print $NF }'; }
+   offenders="$(crlf_offenders)"                       # check 2
+   [ -n "$(crlf_offenders "$scratch")" ] || bad "..."  # canary
+   ```
+   With that, the same awk mutation goes RED through the canary
+   (`FAIL: detector did NOT fire on a planted CRLF file`).
+2. `tests/line-endings.test.sh:81-89`, **the canary mutates the real repo's index and
+   worktree**, with four measured consequences: (a) there is no `trap`, so a run
+   interrupted inside the canary window leaves an `intent-to-add` entry behind, which makes
+   `git status` dirty and `bin/merge-gate.sh` REFUSE with `uncommitted changes present`,
+   and the next run then mis-blames the canary itself
+   (`FAIL: CRLF/mixed endings in: .line-endings-canary.tmp`); (b) a read-only worktree root
+   gives a spurious RED (`Permission denied`, then `detector did NOT fire`) even though the
+   repo's line endings are fine; (c) a stale `.git/index.lock` gives the same spurious RED,
+   because the `git add` failure is swallowed by `>/dev/null 2>&1`; (d) if that path were
+   ever tracked, the run DELETES the worktree file and leaves a staged deletion (measured:
+   `D .line-endings-canary.tmp`, file gone). One fix removes all four: plant the canary in
+   a scratch repo, which touches nothing.
+   ```bash
+   scratch="$(mktemp -d)"; trap 'rm -rf "$scratch"' EXIT
+   git -C "$scratch" init -q .; printf 'x\r\n' > "$scratch/c.txt"; git -C "$scratch" add -A
+   ```
+   Verified to report `w/crlf` both with default config and with `core.autocrlf=true` (the
+   Windows user's own setting), and the dirty-tree case is clean today: a run against a
+   tree with staged and unstaged edits left `git status --porcelain` byte-identical.
+3. `tests/line-endings.test.sh:66-68`, **lone-CR content is now a blind spot, a narrowing
+   versus the grep it replaced.** git classifies a file containing CRs without LFs as
+   binary, so `--eol` reports `w/-text` and the awk never sees it. Measured in a scratch
+   repo carrying THIS repo's `.gitattributes`: `cronly.sh` (`a\rb\rc\n`) and `midcr.sh`
+   (one stray CR mid-line) both report `i/-text w/-text attr/text eol=lf` and are NOT
+   flagged, while `grep -U` flagged both. Neither arises from `core.autocrlf` (which
+   produces CRLF), so this is not a Critical, but a CR-only `.sh` does not run either. Fix,
+   verified to flag both with no false positive on an unpinned binary (a real PNG resolves
+   `attr/text=auto`, not `attr/text`):
+   ```awk
+   $2 ~ /^w\/(crlf|mixed)$/ { print $NF }
+   $3 == "attr/text" && $2 == "w/-text" { print $NF }   # pinned as text, yet binary = CR or NUL
+   ```
 
 ### Nitpicks
-7. `bin/merge-gate.sh:56-58`, the reorder mangled the comment (142-char line, two sentences
-   jammed together) and left `# 2. Clean working tree` orphaned above the stray check while
-   the actual clean-tree check has no header. The deleted "belt for the same hole" rationale
-   is worth keeping.
-8. `INSTALL.md:14`, "cloned BEFORE 2026-08-06" is meaningless to a public reader; key the
-   advice to the symptom.
-9. `.gitattributes:14-21`, add `*.yaml`, `.gitignore`, `.gitattributes` for completeness and
-   one line stating that `* text=auto` auto-detects binaries so a future binary needs an
-   explicit `-text` line.
-10. `tests/merge-gate.test.sh:652`, case 56 asserts exit code only; assert the message too.
-11. `bin/merge-gate.sh:59-65`, with both conditions present the stray message wins, so a
-    user with a dirty tree needs two round trips; mention that other uncommitted changes
-    may remain.
-12. Two unrelated changes in one commit (line endings, gate nits); bundling was agreed, so
-    noted only for the record.
+4. `tests/line-endings.test.sh:38`, the new `.gitignore` and `.gitattributes` pins are
+   unasserted: deleting the `.gitignore` pin leaves the suite ALL PASS. Both are real path
+   names, so adding them to the probe list costs one word each. Cosmetic only, because I
+   measured at v1 that git tolerates CR in both (`check-attr` still resolves `eol: lf`
+   from a CRLF `.gitattributes`, and a CRLF `.gitignore` still matches).
+5. `tests/line-endings.test.sh:67`, `$NF` truncates a path containing spaces: I planted
+   `spaced name.txt` and it was reported as `FAIL: CRLF/mixed endings in: name.txt`. It is
+   still caught, just misnamed, and no tracked path has a space today. `--eol -z` plus a
+   cut on the tab would fix the name.
+6. Declined nits, and my position: neither matters. Leaving `bin/merge-gate.sh` untouched
+   is the better call now that its behaviour is cleared, so the 142-char comment and the
+   orphaned `# 2. Clean working tree` header can wait for the next commit that edits the
+   file for a real reason. Case 56 asserting the exit code only is acceptable because I
+   proved by mutation that it pins the flag: rewriting it to bare `git status --porcelain`
+   makes it RED with `rc=0`.
 
-### Mutation the suite misses
-Deleting `*.json`, `*.yml`, `LICENSE` and `* text=auto` from `.gitattributes`: fully GREEN.
-Finding 4 closes it.
+## Carried forward from v1 (still true, unchanged code)
+
+The reorder remains behaviour-preserving: restoring the original order leaves 72/73 with
+only case 57 RED, deleting the stray block entirely also leaves 72/73 with only case 57
+RED, both blocks are read-only git queries, and `git ls-files --others --exclude-standard
+docs/evals` exits 0 silently when the directory is absent. Accept/reject set unchanged,
+message only. Case 57 pins the reorder on the message, which is what makes the
+eval-framework sentence "refused explicitly, by name" observably true.
 
 ## Scores
 
-correctness 0/2 (the gate reorder is provably equivalent and cases 56/57 pin what they
-claim; the 0 is entirely the shipped recovery command that does not recover, plus the
-misplaced `LC_ALL=C`) - security 2/2 (read-only git queries, no injection surface, no
-secrets, `.gitattributes` correctly classified PUBLIC and reaches the snapshot) -
-performance 2/2 (two extra read-only git calls at gate start; one pass over ~200 tracked
-files) - readability 1/2 (mangled comment and orphaned section header from the reorder) -
-testing 0/2 (the new guard reports ALL PASS with a CRLF script present under two
-reproduced conditions, and three of seven pins plus `text=auto` are unasserted) -
-conventions 1/2 (repeats the lessons.md 2026-08-03 claim-wider-than-mechanism pattern and
-the merge-gate's own documented "whichever grep is on PATH" lesson; unverified platform
-claim) -> total 6/12 (threshold: >=9, no zero) -> REQUEST CHANGES
+correctness 1/2 (recovery command verified end to end, reorder proven equivalent,
+`LC_ALL=C` correct; the point is held by the canary's side effects on the real index and
+worktree, which can leave the repo in a state that blocks merge-gate and can fail
+spuriously in three environments) - security 2/2 (read-only git queries, no injection
+surface, no secrets; the canary writes a predictable temp name in the repo root, no
+privilege or disclosure issue; `.gitattributes` correctly PUBLIC and reaching the
+snapshot) - performance 2/2 (one `ls-files` pass over 206 files plus nine `check-attr`
+calls) - readability 2/2 (the rewrite is clearer than what it replaced, checks are
+numbered and the comments state what is proven; calibration note: v1 scored this 1 on the
+strength of a NITPICK, which was inconsistent with my own rubric, so the move to 2 is
+partly a correction of my own scoring, not only the author's work) - testing 1/2 (the
+canary does not cover the check it exists for, lone-CR is a blind spot, two pins
+unasserted) - conventions 2/2 (claims now match mechanisms and every one was
+mutation-proven; the commit body records the author's own broken fixture and broken probe
+rather than hiding them, which is exactly the lessons.md 2026-08-03 rule being followed)
+-> total 10/12 (threshold: >=9, no zero) -> APPROVE WITH COMMENTS
 
 ## Ceiling
 
-12/12 is reachable. Nothing here structurally caps a criterion: the change has a real
-security surface (publish classification, gate refusal logic) and it scored 2, and the
-failing dimensions fail on defects, not on absent scope.
+12/12 is reachable. Nothing structurally caps a criterion here: the change has a real
+security surface (publish classification, gate refusal logic) and scored full marks, and
+the two remaining points are held by concrete defects with proven one-line fixes, not by
+absent scope.
 
 ## What is good
 
-The root-cause instinct is right: a macOS-only `.DS_Store` fix generalized into a
-platform-general cause, and the failure was measured (`set: pipefail: invalid option name`)
-rather than assumed. `.gitattributes` carries its own reason so it cannot be deleted as
-noise. The reorder is the smallest edit that makes the eval-framework sentence "refused
-explicitly, by name" observably true, and case 57 pins it on the message rather than the
-exit code. Case 56 is genuinely load-bearing: the asymmetry argument is correct and the
-mutation confirms an untracked source file would otherwise have merged.
+The fix went at the root rather than the symptom: instead of hardening `grep -U`, the
+detector now asks git, which removes the portability question entirely and makes both
+assertions behavioural, so a reformatted or nested `.gitattributes` cannot fake a pass.
+`check-attr` probing every type is a strictly better mechanism than matching the file's
+text, and giving `* text=auto` its own assertion is a subtle catch: the explicit pins
+resolve without it, so nothing else would have noticed it disappear. The scanned-file
+floor and the not-a-git-worktree refusal turn "I saw nothing" into a refusal instead of a
+pass, which is the correct direction for a guard a user is told to trust as a diagnostic.
+Two reported self-caught errors (a fixture that had `.gitattributes` already present, and a
+probe that read `$?` after the wrong command) are worth more than a clean report would
+have been.

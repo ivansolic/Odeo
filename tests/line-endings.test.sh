@@ -64,7 +64,27 @@ fi
 
 # 2) No tracked file currently has CRLF (or mixed) endings in the WORKTREE, which is what
 #    actually runs. `w/` is the worktree column; `i/` is the index.
-offenders="$(git ls-files --eol 2>/dev/null | awk '$2 ~ /^w\/(crlf|mixed)$/ { print $NF }')"
+# ONE detector, called by check 2 and by the canary below. The canary previously
+# re-implemented detection inline, so replacing THIS awk with `{ }` still printed
+# "detector fires" and ALL PASS with a CRLF file present: the canary did not guard the
+# check it exists to guard.
+#
+# Two things it must catch:
+#   w/crlf, w/mixed  -> the core.autocrlf case;
+#   w/-text with attr/text -> a file git calls BINARY because it holds lone CRs. A CR-only
+#     script does not run either, and `git ls-files --eol` alone would miss it, which made
+#     the git-based detector NARROWER than the `grep -U` it replaced. attr/text (not
+#     text=auto) keeps a real binary, which resolves attr/text=auto, from false-positiving.
+#
+# Split on TAB, because `--eol` separates the attribute column from the path with one, and
+# `$NF` on whitespace truncated any path containing a space ("my script.sh" -> "script.sh").
+crlf_offenders() { # crlf_offenders [repo-dir]
+  git -C "${1:-.}" ls-files --eol 2>/dev/null | awk -F'\t' '
+    { split($1, c, /[[:space:]]+/)
+      if (c[2] == "w/crlf" || c[2] == "w/mixed") { print $NF; next }
+      if (c[2] == "w/-text" && c[3] == "attr/text") { print $NF } }'
+}
+offenders="$(crlf_offenders)"
 if [ -z "$offenders" ]; then
   ok "no tracked file has CRLF or mixed endings in the worktree"
 else
@@ -77,16 +97,21 @@ fi
 
 # 3) The canary: prove the detector can FIRE. A guard never observed failing is worth
 #    nothing, and check 2 would otherwise pass silently if the reporting ever changed.
-canary=".line-endings-canary.tmp"
-printf 'x\r\n' > "$canary"
-git add --intent-to-add "$canary" >/dev/null 2>&1
-if git ls-files --eol "$canary" 2>/dev/null | awk '$2 ~ /^w\/(crlf|mixed)$/ { found=1 } END { exit !found }'; then
-  ok "detector fires on a planted CRLF file"
+# Built in a THROWAWAY repo, never in this one. The earlier version added an
+# intent-to-add entry here, so an interrupted run left the tree dirty (which then makes
+# merge-gate refuse and the next run blame the canary), a read-only worktree or a stale
+# index.lock produced a spurious RED, and a tracked canary path would have been deleted.
+scratch="$(mktemp -d)"
+trap 'rm -rf "$scratch"' EXIT
+git -C "$scratch" init -q . >/dev/null 2>&1
+cp .gitattributes "$scratch/.gitattributes" 2>/dev/null || true
+printf 'x\r\ny\r\n' > "$scratch/canary.sh"
+git -C "$scratch" add -A >/dev/null 2>&1
+if [ -n "$(crlf_offenders "$scratch")" ]; then
+  ok "detector fires on a planted CRLF file (via the same code path as check 2)"
 else
   bad "detector did NOT fire on a planted CRLF file, so check 2 proves nothing"
 fi
-git rm -q --cached "$canary" >/dev/null 2>&1
-rm -f "$canary"
 
 echo
 if [ "$fail" = 0 ]; then echo "ALL PASS"; else echo "SOME FAILED"; fi
