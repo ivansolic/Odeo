@@ -49,9 +49,14 @@ rules are also embedded in their bodies so they hold even when this file is abse
   available, say so before running judgment and name the stronger model + how to
   switch (`/model`), especially for architecture-critical work; do not silently
   run judgment below the strongest available.
-- Execution (the builder) is pinned to the `sonnet` TIER, the harness resolves
-  it to the newest Sonnet; it executes an approved, independently reviewed
-  plan, so strong models guard both its input and its output.
+- Execution (the builder) DEFAULTS to the `sonnet` TIER, the harness resolves it to
+  the newest Sonnet; it executes an approved, independently reviewed plan, so strong
+  models guard both its input and its output. The default is rebuttable, not a pin:
+  the human may raise the build model per run at `/build`'s model-plan step, recorded
+  in the plan's `model_plan:` so the choice is approved at the gate rather than left
+  in a chat. Raise it when the OUTPUT itself is judgment (wording, instructions,
+  prose), since then building is not transcription. What is ENFORCED is only the
+  file's default value (lint C11); the run model is the human's call.
 - Effort is first-class and DECLARED, not ambient. Every dispatched agent
   (architect, all reviewers, builder, codebase-analyst, debugger) runs at `high`
   effort, set explicitly in its frontmatter (`effort:`), so a dispatched role's
@@ -255,7 +260,11 @@ baseline above) does not exist.
 - [I] Test commands run non-interactively (`vitest run`, watch off) and with a
   timeout; a command that never exits is a FAILED step, not a passing one.
 - [E] Model tiers, never versions: version-pinned model ids are banned in
-  skills/agents and the builder's tier is pinned (lint C11); judgment eval
+  skills/agents and `agents/builder.md`'s `model:` value must be `sonnet` or
+  `inherit` (lint C11). That enforces the FILE DEFAULT only. [I] The model a builder
+  actually runs on is the human's per-run choice at `/build`'s model-plan step,
+  recorded in the plan; nothing enforces it, so do not read "pinned" into it.
+  Judgment eval
   records must carry `model_tier:`, and a fast-tier judgment record is refused
   by merge-gate and spec-gate unless it carries an explicit
   `model_waiver: human` line (loud override, never silent).

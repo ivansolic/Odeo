@@ -23,7 +23,17 @@ without an approved plan file.
 approved: no            # flipped to yes by the human at the gate
 model_plan:             # resolved LIVE when the plan is written; the user saw
   judgment: <model> effort <level>   # and answered the model+effort question
-  builder: <tier -> model> effort <level>   # builder requires this line
+  builder_tier: <tier word> effort <level>   # the APPROVED INTENT, a tier word, so it
+                        # cannot go stale. Present at approval; the builder's contract
+                        # requires THIS line. Raise it above the default when the
+                        # output is itself judgment (wording, instructions, prose).
+  builder_as_dispatched: <model>     # written by the ORCHESTRATOR after dispatch,
+                        # verbatim from the parameter it passed. Deliberately named
+                        # "as dispatched", not "as ran": nobody here can verify which
+                        # model the vendor actually served, so the field discloses what
+                        # was requested instead of claiming what executed. The builder
+                        # never writes either line; it cannot know, and it must not edit
+                        # its own approved contract.
 arch_review: pending    # set by the /build pipeline after the plan-review loop:
                         # "clean (vN, YYYY-MM-DD)" or "waived (human)" for
                         # standalone human-supplied plans. The builder requires it.

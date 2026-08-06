@@ -36,28 +36,31 @@ The user picks (or names the mode when invoking); default toward with-me while l
 
 **Model plan, asked before any work, and the BUILD model is the user's choice too.**
 
-Resolve LIVE, never from anything written down:
-- the model the session is ACTUALLY running and its effort (this is the judgment
-  role: plans, reviews). Do not infer it from earlier in the conversation or from
-  what the environment said when the session STARTED, because the user may have
-  changed it since with `/model`. If it cannot be resolved with certainty, ASK
-  ("run `/model` and tell me what it reports") rather than stating a guess: a
-  fabricated model name in a `model_plan:` or an eval record violates the
-  never-fabricate rule and has happened.
-- the models AVAILABLE on this host right now, as the harness reports them, so the
-  user picks from what exists instead of from a list someone typed months ago.
-- which of those is the STRONGEST, for the recommendation below.
+**Resolve the model the session is running NOW.** It is not necessarily the one you
+were told at session start: a user may switch models several times in one session, and
+what matters when planning or building begins is the model running at that moment. In
+order of authority:
+1. the LATEST `/model` output in this session. It overrides everything earlier,
+   including the session-start value.
+2. failing that, what the environment reported when the session started.
+3. if neither is unambiguous, ASK: "run `/model` and tell me what it reports."
+
+Never state a model from memory or from a list written down anywhere. Do NOT try to
+enumerate which models this host offers: nothing in this system reports that, so any
+list would be invented, and inventing it is the exact failure this paragraph exists to
+prevent. The user has their own list in `/model`; ask them to name one if they want to
+change. A fabricated model name in a `model_plan:` or an eval record breaks the
+never-fabricate rule, and it has happened in this repo.
 
 Then ask, as ONE question with both roles in it:
 > "Model plan.
->  Judgment (plans, reviews): <session model, resolved now> at effort <resolved now>.
->  Build (executes the plan): which model? <list what this host offers now>.
->  Default is the builder's declared tier (`sonnet`), which is cheaper and is the
->  right call when the plan is precise and the work is mechanical. Choose higher when
->  the OUTPUT ITSELF is judgment (wording, instructions, prose), because then the
->  building is not transcription.
+>  Judgment (plans, reviews): <the model the session is running now> at effort <as resolved>.
+>  Build (executes the plan): the same model, or a different one? The declared default
+>  is the builder's tier (`sonnet`), cheaper and the right call when the plan is precise
+>  and the work is mechanical. Choose higher when the OUTPUT ITSELF is judgment
+>  (wording, instructions, prose), because then building is not transcription.
 >  Continue, or change? (`/model` changes the session model, `/effort` the effort;
->  or name a build model for this run.)"
+>  or name the build model for this run.)"
 
 The user's build choice is passed AT DISPATCH, per run, and is never written into
 `agents/builder.md` or any other file. That is deliberate: `AGENTS.md` bans
@@ -68,8 +71,10 @@ gives the user a real choice with no file to go stale.
 The change mechanism is per host (Claude Code: `/model` + `/effort`; other hosts
 use their equivalent from the per-host adapter in AGENTS.md), so the same step
 works everywhere. In for-me mode, write the answer into the plan file as
-`model_plan:` including the effort for each role (the builder's contract requires
-it); in with-me mode the spoken question is the announcement. If judgment would
+`model_plan:` including the effort for each role (`builder_tier:` is the line the
+builder's contract requires); in with-me mode the spoken question is the announcement.
+In with-me mode there IS no builder agent and no dispatch, so do not offer a build model
+there: the only lever is `/model` for the session itself. If judgment would
 run below the STRONGEST model available on this host (resolve the current lineup
 live, never from a cached table) OR below `high` effort, say so in the same breath,
 name the stronger model and how to switch (`/model`), and for architecture-critical
@@ -192,8 +197,13 @@ once so a still editor is not mistaken for a stall. Live watching is with-me (Mo
 4. **Dispatch one `builder` per approved story**, each in its own git worktree +
    branch (built-in isolation; parallel = background agents), **on the model the
    user chose in the model-plan step**, passed at dispatch and recorded in the
-   plan's `model_plan:` line so the contract states who actually built. If the user
-   named no model, the builder's declared tier applies. Each builder
+   plan's `model_plan:` as `builder_as_dispatched:`, written by YOU (the orchestrator)
+   AFTER dispatch, verbatim from the parameter you passed. The APPROVED INTENT lives in
+   `builder_tier:` and is a tier word, present before the gate. Neither line is the
+   builder's to write; it cannot know its own model and must not edit its contract.
+   If the dispatch REJECTS the named model, stop and ask; never fall back silently and
+   never record a model the dispatch did not accept. If the user named no model, the
+   builder's declared tier applies. Each builder
    executes its plan as a contract: success-signal, green baseline, tasks in
    order (dev-rigor style from CLAUDE.md), loop to the signal, stop-and-ask on
    any plan conflict. Then run `code-reviewer` (plus `design-reviewer` if UI) on
@@ -229,12 +239,13 @@ explicit user go.
 "USR-012 (session timer) is ready: clear ACs. How do you want to build this?
  with me (live, in your editor) or for me (agents on a plan you approve)?"
 > for me
-"Model plan: thinking/reviews on <session model, resolved now> at effort <session
- effort>, building on <builder tier> at effort high. Continue, or change?
- (`/model` for model, `/effort` for effort)"
-> continue
+"Model plan. Judgment (plans, reviews): <the model the session is running now> at
+ effort <as resolved>. Build: the same model, or a different one? Default is the
+ builder's tier (sonnet). Continue, or name a build model?"
+> sonnet is fine
 worktree-parallel-check: only USR-012 chosen, nothing overlaps -> proceed
-architect -> docs/plans/2026-07-14-usr-012-timer.md (approved: no, model_plan: recorded)
+architect -> docs/plans/2026-07-14-usr-012-timer.md (approved: no)
+  model_plan: judgment <session model> · builder_tier: sonnet (plan is precise, work mechanical)
 architecture-reviewer on the plan: fits inherited architecture, 1 note (shown)
 "Plan + independent check above. Approve, change, or reject?"
 > approve                                   (flips approved: yes)
