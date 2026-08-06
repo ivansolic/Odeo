@@ -3,6 +3,19 @@
 Follow these steps **in order**. Total time: ~30-40 minutes if starting from zero.
 Each step ends with a ✓ CHECK, verify it before moving on.
 
+**Supported platforms: macOS and Linux natively, Windows through WSL or Git Bash.**
+The toolchain is bash and the gates are bash scripts, so PowerShell and `cmd` are not
+supported. On Windows, WSL is the smoother path: `./install.sh --link` needs permission to
+create symlinks, which WSL has by default and native Windows does not without developer
+mode. Steps 0 to 4 below are written with Mac commands; on Linux and WSL use your package
+manager instead of Homebrew, the rest is identical.
+
+**If you cloned on Windows BEFORE 2026-08-06**, your checkout may have CRLF line endings
+from `core.autocrlf`, which stops the scripts from running at all (`set: pipefail: invalid
+option name`). The repo now pins line endings, but that does not rewrite an existing
+checkout. Fix it once with `git add --renormalize . && git checkout .`, or simply clone
+again. `bash tests/line-endings.test.sh` tells you whether you are affected.
+
 ---
 
 ## Step 0, Open Terminal

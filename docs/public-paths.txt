@@ -34,6 +34,8 @@ BEGINNERS-GUIDE.md
 WORKFLOW.md
 CLAUDE.md
 .gitignore
+# Must ship: without it a Windows clone gets CRLF and nothing executes.
+.gitattributes
 
 # public docs, listed explicitly (never a bare docs/ line)
 docs/examples/

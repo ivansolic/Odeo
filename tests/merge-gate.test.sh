@@ -643,4 +643,29 @@ case "$out" in
 esac
 rm -rf "$d"
 
+# 56. An untracked file OUTSIDE docs/evals, with showUntrackedFiles=no -> refuse.
+#     This pins the CLI flag specifically. The stray check only sees docs/evals, so without
+#     this case, reverting `--untracked-files=normal` left the suite green while UNCOMMITTED
+#     CODE could merge. The two guards are redundant only inside docs/evals.
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T2" code
+named_record "$d" "r.md" "feature/x" "APPROVE"
+commit_at "$d" "$T3" rec
+( cd "$d" && git config status.showUntrackedFiles no && printf 'new code\n' > src-new.go ) >/dev/null 2>&1
+check "refuses untracked code outside docs/evals (showUntrackedFiles=no)" 1 "$d"; rm -rf "$d"
+
+# 57. The docs/evals stray check must produce its BY-NAME message, not the generic
+#     clean-tree one, or the documented "refused explicitly, by name" is not observable.
+d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1
+commit_at "$d" "$T2" code
+named_record "$d" "r.md" "feature/x" "APPROVE"
+commit_at "$d" "$T3" rec
+( cd "$d" && printf 'stray\n' > docs/evals/design-x.md ) >/dev/null 2>&1
+out="$( cd "$d" && bash "$GATE" 2>&1 )"
+case "$out" in
+  *"untracked file(s) under docs/evals"*design-x.md*) echo "ok   - stray record refused by name"; pass=$((pass+1)) ;;
+  *) echo "FAIL - stray record refused by name (got: $(printf '%s' "$out" | grep -m1 REFUSED))"; fail=$((fail+1)) ;;
+esac
+rm -rf "$d"
+
 echo ""; echo "passed: $pass, failed: $fail"; [[ $fail -eq 0 ]]

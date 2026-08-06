@@ -53,17 +53,9 @@ if [[ "$branch" == "main" || "$branch" == "master" ]]; then
 fi
 
 # 2. Clean working tree
-# --untracked-files=normal on the CLI beats a repo/global `status.showUntrackedFiles=no`.
-# Without it a user config could hide untracked work from this check, and (once enumeration
-# became tracked-only) an untracked REQUEST CHANGES record went completely invisible.
-if [[ -n "$(git status --porcelain --untracked-files=normal)" ]]; then
-  echo "merge-gate: REFUSED, uncommitted changes present. Commit or stash first." >&2
-  exit 1
-fi
-
-# Belt for the same hole, so the claim "an untracked record is caught" is true by
-# construction rather than by relying on the check above: any untracked, non-ignored file
-# under docs/evals is a refusal. Ignored junk (.DS_Store, Thumbs.db) is excluded by
+# Checked BEFORE the generic clean-tree precondition so the accurate, by-name message wins:
+# an untracked record is the case a human is most likely to hit, and "commit or stash" does
+# not tell them WHICH file. Any untracked, non-ignored file under docs/evals is a refusal. Ignored junk (.DS_Store, Thumbs.db) is excluded by
 # --exclude-standard, which is what keeps this from re-breaking macOS and Windows.
 stray="$(git ls-files --others --exclude-standard docs/evals 2>/dev/null)"
 if [[ -n "$stray" ]]; then
@@ -71,6 +63,16 @@ if [[ -n "$stray" ]]; then
   printf '%s\n' "$stray" | sed 's/^/  /' >&2
   echo "A review record must be COMMITTED to count, and an uncommitted one could hide a" >&2
   echo "refusal from the gate. Commit it, or remove it if it is not a record." >&2
+  exit 1
+fi
+
+# --untracked-files=normal on the CLI beats a repo/global `status.showUntrackedFiles=no`.
+# Without it a user config could hide untracked work from this check, and (once enumeration
+# became tracked-only) an untracked REQUEST CHANGES record went completely invisible.
+# This flag is NOT made redundant by the docs/evals check above: that one only looks in
+# docs/evals, so without this flag untracked CODE anywhere else would merge (case 56).
+if [[ -n "$(git status --porcelain --untracked-files=normal)" ]]; then
+  echo "merge-gate: REFUSED, uncommitted changes present. Commit or stash first." >&2
   exit 1
 fi
 
