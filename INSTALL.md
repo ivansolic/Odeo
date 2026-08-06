@@ -3,18 +3,26 @@
 Follow these steps **in order**. Total time: ~30-40 minutes if starting from zero.
 Each step ends with a ✓ CHECK, verify it before moving on.
 
-**Supported platforms: macOS and Linux natively, Windows through WSL or Git Bash.**
-The toolchain is bash and the gates are bash scripts, so PowerShell and `cmd` are not
-supported. On Windows, WSL is the smoother path: `./install.sh --link` needs permission to
-create symlinks, which WSL has by default and native Windows does not without developer
-mode. Steps 0 to 4 below are written with Mac commands; on Linux and WSL use your package
-manager instead of Homebrew, the rest is identical.
+**Platforms: macOS and Linux are what this is developed and tested on.** The toolchain is
+bash and the gates are bash scripts, so PowerShell and `cmd` cannot run it. On Windows it is
+**expected to work under WSL or Git Bash but has not been verified end to end there**; WSL
+is the better bet, because `./install.sh --link` needs permission to create symlinks, which
+WSL has by default and native Windows does not without developer mode. Steps 0 to 4 below
+use Mac commands; on Linux and WSL substitute your package manager for Homebrew and the
+rest is identical.
 
-**If you cloned on Windows BEFORE 2026-08-06**, your checkout may have CRLF line endings
-from `core.autocrlf`, which stops the scripts from running at all (`set: pipefail: invalid
-option name`). The repo now pins line endings, but that does not rewrite an existing
-checkout. Fix it once with `git add --renormalize . && git checkout .`, or simply clone
-again. `bash tests/line-endings.test.sh` tells you whether you are affected.
+**If the scripts fail with `set: pipefail: invalid option name` or `syntax error near
+unexpected token`, your checkout has CRLF line endings** (git's `core.autocrlf` does this on
+Windows). Diagnose with `bash tests/line-endings.test.sh`, which names the affected files.
+To fix, commit or stash your work first, then:
+
+```bash
+git rm --cached -r . && git reset --hard    # discards uncommitted changes
+```
+
+or just clone again. Note that `git add --renormalize .` does **not** help here: the
+committed content is already LF, so there is nothing to renormalize; only your checkout is
+CRLF, which is why the index looks clean while the files on disk do not run.
 
 ---
 

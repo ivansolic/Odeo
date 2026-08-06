@@ -18,4 +18,11 @@
 *.txt   text eol=lf
 *.json  text eol=lf
 *.yml   text eol=lf
+*.yaml  text eol=lf
 LICENSE text eol=lf
+.gitignore     text eol=lf
+.gitattributes text eol=lf
+
+# `* text=auto` above lets git AUTO-DETECT binaries and leave them alone, so nothing here
+# mangles one. There are no binary files in this repo today; if one is added (an image, a
+# font, an archive), give it an explicit `-text` line so no future change can normalize it.

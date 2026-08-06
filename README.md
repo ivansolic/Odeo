@@ -18,8 +18,9 @@ You bring the *what* and *why* (the product thinking). The system makes Claude d
 
 PMs and builders who want to ship real software with Claude Code and don't want to figure out the workflow, testing, and security discipline from scratch. No engineering background assumed, the included `BEGINNERS-GUIDE.md` explains every concept in plain language.
 
-**Runs on:** macOS and Linux natively, Windows through WSL or Git Bash (the toolchain is
-bash; PowerShell is not supported). See INSTALL.md.
+**Runs on:** macOS and Linux (developed and tested there). Windows is expected to work
+under WSL or Git Bash but is not yet verified; the toolchain is bash, so PowerShell cannot
+run it. See INSTALL.md.
 
 ## The workflow at a glance
 
