@@ -37,7 +37,7 @@ rules are also embedded in their bodies so they hold even when this file is abse
   criteria, and where relevant plain-language quality targets like "loads fast",
   "works for keyboard/screen-reader users").
 
-## Model policy (judgment inherits, execution rides sonnet)
+## Model policy (judgment inherits, execution defaults to sonnet)
 - Judgment (architect, all reviewers, PM work) runs on the SESSION model, run
   your session on the strongest you have; preference is stored semantically in
   CLAUDE.md (`session_model_preference: strongest | strong-default`), never as
@@ -53,8 +53,8 @@ rules are also embedded in their bodies so they hold even when this file is abse
   the newest Sonnet; it executes an approved, independently reviewed plan, so strong
   models guard both its input and its output. The default is rebuttable, not a pin:
   the human may raise the build model per run at `/build`'s model-plan step, recorded
-  in the plan's `model_plan:` so the choice is approved at the gate rather than left
-  in a chat. Raise it when the OUTPUT itself is judgment (wording, instructions,
+  in the plan as a TIER WORD (`builder_tier:`), so the choice is approved at the gate
+  rather than left in a chat; the resolved model NAME goes in the eval record. Raise it when the OUTPUT itself is judgment (wording, instructions,
   prose), since then building is not transcription. What is ENFORCED is only the
   file's default value (lint C11); the run model is the human's call.
 - Effort is first-class and DECLARED, not ambient. Every dispatched agent
@@ -68,9 +68,10 @@ rules are also embedded in their bodies so they hold even when this file is abse
   script-readable, so the agent-frontmatter declaration IS the authoritative,
   recorded value for dispatched roles.
 - Model names are spoken only LIVE (resolved by the harness at that moment)
-  and recorded after (`model:` + `model_tier:` + effort in eval records;
-  `model_plan:` in approved plans). Instruction files speak in tiers; versions
-  never appear in them (lint C11); resolved names live only in records and plans.
+  and recorded after (`model:` + `model_tier:` + effort in eval records; the JUDGMENT
+  model in a plan's `model_plan:`). Instruction files speak in tiers; versions never
+  appear in them (lint C11). A plan carries a resolved name for JUDGMENT only; the build
+  model appears there as a TIER WORD, and its resolved name lives in the eval record.
 - Tier map (the one place vendor tier words live): fast = haiku class (Anthropic)
   / flash class (Google) / mini class (OpenAI); strong = sonnet class and up;
   strongest = the top tier available on the user's actual subscription, resolved

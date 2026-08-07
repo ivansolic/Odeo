@@ -45,6 +45,11 @@ order of authority:
 2. failing that, what the environment reported when the session started.
 3. if neither is unambiguous, ASK: "run `/model` and tell me what it reports."
 
+EFFORT is not machine-readable at all (see AGENTS.md), so there is nothing to resolve:
+ASK for it in the same breath ("and what does `/effort` say?"). Never print a
+resolved-looking effort value you were not told; that is the same fabrication the model
+rule above forbids.
+
 Never state a model from memory or from a list written down anywhere. Do NOT try to
 enumerate which models this host offers: nothing in this system reports that, so any
 list would be invented, and inventing it is the exact failure this paragraph exists to
@@ -68,11 +73,11 @@ The choice goes into the PLAN as a tier word, never into an instruction file
 (`AGENTS.md` Guardrail 3, lint C11).
 The change mechanism is per host (Claude Code: `/model` + `/effort`; other hosts
 use their equivalent from the per-host adapter in AGENTS.md), so the same step
-works everywhere. In for-me mode, write the answer into the plan file as
-`model_plan:` including the effort for each role (`builder_tier:` is the line the
-builder's contract requires); in with-me mode the spoken question is the announcement.
-In with-me mode there IS no builder agent and no dispatch, so do not offer a build model
-there: the only lever is `/model` for the session itself. If judgment would run below the strongest model in the CURRENT OFFICIAL LINEUP
+works everywhere. In for-me mode, write into the plan's `model_plan:` the judgment
+model and effort AND `builder_tier:` (a tier word plus effort; that is the line the
+builder's contract requires). The build model NAME never goes in the plan, see B5.4.
+In with-me mode the spoken question is the announcement.
+If judgment would run below the strongest model in the CURRENT OFFICIAL LINEUP
 (resolved live per AGENTS.md, which tells you what EXISTS, not what this account has)
 OR below `high` effort, say so in the same breath, name the stronger model and how to
 switch (`/model`, `/effort`), and for architecture-critical work (plans, security,
@@ -198,7 +203,11 @@ once so a still editor is not mistaken for a stall. Live watching is with-me (Mo
    plan's `builder_tier:` (a tier word, the APPROVED INTENT, written BEFORE the gate,
    and immutable afterwards). The resolved model NAME goes to `code-reviewer` so it lands
    in the eval record as `build_model_as_dispatched:`, next to the fields that already
-   carry resolved model names. Do NOT write it back into the plan: `merge-gate.sh`
+   carry resolved model names. Hand it over on EVERY dispatch of that reviewer, not
+   just the first: the review loop REGENERATES the record, so a later round would drop
+   the field and the record the merge gate reads is the surviving one. No gate reads this
+   field, so it is best-effort provenance: its absence is never evidence that a build ran
+   on the default. Do NOT write it back into the plan: `merge-gate.sh`
    compares every non-evals path against `reviewed_commit:`, so a post-review plan edit
    refuses the merge and would force a full code re-review for a provenance line, which
    nobody will pay twice. Eval records are excluded from that comparison by construction,
@@ -253,7 +262,8 @@ architecture-reviewer on the plan: fits inherited architecture, 1 note (shown)
 > approve                                   (flips approved: yes)
 (builder runs headless in its worktree; nothing changes in your editor, you review at the gate)
 builder in ../dogfood-usr-012 -> success-signal checklist all pass
-code-reviewer 12/12 APPROVE -> docs/evals/code-USR-012.md (branch: field set)
+code-reviewer 12/12 APPROVE -> docs/evals/code-USR-012.md
+  (branch: + reviewed_commit: + build_model_as_dispatched: <the model the builder ran on>)
 "Approved and ready. Run /merge when you want it integrated."   <- ENDS here
 ```
 

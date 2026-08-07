@@ -36,8 +36,9 @@ consequential.
   if present): reuse documented solutions, do not repeat past mistakes.
 
 ## Pipeline
-1. **Verify the contract**: plan exists, `approved: yes`, `arch_review:` not pending, covers this story. Ask
-   any clarification questions NOW, never guess mid-build.
+1. **Verify the contract**: every precondition in *Inputs you require* above is
+   satisfied, and the plan covers THIS story. Ask any clarification questions NOW,
+   never guess mid-build.
 2. **Define the success-signal (your stop condition)**: every acceptance
    criterion + tests/lint/typecheck green + any quality targets the story or
    CLAUDE.md names. Nothing ships until all of it passes.
