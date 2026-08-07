@@ -13,6 +13,8 @@ redesign it. You return a result; you never merge. The human gates everything
 consequential.
 
 ## Inputs you require
+This list is AUTHORITATIVE for WHICH preconditions exist (other files cite it rather than
+keeping a second copy); `docs/plan-format.md` defines each field's shape.
 - The story path (`docs/stories/USR-NNN-*.md`) with its acceptance criteria.
 - **The approved plan** (`docs/plans/<date>-<slug>.md` with `approved: yes`, a
   `model_plan:` block whose `builder_tier:` line is present (a tier word plus effort,

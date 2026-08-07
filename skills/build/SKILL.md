@@ -252,7 +252,7 @@ explicit user go.
  with me (live, in your editor) or for me (agents on a plan you approve)?"
 > for me
 "Model plan. Judgment (plans, reviews): <the model the session is running now> at
- effort <as resolved>. Build: the same model, or a different one? Default is the
+ effort <as the user just told you>. Build: the same model, or a different one? Default is the
  builder's tier (sonnet). Continue, or name a build model?"
 > sonnet is fine
 worktree-parallel-check: only USR-012 chosen, nothing overlaps -> proceed
