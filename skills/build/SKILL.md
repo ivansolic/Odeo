@@ -59,7 +59,7 @@ never-fabricate rule, and it has happened in this repo.
 
 Then ask, as ONE question with both roles in it:
 > "Model plan.
->  Judgment (plans, reviews): <the model the session is running now> at effort <as resolved>.
+>  Judgment (plans, reviews): <the model the session is running now> at effort <as the user just told you>.
 >  Build (executes the plan): the same model, or a different one? The declared default
 >  is the builder's tier (`sonnet`), cheaper and the right call when the plan is precise
 >  and the work is mechanical. Choose higher when the OUTPUT ITSELF is judgment
@@ -196,7 +196,8 @@ once so a still editor is not mistaken for a stall. Live watching is with-me (Mo
    questions, + the plan-review trajectory. The user approves (flip
    `approved: yes`), asks for changes (back to the architect), or rejects.
    **No builder runs without an approved plan that carries an `arch_review:`
-   line**, both are the builder's contract preconditions.
+   line**, and a `builder_tier:` line in its `model_plan:`; all three are the builder's
+   contract preconditions (`agents/builder.md` has the authoritative list).
 4. **Dispatch one `builder` per approved story**, each in its own git worktree +
    branch (built-in isolation; parallel = background agents), **on the model the
    user chose in the model-plan step**, passed at dispatch and recorded in the
@@ -263,7 +264,7 @@ architecture-reviewer on the plan: fits inherited architecture, 1 note (shown)
 (builder runs headless in its worktree; nothing changes in your editor, you review at the gate)
 builder in ../dogfood-usr-012 -> success-signal checklist all pass
 code-reviewer 12/12 APPROVE -> docs/evals/code-USR-012.md
-  (branch: + reviewed_commit: + build_model_as_dispatched: <the model the builder ran on>)
+  (branch: + reviewed_commit: + build_model_as_dispatched: <the model it was dispatched on>)
 "Approved and ready. Run /merge when you want it integrated."   <- ENDS here
 ```
 
