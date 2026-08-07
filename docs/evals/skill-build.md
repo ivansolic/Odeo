@@ -2,8 +2,8 @@
 artifact: skills/build/SKILL.md
 type: skill
 branch: chore/build-asks-builder-model
-reviewed_commit: 0fcc65b
-artifact_version: 10
+reviewed_commit: 895b667
+artifact_version: 11
 date: 2026-08-07
 scorer: skill-reviewer
 model: claude-opus-5[1m]
@@ -15,79 +15,103 @@ verdict: PASS
 previous_total: 10/10
 ---
 
-Scope: record regeneration at `0fcc65b`. Three wording changes since `995fde4`,
-each verified in place; no scored criterion moved. Re-checked against
-`agents/builder.md:15-27`, `docs/plan-format.md:22-40`,
-`docs/eval-framework.md:55-79`, `agents/code-reviewer.md:136-142`,
-`AGENTS.md:262-279`. Regenerated rather than re-dated because
-`skills/build/SKILL.md` moved after the last reviewed commit.
+Scope: record regeneration at `895b667` after a survivor of the effort-placeholder
+fix was found at `skills/build/SKILL.md:255`, inside the worked example, and fixed.
+This time I swept the whole file for every string this branch has touched instead
+of verifying only the reported lines. Re-checked `agents/builder.md:15-29`,
+`docs/plan-format.md:22-40`, `docs/eval-framework.md:55-79`,
+`agents/code-reviewer.md:136-142`, `AGENTS.md:262-279`.
 
 ## Skill: build  (explicit command)
 
 ## Scores
 - trigger clarity **2**. Untouched.
-- structure **2**. Untouched. The `### Model plan` subheading and the three-way
-  paragraph split remain deliberately undone; recorded as carried, not as a defect,
-  for the reason in round 3 (its scored symptoms were fixed; the split is
-  maintainability advice for the next edit).
-- worked example **2**. `:267` now reads "build_model_as_dispatched: <the model it
-  was dispatched on>", matching the field's defined semantics in
-  `docs/plan-format.md:36-38`, `docs/eval-framework.md:73-76` and
-  `AGENTS.md:275-279`. This was the nit most worth doing: the example is the line a
-  reader copies, so the old "ran on" gloss was the one path by which the overclaim
-  could have re-entered past three files that carefully refuse it.
-- precision **2**. `:62` now prints "at effort <as the user just told you>",
-  retiring the last echo of the removed premise; the slot now describes its only
-  legitimate source, which is what `:48-51` requires.
-- safety integration **2**. `:198-200` now names all three contract preconditions
-  (`approved: yes`, an `arch_review:` line that is not pending, and a `builder_tier:`
-  line in `model_plan:`) and points at `agents/builder.md` as the authoritative
-  list. Verified that the pointer resolves: `agents/builder.md:17-24` carries all
-  three, including "the resolved model NAME ... its absence here is never a missing
-  precondition and never a reason to refuse". One enumeration plus a reference is
-  the pattern the standard asks for, so this stays a reference, not a second copy.
+- structure **2**. Untouched. Subheading and paragraph split still carried
+  knowingly.
+- worked example **2**. `:255` now reads "effort <as the user just told you>",
+  matching the template at `:62`. The example no longer contains any string the
+  step removed.
+- precision **2**. The placeholder that had no obtainable source is gone from both
+  places it lived. Score holds rather than moves: in round 9 I scored precision 2
+  on a file where `:255` still carried the old string, so the 2 was awarded on an
+  incomplete check. It is correct NOW, at this commit, which is what
+  `reviewed_commit:` binds it to.
+- safety integration **2**. `agents/builder.md:16-17` now declares its Inputs list
+  "AUTHORITATIVE for WHICH preconditions exist (other files cite it rather than
+  keeping a second copy); `docs/plan-format.md` defines each field's shape", so
+  `SKILL.md:200`'s pointer at "the authoritative list" now lands on a file that
+  claims the status and the ownership split is explicit: which preconditions exist
+  (builder.md) versus what each field looks like (plan-format.md). A pointer to an
+  unclaimed authority is how second copies get born, so this closes the mechanism,
+  not just the wording.
 
 ## Total: 10/10   ## Verdict: PASS (threshold 8/10, no zero)
 
-## New in these three lines?
-Nothing that blocks, and nothing that scores. One cosmetic observation, explicitly
-not a finding: `:62` is now about 106 characters, longer than its sibling lines in
-the quoted question. It is a single quoted line, not the edit collision that made
-line length worth mentioning in round 3, and the file already carries longer
-pre-existing lines. Leave it or wrap it, either is fine.
+## Third copies? Swept, and there are none
+I grepped `skills/build/SKILL.md` for every string this branch has added, removed
+or reworded, not just the two lines I was told about:
+- Effort placeholder: exactly two occurrences, `:62` and `:255`, both
+  "<as the user just told you>". No `<as resolved>` anywhere in the file.
+- With-me build-line exclusion: one occurrence (`:69-70`). `:79` ("In with-me mode
+  the spoken question is the announcement") is a different statement, not a second
+  copy of the exclusion.
+- Provenance field: `build_model_as_dispatched:` at `:206` and `:267` only; the
+  superseded plan-field name `builder_as_dispatched:` appears nowhere.
+- "ran on" as a gloss: gone; `:267` says "<the model it was dispatched on>". The
+  only surviving "ran" is `:210`, "its absence is never evidence that a build ran on
+  the default", which is correct usage (it denies an inference about execution
+  rather than claiming one).
+- Host enumeration: one occurrence (`:54`), the prohibition. No "available on this
+  host" and no "as the harness reports them" remain.
+- No "who actually built" anywhere.
+Cross-file, `docs/plan-format.md`, `docs/eval-framework.md`,
+`agents/code-reviewer.md`, `agents/builder.md` and `AGENTS.md:262-279` still agree
+with the skill on where intent lives, where the resolved name lives, and that the
+field discloses what was requested.
+
+## On the miss, since it is mine to own
+I verified `:62` because that is the line I had named, reported the file clean, and
+the survivor sat three lines below my own quoted warning against printing a
+resolved-looking effort value. The lesson is specific and I am recording it so the
+next reviewer of any skill inherits it: **a wording fix has to be verified as a
+file-wide string sweep, never as a spot check of the line the fix names**, because
+a worked example is a second copy of the step by construction, which is exactly why
+the standard asks the example to mirror the process. That the second reviewer
+arrived from `builder.md` and found it is the layering working as designed, not
+redundancy: the domain owner checks the line it was told about, and a reader coming
+through a cross-reference checks the path a user would actually follow.
 
 ## Ceiling
-10/10, reached and held. Nothing structurally capped.
+10/10, reached. Nothing structurally capped.
 
 ## Round-by-round (this branch)
 - Round 1 (5b46abd): 6/10 FAIL. Four blocking findings.
 - Round 2 (a2eec03): 9/10 PASS. All four closed; one residual contradiction.
-- Round 3 (76188a6): 9/10 PASS. Contradiction closed; effort fix on the wrong
-  sentence, stale duplicate, one ambiguous phrase.
-- Round 4 (995fde4): 10/10 PASS. All three closed; precision 1 -> 2.
-- Round 5 (0fcc65b): 10/10 PASS, regeneration. Three wordings; score holds.
-  Trajectory 6 -> 9 -> 9 -> 10 -> 10, moved only by fixing files.
+- Round 3 (76188a6): 9/10 PASS. Contradiction closed; three smaller findings.
+- Round 4 (995fde4): 10/10 PASS. Precision 1 -> 2. (Awarded on a spot check; `:255`
+  still carried the old string.)
+- Round 5 (0fcc65b): 10/10 PASS, regeneration. Three wordings.
+- Round 6 (895b667): 10/10 PASS, regeneration. Placeholder survivor at `:255`
+  fixed, builder.md's Inputs list declared authoritative, file-wide sweep clean.
 
 ## Is it clean?
-Yes. Nothing blocks. Every criterion is at 2, no instruction in the model-plan
-block requires a value the agent cannot obtain, no two instructions disagree with
-each other or with `AGENTS.md`, `docs/plan-format.md`, `docs/eval-framework.md`,
-`agents/builder.md` or `agents/code-reviewer.md`, and no gate is touched or
-weakened. Ready for the human gate as-is.
+Yes, and this time the claim rests on a whole-file sweep rather than the lines I
+was pointed at. Every criterion is at 2, no instruction requires a value the agent
+cannot obtain, no duplicated instruction remains, no two instructions disagree with
+each other or with the four files that share this design, and no gate is touched or
+weakened. Ready for the human gate.
 
-What this record is NOT, for the human: form verification, not behavioral. The
-design rests on an agent at runtime walking the order of authority and asking,
-instead of trusting the session-start model and a plausible-looking effort level
-visible in its own context. Only an `/improve` subagent test (baseline without the
-step, variant with it) can show that behavior holds, and it belongs after the
-merge.
+Unchanged caveat for the human: this is form verification, not behavioral. Whether
+an agent at runtime walks the order of authority and asks, instead of trusting the
+session-start model and a plausible-looking effort level visible in its own
+context, is an `/improve` subagent test, and it belongs after the merge.
 
 ## Vs previous version
-Version 9 (995fde4) scored 10/10 with three optional nits. Version 10 applies all
-three: the example gloss now says "dispatched on" rather than "ran on", the effort
-slot names its only legitimate source, and B5.3 enumerates the three contract
-preconditions once and defers to `agents/builder.md`. No criterion moved, because
-none of the three was holding a score down; the file is tighter at the same score.
+Version 10 (0fcc65b) scored 10/10 but was verified by spot check, and one copy of
+the effort placeholder survived in the worked example. Version 11 removes it and
+gives `SKILL.md:200`'s "authoritative list" pointer a target that claims the status
+(`agents/builder.md:16-17`). No criterion moved; the difference is that the score
+now rests on a file-wide check.
 
 ## Map duty
 No command surface added or altered (`docs/system-map.md:67` already carries
@@ -104,20 +128,20 @@ No command surface added or altered (`docs/system-map.md:67` already carries
 - Round 5 (2026-07-30, Opus 4.8, strongest): 10/10 PASS. Strongest-model-available
   resolution added.
 - Round 6 (2026-08-06, Opus 5, strongest, 5b46abd): 6/10 FAIL. Build model became
-  the user's choice; four blocking form defects (unobtainable enumeration,
-  self-assessed ASK trigger, stale example, AGENTS.md not carrying the rule).
-- Round 7 (2026-08-06, Opus 5, strongest, a2eec03): 9/10 PASS. All four closed;
-  one residual contradiction inside the block.
+  the user's choice; four blocking form defects.
+- Round 7 (2026-08-06, Opus 5, strongest, a2eec03): 9/10 PASS. All four closed; one
+  residual contradiction inside the block.
 - Round 8 (2026-08-06, Opus 5, strongest, 76188a6): 9/10 PASS. Contradiction
-  closed; provenance field moved from the plan to the code eval record coherently
-  across five files. Precision held at 1 (effort fix on the wrong sentence).
+  closed; provenance field moved to the eval record coherently across five files.
 - Round 9 (2026-08-07, Opus 5, strongest, 995fde4): 10/10 PASS. Effort fixed at the
-  premise, duplicate deleted with its collided line, plan-write phrase
-  disambiguated, provenance handover made loop-safe and explicitly best-effort.
-  Precision 1 -> 2.
-- Round 10 (2026-08-07, Opus 5, strongest, 0fcc65b): 10/10 PASS, regeneration only.
-  Example gloss "ran on" -> "dispatched on" (closing the copy-paste path by which
-  the overclaim could have re-entered), effort slot -> "<as the user just told
-  you>", B5.3 enumerating all three contract preconditions with a pointer to
-  `agents/builder.md`. No criterion moved. Clean for the human gate; behavioral
-  confirmation still owed to `/improve`.
+  premise, duplicate deleted, plan-write phrase disambiguated. Precision 1 -> 2,
+  awarded on a spot check.
+- Round 10 (2026-08-07, Opus 5, strongest, 0fcc65b): 10/10 PASS, regeneration.
+  Example gloss, effort slot, B5.3 preconditions enumerated with a pointer.
+- Round 11 (2026-08-07, Opus 5, strongest, 895b667): 10/10 PASS, regeneration. A
+  surviving "<as resolved>" in the worked example (`:255`), missed by my spot check
+  of `:62` and found by `agent-reviewer` following the cross-reference from
+  `builder.md`, is fixed; `agents/builder.md:16-17` now claims the authority
+  `SKILL.md:200` points at. File-wide sweep for every string this branch touched:
+  no third copy of anything. Clean for the human gate; behavioral confirmation
+  still owed to `/improve`.
