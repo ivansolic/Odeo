@@ -42,7 +42,9 @@ what matters when planning or building begins is the model running at that momen
 order of authority:
 1. the LATEST `/model` output in this session. It overrides everything earlier,
    including the session-start value.
-2. failing that, what the environment reported when the session started.
+2. failing that, what the environment reported when the session started. Say so when you
+   use it ("per the session-start environment"), for the same reason effort carries its
+   source below: a switch this session would not be reflected there.
 3. if neither is unambiguous, ASK: "run `/model` and tell me what it reports."
 
 EFFORT has readable sources, but none of them proves the LIVE value, so it follows the
@@ -50,17 +52,18 @@ same pattern as the model with one addition: the value is always spoken with its
 source. In order of authority:
 1. the latest `/effort` output in this session, if the user ran it. It overrides
    everything below.
-2. otherwise READ it, walking the read order in AGENTS.md (`CLAUDE_EFFORT`, then the
-   settings files in the order given there), first hit wins. That list is the single
-   source; never keep a second copy of it here. Name the file or variable you actually
-   read and call the value CONFIGURED, not confirmed ("effort high, per `CLAUDE_EFFORT`"
-   / "per `effortLevel` in `~/.claude/settings.json`"), because a mid-session `/effort`
-   change is not provably reflected there. Two readable sources that DISAGREE = report
-   both and ask, never silently pick one.
+2. otherwise READ it, walking the sources in AGENTS.md (`CLAUDE_EFFORT` plus the
+   settings files). Read them ALL in one command and take the highest-precedence hit;
+   stopping at the first would make a disagreement undetectable. That list and its
+   precedence are the single source; never keep a second copy of it here. Name the file
+   or variable you actually read and call the value CONFIGURED, not confirmed ("effort
+   high, per `CLAUDE_EFFORT`" / "per `effortLevel` in `~/.claude/settings.json`"),
+   because a mid-session `/effort` change is not provably reflected there. Two HITS that
+   DISAGREE = report both by name and ask, never silently pick one.
 3. if none exists, ASK in the same breath ("and what does `/effort` say?").
 Never print a bare effort value with no source; unsourced is indistinguishable from
 invented, which is the same fabrication the model rule above forbids. The source
-qualifier travels with the value into `model_plan:` too, see below.
+qualifier travels with the value into `model_plan:`'s `judgment:` child too, see below.
 
 Never state a model from memory or from a list written down anywhere. Do NOT try to
 enumerate which models this host offers: nothing in this system reports that, so any

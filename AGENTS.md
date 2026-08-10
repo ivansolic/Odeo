@@ -69,15 +69,19 @@ rules are also embedded in their bodies so they hold even when this file is abse
   recorded value for dispatched roles. "Not reliably" is exact, not "not at all":
   the SESSION effort does have readable sources, so the model-plan step reads them
   instead of asking for what it can read, and falls back to asking when they are
-  absent or disagree. THE READ ORDER (ours, a policy choice, not a claim about how
-  the host resolves its own config), first hit wins, and each is quoted BY NAME as
-  the source:
+  absent or disagree. A live `/effort` output in the session outranks this whole list;
+  it is only consulted when the user has not run one. READ ALL FOUR, do not stop at the
+  first (a stop cannot detect a disagreement), then the HIGHEST-PRECEDENCE hit wins.
+  THE PRECEDENCE (ours, a policy choice, not a claim about how the host resolves its own
+  config), each quoted BY NAME as the source:
     1. `CLAUDE_EFFORT` in the environment
     2. `effortLevel` in `.claude/settings.local.json` (project)
     3. `effortLevel` in `.claude/settings.json` (project; `init-project.sh` seeds one,
        so this file usually EXISTS and may carry no effort key, which is not a hit)
     4. `effortLevel` in `~/.claude/settings.json` (user)
-  If two readable sources DISAGREE, do not pick one: report both and ask. Naming the
+  Read them with one shell command (`printenv CLAUDE_EFFORT` plus a `grep` for
+  `effortLevel` across the three paths); a missing file or key is simply not a hit.
+  If two HITS DISAGREE, do not pick one: report both, by name, and ask. Naming the
   file is what makes two agents reproducible; "per settings" alone is not, because
   several of these coexist. What none of them can do is prove the LIVE value, since a
   mid-session `/effort` change is not provably reflected in any, so a value from them
