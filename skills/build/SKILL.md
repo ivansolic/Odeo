@@ -45,10 +45,22 @@ order of authority:
 2. failing that, what the environment reported when the session started.
 3. if neither is unambiguous, ASK: "run `/model` and tell me what it reports."
 
-EFFORT is not machine-readable at all (see AGENTS.md), so there is nothing to resolve:
-ASK for it in the same breath ("and what does `/effort` say?"). Never print a
-resolved-looking effort value you were not told; that is the same fabrication the model
-rule above forbids.
+EFFORT has readable sources, but none of them proves the LIVE value, so it follows the
+same pattern as the model with one addition: the value is always spoken with its
+source. In order of authority:
+1. the latest `/effort` output in this session, if the user ran it. It overrides
+   everything below.
+2. otherwise READ it, walking the read order in AGENTS.md (`CLAUDE_EFFORT`, then the
+   settings files in the order given there), first hit wins. That list is the single
+   source; never keep a second copy of it here. Name the file or variable you actually
+   read and call the value CONFIGURED, not confirmed ("effort high, per `CLAUDE_EFFORT`"
+   / "per `effortLevel` in `~/.claude/settings.json`"), because a mid-session `/effort`
+   change is not provably reflected there. Two readable sources that DISAGREE = report
+   both and ask, never silently pick one.
+3. if none exists, ASK in the same breath ("and what does `/effort` say?").
+Never print a bare effort value with no source; unsourced is indistinguishable from
+invented, which is the same fabrication the model rule above forbids. The source
+qualifier travels with the value into `model_plan:` too, see below.
 
 Never state a model from memory or from a list written down anywhere. Do NOT try to
 enumerate which models this host offers: nothing in this system reports that, so any
@@ -59,7 +71,7 @@ never-fabricate rule, and it has happened in this repo.
 
 Then ask, as ONE question with both roles in it:
 > "Model plan.
->  Judgment (plans, reviews): <the model the session is running now> at effort <as the user just told you>.
+>  Judgment (plans, reviews): <the model the session is running now> at effort <the value, with its source>.
 >  Build (executes the plan): the same model, or a different one? The declared default
 >  is the builder's tier (`sonnet`), cheaper and the right call when the plan is precise
 >  and the work is mechanical. Choose higher when the OUTPUT ITSELF is judgment
@@ -75,7 +87,10 @@ The change mechanism is per host (Claude Code: `/model` + `/effort`; other hosts
 use their equivalent from the per-host adapter in AGENTS.md), so the same step
 works everywhere. In for-me mode, write into the plan's `model_plan:` the judgment
 model and effort AND `builder_tier:` (a tier word plus effort; that is the line the
-builder's contract requires). The build model NAME never goes in the plan, see B5.4.
+builder's contract requires). An effort value that came from step 2 carries its
+source into the file as well (`effort high (configured, per CLAUDE_EFFORT)`), because
+a reader at the gate cannot otherwise tell a read value from a confirmed one, and the
+plan is what a later reviewer trusts. The build model NAME never goes in the plan, see B5.4.
 In with-me mode the spoken question is the announcement.
 If judgment would run below the strongest model in the CURRENT OFFICIAL LINEUP
 (resolved live per AGENTS.md, which tells you what EXISTS, not what this account has)
@@ -252,12 +267,13 @@ explicit user go.
  with me (live, in your editor) or for me (agents on a plan you approve)?"
 > for me
 "Model plan. Judgment (plans, reviews): <the model the session is running now> at
- effort <as the user just told you>. Build: the same model, or a different one? Default is the
- builder's tier (sonnet). Continue, or name a build model?"
+ effort high (configured, per CLAUDE_EFFORT). Build: the same model, or a different one?
+ Default is the builder's tier (sonnet). Continue, or name a build model?"
 > sonnet is fine
 worktree-parallel-check: only USR-012 chosen, nothing overlaps -> proceed
 architect -> docs/plans/2026-07-14-usr-012-timer.md (approved: no)
-  model_plan: judgment <session model> · builder_tier: sonnet (plan is precise, work mechanical)
+  model_plan: judgment <session model> effort high (configured, per CLAUDE_EFFORT)
+              builder_tier: sonnet effort high (plan is precise, work mechanical)
 architecture-reviewer on the plan: fits inherited architecture, 1 note (shown)
 "Plan + independent check above. Approve, change, or reject?"
 > approve                                   (flips approved: yes)

@@ -66,7 +66,24 @@ rules are also embedded in their bodies so they hold even when this file is abse
   model-plan step next to the tier, and recorded in `model_plan:` (and, where a
   reviewer records it, the eval record). Rationale: runtime effort is not reliably
   script-readable, so the agent-frontmatter declaration IS the authoritative,
-  recorded value for dispatched roles.
+  recorded value for dispatched roles. "Not reliably" is exact, not "not at all":
+  the SESSION effort does have readable sources, so the model-plan step reads them
+  instead of asking for what it can read, and falls back to asking when they are
+  absent or disagree. THE READ ORDER (ours, a policy choice, not a claim about how
+  the host resolves its own config), first hit wins, and each is quoted BY NAME as
+  the source:
+    1. `CLAUDE_EFFORT` in the environment
+    2. `effortLevel` in `.claude/settings.local.json` (project)
+    3. `effortLevel` in `.claude/settings.json` (project; `init-project.sh` seeds one,
+       so this file usually EXISTS and may carry no effort key, which is not a hit)
+    4. `effortLevel` in `~/.claude/settings.json` (user)
+  If two readable sources DISAGREE, do not pick one: report both and ask. Naming the
+  file is what makes two agents reproducible; "per settings" alone is not, because
+  several of these coexist. What none of them can do is prove the LIVE value, since a
+  mid-session `/effort` change is not provably reflected in any, so a value from them
+  is reported WITH its source and as CONFIGURED, never as confirmed. Measured
+  2026-08-07: `CLAUDE_EFFORT` and the user file both present on Claude Code/macOS;
+  re-verify per host at port time.
 - Model names are spoken only LIVE (resolved by the harness at that moment)
   and recorded after (`model:` + `model_tier:` + effort in eval records; the JUDGMENT
   model in a plan's `model_plan:`). Instruction files speak in tiers; versions never

@@ -22,7 +22,11 @@ without an approved plan file.
 # Plan: <story id + name>
 approved: no            # flipped to yes by the human at the gate
 model_plan:             # resolved LIVE when the plan is written; the user saw
-  judgment: <model> effort <level>   # and answered the model+effort question. A
+  judgment: <model> effort <level>   # and answered the model+effort question. When the
+                        # effort was READ rather than stated by the user, it carries its
+                        # source: `effort high (configured, per CLAUDE_EFFORT)`. A reader
+                        # at the gate cannot otherwise tell a read value from a confirmed
+                        # one; the read order lives in AGENTS.md. A
                         # PLAN-TIME SNAPSHOT: never "corrected" after the gate, even if
                         # the session model changes later (the step recommends switching
                         # up for architecture-critical work, so it legitimately can). A
