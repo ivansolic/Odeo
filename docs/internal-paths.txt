@@ -22,6 +22,7 @@ docs/checklists/prototype-dogfood-protocol.md
 docs/checklists/prototype-dogfood-results.md
 docs/checklists/anthropic-practices-pass.md
 docs/checklists/skills-alignment-pass.md
+docs/checklists/language-live-check.md
 docs/evals/
 docs/plans/
 docs/prds/
