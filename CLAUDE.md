@@ -16,3 +16,6 @@
   search `knowledge/` before re-solving. It is internal (denylisted from publish);
   share an individual lesson outward only via `/contribute-lesson` (sanitized, gated).
 - House rule: no em dashes or en dashes (see AGENTS.md).
+
+Odeo's own artifacts stay English whatever the user's global default is (PRD-001 R4), so this override is deliberate and not a leftover.
+output_language: en
