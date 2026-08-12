@@ -90,8 +90,11 @@ assert_contains "guard reports machine surfaces clean" "machine surfaces clean" 
 # made the case above prove nothing: the point is that NON-ASCII prose passes a guard
 # that ASCII-checks every machine surface. Asserting a committed fixture's property is
 # not a language detector (that is USR-006), it is a guard against silent regression.
-body_nonascii="$(awk 'BEGIN{n=0} /^---$/{n++; next} n>=2{print}' "$PRD" | LC_ALL=C grep -c '[^ -~]')"
-fm_nonascii="$(awk '/^---$/{n++; next} n==1{print}' "$PRD" | LC_ALL=C grep -c '[^ -~]')"
+# UTF-8 LEAD BYTES, not '[^ -~]'. That class also matches ASCII control bytes (TAB is
+# 0x09), so a fully transliterated body with one tab-indented line satisfied it, which is
+# the exact regression this assertion exists to catch. Claim no wider than the mechanism.
+body_nonascii="$(awk 'BEGIN{n=0} /^---$/{n++; next} n>=2{print}' "$PRD" | LC_ALL=C grep -c $'[\200-\377]')"
+fm_nonascii="$(awk '/^---$/{n++; next} n==1{print}' "$PRD" | LC_ALL=C grep -c $'[\200-\377]')"
 if [ "$body_nonascii" -gt 0 ]; then echo "ok: the fixture body carries non-ASCII letters ($body_nonascii lines)"
 else echo "FAIL: the fixture body is all ASCII, so the guard case above proves nothing"; fail=1; fi
 assert_eq "and the fixture frontmatter carries none" "0" "$fm_nonascii"
