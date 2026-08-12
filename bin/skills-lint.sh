@@ -110,11 +110,23 @@ fi
 #      effort: from the allowed set, so a dispatched role's reasoning depth is
 #      DECLARED, not left to the ambient session (AGENTS.md model policy). Files in
 #      agents/ without a name: (e.g. a rubric) are not definitions and are skipped.
+# agent_frontmatter FILE  , the frontmatter block, empty when the file has none.
+# is_agent_definition FILE , true when that block declares a non-empty name:.
+# ONE definition detector, shared by C12 and C13, so the two can never drift into
+# disagreeing about what an agent definition is (C2 requires C13 to detect one
+# "exactly as C12 does", and two verbatim copies could not be held to that).
+agent_frontmatter() {
+  awk 'NR==1{if($0!~/^---[[:space:]]*$/)exit; next} /^---[[:space:]]*$/{exit} {print}' "$1"
+}
+is_agent_definition() {
+  agent_frontmatter "$1" | grep -qE '^name:[[:space:]]*[^[:space:]]'
+}
+
 if [[ -d "$ROOT/agents" ]]; then
   for f in "$ROOT"/agents/*.md; do
     [[ -f "$f" ]] || continue
-    fm="$(awk 'NR==1{if($0!~/^---[[:space:]]*$/)exit; next} /^---[[:space:]]*$/{exit} {print}' "$f")"
-    printf '%s\n' "$fm" | grep -qE '^name:[[:space:]]*[^[:space:]]' || continue
+    is_agent_definition "$f" || continue
+    fm="$(agent_frontmatter "$f")"
     eff="$(printf '%s\n' "$fm" | awk -F':[[:space:]]*' '/^effort:/{print $2; exit}' | tr -d '[:space:]')"
     case "$eff" in
       low|medium|high|xhigh|max) : ;;
@@ -145,8 +157,7 @@ done
 if [[ -d "$ROOT/agents" ]]; then
   for f in "$ROOT"/agents/*.md; do
     [[ -f "$f" ]] || continue
-    fm="$(awk 'NR==1{if($0!~/^---[[:space:]]*$/)exit; next} /^---[[:space:]]*$/{exit} {print}' "$f")"
-    printf '%s\n' "$fm" | grep -qE '^name:[[:space:]]*[^[:space:]]' || continue
+    is_agent_definition "$f" || continue
     c13_check "$f" "$(basename "$f")"
   done
 fi

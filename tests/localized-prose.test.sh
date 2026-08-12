@@ -56,6 +56,17 @@ got="$(CLAUDE_GLOBAL_CONFIG="$tmpglobal" bash "$ROOT/bin/language-status.sh" "$R
 assert_eq "global 'fr': scope is project, not default" "en project" "$got"
 
 # ---------------------------------------------------------------------------
+# 2b. POSITIVE CONTROL for cases 1 and 2. Without it those six assertions cannot
+#     tell "the en override beat a German global" from "no global was ever read":
+#     both produce `en project`. Point the SAME env var at the SAME temp global from
+#     a directory with no override of its own, and the German must come through. If
+#     this case ever prints `en default`, cases 1 and 2 are proving nothing.
+# ---------------------------------------------------------------------------
+printf '# G\noutput_language: de\n' > "$tmpglobal"
+got="$(CLAUDE_GLOBAL_CONFIG="$tmpglobal" bash "$ROOT/bin/language-status.sh" "$TMP" 2>&1)"
+assert_eq "control: the temp global IS read where no project override exists" "de global" "$got"
+
+# ---------------------------------------------------------------------------
 # 3. AC3, storage: exactly one setting line, and its value is en.
 # ---------------------------------------------------------------------------
 assert_eq "this repo's CLAUDE.md carries exactly one output_language line" \
@@ -72,6 +83,18 @@ out="$(bash "$GUARD" "$PRD" --branch feature/usr-005-localized-prose \
   --commit "feat(language): honor the output language in generated prose" 2>&1)"; rc=$?
 assert_exit "guard passes the German-body fixture PRD with localized-run tokens" 0 "$rc"
 assert_contains "guard reports machine surfaces clean" "machine surfaces clean" "$out"
+
+# The fixture's own SHAPE is asserted here, because the guard never reads below the
+# closing --- and would therefore exit 0 for an all-ASCII body too. A first draft of
+# this fixture wrote German in ASCII transliteration (Inaktivitaet), which would have
+# made the case above prove nothing: the point is that NON-ASCII prose passes a guard
+# that ASCII-checks every machine surface. Asserting a committed fixture's property is
+# not a language detector (that is USR-006), it is a guard against silent regression.
+body_nonascii="$(awk 'BEGIN{n=0} /^---$/{n++; next} n>=2{print}' "$PRD" | LC_ALL=C grep -c '[^ -~]')"
+fm_nonascii="$(awk '/^---$/{n++; next} n==1{print}' "$PRD" | LC_ALL=C grep -c '[^ -~]')"
+if [ "$body_nonascii" -gt 0 ]; then echo "ok: the fixture body carries non-ASCII letters ($body_nonascii lines)"
+else echo "FAIL: the fixture body is all ASCII, so the guard case above proves nothing"; fail=1; fi
+assert_eq "and the fixture frontmatter carries none" "0" "$fm_nonascii"
 
 # ---------------------------------------------------------------------------
 # 5. AC4, mutation 1: a non-ASCII frontmatter VALUE on that same artifact must

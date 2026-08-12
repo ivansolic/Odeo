@@ -70,5 +70,5 @@ code (code-reviewer), agents' runtime behavior (/improve).
   keeping a second copy.
   Your findings and explanation prose follow the language; the eval record's frontmatter
   fields, its `verdict:` value, the `## Scores` and `## Verdict` headings, and the inline
-  field labels of your output template (`**What:**`, `**Why it matters:**`,
-  `**Example scenario:**`) stay English.
+  field labels of your output template where it defines them (`**What:**`,
+  `**Why it matters:**`, `**Example scenario:**`, `**Alternative:**`) stay English.

@@ -136,6 +136,18 @@ check "C13 catches /build not carrying the dispatcher duty" 1 "$d"; rm -rf "$d"
 d="$(clean_root)"; printf -- '---\nname: lonely\neffort: high\n---\nbody\n' > "$d/agents/lonely.md"
 check "C13 catches an agent definition with no output-language rule" 1 "$d"; rm -rf "$d"
 
+# The POINTER clause, ISOLATED. Every case above omits BOTH strings, so without this
+# one the 'Guardrails 7' grep could be deleted and the suite would stay fully green.
+# This case is what makes the pointer half of C2 a real invariant instead of a claim,
+# and it is the exact rot mode C13 exists to catch: a file that restates the guardrail
+# locally instead of pointing at it.
+d="$(clean_root)"; printf -- '---\nname: lonely\neffort: high\n---\nbody\nProse follows output_language, and this file keeps its own local copy of the rule.\n' > "$d/agents/lonely.md"
+check "C13 catches a restatement: token present, pointer missing" 1 "$d"; rm -rf "$d"
+
+# And the mirror: pointer present, token missing.
+d="$(clean_root)"; printf -- '---\nname: lonely\neffort: high\n---\nbody\nSee AGENTS.md Guardrails 7 for the rule.\n' > "$d/agents/lonely.md"
+check "C13 catches a pointer with no marker" 1 "$d"; rm -rf "$d"
+
 d="$(clean_root)"; printf -- 'A rubric, not a definition: no frontmatter, no name key.\n' > "$d/agents/agent-rubric.md"
 check "C13 skips a non-definition file in agents/" 0 "$d"; rm -rf "$d"
 

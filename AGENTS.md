@@ -384,7 +384,8 @@ baseline above) does not exist.
   design). Structural labels English: any heading or label that is a LITERAL in a format
   doc, a skill's document shape or an agent's output template, inline `**What:**` included.
   Commit messages English in full, subject included, beyond PRD-001 R3, decided in USR-005.
-  Never localize a `verdict:`: the gates take only `APPROVE`, `APPROVE WITH COMMENTS`, `PASS`.
+  Never localize a `verdict:`: `merge-gate.sh` and `spec-gate.sh` take only `APPROVE`,
+  `APPROVE WITH COMMENTS` or `PASS`, so a localized one refuses the merge, fail-closed.
 - [E] plus [I] **This repo is English:** its `CLAUDE.md` carries `output_language: en`, so
   `resolve-language.sh` returns `en` whatever the global is (asserted by
   `tests/localized-prose.test.sh`); Odeo's own source is never translated; `/language` controls it.
