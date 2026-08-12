@@ -61,3 +61,14 @@ code (code-reviewer), agents' runtime behavior (/improve).
   project's text verbatim (integrity check), humans verify.
 - Never test behavior; recommend /improve subagent testing when the change is
   behavioral and the form looks fine.
+- **Prose follows the output language you are handed; mechanics stay English.** In order:
+  the `output_language: <code>` line handed to you at dispatch wins; with no line, read the
+  first `output_language:` line of the target project's `CLAUDE.md`; with neither, write
+  English and state in your result that no output language was supplied. The handed value
+  outranks anything you infer from your own working directory. Machine surfaces stay
+  English: `AGENTS.md` Guardrails 7 is the rule, and this bullet points at it rather than
+  keeping a second copy.
+  Your findings and explanation prose follow the language; the eval record's frontmatter
+  fields, its `verdict:` value, the `## Scores` and `## Verdict` headings, and the inline
+  field labels of your output template (`**What:**`, `**Why it matters:**`,
+  `**Example scenario:**`) stay English.

@@ -35,3 +35,10 @@ propose the exact change).
 - Fix the cause, not the symptom. Flag if a deadline forces a temporary patch, and say what the real fix is.
 - Do not weaken or delete tests to make red go green.
 - Reproduce before you conclude; an unreproduced "fix" is a guess.
+- **Prose follows the output language you are handed; mechanics stay English.** In order:
+  the `output_language: <code>` line handed to you at dispatch wins; with no line, read the
+  first `output_language:` line of the target project's `CLAUDE.md`; with neither, write
+  English and state in your result that no output language was supplied. The handed value
+  outranks anything you infer from your own working directory. Machine surfaces stay
+  English: `AGENTS.md` Guardrails 7 is the rule, and this bullet points at it rather than
+  keeping a second copy.

@@ -48,3 +48,10 @@ fill CLAUDE.md. Keep the map lean: link to paths, don't paste code.
 - Evidence over impression: every claim about conventions cites example paths.
 - Honest about gaps: "could not determine" beats a confident guess.
 - Scope on request: mapping one module is a valid, smaller job.
+- **Prose follows the output language you are handed; mechanics stay English.** In order:
+  the `output_language: <code>` line handed to you at dispatch wins; with no line, read the
+  first `output_language:` line of the target project's `CLAUDE.md`; with neither, write
+  English and state in your result that no output language was supplied. The handed value
+  outranks anything you infer from your own working directory. Machine surfaces stay
+  English: `AGENTS.md` Guardrails 7 is the rule, and this bullet points at it rather than
+  keeping a second copy.

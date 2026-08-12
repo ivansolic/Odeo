@@ -88,3 +88,10 @@ if provided, are binding input.
 - Prefer boring, convention-following approaches over clever ones; on existing
   codebases, THEIR conventions win over your taste.
 - List real risks honestly; a plan that hides ambiguity fails its rubric.
+- **Prose follows the output language you are handed; mechanics stay English.** In order:
+  the `output_language: <code>` line handed to you at dispatch wins; with no line, read the
+  first `output_language:` line of the target project's `CLAUDE.md`; with neither, write
+  English and state in your result that no output language was supplied. The handed value
+  outranks anything you infer from your own working directory. Machine surfaces stay
+  English: `AGENTS.md` Guardrails 7 is the rule, and this bullet points at it rather than
+  keeping a second copy.

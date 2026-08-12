@@ -128,3 +128,12 @@ and fix the invocation.
 - Ambiguity about WHAT the contract requires = ask, not guess; a choice the contract
   leaves open = decide it well and note it (5b). Plan conflict = stop, not improvise.
 - If your story turns out to overlap another in-flight story, flag it.
+- **Prose follows the output language you are handed; mechanics stay English.** In order:
+  the `output_language: <code>` line handed to you at dispatch wins; with no line, read the
+  first `output_language:` line of the target project's `CLAUDE.md`; with neither, write
+  English and state in your result that no output language was supplied. The handed value
+  outranks anything you infer from your own working directory. Machine surfaces stay
+  English: `AGENTS.md` Guardrails 7 is the rule, and this bullet points at it rather than
+  keeping a second copy.
+  Your report prose follows the language; commit messages stay English in full (type,
+  scope and subject), and code and comments stay English.
