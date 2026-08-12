@@ -360,3 +360,31 @@ baseline above) does not exist.
   decision rests on route through `/research` (2+ sources or `unverified`). The system
   never DEPENDS on such recall anyway: model choice resolves live via tiers, prices
   come from args, never a remembered number.
+
+### 7. Output language (prose follows the setting, mechanics stay English)
+- [I] **Resolve the TARGET PROJECT's language before writing prose:** with `Bash`,
+  `resolve-language.sh <project-dir>`; without it, the value handed at dispatch. Never ask
+  mid-run, never guess, never infer it from the input document's language.
+- [I] **The dispatcher supplies `output_language: <code>`**, for the reason Guardrails 1
+  gives for the commit sha, on EVERY dispatch including re-dispatches in a review loop
+  (a loop regenerates the artifact). Fallback: the handed line, else the target project's
+  `CLAUDE.md`, else English AND say no output language was supplied.
+- [I] **Localized:** PRD, story, memo, plan and research BODIES, review findings, nudges,
+  chat. Never retro-translated, and the questions that ESTABLISH the setting are English
+  by construction, since no setting exists yet when they are asked.
+- [E] **`bin/language-guard.sh` refuses** non-ASCII or non-slug filenames, directory names,
+  frontmatter field names, branch names and commit scopes; a `model_tier` outside
+  `fast strong strongest`; ANY non-ASCII frontmatter value; a commit type outside the eight
+  allowlisted. It is STANDALONE, so invoking it is part of the work.
+- [I] **What it cannot see:** whether an ASCII word is English (`feat(anmeldung)` passes),
+  code and identifiers, indented frontmatter children. English by instruction, caught by
+  review, not by a script.
+- [I] **English surfaces, [E] where a backstop exists.** Whole frontmatter English, the
+  localized title in the H1 instead (below the closing `---`, out of the guard's reach by
+  design). Structural labels English: any heading or label that is a LITERAL in a format
+  doc, a skill's document shape or an agent's output template, inline `**What:**` included.
+  Commit messages English in full, subject included, beyond PRD-001 R3, decided in USR-005.
+  Never localize a `verdict:`: the gates take only `APPROVE`, `APPROVE WITH COMMENTS`, `PASS`.
+- [E] plus [I] **This repo is English:** its `CLAUDE.md` carries `output_language: en`, so
+  `resolve-language.sh` returns `en` whatever the global is (asserted by
+  `tests/localized-prose.test.sh`); Odeo's own source is never translated; `/language` controls it.
