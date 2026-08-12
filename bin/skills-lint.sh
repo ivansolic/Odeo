@@ -124,6 +124,33 @@ if [[ -d "$ROOT/agents" ]]; then
   done
 fi
 
+# C13. The prose-generating skills, /build (the dispatcher), and every agent DEFINITION
+#      carry the output-language rule: BOTH the token 'output_language' AND the pointer
+#      'Guardrails 7'. The token alone cannot tell a POINTER from a RESTATEMENT, so a
+#      file that quietly grows its own copy of the guardrail would stay green forever.
+#      A listed path absent from the scanned root is SKIPPED (as C3 and C6 do), so the
+#      lint stays runnable against any root. Honest limit: two greps prove
+#      marker-plus-pointer, never MEANING; an inverted bullet is a reviewer's catch.
+c13_check() { # c13_check <file> <label>
+  grep -q 'output_language' "$1" \
+    || viol C13 "$2: carries no output-language rule (missing the 'output_language' marker)"
+  grep -q 'Guardrails 7' "$1" \
+    || viol C13 "$2: states the output-language rule without pointing at it (missing 'Guardrails 7')"
+}
+for name in prd stories critique research product-signal build; do
+  f="$ROOT/skills/$name/SKILL.md"
+  [[ -f "$f" ]] || continue
+  c13_check "$f" "skills/$name/SKILL.md"
+done
+if [[ -d "$ROOT/agents" ]]; then
+  for f in "$ROOT"/agents/*.md; do
+    [[ -f "$f" ]] || continue
+    fm="$(awk 'NR==1{if($0!~/^---[[:space:]]*$/)exit; next} /^---[[:space:]]*$/{exit} {print}' "$f")"
+    printf '%s\n' "$fm" | grep -qE '^name:[[:space:]]*[^[:space:]]' || continue
+    c13_check "$f" "$(basename "$f")"
+  done
+fi
+
 # C9. Every SKILL.md declares a non-empty description
 for f in "${SKILLS[@]:+${SKILLS[@]}}"; do
   grep -qE '^description: .+' "$f" \
