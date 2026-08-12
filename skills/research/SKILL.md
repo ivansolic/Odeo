@@ -82,3 +82,11 @@ when the Context section rests on assumptions ("shall I back this with
   fabricated citation is worse than no report).
 - Ranges with methods over point estimates; conflicts reported as conflicts.
 - Plain language in the Answer; the evidence lives in Findings.
+- **Write the body in the project's output language; mechanics stay English.** Before
+  writing, resolve it with `resolve-language.sh <project-dir>` (the project's
+  `output_language` setting) and write the document BODY in that language. The whole
+  frontmatter block, the filename slug and every machine-read field stay English, and
+  the fixed section headings and field labels of this document's shape stay English
+  while the prose under them is localized. See `AGENTS.md` Guardrails 7 for the rule
+  and the fallback chain; do not restate it here, and never widen the code set, name a
+  language the resolver does not support, or offer to translate an existing document.

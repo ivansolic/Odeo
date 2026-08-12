@@ -82,3 +82,13 @@ rule, max 3 cycles); show first -> final score.
 - Small and independent; if it's more than ~2 days or can't be tested, split it.
 - Slice by value, never by technical layer.
 - Fold UI states into ACs; keep them behavioral, not visual (look comes from design tokens).
+- **Write the body in the project's output language; mechanics stay English.** Before
+  writing, resolve it with `resolve-language.sh <project-dir>` (the project's
+  `output_language` setting) and write the document BODY in that language. The whole
+  frontmatter block, the filename slug and every machine-read field stay English, and
+  the fixed section headings and field labels of this document's shape stay English
+  while the prose under them is localized. See `AGENTS.md` Guardrails 7 for the rule
+  and the fallback chain; do not restate it here, and never widen the code set, name a
+  language the resolver does not support, or offer to translate an existing document.
+  The localized title goes in the document's H1 below the closing `---`; the frontmatter
+  `title:` stays English and ASCII, because the guard checks every frontmatter value.

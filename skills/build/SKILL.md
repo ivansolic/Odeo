@@ -200,6 +200,10 @@ once so a still editor is not mistaken for a stall. Live watching is with-me (Mo
    `docs/plan-format.md` format; save each to `docs/plans/<date>-<slug>.md` with
    `approved: no`. If the architect escalates (a story would change product-level
    architecture), stop and resolve that with the user first (ADR).
+   **Hand it the language:** resolve the story's project with `resolve-language.sh
+   <project-dir>` and include the line `output_language: <code>` in the dispatch prompt.
+   The architect holds no `Bash`, so this is the only way it can know; same reason you
+   supply the commit sha (`AGENTS.md` Guardrails 7 carries the rule and the fallback).
 2. **Plan review LOOP (architecture-reviewer x architect, to clean, max 3)**:
    dispatch `architecture-reviewer` on each plan (read-only): does it fit the
    inherited architecture, respect boundaries, hide no risky ambiguity? Real
@@ -210,6 +214,11 @@ once so a still editor is not mistaken for a stall. Live watching is with-me (Mo
    `arch_review: clean (v<N>, <date>)` plus a short findings-and-resolutions
    section in the plan body. Present the trajectory at the gate ("v1: 2
    blocking findings -> v2: 1 -> v3: clean").
+   **Hand the `output_language: <code>` line over on EVERY round of this loop**, to
+   `architecture-reviewer` and to the `architect` on each re-dispatch. Neither holds
+   `Bash`, and the loop REGENERATES the artifact, so a later round would otherwise drop
+   the field and the surviving artifact is the one the gate reads (`AGENTS.md`
+   Guardrails 7).
 3. **Present the plans for approval**: approach, file map, riskiest part, open
    questions, + the plan-review trajectory. The user approves (flip
    `approved: yes`), asks for changes (back to the architect), or rejects.
@@ -233,7 +242,11 @@ once so a still editor is not mistaken for a stall. Live watching is with-me (Mo
    and their author regenerates them. Hand the reviewer the dispatched value the same way
    you already hand it the commit sha. If the dispatch REJECTS the named model, stop and
    ask; never fall back silently and never record a model the dispatch did not accept.
-   If the user named no model, the builder's declared tier applies. Each builder
+   If the user named no model, the builder's declared tier applies.
+   **Hand the `output_language: <code>` line to the builder and to every reviewer you
+   dispatch on its result**, on EVERY dispatch including re-dispatches in the review
+   loop, for the same reason the dispatched model name above travels on every round
+   (`AGENTS.md` Guardrails 7 carries the fallback chain). Each builder
    executes its plan as a contract: success-signal, green baseline, tasks in
    order (dev-rigor style from CLAUDE.md), loop to the signal, stop-and-ask on
    any plan conflict. Then run `code-reviewer` (plus `design-reviewer` if UI) on
