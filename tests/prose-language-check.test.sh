@@ -315,6 +315,83 @@ assert_ge "K8 de >= 12" 12 "$(field "$out" de)"
 assert_eq "K8 status OK" "OK" "$(status "$out")"
 assert_eq "K8 detected=de" "de" "$(field "$out" detected)"
 
+# ---------------------------------------------------------------------------
+# AC. The story's own evidence, over the two NAMED samples in the committed German
+#     fixture project. These use the real fixture, not a temp document, because the
+#     story asks for "one matching and one mismatching sample".
+# ---------------------------------------------------------------------------
+FX="$ROOT/tests/fixtures/language-de-project"
+P901="$FX/docs/prds/PRD-901-login.md"
+P904="$FX/docs/prds/PRD-904-checkout.md"
+P905="$FX/docs/prds/PRD-905-api-quota.md"
+S901="$FX/docs/stories/USR-901-login-timeout.md"
+
+# AC1: the mismatching sample warns AND names the artifact.
+run "$FX" "$P904"; o="$OUT"
+assert_eq       "AC1 the mismatching sample warns"        "WARN" "$(status "$o")"
+assert_contains "AC1 the field line names the artifact"   "$P904" "$o"
+assert_eq       "AC1 expected=de"                         "de" "$(field "$o" expected)"
+assert_eq       "AC1 detected=en"                         "en" "$(field "$o" detected)"
+assert_contains "AC1 the plain-language line says nothing is blocked" "nothing is blocked" "$o"
+assert_exit     "AC1 exit 0"                              0 "$RC"
+
+# AC2: the matching sample does not warn, and cannot pass for LACK OF EVIDENCE. The last
+# two assertions are the point twice over: LOW-EVIDENCE would satisfy "no warning is
+# shown" while proving nothing about German, and they double as the collapsed-region
+# companion for this case.
+run "$FX" "$P901"; o="$OUT"
+assert_absent "AC2 the matching sample prints no WARN" "WARN" "$o"
+assert_eq     "AC2 status OK"                          "OK" "$(status "$o")"
+assert_eq     "AC2 detected=de"                        "de" "$(field "$o" detected)"
+assert_ge     "AC2 counted >= 12 (not LOW-EVIDENCE for the wrong reason)" 12 "$(field "$o" counted)"
+
+# AC3: exit stays 0, including a multi-file run carrying one warning and one OK.
+run "$FX" "$P901"; assert_exit "AC3 matching sample exits 0" 0 "$RC"
+run "$FX" "$P904"; assert_exit "AC3 mismatching sample exits 0" 0 "$RC"
+run "$FX" "$P904" "$P901"; o="$OUT"
+assert_exit     "AC3 both files in one invocation exit 0" 0 "$RC"
+assert_contains "AC3 one WARN line" "WARN" "$o"
+assert_contains "AC3 one OK line"   "OK"   "$o"
+assert_contains "AC3 the summary counts them" "2 file(s) checked, 1 warning(s)" "$o"
+
+# AC4: German prose embedding English TECHNICAL terms must not warn. This en=0 is a
+# property of THIS FIXTURE, whose English technical terms are bare single-word nouns and
+# whose dense English sits in excluded regions. Attribution to a single exclusion is not
+# this case's job but B1..B7's, because every region mutation reddens this case together
+# with its B case. Design decision 5 states what the mechanism does and does not deliver.
+run "$FX" "$P905"; o="$OUT"
+assert_eq "AC4 status OK"        "OK" "$(status "$o")"
+assert_eq "AC4 detected=de"      "de" "$(field "$o" detected)"
+assert_ge "AC4 counted >= 12"    12   "$(field "$o" counted)"
+assert_eq "AC4 en=0"             "0"  "$(field "$o" en)"
+# Paired control: the fixture's fenced English sentence, as PLAIN PROSE, must count. This
+# is what makes en=0 above attributable to the exclusions rather than to a typo in the
+# word list.
+ctl="$TMP/ac4-control.md"
+# Strip the leading comment marker while copying, because the fenced block's lines are
+# `# NOTE: ...` comments, and a line starting with # is an ATX HEADING once it is outside
+# the fence, so a verbatim copy would be excluded by the heading rule and the control
+# would report en=0 for a reason that has nothing to do with the word list. The plan asks
+# for this English "as PLAIN PROSE", and that is what this makes it.
+awk '/^```/{f=!f; next} f{sub(/^#[ \t]*/, ""); print}' "$P905" > "$ctl"
+run "$FX" "$ctl"; o="$OUT"
+assert_ge "AC4 control: the same English DOES count as plain prose (en >= 8)" 8 "$(field "$o" en)"
+
+# The English-on-purpose story warns, and that is CORRECT. An English document really does
+# live in this German fixture project (USR-005 design decision 10 keeps USR-901 English so
+# a German plan cannot be mimicry), so the check's honest limit is recorded as a case
+# instead of discovered later. Nobody may silence this warning by translating that story.
+run "$FX" "$S901"; o="$OUT"
+assert_eq "AC the English-on-purpose story warns, correctly" "WARN" "$(status "$o")"
+assert_eq "AC and it is detected as en" "en" "$(field "$o" detected)"
+
+# The new fixtures must keep USR-001's [E] machine-surface gate green.
+for nf in "$P904" "$P905"; do
+  g_out="$(bash "$ROOT/bin/language-guard.sh" "$nf" 2>&1)"; g_rc=$?
+  assert_exit "AC language-guard passes $(basename "$nf")" 0 "$g_rc"
+  assert_contains "AC language-guard reports clean for $(basename "$nf")" "machine surfaces clean" "$g_out"
+done
+
 echo ""
 if [ "$fail" -eq 0 ]; then echo "prose-language-check: all assertions passed."; else echo "prose-language-check: FAILURES above."; fi
 exit "$fail"
