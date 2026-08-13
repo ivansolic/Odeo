@@ -90,14 +90,95 @@ assert_contains "guard reports machine surfaces clean" "machine surfaces clean" 
 # made the case above prove nothing: the point is that NON-ASCII prose passes a guard
 # that ASCII-checks every machine surface. Asserting a committed fixture's property is
 # not a language detector (that is USR-006), it is a guard against silent regression.
-# UTF-8 LEAD BYTES, not '[^ -~]'. That class also matches ASCII control bytes (TAB is
-# 0x09), so a fully transliterated body with one tab-indented line satisfied it, which is
-# the exact regression this assertion exists to catch. Claim no wider than the mechanism.
-body_nonascii="$(awk 'BEGIN{n=0} /^---$/{n++; next} n>=2{print}' "$PRD" | LC_ALL=C grep -c $'[\200-\377]')"
-fm_nonascii="$(awk '/^---$/{n++; next} n==1{print}' "$PRD" | LC_ALL=C grep -c $'[\200-\377]')"
-if [ "$body_nonascii" -gt 0 ]; then echo "ok: the fixture body carries non-ASCII letters ($body_nonascii lines)"
-else echo "FAIL: the fixture body is all ASCII, so the guard case above proves nothing"; fail=1; fi
+# The number 6 is LOAD-BEARING, not incidental: USR-006 gate decision G3 rewrites this
+# fixture's three German section headings to English, and its safety argument is that
+# the headings carry no letters while 5 prose lines plus the H1 do. A failure here means
+# one of exactly two things, and both need a deliberate answer rather than a nudge to the
+# number: either the fixture's German prose was reduced, which must be restored or the
+# count re-derived on purpose, or a heading gained a non-ASCII letter, which violates
+# USR-005 design decision 3 (a localized PRD keeps English section headings).
+# Do NOT delete the body half as redundant: it is the in-suite positive control for the
+# frontmatter half's negative claim, which would otherwise pass on a broken instrument.
+# letter_lines FILE REGION  , REGION is body|frontmatter. PRINTS the number of lines in
+# that region carrying at least one non-ASCII LETTER. One site for the character class,
+# so the two assertions below cannot drift apart. It PRINTS a count and must never be
+# used as a predicate: grep -c exits 1 on zero matches, which this file's pipefail would
+# turn into a failure of the wrong kind.
+#
+# THE CLASS: $'[\303-\305][\200-\277]' matches U+00C0 to U+017F, the Latin-1 Supplement
+# plus Latin Extended-A. It covers the German and French letters AND the Croatian ones
+# (c-caron, c-acute, s-caron, z-caron, d-stroke) that a Latin-1-only $'\303[\200-\277]'
+# would miss, which is what case R2 exists to pin. It REJECTS U+2019, U+00A0, U+250C,
+# U+1F600, U+2013 and TAB, which is what case R1 exists to pin.
+# What it replaced and why: $'[\200-\377]' matched every byte at or above 0x80, so a
+# fully transliterated German body carrying a curly apostrophe, an NBSP or box-drawing
+# bytes satisfied it. Three such wrong-reason passes were demonstrated. The old comment
+# called that class "UTF-8 LEAD BYTES", which was wrong in the other direction:
+# continuation bytes are in it too. Claim no wider than the mechanism.
+# Verified on both grep binaries present here (the ugrep on PATH and /usr/bin/grep),
+# FROM A SCRIPT FILE, because an inline $'...' pattern passed through a tool command
+# layer can arrive mangled and then silently match nothing.
+# Honest caveat, written rather than left to be rediscovered: it is a letter BLOCK
+# range, not a letter class, so the multiplication and division signs (U+00D7, U+00F7)
+# match too. A fixture translated outside those two blocks (Greek, Cyrillic) fails
+# LOUDLY rather than silently, which is the safe direction.
+letter_lines() {
+  case "$2" in
+    body)        awk 'BEGIN{n=0} /^---$/{n++; next} n>=2{print}' "$1" ;;
+    frontmatter) awk '/^---$/{n++; next} n==1{print}' "$1" ;;
+    *)           echo "letter_lines: bad region '$2'" >&2; return 2 ;;
+  esac | LC_ALL=C grep -c $'[\303-\305][\200-\277]'
+}
+body_nonascii="$(letter_lines "$PRD" body)"
+fm_nonascii="$(letter_lines "$PRD" frontmatter)"
+assert_eq "the fixture body carries non-ASCII letters on exactly 6 lines" "6" "$body_nonascii"
 assert_eq "and the fixture frontmatter carries none" "0" "$fm_nonascii"
+
+# ---------------------------------------------------------------------------
+# 4b. The letter class itself, two clauses, one case each. These exist because the
+#     class shipped in USR-005 counted non-ASCII BYTES while three surfaces claimed
+#     LETTERS, and three wrong-reason passes were demonstrated on it. R1 is the
+#     REJECTION clause, R2 the ACCEPTANCE clause. They use SEPARATE documents on
+#     purpose: sharing one would put five letters in R2's count and break both
+#     mutation-attribution claims in this task's verify block.
+# ---------------------------------------------------------------------------
+# R1: nothing here is a letter, so the count must be 0. The four noise lines carry,
+# one each, U+2019 (curly apostrophe), U+00A0 (NBSP), U+250C (box drawing, inside a
+# fence) and a TAB indent. The TAB line is aimed at the OTHER class named in the old
+# comment, [^ -~], which DOES match TAB: mutation 3 below uses it to catch the
+# plausible "just use [^ -~]" fix. Under the byte class this task replaces,
+# $'[\200-\377]', R1 reports 3 and not 4, because TAB is 0x09 and is not in it.
+r1="$TMP/r1-noise.md"
+{
+  printf -- '---\nid: PRD-999\ntitle: Session timeout\nstatus: draft\n---\n\n'
+  printf 'Angemeldete Nutzer verlassen ihren Arbeitsplatz ohne sich abzumelden.\n'
+  printf 'Das betrifft geteilte Rechner in Grossraumbueros und an Empfangstresen.\n'
+  printf 'Ein Hinweis kurz davor ist nicht Teil dieser Aenderung.\n'
+  printf 'curly \xe2\x80\x99 apostrophe\n'
+  printf 'nbsp \xc2\xa0 here\n'
+  printf '```\nbox \xe2\x94\x8c drawing\n```\n'
+  printf '\ttab indented line\n'
+} > "$r1"
+assert_eq "R1 rejection: no letter in the noise document" "0" "$(letter_lines "$r1" body)"
+
+# R2: exactly two lines carry letters. This case PASSES under the old byte class too,
+# and that is deliberate: it exists to block the plausible WRONG fix. A Latin-1-only
+# $'\303[\200-\277]' reports 1, not 2, because the Croatian letters lead with 0xC4
+# and 0xC5. It carries NONE of R1's four noise lines.
+# NOTE on the escapes above and below: they are written as LITERAL backslash-x
+# sequences on purpose, so bash printf emits raw bytes at run time. Writing the
+# characters directly double-encodes them (0xe2 becomes C3 A2), and C3 is inside this
+# file's letter class, which made R1 count 3 and made R2 pass for the WRONG reason
+# during authoring. Keep them as escapes.
+r2="$TMP/r2-letters.md"
+{
+  printf -- '---\nid: PRD-998\ntitle: Session timeout\nstatus: draft\n---\n\n'
+  printf 'Angemeldete Nutzer verlassen ihren Arbeitsplatz ohne sich abzumelden.\n'
+  printf 'Das betrifft geteilte Rechner in Grossraumbueros und an Empfangstresen.\n'
+  printf 'German letters: M\xc3\xa4dchen und Stra\xc3\x9fe.\n'
+  printf 'Croatian letters: \xc4\x8d \xc4\x87 \xc5\xa1 \xc5\xbe \xc4\x91.\n'
+} > "$r2"
+assert_eq "R2 acceptance: both letter lines counted" "2" "$(letter_lines "$r2" body)"
 
 # ---------------------------------------------------------------------------
 # 5. AC4, mutation 1: a non-ASCII frontmatter VALUE on that same artifact must
