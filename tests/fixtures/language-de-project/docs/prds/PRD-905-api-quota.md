@@ -37,7 +37,7 @@ wenn viele Kunden gleichzeitig neu beginnen. Siehe
 https://example.test/about-the-quota-and-the-limit fuer die Herleitung.
 
 ```
-# NOTE: the counter is reset by the worker that is scheduled for the window, and
-# the value that is written here is the one that the endpoint reads, so if this
-# and the header disagree then the worker is behind and not the limit itself.
+the counter is reset by the worker that is scheduled for the window, and
+the value that is written here is the one that the endpoint reads, so if this
+and the header disagree then the worker is behind and not the limit itself.
 ```

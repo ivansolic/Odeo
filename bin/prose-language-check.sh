@@ -72,15 +72,29 @@ prose_region() {
     {
       line=$0
       probe=line; sub(/^[ \t]+/, "", probe)            # 3. fences, first non-ws run
-      if (probe ~ /^```/ || probe ~ /^~~~/) { infence = !infence; next }
+      if (probe ~ /^```/ || probe ~ /^~~~/) {
+        fchar = substr(probe, 1, 1)
+        frun = probe; sub("[^" fchar "].*$", "", frun)
+        if (!infence)                                  { infence=1; fc=fchar; fn=length(frun) }
+        else if (fchar == fc && length(frun) >= fn)     { infence=0 }
+        next                                           # the marker line never counts
+      }
       if (infence) next
-      if (line ~ /^ {0,3}#{1,6}([ \t]|$)/) next        # 4. one heading line
+      hprobe=line                                      # 4. ATX heading, no awk intervals
+      if (substr(hprobe,1,1)==" ") hprobe=substr(hprobe,2)
+      if (substr(hprobe,1,1)==" ") hprobe=substr(hprobe,2)
+      if (substr(hprobe,1,1)==" ") hprobe=substr(hprobe,2)
+      if (substr(hprobe,1,1)=="#") {
+        hrun=hprobe; sub(/[^#].*$/, "", hrun)
+        hrest=substr(hprobe, length(hrun)+1)
+        if (length(hrun) <= 6 && (hrest=="" || substr(hrest,1,1)==" " || substr(hrest,1,1)=="\t")) next
+      }
       probe2=line; sub(/^[ \t]+/, "", probe2)
       if (substr(probe2,1,1) == "|") next              # 5. one table row
       print line
     }
     END { if (fm==1) exit 0 }                          # unterminated header: nothing printed
-  ' | awk '
+  ' | awk 'BEGIN{ RS="\x01" }
     {
       line=$0
       while (match(line, /`[^`]*`/)) \

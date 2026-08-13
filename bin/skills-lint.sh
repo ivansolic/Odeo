@@ -75,7 +75,7 @@ for r in $trefs; do
 done
 # pass two: everything else, with the test-file names already consumed
 orefs="$(printf '%s\n' "$c5_all" | sed -E 's/[a-z0-9_.-]+\.test\.sh/ /g' \
-         | grep -oE '\b[a-z][a-z0-9_-]*\.sh\b' | sort -u)"
+         | grep -oE '\b[a-z][a-z0-9_-]*(\.[a-z0-9_-]+)*\.sh\b' | sort -u)"
 for r in $orefs; do
   [[ -f "$ROOT/bin/$r" || -f "$ROOT/$r" ]] \
     || viol C5 "referenced script does not exist: $r (searched bin/ and repo root)"

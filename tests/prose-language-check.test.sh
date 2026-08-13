@@ -123,20 +123,20 @@ b5() { b_shell "| $SIX | und mehr |" > "$1"; }
 b6() { b_shell "Siehe [Notiz](../notes/the-of-and-that-with-is.md) im Anhang." > "$1"; }
 b7() { b_shell "Siehe https://example.test/the-of-and-that-with-is im Anhang." > "$1"; }
 
-b_case B1 "frontmatter field value" b1; b_control B1
-b_case B2 "inside a backtick fence"  b2; b_control B2
-b_case B3 "inside an inline code span" b3
-b_case B4 "inside an ATX heading" b4
-b_case B5 "inside a table row" b5
-b_case B6 "inside a RELATIVE link target" b6
-b_case B7 "a BARE url in prose" b7
+b_case B1 "frontmatter field value"      b1; b_control B1
+b_case B2 "inside a backtick fence"      b2; b_control B2
+b_case B3 "inside an inline code span"   b3; b_control B3
+b_case B4 "inside an ATX heading"        b4; b_control B4
+b_case B5 "inside a table row"           b5; b_control B5
+b_case B6 "inside a RELATIVE link target" b6; b_control B6
+b_case B7 "a BARE url in prose"          b7; b_control B7
 
 # ---------------------------------------------------------------------------
 # D. Tilde fences. B2 repeated with ~~~, same shape and same assertions, because a
 #    builder can easily implement only one fence marker.
 # ---------------------------------------------------------------------------
 d1() { { printf -- '---\nid: PRD-800\ntitle: Session timeout\nstatus: draft\n---\n\n'; printf '# PRD-800: Sitzungsablauf\n\n'; printf 'Die Frist ist kurz und das Konto wird gesperrt.\n'; printf '\n~~~\n%s\n~~~\n\n' "$SIX"; de_prose; de_prose; } > "$1"; }
-b_case D1 "inside a tilde fence" d1
+b_case D1 "inside a tilde fence" d1; b_control D1
 
 # ---------------------------------------------------------------------------
 # E. The other two lists, so none ships untested. Bare prose, no shell.
@@ -148,12 +148,15 @@ printf 'la societe, et parce que la regle le demande dans tous les cas.\n' >> "$
 run "$DE" "$fr"; out="$OUT"
 assert_eq "E1 French prose under a de project warns" "WARN" "$(status "$out")"
 assert_eq "E1 detected=fr" "fr" "$(field "$out" detected)"
-# Croatian needs a denser sample than German or English does, and that is the plan's
-# Risk 6 showing up in practice rather than a fixture accident: the exclusion set removes
-# most of Croatian's highest-frequency tokens (je se i a u o to do on no ne si sa), so a
-# short Croatian paragraph lands in LOW-EVIDENCE where an equally short German one warns.
-# The uniform MIN_HITS hides that asymmetry; this comment records it at the one place a
-# maintainer will meet it.
+# Croatian needs a denser sample here, and the honest cause is MOSTLY VOCABULARY with a
+# smaller structural component, not the structural claim alone. Measured: this sample's
+# first three lines already score hr=15 and WARN, so the original failure was mainly that
+# the first draft's words were not in the list. The structural part is real but smaller
+# than a first reading suggests: the exclusion set removes Croatian's highest-frequency
+# tokens (je se i a u o to do on no ne si sa), and this sample carries 15 counted tokens
+# out of 36 words against German's 19 out of 33, so a uniform MIN_HITS is slightly less
+# sensitive for Croatian. Recorded at the one place a maintainer meets it, sized to what
+# was measured rather than to the direction of the effect.
 hr="$TMP/e-hr.md"
 printf 'Ako korisnik nije aktivan, sesija koja je otvorena zatvara se nakon roka, a\n' > "$hr"
 printf 'pristup prema podacima blokira se prije nego ga bilo koji drugi korisnik\n' >> "$hr"
@@ -213,6 +216,16 @@ assert_contains "G8 the summary carries the contract" "warnings never fail" "$ou
 assert_contains "G8 the summary counts both files"    "2 file(s) checked, 1 warning(s)" "$out"
 assert_eq "G9 the source contains no 'exit 1' literal, which is how never-1 is proven" \
   "0" "$(grep -c 'exit 1' "$SCRIPT")"
+
+# C3 routing, which run() cannot see because it merges 2>&1. A caller that pipes stdout to
+# a log and lets stderr reach the user depends on this split.
+w_out="$(CLAUDE_GLOBAL_CONFIG="$tmpglobal" bash "$SCRIPT" "$DE" "$TMP/e-fr.md" 2>/dev/null)"
+w_err="$(CLAUDE_GLOBAL_CONFIG="$tmpglobal" bash "$SCRIPT" "$DE" "$TMP/e-fr.md" 2>&1 >/dev/null)"
+assert_absent  "G10 a WARN field line is NOT on stdout" "WARN" "$w_out"
+assert_contains "G10 a WARN field line IS on stderr"    "WARN" "$w_err"
+assert_contains "G10 the summary stays on stdout"       "warnings never fail" "$w_out"
+o_out="$(CLAUDE_GLOBAL_CONFIG="$tmpglobal" bash "$SCRIPT" "$DE" "$TMP/B1.md" 2>/dev/null)"
+assert_contains "G11 an OK field line IS on stdout" "prose-language: OK" "$o_out"
 
 # ---------------------------------------------------------------------------
 # H. The lists themselves. Extraction WITHOUT sourcing (sourcing runs the argument
@@ -368,12 +381,12 @@ assert_eq "AC4 en=0"             "0"  "$(field "$o" en)"
 # is what makes en=0 above attributable to the exclusions rather than to a typo in the
 # word list.
 ctl="$TMP/ac4-control.md"
-# Strip the leading comment marker while copying, because the fenced block's lines are
-# `# NOTE: ...` comments, and a line starting with # is an ATX HEADING once it is outside
-# the fence, so a verbatim copy would be excluded by the heading rule and the control
-# would report en=0 for a reason that has nothing to do with the word list. The plan asks
-# for this English "as PLAIN PROSE", and that is what this makes it.
-awk '/^```/{f=!f; next} f{sub(/^#[ \t]*/, ""); print}' "$P905" > "$ctl"
+# A verbatim copy is correct now. It was not before: the fenced lines used to be
+# `# NOTE: ...` comments, and a #-leading line is dropped by the HEADING rule whether or
+# not it sits in a fence, so the fence exclusion contributed NOTHING measurable to AC4 and
+# the recorded mutation proof did not reproduce. The fixture's fenced block is plain prose
+# now, which is what makes fence-off move en from 0 to 27.
+awk '/^```/{f=!f; next} f{print}' "$P905" > "$ctl"
 run "$FX" "$ctl"; o="$OUT"
 assert_ge "AC4 control: the same English DOES count as plain prose (en >= 8)" 8 "$(field "$o" en)"
 
@@ -391,6 +404,35 @@ for nf in "$P904" "$P905"; do
   assert_exit "AC language-guard passes $(basename "$nf")" 0 "$g_rc"
   assert_contains "AC language-guard reports clean for $(basename "$nf")" "machine surfaces clean" "$g_out"
 done
+
+# K9: a LONGER fence wrapping a SHORTER one. The marker toggle used to be a bare flip, so
+# the inner ``` closed the outer ```` and the example inside became prose. Measured then:
+# en=16 on a correct German artifact. Only a matching-or-longer marker closes a fence now.
+k9="$TMP/K9.md"
+{ de_prose; de_prose; printf '````\n'; printf '```\n%s and the of and that\n```\n' "$SIX"; printf '````\n'; de_prose; } > "$k9"
+run "$DE" "$k9"; o="$OUT"
+assert_eq "K9 a shorter inner fence does not close the outer one: en=0" "0" "$(field "$o" en)"
+assert_ge "K9 and the German outside both fences survives: de >= 12" 12 "$(field "$o" de)"
+
+# K10: a code span that OPENS on one line and CLOSES on the next. The inline deletions used
+# to run per line, so such a span was never deleted and its content counted as prose.
+k10="$TMP/K10.md"
+{ de_prose; de_prose; printf 'Der Wert `%s\nand the of and` steht im Kopf.\n' "$SIX"; } > "$k10"
+run "$DE" "$k10"; o="$OUT"
+assert_eq "K10 a code span across two lines is still deleted: en=0" "0" "$(field "$o" en)"
+assert_ge "K10 and the surrounding German survives: de >= 12" 12 "$(field "$o" de)"
+
+# K11: the heading rule without awk interval expressions. Up to three leading spaces still
+# make a heading, four do not, and seven hashes are not a heading. Intervals were the first
+# {n,m} use in bin/ and the awk on the stated portability floor treats them literally, which
+# would have silently killed exclusion 4 on installed machines.
+k11a="$TMP/K11a.md"; printf '   ## %s\nund mit von zu zum zur\n' "$SIX" > "$k11a"
+run "$DE" "$k11a"; o="$OUT"
+assert_eq "K11a three leading spaces still make a heading: en=0" "0" "$(field "$o" en)"
+assert_eq "K11a and only the heading line went: de=6" "6" "$(field "$o" de)"
+k11b="$TMP/K11b.md"; printf '####### %s\nund mit von\n' "$SIX" > "$k11b"
+run "$DE" "$k11b"; o="$OUT"
+assert_ge "K11b seven hashes are NOT a heading, so the line counts: en >= 6" 6 "$(field "$o" en)"
 
 echo ""
 if [ "$fail" -eq 0 ]; then echo "prose-language-check: all assertions passed."; else echo "prose-language-check: FAILURES above."; fi

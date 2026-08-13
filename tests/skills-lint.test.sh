@@ -177,6 +177,13 @@ printf -- 'baseline\nsee tests/localized-prose.test.sh for the evidence\n' > "$d
 printf -- 'placeholder\n' > "$d/tests/localized-prose.test.sh"
 check "C5 reads a .test.sh reference as a test file, not as test.sh" 0 "$d"; rm -rf "$d"
 
+# A DOTTED script name. Pass two used to match only the last dotted run, so a reference to
+# bin/init-project.language.sh yielded the phantom `language.sh`; this repo really contains
+# tests/init-project.language.test.sh, so dotted names are not hypothetical here.
+d="$(clean_root)"; printf -- 'baseline\nrun bin/init-project.language.sh for setup\n' > "$d/AGENTS.md"
+printf -- 'placeholder\n' > "$d/bin/init-project.language.sh"
+check "C5 resolves a DOTTED script name without inventing a phantom" 0 "$d"; rm -rf "$d"
+
 # FINAL: the real repo must pass its own lint
 check "the actual repo passes its own invariants" 0 "$TEST_DIR/.."
 
