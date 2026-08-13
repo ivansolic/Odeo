@@ -379,6 +379,21 @@ baseline above) does not exist.
 - [I] **What it cannot see:** whether an ASCII word is English (`feat(anmeldung)` passes),
   code and identifiers, indented frontmatter children. English by instruction, caught by
   review, not by a script.
+- [I] **A soft check exists, and it enforces nothing.** After saving a generated prose
+  document, run `prose-language-check.sh <project-dir> <file>`. It counts function-word
+  frequency over the document's prose region, which excludes frontmatter, fenced code,
+  inline code spans, headings, table rows, link targets and URLs, against the effective
+  setting from `resolve-language.sh`, and WARNS when one other supported language holds
+  more than half of at least 12 counted words. Its exit is ALWAYS 0 for any document
+  content, so it can never block a commit, a merge or a gate; exit 2 means the invocation
+  was malformed and the check DID NOT RUN, not that the document failed. It is [I] and not
+  [E] for exactly that reason: the mechanism is tested, but nothing stops a mismatched
+  document from being committed, so human review and `/merge` stay the backstop (heuristics
+  are named as heuristics, Guardrails 6). Honest limits: it knows only `en de hr fr`, it
+  warns nothing below 12 words, it cannot tell a deliberately English document from a
+  mistranslation, and a hyphenated or multi-word English phrase inside German prose does
+  contribute English hits. Its own output stays English: script output is not in the
+  localized list above, so nobody should translate it and break the grep.
 - [I] **English surfaces, [E] where a backstop exists.** Whole frontmatter English, the
   localized title in the H1 instead (below the closing `---`, out of the guard's reach by
   design). Structural labels English: any heading or label that is a LITERAL in a format

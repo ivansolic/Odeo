@@ -158,12 +158,27 @@ evidence, not a repo artifact.
 
 ### Diagnostic that decides nothing
 
-Record `grep -c '[^ -~]' <that path>` in the sample-evidence block of the run report.
-Read it precisely: it counts LINES CONTAINING at least one non-ASCII byte, not letters
-and not words. It is a hint for a later reader, NOT a criterion, because correct German
-prose can be entirely ASCII and correct English prose can contain non-ASCII, so the
-number can be wrong in both directions. Never report a pass or a fail on its strength,
-and never place it where it reads as corroboration of the human's verdict.
+Run the check over the saved sample and record its full field line in the
+sample-evidence block of the run report. The sample lives OUTSIDE the repo, so the
+project directory is named explicitly:
+
+```
+bash bin/prose-language-check.sh tests/fixtures/language-de-project <that path>
+```
+
+It is a hint for a later reader, NOT a criterion, and neither outcome decides anything.
+An `OK` does not confirm the human's read, and a `WARN` does not overturn it: a German
+plan is exactly the accepted-noise case this check names, because its commit subjects and
+verify lines are English by rule and can be a large share of a short prose region. Never
+report a pass or a fail on its strength, and never place it where it reads as
+corroboration of the verdict.
+
+Why this replaced the byte count that used to sit here, and why it is still not a
+criterion: the old recipe counted LINES CONTAINING a non-ASCII byte, which is not a
+language measurement at all, so it could be wrong in both directions (correct German
+prose can be entirely ASCII, correct English prose can carry non-ASCII). The new line
+reports what the check actually measured, which is strictly more informative. A heuristic
+still does not outrank a human reading the prose.
 
 ## Procedure B (optional), the PRD and memo wording of AC1
 
