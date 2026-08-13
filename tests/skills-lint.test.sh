@@ -157,6 +157,26 @@ mkskill "$d" build "disable-model-invocation: true\n" "Builds a story." "Hand th
 printf -- '---\nname: lonely\neffort: high\n---\nbody\noutput_language: prose follows it, see AGENTS.md Guardrails 7.\n' > "$d/agents/lonely.md"
 check "C13 passes when the skills and the agent definition all carry it" 0 "$d"; rm -rf "$d"
 
+# C5, widened scope. AGENTS.md and global/CLAUDE.md are now scanned, because Guardrails 7
+#     is the single source sixteen surfaces point at by reference (C13), so a rename of a
+#     script named only there would leave all sixteen instructing agents to run a
+#     nonexistent file with every gate green.
+d="$(clean_root)"; printf -- 'baseline\nrun ghost-script.sh for this\n' > "$d/AGENTS.md"
+check "C5 catches a ghost script named only in AGENTS.md" 1 "$d"; rm -rf "$d"
+
+d="$(clean_root)"; printf -- 'baseline\nrun ghost-script.sh for this\n' > "$d/global/CLAUDE.md"
+check "C5 catches a ghost script named only in the global baseline" 1 "$d"; rm -rf "$d"
+
+# The PHANTOM, and this case is a permanent positive control rather than a one-off. C5's
+# extraction is word-boundary based, so a reference to tests/x.test.sh yields the name
+# `test.sh` unless test-file names are consumed first. No bin/test.sh exists, so the naive
+# widening turns the lint RED on the clean repo. This case must be GREEN both before and
+# after the change; if it ever goes red, the two-pass extraction has been undone.
+d="$(clean_root)"; mkdir -p "$d/tests"
+printf -- 'baseline\nsee tests/localized-prose.test.sh for the evidence\n' > "$d/AGENTS.md"
+printf -- 'placeholder\n' > "$d/tests/localized-prose.test.sh"
+check "C5 reads a .test.sh reference as a test file, not as test.sh" 0 "$d"; rm -rf "$d"
+
 # FINAL: the real repo must pass its own lint
 check "the actual repo passes its own invariants" 0 "$TEST_DIR/.."
 

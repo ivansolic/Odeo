@@ -11,7 +11,7 @@ the lint moves the catch from "test day" to "commit time". Run:
 | C2 | Any skill that names a tunnel TOOL (cloudflared/ngrok/localtunnel) owns the exposure lifecycle (contains "stop sharing" or "teardown") | S1, tunnel left running after the test |
 | C3 | Skills that produce human-readable spec documents (`prd`, `stories`, `critique`, `research` when it exists) reference the editor-open rule (`code -r` / `code --add`) | P1, docs unreadable in raw terminal markdown |
 | C4 | A file that says "Mode A" also says "with me"; "Mode B" also says "for me" (per file) | naming drift after the mode rename |
-| C5 | Every `*.sh` referenced in skills/agents exists in `bin/` (or repo root) | dead references after renames |
+| C5 | Every script referenced in `skills/`, `agents/`, `AGENTS.md` or `global/CLAUDE.md` resolves, in TWO name classes: a `<name>.test.sh` reference must exist under `tests/`, and every other `<name>.sh` reference must exist in `bin/` or at the repo root. Stated as two classes and NOT as "a test reference is not read as `test.sh`", because that wording would describe a check that skips test files entirely, which is a gap and not an exception | dead references after renames, and after a rename of a script named only in AGENTS.md, which sixteen surfaces read by reference (2026-08-13) |
 | C6 | Every reviewer agent carries the single-verdict contract ("Only you" + `## History`) | F2, the eval hand-edit incident |
 | C7 | No em/en dashes anywhere in skills/, agents/, AGENTS.md, global baseline | the standing style rule, now enforced |
 | C8 | No person credits and no third-party plugin names in skills/, agents/, system map, global baseline | attribution policy |

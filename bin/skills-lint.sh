@@ -54,9 +54,29 @@ for f in "${SKILLS[@]:+${SKILLS[@]}}" "${AGENTS[@]:+${AGENTS[@]}}" "$ROOT/AGENTS
   fi
 done
 
-# C5. Every referenced *.sh exists (bin/ or repo root)
-refs="$(grep -rhoE '\b[a-z][a-z0-9_-]*\.sh\b' "$ROOT/skills" "$ROOT/agents" 2>/dev/null | sort -u)"
-for r in $refs; do
+# C5. Every referenced script exists, in TWO name classes, over FOUR sources.
+#     AGENTS.md and global/CLAUDE.md are scanned because Guardrails 7 is the single source
+#     sixteen surfaces point at by reference (C13), so a rename of a script named only
+#     there would leave all sixteen instructing agents to run a nonexistent file.
+#     EXTRACT-and-check, not neutralize-and-skip: pass one consumes <name>.test.sh names
+#     and requires them under tests/, so pass two cannot see the phantom `test.sh` that a
+#     word-boundary match would otherwise pull out of a path like x.test.sh. Neutralizing
+#     would kill the phantom but stop checking test references at all, which trades one gap
+#     for another. The basename MAY CONTAIN DOTS (tests/init-project.language.test.sh
+#     exists here), so the whole dotted run before .test.sh is taken.
+C5_SRC=("$ROOT/skills" "$ROOT/agents" "$ROOT/AGENTS.md" "$ROOT/global/CLAUDE.md")
+c5_text() { for p in "${C5_SRC[@]}"; do [[ -e "$p" ]] && grep -rh '' "$p" 2>/dev/null; done; }
+c5_all="$(c5_text)"
+# pass one: test files
+trefs="$(printf '%s\n' "$c5_all" | grep -oE '[a-z0-9_.-]+\.test\.sh' | sort -u)"
+for r in $trefs; do
+  [[ -f "$ROOT/tests/$r" ]] \
+    || viol C5 "referenced test file does not exist: $r (searched tests/)"
+done
+# pass two: everything else, with the test-file names already consumed
+orefs="$(printf '%s\n' "$c5_all" | sed -E 's/[a-z0-9_.-]+\.test\.sh/ /g' \
+         | grep -oE '\b[a-z][a-z0-9_-]*\.sh\b' | sort -u)"
+for r in $orefs; do
   [[ -f "$ROOT/bin/$r" || -f "$ROOT/$r" ]] \
     || viol C5 "referenced script does not exist: $r (searched bin/ and repo root)"
 done
