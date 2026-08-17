@@ -63,6 +63,17 @@ case "$EXPECTED" in en|de|fr|hr) : ;; *) die2 "resolver returned an unknown code
 # ---------------------------------------------------------------------------
 # The prose region (contract C1). Steps 1 to 5 are line level, 6 to 8 inline.
 # No exclusion consumes more than the construct it names.
+#
+# RECORDED DEVIATION from C1 step 6, which says "on each surviving LINE". Steps 6 to 8 run
+# per PARAGRAPH, because a code span may legitimately cross a line break and a per-line pass
+# both misses that span and mispairs the backticks around it (measured on AGENTS.md:190-191:
+# it deleted three English function words as code and counted eight code tokens as prose).
+# The deviation is BOUNDED, and the bound is the reason it is safe to take: a paragraph, so
+# never across a blank line, which is also CommonMark on code spans; plus no deletion at all
+# in a paragraph holding an odd number of backticks; plus an explicit newline in the negated
+# classes of steps 7 and 8, so neither reaches a delimiter on a later line. Taking the widening
+# without those three bounds is what round 2 of review scored as a Critical: one stray backtick
+# silenced the warning on a fully mismatched document. Cases K10, K12, K12b to K12e.
 # ---------------------------------------------------------------------------
 prose_region() {
   tr -d '\r' < "$1" | awk '
@@ -94,16 +105,29 @@ prose_region() {
       print line
     }
     END { if (fm==1) exit 0 }                          # unterminated header: nothing printed
-  ' | awk 'BEGIN{ RS="\x01" }
+  ' | awk 'BEGIN{ RS="" }
     {
-      line=$0
-      while (match(line, /`[^`]*`/)) \
-        line = substr(line,1,RSTART-1) " " substr(line,RSTART+RLENGTH)   # 6. shortest span
-      while (match(line, /\]\([^)]*\)/)) \
-        line = substr(line,1,RSTART-1) "] " substr(line,RSTART+RLENGTH)  # 7. link target
-      while (match(line, /(https?:\/\/|mailto:)[^ \t)>]*/)) \
-        line = substr(line,1,RSTART-1) " " substr(line,RSTART+RLENGTH)   # 8. url
-      print line
+      para=$0
+      # 6. shortest span, over a PARAGRAPH rather than a line. RS="" is POSIX paragraph mode,
+      #    and it bounds the span exactly as CommonMark does: a code span may cross a line
+      #    break, never a blank line. An ODD number of backticks means one of them is
+      #    unpaired, and then the rule from C1 step 6, "an unpaired backtick deletes nothing",
+      #    holds for the whole paragraph: delete nothing here, or the stray backtick pairs
+      #    with the opening backtick of a later span and eats every line between the two.
+      #    K12, K12b. Known limit, measured: RS="" separates on EMPTY lines only, so a span
+      #    may still cross a whitespace-only line that CommonMark would call blank. The guard
+      #    above covers the harmful direction, an unpaired backtick reaching forward.
+      if (gsub(/`/, "`", para) % 2 == 0) {
+        while (match(para, /`[^`]*`/))
+          para = substr(para,1,RSTART-1) " " substr(para,RSTART+RLENGTH)
+      }
+      # 7, 8. Both runs stop at a newline. Without that they reach past the construct they
+      #    name, into a paren or a whitespace on a LATER line, which C1 forbids. K12c, K12d.
+      while (match(para, /\]\([^)\n]*\)/))
+        para = substr(para,1,RSTART-1) "] " substr(para,RSTART+RLENGTH)  # 7. link target
+      while (match(para, /(https?:\/\/|mailto:)[^ \t)>\n]*/))
+        para = substr(para,1,RSTART-1) " " substr(para,RSTART+RLENGTH)   # 8. url
+      print para
     }
   '
 }
@@ -118,6 +142,12 @@ warnings=0
 checked=0
 for f in "$@"; do
   checked=$((checked+1))
+  # The region is captured ONCE, because the status has to tell "nothing to check" from "I
+  # could not read this". The tokenizer keeps ASCII letters only, so a non-Latin body scores
+  # counted=0 exactly like a document whose prose region is empty; only the region itself
+  # says which of the two happened. Non-whitespace CHARACTERS, not tokens, for that reason.
+  region="$(prose_region "$f")"
+  region_chars="$(printf '%s' "$region" | LC_ALL=C tr -d ' \t\n' | LC_ALL=C wc -c | tr -d ' ')"
   n_de=0; n_en=0; n_fr=0; n_hr=0
   while IFS= read -r t; do
     if   has_word "$t" "$WORDS_DE"; then n_de=$((n_de+1))
@@ -126,7 +156,7 @@ for f in "$@"; do
     elif has_word "$t" "$WORDS_HR"; then n_hr=$((n_hr+1))
     fi
   done <<EOF
-$(prose_region "$f" | tokens)
+$(printf '%s\n' "$region" | tokens)
 EOF
   counted=$((n_de+n_en+n_fr+n_hr))
 
@@ -147,7 +177,13 @@ EOF
   done
 
   # The decision rule (contract C4). "More than half" is STRICT.
-  if   [ "$counted" -eq 0 ];            then st=NO-PROSE
+  # UNREADABLE splits C4's counted==0 case in two. It carries no new language knowledge and
+  # cannot warn: the four lists are en de hr fr, and a script none of them is written in
+  # tokenizes to nothing, so the check can only say that it could not read the region, never
+  # that the language is wrong. NO-PROSE keeps its old meaning, an empty region, and a reader
+  # who sees UNREADABLE knows a clean line is not evidence of a match here.
+  if   [ "$counted" -eq 0 ] && [ "$region_chars" -eq 0 ]; then st=NO-PROSE
+  elif [ "$counted" -eq 0 ];            then st=UNREADABLE
   elif [ "$counted" -lt "$MIN_HITS" ];  then st=LOW-EVIDENCE
   elif [ $((rival * 2)) -gt "$counted" ]; then st=WARN; detected="$rival_code"
   else                                       st=OK

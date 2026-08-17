@@ -382,10 +382,12 @@ assert_eq "AC4 en=0"             "0"  "$(field "$o" en)"
 # word list.
 ctl="$TMP/ac4-control.md"
 # A verbatim copy is correct now. It was not before: the fenced lines used to be
-# `# NOTE: ...` comments, and a #-leading line is dropped by the HEADING rule whether or
-# not it sits in a fence, so the fence exclusion contributed NOTHING measurable to AC4 and
-# the recorded mutation proof did not reproduce. The fixture's fenced block is plain prose
-# now, which is what makes fence-off move en from 0 to 27.
+# `# NOTE: ...` comments, and once the FENCE rule is mutated off the heading rule drops them
+# anyway, so the mutation had no measurable effect and the recorded proof did not reproduce.
+# (In the unmutated script the fence rule drops those lines FIRST; the heading rule is the
+# shadow only under the mutation. The distinction is the whole point in a comment that records
+# a false proof.) The fixture's fenced block is plain prose now, which is what makes fence-off
+# move en from 0 to 27.
 awk '/^```/{f=!f; next} f{print}' "$P905" > "$ctl"
 run "$FX" "$ctl"; o="$OUT"
 assert_ge "AC4 control: the same English DOES count as plain prose (en >= 8)" 8 "$(field "$o" en)"
@@ -433,6 +435,97 @@ assert_eq "K11a and only the heading line went: de=6" "6" "$(field "$o" de)"
 k11b="$TMP/K11b.md"; printf '####### %s\nund mit von\n' "$SIX" > "$k11b"
 run "$DE" "$k11b"; o="$OUT"
 assert_ge "K11b seven hashes are NOT a heading, so the line counts: en >= 6" 6 "$(field "$o" en)"
+
+# K12: THE OVER-DROP DIRECTION of rules 6 to 8, which no case bounded before. Round 2's
+# Critical: scoping the inline deletions to the whole region let a stray backtick pair with a
+# LATER span's opening backtick and delete every line between them. Measured then: a correct
+# German body fell from de=47 to de=5, and an English body under a de project fell from
+# WARN en=26 to LOW-EVIDENCE en=0, which silences AC1 outright. K7 names the claim this case
+# tests but its fixture is ONE line, so it passes on a document too small to expose the
+# mechanism. Paragraph records plus the odd-backtick guard bound it, and this case is what
+# reddens if either is removed.
+k12="$TMP/K12.md"
+{ printf 'Der Wert ` steht hier.\n'; de_prose; de_prose; printf 'Der Code `%s` bleibt.\n' "$SIX"; } > "$k12"
+run "$DE" "$k12"; o="$OUT"
+assert_ge "K12 a stray backtick does not eat the German bulk behind it: de >= 24" 24 "$(field "$o" de)"
+assert_eq "K12 and the document still reads as German: status OK" "OK" "$(status "$o")"
+# The paragraph holds an ODD number of backticks, so NO span is deleted anywhere in it: C1
+# step 6's "an unpaired backtick deletes nothing", generalized from the line to the paragraph.
+# The later span's six English tokens therefore COUNT, and that is the deliberate trade,
+# leaving one span in place costs six hits, pairing across it costs the whole paragraph.
+assert_eq "K12 the odd-backtick guard leaves the later span in place: en=6" "6" "$(field "$o" en)"
+
+# K12b: the same three pieces separated by BLANK LINES, where the region-scoped deletion did
+# the most damage (de=40 down to de=1). A code span cannot contain a blank line, so paragraph
+# records make these three records: the stray backtick disables deletion in ITS paragraph
+# only, and the ordinary span in the last paragraph is deleted normally.
+k12b="$TMP/K12b.md"
+{ printf 'Der Wert ` steht hier.\n\n'; de_prose; printf '\n'; de_prose; printf '\nDer Code `%s` bleibt.\n' "$SIX"; } > "$k12b"
+run "$DE" "$k12b"; o="$OUT"
+assert_ge "K12b blank lines do not let a deletion cross paragraphs: de >= 24" 24 "$(field "$o" de)"
+assert_eq "K12b status OK" "OK" "$(status "$o")"
+assert_eq "K12b and the span inside its own paragraph IS deleted: en=0" "0" "$(field "$o" en)"
+
+# K12c: RULE 8 in the same direction, as an EXACT count rather than a bound, because the loss
+# is a single token and any >= assertion loose enough to hold would sit above it. C1 step 8
+# deletes the URL run up to the next whitespace, `)` or `>`, and a newline is whitespace, so
+# region scoping made the run swallow the line break plus the first word of the next line.
+# de=6 EXACTLY: measured 5 while the deletion crossed the newline, and "und" is the word it ate.
+k12c="$TMP/K12c.md"; printf 'Siehe https://example.com/pfad\nund mit von zu zum zur\n' > "$k12c"
+run "$DE" "$k12c"; o="$OUT"
+assert_eq "K12c a bare URL stops at the newline, so the next line survives whole: de=6" "6" "$(field "$o" de)"
+
+# K12d: RULE 7. A `](` with no closing paren on its own line, and an ordinary parenthesis far
+# below it. Region scoping let the link-target deletion run from the `](` all the way to that
+# later `)`, taking every German line between them (measured: de=44 down to de=6). The paren
+# below is the whole point of the fixture, without it rule 7 never matches and the case would
+# pass while pinning nothing, which is how the first draft of it passed.
+k12d="$TMP/K12d.md"
+{ printf 'Siehe [die Vorgabe](\n'; de_prose; de_prose; printf 'Das ist kurz (fertig).\n'; } > "$k12d"
+run "$DE" "$k12d"; o="$OUT"
+assert_ge "K12d an unclosed link target does not reach a paren on a later line: de >= 24" 24 "$(field "$o" de)"
+assert_eq "K12d status OK" "OK" "$(status "$o")"
+
+# K12e: the OTHER direction of the same change, and the one that moved this repo's own
+# AGENTS.md from counted=1028 to counted=1031, which is a CORRECTION and not a regression.
+# When a line opens a span it does not close, per-line pairing pairs the WRONG backticks: it
+# deletes the prose sitting between the real closing backtick and the next span's opener, and
+# counts the code as prose. This fixture is the shape at AGENTS.md:190-191, one span crossing
+# the line break plus two ordinary spans behind it. On AGENTS.md the old pairing deleted the
+# three English function words `the`, `because` and `only`, and counted eight code tokens
+# (git, rev, parse, short, head, code, reviewer, bash) that are in no list, so the visible
+# delta is exactly +3 with no term of it in doubt.
+#
+# de=9 EXACTLY, and the attributing evidence is the PREDECESSOR SCRIPT rather than a one-line
+# mutation: measured de=5 at 916b6c9, because per-line pairing deletes "und mit von" and "zu"
+# as if they were code. A mutation that only reverts RS cannot attribute this case, because
+# both lines here carry an odd number of backticks, so the odd-backtick guard suppresses the
+# deletion and the case reads 9 for a different reason. Stated so nobody later "confirms" it
+# with that mutation and records a pass that proves nothing.
+k12e="$TMP/K12e.md"
+{ printf 'Der Befehl (`git rev-parse --short\n'; printf 'HEAD`) steht und mit von `code-reviewer` zu `Bash`; und mit von zu\n'; } > "$k12e"
+run "$DE" "$k12e"; o="$OUT"
+assert_eq "K12e a span crossing the line break pairs correctly, so the prose behind it survives: de=9" "9" "$(field "$o" de)"
+assert_eq "K12e and none of the three spans is counted: en=0" "0" "$(field "$o" en)"
+
+# K13: a NON-LATIN body. The tokenizer keeps ASCII letters only, so a Hebrew document
+# tokenizes to nothing and used to report `NO-PROSE counted=0 detected=none`, the identical
+# line a document with a legitimately empty prose region reports (K1). A reader could not tell
+# "nothing to check" from "I could not read this", and this is the one case where a clean line
+# is not evidence of anything. Written with \x escapes so this test file stays ASCII; the
+# bytes are the Hebrew letters alef to yod.
+k13="$TMP/K13.md"
+printf '\xd7\x90\xd7\x91\xd7\x92 \xd7\x93\xd7\x94\xd7\x95 \xd7\x96\xd7\x97\xd7\x98 \xd7\x99\xd7\x90\xd7\x91\n' > "$k13"
+run "$DE" "$k13"; o="$OUT"
+assert_eq   "K13 a non-Latin body is UNREADABLE, not NO-PROSE" "UNREADABLE" "$(status "$o")"
+assert_eq   "K13 counted=0"     "0"    "$(field "$o" counted)"
+assert_eq   "K13 detected=none" "none" "$(field "$o" detected)"
+assert_exit "K13 exit 0" 0 "$RC"
+# The contrast is what gives the status above its meaning: a region that really is empty
+# still reports NO-PROSE. K1 covers the fence shape, this one is whitespace only.
+k13b="$TMP/K13b.md"; printf '   \n\t\n' > "$k13b"
+run "$DE" "$k13b"; o="$OUT"
+assert_eq "K13b a whitespace-only region stays NO-PROSE" "NO-PROSE" "$(status "$o")"
 
 echo ""
 if [ "$fail" -eq 0 ]; then echo "prose-language-check: all assertions passed."; else echo "prose-language-check: FAILURES above."; fi
