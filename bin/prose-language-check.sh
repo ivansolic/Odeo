@@ -61,29 +61,28 @@ EXPECTED="$(CLAUDE_GLOBAL_CONFIG="${CLAUDE_GLOBAL_CONFIG:-$HOME/.claude/CLAUDE.m
 case "$EXPECTED" in en|de|fr|hr) : ;; *) die2 "resolver returned an unknown code: '$EXPECTED'" ;; esac
 
 # ---------------------------------------------------------------------------
-# The prose region (contract C1). Steps 1 to 5 are line level, 6 to 8 inline.
-# No exclusion consumes more than the construct it names.
+# The prose region (contract C1). Steps 1 to 5 are line-level exclusions; steps 6 to 8 are
+# inline and run in the SAME per-line pass. No exclusion consumes more than the construct it
+# names, and nothing a document contains can make a deletion cross a line break.
 #
-# RECORDED DEVIATION from C1 step 6, which says "on each surviving LINE". Steps 6 to 8 run
-# per PARAGRAPH, because a code span may legitimately cross a line break and a per-line pass
-# both misses that span and mispairs the backticks around it (measured on AGENTS.md:190-191:
-# it deleted three English function words as code and counted eight code tokens as prose).
-# The deviation is BOUNDED, and every bound below is here because its absence was MEASURED to
-# silence or invent a verdict, not because it looked prudent: a paragraph, so never across a
-# blank line, which is also CommonMark on code spans, and a line of spaces or tabs counts as
-# blank (step 3b) because POSIX awk alone would not end the paragraph there; an odd-parity
-# paragraph falls back to step 6 verbatim, PER LINE, rather than suppressing deletion wholesale;
-# and an explicit newline in the negated classes of steps 7 and 8, so neither reaches a
-# delimiter on a later line. Cases K10, K12, K12b to K12e, K14, K14b, K15, K15b.
+# SAME-LINE ONLY, and why (this is where three review Criticals lived). A code span, a link
+# target and a URL are deleted only within ONE line. Deleting a span that WRAPS across a line
+# break is what every earlier version tried, and each attempt mispaired backticks on some shape
+# and ate real prose from the lines between them, which silences the very warning this check
+# exists to raise. Pairing backticks correctly when one is a stray is not decidable from a
+# single document, so this version does not try. Instead it carries one bit, `opn`: a line that
+# begins INSIDE an open span is code and is kept verbatim, never scanned, so a wrapped span is
+# handled without any deletion crossing the break. A deletion therefore can never leave the
+# line it starts on.
 #
-# Two rounds of review scored a Critical here, and both times the defect was a bound ASSUMED
-# rather than measured. Round 2: the widening was taken with no bounds at all, and one stray
-# backtick silenced the warning on a fully mismatched document. Round 3: the parity guard was
-# certified in this comment as covering "the harmful direction", which was FALSE. It reasons
-# about ONE stray backtick, where parity is odd and the guard fires; TWO of them around a
-# whitespace-only line make parity EVEN, the guard stays silent, and they pair across the line
-# (de=39 to de=1, and an English body under de silenced from WARN to LOW-EVIDENCE). Whoever
-# widens this next: state the bound as a case, not as a sentence here.
+# The two costs are deliberate and bounded, because for a word-FREQUENCY check they barely
+# register. (a) A code span that wraps across a line break is left in place, content and all,
+# but that content is code, almost never a function word in any of the four lists, so it is not
+# counted and the verdict does not move. (b) On a single line whose backticks do not pair
+# cleanly (a stray plus a real span), that line's own prose up to the next backtick can be
+# deleted; the loss is confined to ONE line and cannot silence a verdict built from a whole
+# document. Cases K10 (a), K15c (b), against K12/K12e/K14/K15 which show a document is never
+# silenced and AGENTS.md stays whole.
 # ---------------------------------------------------------------------------
 prose_region() {
   tr -d '\r' < "$1" | awk '
@@ -101,15 +100,6 @@ prose_region() {
         next                                           # the marker line never counts
       }
       if (infence) next
-      # A line of spaces or tabs is emitted as a truly EMPTY line, because the inline pass
-      # below separates paragraphs on empty lines only (POSIX awk RS="") while CommonMark
-      # calls this line blank and refuses to let a code span cross it. Without this, two
-      # stray backticks on either side of such a line share one record with EVEN parity, the
-      # parity guard stays silent, and they pair across it: measured de=39 down to de=1, and
-      # an English body under a de project silenced from WARN to LOW-EVIDENCE. It sits AFTER
-      # the fence check so a blank line inside a fenced block is still dropped, not emitted.
-      # K14, K14b.
-      if (line ~ /^[ \t]*$/) { print ""; next }
       hprobe=line                                      # 4. ATX heading, no awk intervals
       if (substr(hprobe,1,1)==" ") hprobe=substr(hprobe,2)
       if (substr(hprobe,1,1)==" ") hprobe=substr(hprobe,2)
@@ -121,49 +111,28 @@ prose_region() {
       }
       probe2=line; sub(/^[ \t]+/, "", probe2)
       if (substr(probe2,1,1) == "|") next              # 5. one table row
+
+      # 6, 7, 8. Inline, SAME LINE, and only on a line that BEGINS outside a code span.
+      # `opn` carries one bit across lines: whether an earlier line left a code span open with
+      # an unpaired backtick. A line inside such a span is code, not prose, so it is kept
+      # VERBATIM and never scanned; that is how a code span wrapping across a line break is
+      # honoured without a deletion ever crossing the break. On a line that starts outside a
+      # span, pairs are deleted within the line, and a leftover unpaired backtick opens a span
+      # the next line inherits. Fence, heading and table lines were dropped above, so their
+      # backticks never reach this counter.
+      if (line ~ /^[ \t]*$/) opn=0                     # a blank line closes any open span
+      if (opn == 0) {
+        while (match(line, /`[^`]*`/))
+          line = substr(line,1,RSTART-1) " " substr(line,RSTART+RLENGTH)   # 6. code span
+        while (match(line, /\]\([^)]*\)/))
+          line = substr(line,1,RSTART-1) "] " substr(line,RSTART+RLENGTH)  # 7. link target
+        while (match(line, /(https?:\/\/|mailto:)[^ \t)>]*/))
+          line = substr(line,1,RSTART-1) " " substr(line,RSTART+RLENGTH)   # 8. url
+      }
+      bt=$0; opn=(opn + gsub(/`/, "", bt)) % 2         # count backticks on the ORIGINAL line
       print line
     }
     END { if (fm==1) exit 0 }                          # unterminated header: nothing printed
-  ' | awk 'BEGIN{ RS="" }
-    {
-      para=$0
-      # 6. shortest span, over a PARAGRAPH rather than a line. RS="" is POSIX paragraph mode,
-      #    and it bounds the span exactly as CommonMark does: a code span may cross a line
-      #    break, never a blank line. An ODD number of backticks means one of them is
-      #    unpaired, and then the rule from C1 step 6, "an unpaired backtick deletes nothing",
-      #    holds for the whole paragraph: delete nothing here, or the stray backtick pairs
-      #    with the opening backtick of a later span and eats every line between the two.
-      #    K12, K12b. RS="" separates on EMPTY lines only, which is why step 3b above emits a
-      #    whitespace-only line as an empty one: without it, two stray backticks around such a
-      #    line share a record, parity is EVEN, and this guard never runs. K14, K14b.
-      if (gsub(/`/, "`", para) % 2 == 0) {
-        while (match(para, /`[^`]*`/))
-          para = substr(para,1,RSTART-1) " " substr(para,RSTART+RLENGTH)
-      } else {
-        # Odd parity: one backtick in this paragraph is unpaired, but suppressing the whole
-        # paragraph leaks in both directions, and round 3 measured both: real code stays
-        # counted as prose, and on a correct German document two counted spans were enough to
-        # INVENT a WARN. So fall back to C1 step 6 verbatim, per LINE, deleting spans only on
-        # lines that pair cleanly by themselves. The stray backtick still deletes nothing on
-        # its own line. K12, K15, K15b.
-        nl=split(para, L, "\n"); para=""
-        for (i=1; i<=nl; i++) {
-          seg=L[i]
-          if (gsub(/`/, "`", seg) % 2 == 0) {
-            while (match(seg, /`[^`]*`/))
-              seg = substr(seg,1,RSTART-1) " " substr(seg,RSTART+RLENGTH)
-          }
-          para = (i==1 ? seg : para "\n" seg)
-        }
-      }
-      # 7, 8. Both runs stop at a newline. Without that they reach past the construct they
-      #    name, into a paren or a whitespace on a LATER line, which C1 forbids. K12c, K12d.
-      while (match(para, /\]\([^)\n]*\)/))
-        para = substr(para,1,RSTART-1) "] " substr(para,RSTART+RLENGTH)  # 7. link target
-      while (match(para, /(https?:\/\/|mailto:)[^ \t)>\n]*/))
-        para = substr(para,1,RSTART-1) " " substr(para,RSTART+RLENGTH)   # 8. url
-      print para
-    }
   '
 }
 

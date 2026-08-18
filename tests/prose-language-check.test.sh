@@ -425,13 +425,20 @@ run "$DE" "$k9"; o="$OUT"
 assert_eq "K9 a shorter inner fence does not close the outer one: en=0" "0" "$(field "$o" en)"
 assert_ge "K9 and the German outside both fences survives: de >= 12" 12 "$(field "$o" de)"
 
-# K10: a code span that OPENS on one line and CLOSES on the next. The inline deletions used
-# to run per line, so such a span was never deleted and its content counted as prose.
+# K10: a code span that WRAPS across a line break, and accepted residual (a). Same-line-only
+# extraction leaves it in place: line 1 opens a span that does not close on its own line, line 2
+# begins inside that span and is kept verbatim, so neither line is scanned and the span content
+# survives as text. This is deliberate: a wrapped span's content is code, which is almost never
+# a function word in any list, so leaving it counts nothing that moves a verdict. Here the
+# content is MADE of English function words to show the residual honestly rather than hide it,
+# and the German still dominates, so the document is not misread. This replaces the round-2
+# behaviour (delete wrapped spans), which was the source of three Criticals.
 k10="$TMP/K10.md"
 { de_prose; de_prose; printf 'Der Wert `%s\nand the of and` steht im Kopf.\n' "$SIX"; } > "$k10"
 run "$DE" "$k10"; o="$OUT"
-assert_eq "K10 a code span across two lines is still deleted: en=0" "0" "$(field "$o" en)"
-assert_ge "K10 and the surrounding German survives: de >= 12" 12 "$(field "$o" de)"
+assert_ge "K10 the wrapped span is left in place, so its English content survives: en >= 6" 6 "$(field "$o" en)"
+assert_ge "K10 the German is never eaten across the break: de >= 24" 24 "$(field "$o" de)"
+assert_eq "K10 the German still dominates, so the document is not misread: status OK" "OK" "$(status "$o")"
 
 # K11: the heading rule without awk interval expressions. Up to three leading spaces still
 # make a heading, four do not, and seven hashes are not a heading. Intervals were the first
@@ -445,99 +452,78 @@ k11b="$TMP/K11b.md"; printf '####### %s\nund mit von\n' "$SIX" > "$k11b"
 run "$DE" "$k11b"; o="$OUT"
 assert_ge "K11b seven hashes are NOT a heading, so the line counts: en >= 6" 6 "$(field "$o" en)"
 
-# K12: THE OVER-DROP DIRECTION of rules 6 to 8, which no case bounded before. Round 2's
-# Critical: scoping the inline deletions to the whole region let a stray backtick pair with a
-# LATER span's opening backtick and delete every line between them. Measured then: a correct
-# German body fell from de=47 to de=5, and an English body under a de project fell from
-# WARN en=26 to LOW-EVIDENCE en=0, which silences AC1 outright. K7 names the claim this case
-# tests but its fixture is ONE line, so it passes on a document too small to expose the
-# mechanism. Paragraph records plus the odd-backtick guard bound it, and this case is what
-# reddens if either is removed.
+# K12: a stray backtick must not eat the German bulk behind it (round 2's Critical, still the
+# thing that matters). Line 1's stray opens a span; the German lines that follow begin inside
+# it and are kept VERBATIM, never scanned, so not one German word is eaten. de stays high and
+# the document reads German. en=6 here is accepted residual (a) in miniature: the real `SIX`
+# span sits on a line that begins inside the stray's span, so it is kept rather than deleted,
+# leaving its function-word content counted. Harmless: the German dominates. K12b shows a blank
+# line closing the stray's span so the same `SIX` span IS deleted.
 k12="$TMP/K12.md"
 { printf 'Der Wert ` steht hier.\n'; de_prose; de_prose; printf 'Der Code `%s` bleibt.\n' "$SIX"; } > "$k12"
 run "$DE" "$k12"; o="$OUT"
 assert_ge "K12 a stray backtick does not eat the German bulk behind it: de >= 24" 24 "$(field "$o" de)"
 assert_eq "K12 and the document still reads as German: status OK" "OK" "$(status "$o")"
-# The paragraph holds an ODD number of backticks, so the paragraph-wide pass is off and each
-# LINE is handled on its own parity instead: the stray backtick deletes nothing on its line,
-# and the ordinary span on the line below, which pairs cleanly by itself, is still deleted.
-# This assertion read en=6 while an odd paragraph disabled span deletion outright, which round
-# 3 scored as an unbounded leak: it left real code counted as prose and could invent a WARN.
-assert_eq "K12 an odd paragraph still deletes the span on a line that pairs by itself: en=0" "0" "$(field "$o" en)"
+assert_eq "K12 the span after the stray, in the same paragraph, is kept not eaten: en=6" "6" "$(field "$o" en)"
 
-# K12b: the same three pieces separated by BLANK LINES, where the region-scoped deletion did
-# the most damage (de=40 down to de=1). A code span cannot contain a blank line, so paragraph
-# records make these three records: the stray backtick disables deletion in ITS paragraph
-# only, and the ordinary span in the last paragraph is deleted normally.
+# K12b: the same pieces separated by BLANK LINES. A blank line closes any open span (CommonMark:
+# a code span cannot contain a blank line), so the stray's span is abandoned at the first blank
+# and the `SIX` span two paragraphs down begins OUTSIDE any span and is deleted normally. This
+# is the bound on residual (a): a stray's reach ends at its own paragraph, it never disables
+# deletion for the rest of the document.
 k12b="$TMP/K12b.md"
 { printf 'Der Wert ` steht hier.\n\n'; de_prose; printf '\n'; de_prose; printf '\nDer Code `%s` bleibt.\n' "$SIX"; } > "$k12b"
 run "$DE" "$k12b"; o="$OUT"
-assert_ge "K12b blank lines do not let a deletion cross paragraphs: de >= 24" 24 "$(field "$o" de)"
+assert_ge "K12b the German bulk is never eaten: de >= 24" 24 "$(field "$o" de)"
 assert_eq "K12b status OK" "OK" "$(status "$o")"
-assert_eq "K12b and the span inside its own paragraph IS deleted: en=0" "0" "$(field "$o" en)"
+assert_eq "K12b a blank line closes the stray's span, so the later span IS deleted: en=0" "0" "$(field "$o" en)"
 
-# K12c: RULE 8 in the same direction, as an EXACT count rather than a bound, because the loss
-# is a single token and any >= assertion loose enough to hold would sit above it. C1 step 8
-# deletes the URL run up to the next whitespace, `)` or `>`, and a newline is whitespace, so
-# region scoping made the run swallow the line break plus the first word of the next line.
-# de=6 EXACTLY: measured 5 while the deletion crossed the newline, and "und" is the word it ate.
+# K12c: a bare URL is deleted, and only within its own line. de=6 EXACTLY: the URL line drops to
+# nothing and the next line survives whole. (Under an earlier region-scoped version the URL run
+# crossed the newline and ate "und", giving de=5; same-line extraction cannot reach the next
+# line at all.)
 k12c="$TMP/K12c.md"; printf 'Siehe https://example.com/pfad\nund mit von zu zum zur\n' > "$k12c"
 run "$DE" "$k12c"; o="$OUT"
-assert_eq "K12c a bare URL stops at the newline, so the next line survives whole: de=6" "6" "$(field "$o" de)"
+assert_eq "K12c a bare URL stops at the end of its line, so the next line survives whole: de=6" "6" "$(field "$o" de)"
 
-# K12d: RULE 7. A `](` with no closing paren on its own line, and an ordinary parenthesis far
-# below it. Region scoping let the link-target deletion run from the `](` all the way to that
-# later `)`, taking every German line between them (measured: de=44 down to de=6). The paren
-# below is the whole point of the fixture, without it rule 7 never matches and the case would
-# pass while pinning nothing, which is how the first draft of it passed.
+# K12d: an unclosed link target `](` on its own line, with an ordinary parenthesis far below.
+# Rule 7 needs both `](` and `)` on the SAME line, so the unclosed one matches nothing and the
+# German between it and the later paren is untouched. The paren below is the point of the
+# fixture: without it the case would pass while exercising nothing.
 k12d="$TMP/K12d.md"
 { printf 'Siehe [die Vorgabe](\n'; de_prose; de_prose; printf 'Das ist kurz (fertig).\n'; } > "$k12d"
 run "$DE" "$k12d"; o="$OUT"
 assert_ge "K12d an unclosed link target does not reach a paren on a later line: de >= 24" 24 "$(field "$o" de)"
 assert_eq "K12d status OK" "OK" "$(status "$o")"
 
-# K12e: the OTHER direction of the same change, and the one that moved this repo's own
-# AGENTS.md from counted=1028 to counted=1031, which is a CORRECTION and not a regression.
-# When a line opens a span it does not close, per-line pairing pairs the WRONG backticks: it
-# deletes the prose sitting between the real closing backtick and the next span's opener, and
-# counts the code as prose. This fixture is the shape at AGENTS.md:190-191, one span crossing
-# the line break plus two ordinary spans behind it. On AGENTS.md the old pairing deleted the
-# three English function words `the`, `because` and `only`, and counted eight code tokens
-# (git, rev, parse, short, head, code, reviewer, bash) that are in no list, so the visible
-# delta is exactly +3 with no term of it in doubt.
-#
-# de=9 EXACTLY, and the attributing evidence is the PREDECESSOR SCRIPT rather than a one-line
-# mutation: measured de=5 at 916b6c9, because per-line pairing deletes "und mit von" and "zu"
-# as if they were code. A mutation that only reverts RS cannot attribute this case, because
-# both lines here carry an odd number of backticks, so the odd-backtick guard suppresses the
-# deletion and the case reads 9 for a different reason. Stated so nobody later "confirms" it
-# with that mutation and records a pass that proves nothing.
+# K12e: the AGENTS.md:190-191 shape, one span WRAPPING a line break plus two ordinary spans
+# behind it. This is the exact shape that produced the 1028-vs-1031 argument. Line 1 opens the
+# wrapped span; line 2 begins inside it and is kept VERBATIM, so its German ("steht und mit von",
+# "und mit von zu") is never eaten and its code (code-reviewer, Bash) is kept but uncounted.
+# de=9, nothing eaten. The earlier per-line pairing mispaired line 2's leading closer and ate
+# three German words; keeping in-span lines verbatim is what makes AGENTS.md read 1031, its
+# correct count, rather than 1028.
 k12e="$TMP/K12e.md"
 { printf 'Der Befehl (`git rev-parse --short\n'; printf 'HEAD`) steht und mit von `code-reviewer` zu `Bash`; und mit von zu\n'; } > "$k12e"
 run "$DE" "$k12e"; o="$OUT"
-assert_eq "K12e a span crossing the line break pairs correctly, so the prose behind it survives: de=9" "9" "$(field "$o" de)"
-assert_eq "K12e and none of the three spans is counted: en=0" "0" "$(field "$o" en)"
+assert_eq "K12e a line inside a wrapped span is kept verbatim, so its German survives whole: de=9" "9" "$(field "$o" de)"
+assert_eq "K12e and none of the code on that line is counted as a warning driver: en=0" "0" "$(field "$o" en)"
 
-# K14: THE ROUND-3 CRITICAL. POSIX awk splits paragraphs on EMPTY lines only, so a line holding
-# spaces or tabs does NOT end a paragraph, while CommonMark calls it blank and refuses to let a
-# code span cross it. Two stray backticks on either side of such a line therefore land in ONE
-# record with EVEN parity, the odd-backtick guard stays silent, and they pair across the
-# not-quite-blank line and delete every line between them. Measured at d730719: de=39 fell to
-# de=1, the surviving region being just "Der Wert   endet hier.". The previous commit had this
-# gap and its comment CERTIFIED it as covered, which is why the whitespace-only line is now a
-# paragraph break in its own right rather than a limit written down and waved through.
+# K14: a stray backtick, a whitespace-only line, then the German bulk. Same-line extraction never
+# pairs across lines at all, so there is nothing here to eat: line 1's stray opens a span, the
+# blank line closes it, and the German that follows is scanned normally and survives. (This shape
+# was the round-3 Critical under the paragraph-record version, where the two strays paired across
+# the whitespace line and collapsed the German to de=1.)
 k14="$TMP/K14.md"
 { printf 'Der Wert `\n'; printf '   \n'; de_prose; de_prose; printf '` endet hier.\n'; } > "$k14"
 run "$DE" "$k14"; o="$OUT"
-assert_ge "K14 a span cannot pair across a whitespace-only line: de >= 24" 24 "$(field "$o" de)"
+assert_ge "K14 the German bulk is never eaten across a whitespace-only line: de >= 24" 24 "$(field "$o" de)"
 assert_eq "K14 status OK" "OK" "$(status "$o")"
 
-# K14b: the same shape carrying an ENGLISH body under a de project, which is AC1 itself, and the
-# assertion nothing in this suite had: that the WARNING SURVIVES the mechanism. K14 proves the
-# German is not eaten; only this proves the story's headline behaviour is not silenced. Measured
-# at d730719: WARN en=21 became LOW-EVIDENCE en=2, no warning printed at all. Every over-drop
-# defect in this story reached a commit because the suite could show a count moving but not a
-# verdict disappearing.
+# K14b: the same shape carrying an ENGLISH body under a de project, which is AC1 itself: the one
+# assertion that pins the WARNING SURVIVING the mechanism rather than just a count moving. Every
+# over-drop defect in this story reached a commit because the suite could show a number move but
+# not a verdict disappear. Here the English body is scanned normally and WARNS.
 k14b="$TMP/K14b.md"
 { printf 'The value `\n'; printf '   \n'; en_prose; en_prose; printf '` ends here.\n'; } > "$k14b"
 run "$DE" "$k14b"; o="$OUT"
@@ -545,44 +531,50 @@ assert_eq "K14b an English body under de still WARNS through this shape" "WARN" 
 assert_eq "K14b detected=en" "en" "$(field "$o" detected)"
 assert_ge "K14b en >= 12 (the warning rests on evidence, not on a collapse)" 12 "$(field "$o" en)"
 
-# K15: the guard's LEAK direction, which round 3 found unbounded by any case. Suppressing span
-# deletion for a whole odd paragraph leaves real code counted as prose, so each line is handled
-# on its OWN parity instead: the line carrying the stray backtick deletes nothing (C1 step 6,
-# unchanged), and a line that pairs cleanly by itself still has its spans deleted.
+# K15: a stray on line 1, a clean span on line 2. Line 1's stray opens a span, so line 2 begins
+# inside it and is kept VERBATIM: the `SIX` span is NOT deleted and its content is counted
+# (en=6). This is residual (a) again: an unclosed span reaches into the next line and keeps it
+# whole. Safe, because it keeps text rather than eating it; the German still leads (de=8).
 k15="$TMP/K15.md"
 { printf 'Der Wert ` zu zum zur und mit von\n'; printf 'Der Code `%s` bleibt.\n' "$SIX"; } > "$k15"
 run "$DE" "$k15"; o="$OUT"
-assert_eq "K15 the span on the cleanly-paired line is deleted even in an odd paragraph: en=0" "0" "$(field "$o" en)"
-assert_eq "K15 and the stray backtick's own line is untouched: de=8" "8" "$(field "$o" de)"
+assert_eq "K15 line 2 begins inside the stray's span and is kept whole, span included: en=6" "6" "$(field "$o" en)"
+assert_eq "K15 and not one German word on either line is eaten: de=8" "8" "$(field "$o" de)"
 
-# K15b: the same leak in the direction that INVENTS a verdict. Two ordinary spans on a line that
-# pairs cleanly, one stray backtick on the line below: suppressing the whole paragraph left both
-# spans counted as English and turned a correct German document into WARN detected=en. A false
-# warning is the one failure this check cannot afford, because it teaches a reader to ignore it.
-# The counts are sized so BOTH directions are real, which the first draft of this case was not:
-# the spans must outweigh the German for the suppressed version to warn at all (24 English
-# against 18 German, measured WARN), and the German alone must clear MIN_HITS so the fixed
-# version reads OK on evidence rather than LOW-EVIDENCE for lack of it.
+# K15b: two clean spans on line 1, a stray on the LAST line. The spans on line 1 are outside any
+# open span and are deleted (en=0); the stray on the last line opens a span that never closes,
+# but there is no line after it to keep, so nothing is eaten. A correct German document must not
+# be turned into a false WARN, which is the one failure this check cannot afford.
 k15b="$TMP/K15b.md"
 { printf 'Der Wert `%s %s` und `%s %s` steht hier.\n' "$SIX" "$SIX" "$SIX" "$SIX"
   printf 'und mit von zu zum zur und mit von zu zum zur\n'
   printf 'Der Rest ` und mit von\n'; } > "$k15b"
 run "$DE" "$k15b"; o="$OUT"
 assert_eq "K15b no invented WARN on correct German: status OK" "OK" "$(status "$o")"
-assert_eq "K15b both spans on the paired line are gone: en=0" "0" "$(field "$o" en)"
+assert_eq "K15b the two clean spans on the first line are deleted: en=0" "0" "$(field "$o" en)"
 assert_ge "K15b and the verdict rests on evidence, not a collapse: counted >= 12" 12 "$(field "$o" counted)"
-# K15c: the RESIDUAL limit, as a case rather than a sentence, which is the whole lesson of round
-# 3: a stray backtick on the SAME line as a span makes that line odd too, so that span stays
-# counted. It is C1 step 6 applied per line, and it costs hits without ever eating prose, which
-# is the safe direction. Deliberately GREEN under both the wholesale suppression and the
-# per-line fallback, so it is a characterization case and not a bound: its job is to fail if
-# this limit ever changes silently. en=6 EXACTLY, and the paired de assertion is what
-# distinguishes "the span still counts" from "the line was eaten".
+
+# K15c: accepted residual (b), the ONE shape where prose is eaten, pinned as a case. A stray
+# backtick and a real span on the SAME line: same-line greedy pairs the stray with the span's
+# opener and deletes the German between them ("und mit von"), leaving the code counted. de=4,
+# down from the 7 that are really there. The loss is BOUNDED to this one line, which is the
+# whole reason it is acceptable: K15d puts this exact line inside a real German document and the
+# verdict stays OK. Nothing structurally removes this residual, because closing it means pairing
+# across a stray, which is what ate whole paragraphs in rounds 2 and 3.
 k15c="$TMP/K15c.md"
 printf 'Der Wert ` und mit von `%s` zu zum zur\n' "$SIX" > "$k15c"
 run "$DE" "$k15c"; o="$OUT"
-assert_eq "K15c a stray backtick on the span's OWN line leaves it counted: en=6" "6" "$(field "$o" en)"
-assert_eq "K15c and nothing on that line is eaten: de=7" "7" "$(field "$o" de)"
+assert_eq "K15c a stray plus a span on one line eats that line's prose between them: de=4" "4" "$(field "$o" de)"
+assert_eq "K15c and the code between is what survives, counted: en=6" "6" "$(field "$o" en)"
+
+# K15d: the bound on residual (b). The exact bad line from K15c, embedded in a real German body.
+# The single-line loss cannot silence a document verdict: de stays well above the English and the
+# status is OK. This is the assertion that makes the residual acceptable rather than dangerous.
+k15d="$TMP/K15d.md"
+{ de_prose; de_prose; printf 'Der Wert ` und mit von `%s` zu zum zur\n' "$SIX"; de_prose; } > "$k15d"
+run "$DE" "$k15d"; o="$OUT"
+assert_eq "K15d one mispaired line does not silence a German document: status OK" "OK" "$(status "$o")"
+assert_ge "K15d the German still dominates by a wide margin: de >= 40" 40 "$(field "$o" de)"
 
 # K13: a NON-LATIN body. The tokenizer keeps ASCII letters only, so a Hebrew document
 # tokenizes to nothing and used to report `NO-PROSE counted=0 detected=none`, the identical
