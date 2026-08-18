@@ -71,6 +71,15 @@ de_prose() {
 }
 SIX='the of and that with is'   # six WORDS_EN tokens, the payload every B case moves
 
+# English prose paragraph, the mirror of de_prose: 12+ WORDS_EN occurrences and ZERO WORDS_DE.
+# It exists so a case can assert the WARN direction, which no synthetic word list can, because
+# WARN is the behaviour the story is FOR and a bare list cannot show it being silenced.
+en_prose() {
+  printf 'The session is closed after a timeout and the access to the account is\n'
+  printf 'locked, because an unattended screen is a risk and because the policy\n'
+  printf 'requires it for every account that has any customer data in it.\n'
+}
+
 # ---------------------------------------------------------------------------
 # A. Resolver agreement: expected= always comes from resolve-language.sh.
 # ---------------------------------------------------------------------------
@@ -449,11 +458,12 @@ k12="$TMP/K12.md"
 run "$DE" "$k12"; o="$OUT"
 assert_ge "K12 a stray backtick does not eat the German bulk behind it: de >= 24" 24 "$(field "$o" de)"
 assert_eq "K12 and the document still reads as German: status OK" "OK" "$(status "$o")"
-# The paragraph holds an ODD number of backticks, so NO span is deleted anywhere in it: C1
-# step 6's "an unpaired backtick deletes nothing", generalized from the line to the paragraph.
-# The later span's six English tokens therefore COUNT, and that is the deliberate trade,
-# leaving one span in place costs six hits, pairing across it costs the whole paragraph.
-assert_eq "K12 the odd-backtick guard leaves the later span in place: en=6" "6" "$(field "$o" en)"
+# The paragraph holds an ODD number of backticks, so the paragraph-wide pass is off and each
+# LINE is handled on its own parity instead: the stray backtick deletes nothing on its line,
+# and the ordinary span on the line below, which pairs cleanly by itself, is still deleted.
+# This assertion read en=6 while an odd paragraph disabled span deletion outright, which round
+# 3 scored as an unbounded leak: it left real code counted as prose and could invent a WARN.
+assert_eq "K12 an odd paragraph still deletes the span on a line that pairs by itself: en=0" "0" "$(field "$o" en)"
 
 # K12b: the same three pieces separated by BLANK LINES, where the region-scoped deletion did
 # the most damage (de=40 down to de=1). A code span cannot contain a blank line, so paragraph
@@ -508,6 +518,72 @@ run "$DE" "$k12e"; o="$OUT"
 assert_eq "K12e a span crossing the line break pairs correctly, so the prose behind it survives: de=9" "9" "$(field "$o" de)"
 assert_eq "K12e and none of the three spans is counted: en=0" "0" "$(field "$o" en)"
 
+# K14: THE ROUND-3 CRITICAL. POSIX awk splits paragraphs on EMPTY lines only, so a line holding
+# spaces or tabs does NOT end a paragraph, while CommonMark calls it blank and refuses to let a
+# code span cross it. Two stray backticks on either side of such a line therefore land in ONE
+# record with EVEN parity, the odd-backtick guard stays silent, and they pair across the
+# not-quite-blank line and delete every line between them. Measured at d730719: de=39 fell to
+# de=1, the surviving region being just "Der Wert   endet hier.". The previous commit had this
+# gap and its comment CERTIFIED it as covered, which is why the whitespace-only line is now a
+# paragraph break in its own right rather than a limit written down and waved through.
+k14="$TMP/K14.md"
+{ printf 'Der Wert `\n'; printf '   \n'; de_prose; de_prose; printf '` endet hier.\n'; } > "$k14"
+run "$DE" "$k14"; o="$OUT"
+assert_ge "K14 a span cannot pair across a whitespace-only line: de >= 24" 24 "$(field "$o" de)"
+assert_eq "K14 status OK" "OK" "$(status "$o")"
+
+# K14b: the same shape carrying an ENGLISH body under a de project, which is AC1 itself, and the
+# assertion nothing in this suite had: that the WARNING SURVIVES the mechanism. K14 proves the
+# German is not eaten; only this proves the story's headline behaviour is not silenced. Measured
+# at d730719: WARN en=21 became LOW-EVIDENCE en=2, no warning printed at all. Every over-drop
+# defect in this story reached a commit because the suite could show a count moving but not a
+# verdict disappearing.
+k14b="$TMP/K14b.md"
+{ printf 'The value `\n'; printf '   \n'; en_prose; en_prose; printf '` ends here.\n'; } > "$k14b"
+run "$DE" "$k14b"; o="$OUT"
+assert_eq "K14b an English body under de still WARNS through this shape" "WARN" "$(status "$o")"
+assert_eq "K14b detected=en" "en" "$(field "$o" detected)"
+assert_ge "K14b en >= 12 (the warning rests on evidence, not on a collapse)" 12 "$(field "$o" en)"
+
+# K15: the guard's LEAK direction, which round 3 found unbounded by any case. Suppressing span
+# deletion for a whole odd paragraph leaves real code counted as prose, so each line is handled
+# on its OWN parity instead: the line carrying the stray backtick deletes nothing (C1 step 6,
+# unchanged), and a line that pairs cleanly by itself still has its spans deleted.
+k15="$TMP/K15.md"
+{ printf 'Der Wert ` zu zum zur und mit von\n'; printf 'Der Code `%s` bleibt.\n' "$SIX"; } > "$k15"
+run "$DE" "$k15"; o="$OUT"
+assert_eq "K15 the span on the cleanly-paired line is deleted even in an odd paragraph: en=0" "0" "$(field "$o" en)"
+assert_eq "K15 and the stray backtick's own line is untouched: de=8" "8" "$(field "$o" de)"
+
+# K15b: the same leak in the direction that INVENTS a verdict. Two ordinary spans on a line that
+# pairs cleanly, one stray backtick on the line below: suppressing the whole paragraph left both
+# spans counted as English and turned a correct German document into WARN detected=en. A false
+# warning is the one failure this check cannot afford, because it teaches a reader to ignore it.
+# The counts are sized so BOTH directions are real, which the first draft of this case was not:
+# the spans must outweigh the German for the suppressed version to warn at all (24 English
+# against 18 German, measured WARN), and the German alone must clear MIN_HITS so the fixed
+# version reads OK on evidence rather than LOW-EVIDENCE for lack of it.
+k15b="$TMP/K15b.md"
+{ printf 'Der Wert `%s %s` und `%s %s` steht hier.\n' "$SIX" "$SIX" "$SIX" "$SIX"
+  printf 'und mit von zu zum zur und mit von zu zum zur\n'
+  printf 'Der Rest ` und mit von\n'; } > "$k15b"
+run "$DE" "$k15b"; o="$OUT"
+assert_eq "K15b no invented WARN on correct German: status OK" "OK" "$(status "$o")"
+assert_eq "K15b both spans on the paired line are gone: en=0" "0" "$(field "$o" en)"
+assert_ge "K15b and the verdict rests on evidence, not a collapse: counted >= 12" 12 "$(field "$o" counted)"
+# K15c: the RESIDUAL limit, as a case rather than a sentence, which is the whole lesson of round
+# 3: a stray backtick on the SAME line as a span makes that line odd too, so that span stays
+# counted. It is C1 step 6 applied per line, and it costs hits without ever eating prose, which
+# is the safe direction. Deliberately GREEN under both the wholesale suppression and the
+# per-line fallback, so it is a characterization case and not a bound: its job is to fail if
+# this limit ever changes silently. en=6 EXACTLY, and the paired de assertion is what
+# distinguishes "the span still counts" from "the line was eaten".
+k15c="$TMP/K15c.md"
+printf 'Der Wert ` und mit von `%s` zu zum zur\n' "$SIX" > "$k15c"
+run "$DE" "$k15c"; o="$OUT"
+assert_eq "K15c a stray backtick on the span's OWN line leaves it counted: en=6" "6" "$(field "$o" en)"
+assert_eq "K15c and nothing on that line is eaten: de=7" "7" "$(field "$o" de)"
+
 # K13: a NON-LATIN body. The tokenizer keeps ASCII letters only, so a Hebrew document
 # tokenizes to nothing and used to report `NO-PROSE counted=0 detected=none`, the identical
 # line a document with a legitimately empty prose region reports (K1). A reader could not tell
@@ -526,6 +602,19 @@ assert_exit "K13 exit 0" 0 "$RC"
 k13b="$TMP/K13b.md"; printf '   \n\t\n' > "$k13b"
 run "$DE" "$k13b"; o="$OUT"
 assert_eq "K13b a whitespace-only region stays NO-PROSE" "NO-PROSE" "$(status "$o")"
+# K13c: "whitespace" above means ALL of it. A form feed and a vertical tab are whitespace a
+# document can really contain, and while the emptiness test stripped only space, tab and
+# newline they reported UNREADABLE, contradicting K13b's promise one line above.
+k13c="$TMP/K13c.md"; printf '\f\n\v\n' > "$k13c"
+run "$DE" "$k13c"; o="$OUT"
+assert_eq "K13c a form feed and a vertical tab are whitespace too: NO-PROSE" "NO-PROSE" "$(status "$o")"
+# K13d: and the stated bound of that fix, so it is a tested claim and not a comment. A NON-ASCII
+# space is not stripped and reports UNREADABLE, which is the truthful answer rather than a bug:
+# the tokenizer cannot read that byte either. The bytes are U+00A0, written as an escape so this
+# file stays ASCII.
+k13d="$TMP/K13d.md"; printf '\xc2\xa0\n' > "$k13d"
+run "$DE" "$k13d"; o="$OUT"
+assert_eq "K13d an NBSP-only region reports UNREADABLE, as documented" "UNREADABLE" "$(status "$o")"
 
 echo ""
 if [ "$fail" -eq 0 ]; then echo "prose-language-check: all assertions passed."; else echo "prose-language-check: FAILURES above."; fi
