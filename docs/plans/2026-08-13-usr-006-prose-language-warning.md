@@ -86,7 +86,8 @@ Constraints (verbatim from the story, plus the inherited ones):
   Steps 6, 7 and 8 run in that order. Everything that survives is the prose region.
 - Produced by: Task 2
 - Consumed by: Task 3, Task 4
-- Invariants: the region never includes any byte from the frontmatter block, from inside a fence, from a heading line, from a table row, from an inline code span, from a link target or from a URL; NO exclusion consumes more than the construct it names (a heading drops one line, a table row drops one line, a closed fence drops only through its closing line, a closed frontmatter block drops only through its closing `---`, a code span deletes only up to its own closing backtick); the transformation is content-only and never rewrites the file on disk; a file whose region is empty yields status `NO-PROSE` and exit 0, never an error; a 4-space-indented block is NOT a code block for this purpose, and that is a stated limitation rather than an oversight.
+- Invariants: the region never includes any byte from the frontmatter block, from inside a fence, from a heading line, from a table row, from an inline code span THAT OPENS AND CLOSES ON ONE LINE, from a link target or from a URL; NO exclusion consumes more than the construct it names (a heading drops one line, a table row drops one line, a closed fence drops only through its closing line, a closed frontmatter block drops only through its closing `---`, a code span deletes only up to its own closing backtick, and NO deletion ever crosses a line break); the transformation is content-only and never rewrites the file on disk; a file whose region is empty yields status `NO-PROSE` and exit 0, never an error.
+  - STATED LIMITATIONS, the same category as one another, none an oversight: (1) a 4-space-indented block is NOT a code block for this purpose; (2) a code span that WRAPS across a line break is left in the region, content and all, because pairing backticks in the presence of a stray one is not decidable from a single document, and every version that tried to delete wrapped spans mispaired a stray and ate real prose between two backticks (three review Criticals). Same-line-only extraction makes eating prose across a line break structurally impossible, at the cost that a wrapped span's content is counted. That content is code, almost never a function word in any of the four lists, so it does not move the verdict; this reverses the round-2 decision to delete wrapped spans, deliberately. A second, bounded cost: on ONE line whose backticks do not pair cleanly (a stray plus a real span), that line's prose between them is deleted; the loss is confined to a single line and cannot silence a document-level verdict. Both are pinned as cases (K10, K12b for the first; K15c, K15d for the second) rather than left as prose.
 
 ### C2: the function-word lists
 - Kind: four closed data lists inside `bin/prose-language-check.sh` (space-separated shell strings, the house convention of `VALID="en de hr fr"`)
@@ -104,7 +105,7 @@ Constraints (verbatim from the story, plus the inherited ones):
 - Kind: stdout/stderr format + exit contract
 - Declaration: `prose-language-check.sh <project-dir> <file> [<file>...]` emits, for each file in argument order, one FIELD LINE of exactly this shape:
   `prose-language: <STATUS> <path> expected=<code> detected=<code|none> counted=<n> de=<n> en=<n> fr=<n> hr=<n>`
-  with `<STATUS>` in `WARN | OK | LOW-EVIDENCE | NO-PROSE`, the four counts always present in that fixed order, `<code>` always one of `en de hr fr`, and `detected=none` only when `counted=0`. `detected` is the code with the most hits, ties broken alphabetically so the output is deterministic. For `WARN` only, a SECOND, plain-language line follows:
+  with `<STATUS>` in `WARN | OK | LOW-EVIDENCE | NO-PROSE | UNREADABLE`, the four counts always present in that fixed order, `<code>` always one of `en de hr fr`, and `detected=none` only when `counted=0`. `UNREADABLE` was added after v1 (round 3 of review): it splits C4's `counted == 0` case so a region that is non-empty but yields no countable token (a non-Latin script, or legible Latin prose holding none of the four lists' function words) is told apart from a genuinely empty region, which stays `NO-PROSE`. It carries no language knowledge and never warns, because with lists for `en de hr fr` only the check can report that it could not read the region, never that the language is wrong. `detected` is the code with the most hits, ties broken alphabetically so the output is deterministic. For `WARN` only, a SECOND, plain-language line follows:
   `prose-language: warning only, nothing is blocked. <path> reads as <detected> while this project is set to <expected>.`
   Both `WARN` lines go to STDERR; `OK`, `LOW-EVIDENCE` and `NO-PROSE` lines go to STDOUT. After all files, one summary line on STDOUT:
   `prose-language: <n> file(s) checked, <w> warning(s); warnings never fail, exit 0.`
@@ -117,7 +118,8 @@ Constraints (verbatim from the story, plus the inherited ones):
 ### C4: the warning decision rule
 - Kind: behavior rule (two named constants plus one comparison)
 - Declaration: let `target` be the hit count for `expected`, `counted` the sum of all four counts, `rival` the highest count among the three codes other than `expected`, and `rival_code` its code (alphabetical tie-break). With `MIN_HITS=12`:
-  - `counted == 0` -> status `NO-PROSE`, no warning.
+  - `counted == 0` and the surviving region has no non-whitespace character -> status `NO-PROSE`, no warning.
+  - `counted == 0` and the region is non-empty (a script none of the four lists can read) -> status `UNREADABLE`, no warning. (Added round 3; see C3.)
   - `counted < MIN_HITS` -> status `LOW-EVIDENCE`, no warning, whatever the ratio is.
   - `rival * 2 > counted` -> status `WARN`, `detected=<rival_code>`.
   - otherwise -> status `OK`.
@@ -220,7 +222,8 @@ Constraints (verbatim from the story, plus the inherited ones):
     2. delete the link-target deletion (step 7) -> B6 red alone, on `en`.
     3. delete the bare-URL deletion (step 8) -> B7 red alone, on `en`.
     4. change `rival * 2 > counted` to `>=` -> F4a red alone.
-    5. change `MIN_HITS` to 11 -> F2 red alone.
+    5. change `MIN_HITS` to 11 -> F2 and H red (H pins `MIN_HITS=12` per C2, so it reddens
+       together with F2; measured at review, the v1 claim of "F2 red alone" was wrong).
     6. OVER-DROP: make the fence toggle never clear -> B2 and D red on `de`; K3 stays green, because drop-to-EOF is its expectation, which is why K3 cannot be this bug's instrument.
     7. OVER-DROP: make the frontmatter drop run from line 1 to EOF -> the COMPLETE red set is B1 through B7, D, every one of their CONTROLS, and K4; K1, K2 and group H stay green (K1 and K2 expect the collapse, group H reads the script and not a document). K4 goes red too, because its pair is a copy of B1's control and both collapse; the field equality still holds at `0 == 0`, and the `de >= 12` floor is what takes it red, which is precisely the reason that floor was added. Attribution here is to the CLASS, not one case, and that is the point: it demonstrates that the `de >= 12` companions catch a collapsed region at all, K4 included. The enumeration is complete rather than illustrative BECAUSE invariant (iii) fixes which documents have a frontmatter block; without it this list could not be closed.
     8. OVER-DROP: make the heading rule drop the heading AND the following line -> K5 red alone (`de=0` against 3); the B documents are unaffected because every heading in them is followed by a blank line.
