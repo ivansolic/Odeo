@@ -2,276 +2,181 @@
 artifact: USR-006
 type: code
 branch: feature/usr-006-prose-language-check
-reviewed_commit: 9ff98f5
-artifact_version: 5
-date: 2026-08-18
+reviewed_commit: 03f720d
+artifact_version: 6
+date: 2026-08-19
 scorer: code-reviewer
 model: claude-opus-4.8
 model_tier: strongest
 effort: high
-scores: { correctness: 2, security: 2, performance: 2, readability: 2, testing: 2, conventions: 1 }
-total: 11/12
-verdict: APPROVE WITH COMMENTS
-previous_total: 7/12
+scores: { correctness: 2, security: 2, performance: 2, readability: 2, testing: 2, conventions: 2 }
+total: 12/12
+verdict: APPROVE
+previous_total: 11/12
 ---
 
-# Code review, USR-006 warn on prose-language mismatch (round 5)
+# Code review, USR-006 warn on prose-language mismatch (round 6, re-anchor)
 
-Scope: the delta `d8cf267..9ff98f5` only, one commit `9ff98f5`, two files
-(`bin/prose-language-check.sh`, `tests/prose-language-check.test.sh`), +126/-165 (net -39).
-This commit is a REFACTOR of the code-span extractor, reviewed as a whole design, not an
-incremental patch. Everything cleared in rounds 1 to 4 outside the extractor (frontmatter,
-fence, heading, table exclusions; resolver agreement; decision rule C4; UNREADABLE; the C5
-lint; provenance) stands and was not re-derived, since this commit did not touch it. Contracts:
-`docs/plans/2026-08-13-usr-006-prose-language-warning.md`, C1 (prose region), C3 (status set),
-C4 (decision rule).
+Re-anchor of the round-5 record at the new head `03f720d`. This is NOT a fresh code
+review: it re-verifies that the code is unchanged, judges whether the docs-only plan
+reconciliation honestly closes the single round-5 Important, and re-scores accordingly.
+Contracts: `docs/plans/2026-08-13-usr-006-prose-language-warning.md`, C1 (prose region),
+C3 (status set), C4 (decision rule), M5 (mutation matrix).
+
+## Why this record was regenerated (not re-dated)
+
+The merge-gate refused because a non-evals file moved after the round-5
+`reviewed_commit: 9ff98f5`. The mover is a single file, the plan
+`docs/plans/2026-08-13-usr-006-prose-language-warning.md`. Measured, not trusted:
+
+- `git diff --quiet 9ff98f5 03f720d -- bin/ tests/` is CLEAN. Both code files are
+  byte-identical to their `9ff98f5` blobs, and each is bit-identical to its `03f720d`
+  blob. Therefore every code finding, mutation, adversarial shape and count from round 5
+  stands UNCHANGED and was deliberately not re-derived.
+- `git diff --name-only 9ff98f5 03f720d` yields exactly two files: this evals record and
+  the plan. The ONLY non-evals delta is the plan.
+
+The re-anchor is required because a `reviewed_commit` must be a hex SHA of the exact text
+read; a stale SHA cannot certify text that has moved, even when the moved text is docs.
 
 ## Provenance
 
 The executor was the ORCHESTRATING SESSION, not an isolated builder; `build_model_as_dispatched:`
-is omitted, not guessed. The human switched the session model to Opus 4.8 partway through this
-work, so this record is judged on Opus 4.8; the commit trailer still reads "Claude Opus 5
-(1M context)" for branch consistency, a provenance nit, not a code defect (nitpick 4). Every
-number here was measured by me at `9ff98f5`, from `/tmp` copies of the `d8cf267` and `9ff98f5`
-blobs plus `/tmp` fixtures. Mutations were installed into a `/tmp` shim tree (symlinks to the
-real `bin/`, one script overridden, real `tests/fixtures` symlinked) and never touched git; both
-files were checksum-verified against their `9ff98f5` blobs afterwards
-(`bin/prose-language-check.sh` git-blob `eba2a65…`, `tests/…` git-blob `ff665d3…`, both equal),
-and `git status --porcelain` holds only this untracked record.
+is omitted, not guessed. Judged on Opus 4.8, the model this session runs as. Mutation
+discipline for the one check I re-ran (M5): the mutated script was installed over the real
+`bin/` file with its pristine copy held in `/tmp`, restored from `/tmp` (never git), and both
+code files were verified bit-identical to their `03f720d` blobs afterward
+(`git diff --quiet 03f720d -- bin/ tests/` clean). `git status --porcelain` holds only this
+untracked record.
 
 ## Verdict
-APPROVE WITH COMMENTS
+APPROVE
 
-The Critical class that scored correctness 0 in rounds 2, 3 and 4 (a deletion eating prose
-ACROSS a line break and silencing the warning) is STRUCTURALLY GONE, and I proved it by mutation
-and adversarial measurement, not by reading. Same-line pairing plus the one-bit `opn` state make
-a deletion incapable of leaving the line it starts on: `match()` runs on a single-line awk record
-(default `RS="\n"`), and a line that begins inside an open span is kept VERBATIM and never
-scanned. I could not construct any shape that eats prose across a break, and even the pathological
-worst case cannot silence a warning. The two residuals are deliberate, bounded, pinned as cases,
-and honestly recorded. One item keeps this from a clean pass and it is a PLAN reconciliation, not
-a code defect: residual (a) means the region now contains bytes from a wrapped code span, which
-the plan's C1 invariant says it never does. The commit surfaces this for the gate rather than
-silently editing the contract, which is the correct process, but the invariant as written no
-longer holds, so it is an Important finding to reconcile before merge (with C3's UNREADABLE and
-the M5 line, both also still open and both flagged by the commit).
+The round-5 Important is CLOSED. Residual (a), a code span wrapping a line break leaves its
+bytes in the region, was an Important only because the plan's C1 invariant, as literally
+written, said the region never includes inline-code-span bytes. That was queued for the gate
+rather than fixed in code, correctly, because the behaviour is deliberate and the alternative
+(deleting wrapped spans) is the exact mispairing that scored three prior Criticals. The plan
+now documents the behaviour as a stated limitation of C1, so contract and code agree. With the
+divergence reconciled, conventions is no longer capped and the delta reaches 12/12. Nothing
+blocks merge.
 
-## The central claim, verified by mutation and adversarial measurement
+## The reconciliation, judged against the round-5 Important (diff read, not assumed)
 
-Claim under test: no deletion can eat prose across a line break, for ANY document. I printed the
-surviving region for each shape (the prior four Criticals were all "measure the region, not the
-count").
+The plan edit `9ff98f5..03f720d` touches C1, C3, C4 and the M5 mutation line. Each closes one
+of the three gate items the round-5 record left open, and none papers over a real break.
 
-Nine adversarial shapes, region measured, NONE eats across a break:
+### C1 (the round-5 Important) — CLOSED, honestly
 
-- Stray backtick then four German lines: the German lines begin inside the stray's span, kept
-  verbatim, not one word eaten.
-- Line begins mid-span with real German prose on it: kept verbatim whole.
-- Wrapped span whose second line carries its OWN stray: line 2 kept verbatim (strays and all),
-  German intact; the extra strays on an in-span line change nothing because that line is never
-  scanned.
-- EMPTY blank line inside an open span: `opn` reset to 0, the following line scanned normally,
-  its `` `the of` `` deleted and the German around it (`und mit von der die`) survives.
-- WHITESPACE-only line (`  \t `) inside an open span: same reset, same result, so both blank
-  shapes close the span.
-- Code fence opening while a span is open: the fence marker and fenced lines `next` out and do
-  NOT reset or toggle `opn`, so a following German line stays in-span and is kept verbatim
-  (counted, never eaten).
-- Backticks on a HEADING line and on a TABLE line: both lines `next` out BEFORE the parity
-  update, so their backticks never toggle `opn`; the next prose line scans with `opn==0` and the
-  German survives.
-- Odd number of backticks on a heading line: still no toggle, next line clean.
+The invariant now reads "the region never includes any byte from ... an inline code span THAT
+OPENS AND CLOSES ON ONE LINE ... a code span deletes only up to its own closing backtick, and
+NO deletion ever crosses a line break". A new bullet records STATED LIMITATIONS, in the same
+category as one another and none an oversight: (1) a 4-space-indented block is not a code block,
+and (2) a code span that WRAPS across a line break is left in the region, content and all,
+because pairing backticks in the presence of a stray one is not decidable from a single
+document, and every version that tried to delete wrapped spans mispaired a stray and ate real
+prose (three review Criticals). The residuals are pinned as cases: K10, K12b for the wrapped-span
+limitation; K15c, K15d for the one-line stray+span cost.
 
-Two never-silence checks under a `de` project (the failure that actually matters):
-- Stray opens a span, English body kept verbatim to EOF: `WARN detected=en counted=22 en=21`.
-- Wrapped span then English body: `WARN detected=en counted=27 en=25`.
-Both WARN; the warning is not silenced.
+This is exactly the fix the round-5 record prescribed ("amend C1 ... state that a code span
+WRAPPING a line break is a limitation of the region (its content is counted), in the same
+category as C1's existing 4-space-indent limitation"). The round-2 decision to delete wrapped
+spans is REVERSED, and the plan says so in words ("this reverses the round-2 decision to delete
+wrapped spans, deliberately") rather than hiding it. The over-wide "the region never includes
+any byte from an inline code span" claim is narrowed to the true "opens and closes on one line",
+so the contract no longer asserts something the code does not do. Honest reconciliation, not a
+paper-over: the price is stated (wrapped-span content is counted; it is code, almost never a
+function word, so it cannot move a verdict), and the bound lives in cases, not in a sentence,
+which is the round-3 lesson this story learned.
 
-Worst-case accumulation of residual (b): an English body under `de` with a stray+span on EVERY
-line: `WARN detected=en counted=48 en=48`. The parity alternates (an odd line eats, the next line
-is kept verbatim, restoring the eaten tokens there), so even the pathological document warns. The
-design comment's "the loss is confined to ONE line and cannot silence a verdict built from a whole
-document" holds under stress, which is why it is NOT the story's fifth over-wide claim.
+### C3 / C4 (UNREADABLE fifth status) — CLOSED
 
-## The specific mechanics the scope named
+C3's status set now reads `WARN | OK | LOW-EVIDENCE | NO-PROSE | UNREADABLE`, with a paragraph
+recording that UNREADABLE was added in round 3 and splits C4's `counted == 0` case: a non-empty
+region that yields no countable token (non-Latin script, or Latin prose holding none of the four
+lists' function words) reports UNREADABLE, while a genuinely empty region stays NO-PROSE. C4's
+rule table is split to match: `counted == 0` with no non-whitespace char -> NO-PROSE;
+`counted == 0` with a non-empty region -> UNREADABLE. This matches the code (the counted==0 split)
+and the tests (K13, K13d), both unchanged and green.
 
-- `opn` is updated by `bt=$0; opn=(opn + gsub(/\`/,"",bt)) % 2` on the ORIGINAL line, AFTER the
-  fence/heading/table `next`s. Confirmed: dropped lines never reach the update, so their backticks
-  never toggle the bit (ADV6/7/8/9 above). A line whose backticks were deleted by rule 6
-  contributes the right parity because the count is on `$0`, and rule 6 deletes spans in pairs
-  (`` `[^`]*` ``, two backticks each, an even count), so parity on `$0` equals parity on the
-  deleted `line`.
-- Blank-line reset `if (line ~ /^[ \t]*$/) opn=0` fires on both an empty line and a whitespace-only
-  line (ADV4/ADV5), correctly ABANDONS the span (CommonMark: a code span cannot contain a blank
-  line), and the reset is checked on `line` while it still equals `$0` (before the `opn==0`
-  deletion block), so it does not depend on deletion order. The line after a blank scans with
-  `opn==0`, which is the correct state and causes no over-deletion beyond same-line span removal.
-- AGENTS.md re-derived independently: `counted=1031`. Line 191 (`HEAD\`) ...`) begins inside the
-  `` (`git rev-parse --short `` span opened on line 190 and is kept whole, so "the / because /
-  only" on it are counted, not eaten. Sweep of all 160 tracked `.md` files, each report diffed
-  against `d8cf267`: seven move, all tiny (delta 1 to 5 tokens), all stay `OK`/`en`, none changes
-  a verdict. Six increase (wrapped-span content now counted, residual a). One decreases,
-  `BEGINNERS-GUIDE.md 581 -> 580`: a real double-backtick literal-backtick construct
-  (`` `` Ctrl+` `` ``) is a stray+span on one line, so residual (b) eats "and run" there (one `en`
-  token, "and"); verdict unchanged. This is residual (b) occurring in the repo's own docs,
-  bounded to one line, exactly as designed.
+### M5 (mutation line) — CLOSED and independently re-measured
 
-## Residual (a): wrapped-span content is counted, honestly recorded but a live C1 divergence
-
-K10 measures it: line 1 opens a span, line 2 begins inside it and is kept verbatim, so the wrapped
-span's content survives as text and is tokenized. Region printed; `en >= 6` (the content is made
-of function words on purpose to show the residual), `de >= 24`, status `OK` (German still
-dominates). This reverts round 2's "delete wrapped spans" behaviour, and K10 is respecified to
-assert the new behaviour, correctly.
-
-Judgement the scope asked for: this is HONESTLY recorded, NOT a silent contract break. The commit
-body names it, the code comment (lines 63 to 85) explains it at length, K10 pins it, K12/K12e/K15
-show a document is never silenced by it, K12b shows a blank line ends its reach, and the commit
-explicitly queues it "FOR THE GATE" as a plan correction alongside the same category as C1's
-existing "a 4-space indented block is prose" limitation. BUT it is still a real divergence: C1's
-declared invariant is "the region never includes any byte from ... an inline code span ... a code
-span deletes only up to its own closing backtick", and a wrapped span now contributes bytes and
-is deleted not at all. Per the review rule (a stated invariant the code does not hold is a finding
-even when every test passes), this is an Important finding: the plan's C1 must be amended at the
-gate before merge. It caps conventions at 1. It does NOT threaten correctness, because the check
-is advisory, wrapped-span content is code (almost never a function word), and the divergence keeps
-text rather than eating it, so it cannot silence a warning.
-
-Residual (b) by contrast is CONFORMANT to C1 rule 6 as literally written ("delete every SHORTEST
-backtick-delimited span, repeatedly"): a stray followed by a real span forms a shortest
-backtick-delimited span whose content is prose, and rule 6's own greedy algorithm deletes it.
-K15c pins it (`de 7 -> 4`, region printed: "Der Wert  the of and that with is\` zu zum zur", so
-"und mit von" is the eaten prose and the code is what survives), and it is an `assert_eq` exact
-pin, so any GROWTH of the residual beyond one line reddens it in either direction. K15d embeds the
-exact bad line in a real German body and the verdict stays `OK` with `de >= 40`, the bound that
-makes it acceptable.
-
-## Every rewritten case passes for the reason its name gives (region printed, not counts trusted)
-
-K10, K12, K12b, K12c, K12d, K12e, K14, K14b, K15, K15b, K15c, K15d all measured. Highlights:
-K12e reproduces the AGENTS.md:190-191 shape and reads `de=9 en=0` because line 2 is kept verbatim,
-which is why AGENTS.md reads 1031 not 1028; K12b shows a blank line closing the stray's span so
-the later `SIX` span IS deleted (`en=0`); K14b is the load-bearing one, an English body under `de`
-threaded through the stray+whitespace shape that still WARNS (`en >= 12`), pinning warning
-survival rather than a count move. No case passes for the wrong reason.
-
-## Mutation matrix: each new guard reddens only its own cases (full fail lines)
-
-Baseline 202 assertions, 0 failures, exit 0.
+The line now reads: "change `MIN_HITS` to 11 -> F2 and H red (H pins `MIN_HITS=12` per C2, so it
+reddens together with F2; measured at review, the v1 claim of 'F2 red alone' was wrong)." I
+re-measured this at `03f720d` by installing `MIN_HITS=11` over the real script (pristine copy in
+`/tmp`) and running the suite. Full fail lines:
 
 ```
-=== MUTATION: drop the opn gate (scan every line) ===
-FAIL: K12 the span after the stray, in the same paragraph, is kept not eaten: en=6 (expected '6', got '0')
-FAIL: K12e a line inside a wrapped span is kept verbatim, so its German survives whole: de=9 (expected '9', got '5')
-FAIL: K15 line 2 begins inside the stray's span and is kept whole, span included: en=6 (expected '6', got '0')
-=== MUTATION: drop the blank-line reset ===
-FAIL: K12b a blank line closes the stray's span, so the later span IS deleted: en=0 (expected '0', got '6')
-=== MUTATION: neuter rule 6 (code-span deletion) ===
-FAIL: B3 inside an inline code span: en=0 (the exclusion removed it) (expected '0', got '6')
-FAIL: K6 and both spans are gone: en=0 (expected '0', got '4')
-FAIL: K12b a blank line closes the stray's span, so the later span IS deleted: en=0 (expected '0', got '6')
-FAIL: K15b no invented WARN on correct German: status OK (expected 'OK', got 'WARN')
-FAIL: K15b the two clean spans on the first line are deleted: en=0 (expected '0', got '24')
-FAIL: K15c a stray plus a span on one line eats that line's prose between them: de=4 (expected '4', got '7')
+FAIL: F2 (0 de + 11 en): status LOW-EVIDENCE (expected 'LOW-EVIDENCE', got 'WARN')
+FAIL: F2 prints no WARN even at a 100 percent rival (unexpected 'WARN')
+FAIL: H MIN_HITS is 12 (expected '12', got '11')
 ```
 
-The `opn` gate reddens exactly the in-span-line cases (K12/K12e/K15); dropping it reintroduces the
-old cross-line eating (`K12e de 9 -> 5`), proving the gate is what closed the class. The blank-line
-reset reddens exactly K12b. Rule 6 reddens the span-exclusion cases, and `K15c de 4 -> 7` proves
-the residual-(b) eating is precisely rule 6, not a separate defect.
+Exactly F2 (two assertions: the status route flips to WARN because `counted(11) < MIN_HITS(11)`
+is now false and `rival*2 > counted`, and the "prints no WARN" guard) and H (`H MIN_HITS is 12`).
+The corrected line is accurate; the v1 "F2 red alone" was indeed wrong. The script was restored
+from `/tmp` and re-verified bit-identical to its `03f720d` blob; the baseline suite is green
+(all assertions passed, exit 0).
 
-## The commit body corrects the record and carries no new over-wide claim
+## Carried-forward code findings (code unchanged, not re-derived)
 
-Checked against the story's history of over-wide claims (four scored across rounds 1 to 4, a fifth
-would be decisive on conventions). "Multi-line prose can never be eaten": TRUE, by construction
-(single-line record) and by every adversarial shape above. "Net -39 lines ... small enough to
-read": accurate (126 insertions, 165 deletions = -39 across both files; `prose_region` is 51 lines
-including comments, the executable logic ~25). The residuals are stated as CASES (K10, K15c, K15d),
-which follows the round-3 lesson "a bound lives in a case, never in a sentence". No fifth over-wide
-claim exists.
-
-## Gate items still correctly deferred, not silently dropped
-
-- C3 UNREADABLE fifth status: present in code (the counted==0 split) and tested (K13, K13d), and
-  the code comment records it as a deliberate deviation "raised as a plan correction at the gate
-  rather than edited here". The commit body repeats it as still open. Not dropped.
-- The plan's M5 line ("F2 and H", not "F2 alone"): the commit body carries it forward as still
-  open. Not dropped.
-- All 26 `tests/*.test.sh` green; real-repo skills-lint clean; 202 assertions; zero `exit 1`
-  literals; zero awk interval `{n,m}` expressions; zero non-POSIX `\x` escapes in the script.
+All round-5 code conclusions stand at `03f720d` because `bin/` and `tests/` are byte-identical:
+the cross-line eating class is structurally gone (nine adversarial shapes, two never-silence
+checks and a worst-case accumulation, none eating across a break, none silencing a warning);
+residual (b) eats one line only and is conformant to C1 rule 6 as written; 202 assertions, all
+26 suites green. These are not re-measured here by design (the review budget forbids redundant
+re-runs of unchanged, already-evidenced code); the M5 mutation was the one exception, run only
+because the plan makes a fresh factual claim about it that this re-anchor had to confirm.
 
 ## Findings
 
 ### Important
-1. `bin/prose-language-check.sh` (the `opn==0` verbatim path) and C1. Residual (a): a code span
-   that wraps a line break now leaves its bytes IN the prose region and is deleted not at all,
-   which the plan's C1 invariant ("the region never includes any byte from an inline code span ...
-   a code span deletes only up to its own closing backtick") forbids. This is disclosed, bounded,
-   tested (K10), advisory-only, and the commit correctly queues it for the gate rather than editing
-   the contract, so it is Important, not Critical, and cannot silence a warning. Fix: amend C1 at
-   the gate to state that a code span WRAPPING a line break is a limitation of the region (its
-   content is counted), in the same category as C1's existing 4-space-indent limitation, and land
-   that plan edit before merge together with the C3 UNREADABLE and M5 reconciliations.
+None. The round-5 Important (residual (a) vs C1) is closed by the plan reconciliation above.
 
-### Nitpicks
-2. Design comment, `bin/prose-language-check.sh:81-85`. "the loss is confined to ONE line and
-   cannot silence a verdict built from a whole document" is true and I stress-tested it (residual
-   (b) on every line of an English body still WARNs), but the reason it holds is the parity
-   alternation (an in-span line restores the tokens the previous line ate), which the comment does
-   not state. One clause naming that would make the bound self-evidently robust rather than
-   asserted.
-3. `tests/prose-language-check.test.sh` K12e comment cites "AGENTS.md:190-191"; the wrapped span
-   in the live file is now on lines 190 to 191 with the `HEAD\`)` closer on 191, which matches, but
-   line numbers drift as AGENTS.md is edited. Consider "the AGENTS.md git...HEAD wrapped-span shape"
-   without the pinned line numbers, so the case does not appear to rot when the file moves.
-4. Commit trailer reads "Claude Opus 5 (1M context)" while the work was executed partly on Opus
-   4.8. Provenance only, kept for branch consistency per the dispatch note; no code impact. Noted
-   because the record must not silently inherit a model name that the session did not run on.
+### Nitpicks (carried forward from round 5, unchanged code, optional)
+1. Design comment, `bin/prose-language-check.sh:81-85`. The "loss is confined to ONE line and
+   cannot silence a verdict" bound holds because of parity alternation (an in-span line restores
+   the tokens the previous line ate); one clause naming that mechanism would make the bound
+   self-evidently robust rather than asserted.
+2. `tests/prose-language-check.test.sh` K12e comment cites "AGENTS.md:190-191"; pinned line
+   numbers drift as AGENTS.md is edited. Prefer "the AGENTS.md git...HEAD wrapped-span shape".
+3. Commit trailer reads "Claude Opus 5 (1M context)" while the work executed partly on Opus 4.8.
+   Provenance only, kept for branch consistency; no code impact.
 
 ## Scores
 
 correctness 2/2 · security 2/2 · performance 2/2 · readability 2/2 · testing 2/2 ·
-conventions 1/2 -> total 11/12 (threshold >= 9, no zero)
+conventions 2/2 -> total 12/12 (threshold >= 9, no zero)
 
-- **correctness 2.** The cross-line eating class is structurally eliminated and I could not break
-  it: nine adversarial shapes, two never-silence checks and a worst-case accumulation all measured,
-  none eats across a break and none silences a warning. Residual (b) eats one line only, is
-  conformant to C1 rule 6 as written, and cannot silence a whole-document verdict even
-  pathologically. The three prior Criticals are genuinely gone, not moved.
-- **security 2.** Unchanged from round 4. The awk program is a fixed literal, document bytes never
-  reach a shell word, paths are quoted, no secret or PII is printed, and no document content can
-  change the exit code.
-- **performance 2.** Simpler than the predecessor: one line-level awk pass, no `RS=""` record
-  buffering, no per-paragraph `split`. The 160-file sweep runs in seconds.
-- **readability 2.** Net -39 lines, the parity branch and per-line fallback deleted, one `opn` bit
-  plus a blank-line reset in their place, and every bound named at the code site that carries it.
-- **testing 2.** Up from 1. The class that previously had no case is now closed structurally AND
-  the two residuals are pinned as cases (K15c an exact `assert_eq`, K15d its bound), K14b pins
-  warning survival, every rewritten case passes for its named reason by region measurement, and
-  every mutation attribution in the body reproduced exactly, five rounds running.
-- **conventions 1.** One stated-contract invariant (C1: region excludes inline-code-span bytes)
-  is not held by the code, because residual (a) counts wrapped-span content. It is disclosed and
-  correctly deferred to the gate, which is why it is Important and not a 0, but the plan text and
-  the code disagree until the amendment lands, so this is not a clean 2. No new over-wide claim
-  (the fifth the story was watching for does not exist), so conventions does not fall to 0.
+- **correctness 2.** Unchanged from round 5. The cross-line eating class is structurally
+  eliminated; residual (b) eats one line only and cannot silence a whole-document verdict.
+- **security 2.** Unchanged. The awk program is a fixed literal, document bytes never reach a
+  shell word, paths are quoted, no secret or PII is printed.
+- **performance 2.** Unchanged. One line-level awk pass, no `RS=""` buffering.
+- **readability 2.** Unchanged. One `opn` bit plus a blank-line reset; bounds named at their
+  code sites.
+- **testing 2.** Unchanged. The class is closed structurally and both residuals are pinned as
+  cases (K15c an exact `assert_eq`); the M5 attribution reproduced exactly again this round.
+- **conventions 2.** UP from 1. The single stated-contract divergence that capped this dimension,
+  C1's "region excludes inline-code-span bytes" vs the code counting wrapped-span content, is
+  reconciled: C1 now narrows the invariant to same-line spans and records wrapped-span content as
+  a stated limitation in the same category as the 4-space-indent one, pinned as cases. C3
+  UNREADABLE and the M5 line are likewise closed and the M5 correction is measurement-accurate.
+  Plan and code now agree; no new inconsistency is introduced by the edit.
 
 ## Ceiling
 
-11/12 for this delta. Conventions structurally caps at 1 until the plan's C1 (wrapped-span
-content), C3 (UNREADABLE fifth status) and M5 line are reconciled at the gate, which is a plan
-edit OUTSIDE these two files and so cannot be completed within this commit. Everything else is at
-2. The moment those three plan reconciliations land, conventions reaches 2 and the delta is 12/12.
+12/12, no structural cap remains. Conventions was capped at 1 in round 5 solely by the three
+open plan reconciliations (C1 wrapped-span, C3 UNREADABLE, M5 line), all of which had to land in
+the plan, a file outside the two code files, and so could not be closed within the round-5 commit.
+They have now landed. Every dimension is at 2.
 
-## Round 4 -> round 5 (regression note: BETTER)
+## Round 5 -> round 6 (regression note: BETTER)
 
-7/12 -> 11/12, REQUEST CHANGES -> APPROVE WITH COMMENTS. correctness 0 -> 2 and conventions 0 -> 1
-and testing 1 -> 2. The round-4 Critical (per-line fallback over-consuming inside an odd paragraph,
-C1 breach, AC1 silenced) is closed by removing the machinery it lived in rather than patching it a
-fourth time: the `RS=""` records, the odd/even parity branch, the per-line fallback and the
-whitespace-line special case are gone, replaced by same-line pairing and one `opn` bit. Every
-prior-round Critical shape re-measured and none is silenced. What remains is not a code defect but
-three plan reconciliations the commit itself surfaces. First round of this story to clear the
-threshold.
+11/12 -> 12/12, APPROVE WITH COMMENTS -> APPROVE. conventions 1 -> 2; all other dimensions hold
+at 2. No code changed (`bin/` and `tests/` byte-identical to `9ff98f5`); the gain is entirely the
+docs-only plan reconciliation closing the round-5 Important and the two long-standing gate items,
+verified honest by reading the diff and by re-measuring the M5 mutation. Nothing blocks merge.
 
 ## History
 
@@ -292,22 +197,25 @@ threshold.
   a blank-line reset, deleting the `RS=""` records, the parity branch, the per-line fallback and
   the whitespace-line special case. The cross-line eating class that scored three Criticals is
   structurally gone, verified by mutation and by nine adversarial shapes plus a worst-case
-  accumulation, none eating across a break and none silencing a warning. Two residuals disclosed,
-  bounded and pinned as cases (a: wrapped-span content counted, K10; b: one-line stray+span
-  eating, K15c/K15d). One Important remains: residual (a) violates C1's stated
-  region-excludes-code-span invariant, disclosed and correctly deferred to the gate with the still
+  accumulation. Two residuals disclosed, bounded and pinned as cases (a: wrapped-span content
+  counted, K10; b: one-line stray+span eating, K15c/K15d). One Important remained: residual (a)
+  violated C1's stated region-excludes-code-span invariant, deferred to the gate with the still
   open C3 UNREADABLE and M5 items. 202 assertions, all 26 suites green.
+- v6, `03f720d`, 12/12, APPROVE. Re-anchor after a docs-only plan reconciliation; `bin/` and
+  `tests/` byte-identical to `9ff98f5`, so all code findings carry forward unchanged. The plan now
+  narrows C1 to same-line code spans, records wrapped-span content as a stated limitation (K10,
+  K12b) alongside the one-line stray+span cost (K15c, K15d) and states the round-2 reversal
+  explicitly; C3 records UNREADABLE as the fifth status with the counted==0 split; the M5 line is
+  corrected to "F2 and H" and re-measured accurate. The round-5 Important is closed, conventions
+  rises 1 -> 2, nothing blocks merge.
 
 ## What is good
 
-The commit removes a bug CLASS instead of patching a heuristic a fourth time, and it is right that
-this was the only move left: an adversarial reviewer could always build the next mispairing, so the
-fix had to make the failure structurally impossible, not smaller. It did. `match()` on a single-line
-record plus the "in-span lines are kept verbatim" rule means a deletion cannot leave the line it
-starts on, and I could not defeat it with any shape I built. The residuals are handled the way the
-story learned to handle bounds: written as cases (K15c an exact pin that reddens on any growth,
-K15d its embedding bound), not as sentences. The commit is honest about the price, reverting round
-2's decision and recording residual (a) as a C1 limitation for the gate rather than quietly editing
-the contract, and every mutation and count in the body reproduced exactly when I ran it, which is
-five rounds of accurate attribution in a row. K14b remains the case this suite most needed: it pins
-that a WARNING survives the mechanism, not merely that a count moved.
+The reconciliation does the honest thing under a gate that could have been gamed: instead of
+quietly editing the code to match the contract or the contract to hide the code, it narrows the
+C1 invariant to what the code actually guarantees (same-line spans, no deletion across a break)
+and records the wrapped-span cost as a stated limitation in the same category as the pre-existing
+4-space-indent one, with the round-2 reversal named out loud and every residual pinned to a case
+rather than a sentence. The M5 correction goes further than it had to, admitting the v1 "F2 red
+alone" claim was wrong and stating why (H pins MIN_HITS=12), and it re-measured exactly. Code and
+contract now say the same thing, which is the whole point of a contract.
