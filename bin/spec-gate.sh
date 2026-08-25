@@ -129,7 +129,10 @@ for abs in "${ARTIFACTS[@]}"; do
     fail=1; continue
   fi
 
-  # newest matching record by git commit time
+  # Newest matching record by git commit time. Kept ONLY for the freshness check (step 4)
+  # and the committed-record guard just below; the VERDICT and TIER checks deliberately do
+  # NOT use it. Line 55 refuses the whole run if docs/evals is dirty, so every enrolled
+  # record here is committed and unmodified, and this time is a real one for each.
   record=""; rec_time=0
   while IFS= read -r r; do
     t="$(git log -1 --format=%ct -- "$r" 2>/dev/null || echo 0)"
@@ -141,40 +144,48 @@ for abs in "${ARTIFACTS[@]}"; do
     fail=1; continue
   fi
 
-  # 3. Verdict must approve (deny by default; ties between equal commit times
-  #    resolve by find order, deterministic within a checkout)
-  verdict="$(frontmatter_verdict "$record")"
-  case "$verdict" in
-    APPROVE|"APPROVE WITH COMMENTS"|PASS) : ;;
-    "")
-      echo "spec-gate: REFUSED, record for '$id' has no frontmatter verdict ($record)." >&2
-      fail=1; continue ;;
-    *)
-      echo "spec-gate: REFUSED, latest review for '$id' did not pass (verdict: $verdict, $record)." >&2
-      echo "Fix the named gaps and re-run pm-reviewer, the record regenerates, never edit it by hand." >&2
-      fail=1; continue ;;
-  esac
+  # 3. EVERY enrolled record must approve AND clear the tier floor (deny by default). Checking
+  #    only the newest let an older sibling REQUEST CHANGES, or an older fast-tier PASS, hide
+  #    behind a later strong PASS, the same hole merge-gate closed. The loop refuses the
+  #    ARTIFACT (bad=1; break -> fail=1; continue), it does not exit, because spec-gate
+  #    verdicts every artifact passed to it in one run. Order is irrelevant when all must pass.
+  bad=0
+  while IFS= read -r r; do
+    [[ -n "$r" ]] || continue
+    verdict="$(frontmatter_verdict "$r")"
+    case "$verdict" in
+      APPROVE|"APPROVE WITH COMMENTS"|PASS) : ;;
+      "")
+        echo "spec-gate: REFUSED, record for '$id' has no frontmatter verdict ($r)." >&2
+        bad=1; break ;;
+      *)
+        echo "spec-gate: REFUSED, a review for '$id' did not pass (verdict: $verdict, $r)." >&2
+        echo "EVERY record covering '$id' must approve, not just the newest. Fix the named gaps and re-run pm-reviewer, the record regenerates, never edit it by hand." >&2
+        bad=1; break ;;
+    esac
 
-  # 3b. Model tier floor (same contract as merge-gate): no silent fast-tier judgment
-  tier="$(frontmatter_field "$record" "model_tier")"
-  waiver="$(frontmatter_field "$record" "model_waiver")"
-  case "$tier" in
-    strong|strongest) : ;;
-    fast)
-      if [[ "$waiver" != "human" ]]; then
-        echo "spec-gate: REFUSED, judgment for '$id' ran on a FAST-tier model ($record)." >&2
-        echo "Re-run pm-reviewer on a strong tier, or add 'model_waiver: human' explicitly." >&2
-        fail=1; continue
-      fi ;;
-    "")
-      echo "spec-gate: REFUSED, record for '$id' has no 'model_tier:' field ($record)." >&2
-      echo "Re-run pm-reviewer; records declare the tier that judged (fast|strong|strongest)." >&2
-      fail=1; continue ;;
-    *)
-      echo "spec-gate: REFUSED, unknown model_tier '$tier' for '$id' ($record)." >&2
-      echo "Vocabulary is exactly: fast | strong | strongest." >&2
-      fail=1; continue ;;
-  esac
+    # 3b. Model tier floor (same contract as merge-gate): no silent fast-tier judgment.
+    tier="$(frontmatter_field "$r" "model_tier")"
+    waiver="$(frontmatter_field "$r" "model_waiver")"
+    case "$tier" in
+      strong|strongest) : ;;
+      fast)
+        if [[ "$waiver" != "human" ]]; then
+          echo "spec-gate: REFUSED, judgment for '$id' ran on a FAST-tier model ($r)." >&2
+          echo "Re-run pm-reviewer on a strong tier, or add 'model_waiver: human' explicitly." >&2
+          bad=1; break
+        fi ;;
+      "")
+        echo "spec-gate: REFUSED, record for '$id' has no 'model_tier:' field ($r)." >&2
+        echo "Re-run pm-reviewer; records declare the tier that judged (fast|strong|strongest)." >&2
+        bad=1; break ;;
+      *)
+        echo "spec-gate: REFUSED, unknown model_tier '$tier' for '$id' ($r)." >&2
+        echo "Vocabulary is exactly: fast | strong | strongest." >&2
+        bad=1; break ;;
+    esac
+  done <<< "$records"
+  [[ "$bad" -eq 1 ]] && { fail=1; continue; }
 
   # 4. Freshness: the review must postdate the artifact's last change.
   #    No commit history (gitignored / never committed) = refuse, a file git

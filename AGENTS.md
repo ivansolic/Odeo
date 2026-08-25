@@ -270,9 +270,10 @@ baseline above) does not exist.
   build (pipeline + the builder itself refuse). [I] With-me: plan approved
   before code.
 - [E] Spec freshness: `/build`'s `spec-gate.sh` refuses stories/PRDs whose eval
-  record is missing, non-passing, or older than the artifact, fix ->
+  record is missing, older than the artifact, or where ANY record covering it does
+  not approve or rode a fast tier without a waiver, not just the newest, fix ->
   re-review is the only way through. (The review loop's exits are walled:
-  merge-gate for code, spec-gate for specs.)
+  merge-gate for code, spec-gate for specs; both enforce EVERY covering record.)
 - [I] Plans go through the plan-review loop (architecture-reviewer x architect,
   to clean, max 3); the builder's contract requires the plan's `arch_review:`
   line, so an unreviewed plan cannot be built without an explicit human waiver.

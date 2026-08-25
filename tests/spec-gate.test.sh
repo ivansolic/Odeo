@@ -100,6 +100,27 @@ d="$(make_repo)"; story "$d" USR-001-login "$T1"; record "$d" "artifact: USR-001
 record "$d" "artifact: USR-001" "REQUEST CHANGES" "$T3" new.md
 check "newer non-passing record beats an older PASS" 1 "$d" docs/stories/USR-001-login.md; rm -rf "$d"
 
+# 13b. THE SIBLING HOLE: older REQUEST CHANGES + newer PASS -> refuse. Selecting only the
+#      newest record hid a sibling rejection behind a later PASS, the same class merge-gate
+#      closed. EVERY record covering the id must approve, not just the freshest.
+d="$(make_repo)"; story "$d" USR-001-login "$T1"; record "$d" "artifact: USR-001" "REQUEST CHANGES" "$T2" old.md
+record "$d" "artifact: USR-001" PASS "$T3" new.md
+check "an older sibling REQUEST CHANGES is not hidden by a newer PASS" 1 "$d" docs/stories/USR-001-login.md; rm -rf "$d"
+
+# 13c. the tier floor holds per-record too: newest PASS is strong, an older sibling PASS ran
+#      on a fast tier with no waiver -> refuse. A fast-tier judgment must not ride in behind
+#      a strong newest.
+d="$(make_repo)"; story "$d" USR-001-login "$T1"
+record "$d" "artifact: USR-001" PASS "$T2" old.md "body" "model_tier: fast"
+record "$d" "artifact: USR-001" PASS "$T3" new.md "body" "model_tier: strong"
+check "a fast-tier sibling is not hidden by a newer strong PASS" 1 "$d" docs/stories/USR-001-login.md; rm -rf "$d"
+
+# 13d. two clean records, both PASS, both strong -> pass. The loop must not refuse on record
+#      COUNT: when every sibling genuinely approves and clears the tier floor, the gate passes.
+d="$(make_repo)"; story "$d" USR-001-login "$T1"; record "$d" "artifact: USR-001" PASS "$T2" old.md
+record "$d" "artifact: USR-001" PASS "$T3" new.md
+check "two clean passing records still pass" 0 "$d" docs/stories/USR-001-login.md; rm -rf "$d"
+
 # 14. LEFT token boundary: XUSR-001 must not cover USR-001
 d="$(make_repo)"; story "$d" USR-001-login "$T2"; record "$d" "artifact: XUSR-001" PASS "$T3"
 check "refuses XUSR-001 record for USR-001 (left boundary)" 1 "$d" docs/stories/USR-001-login.md; rm -rf "$d"
