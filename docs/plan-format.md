@@ -21,12 +21,15 @@ without an approved plan file.
 ```markdown
 # Plan: <story id + name>
 approved: no            # flipped to yes by the human at the gate
-model_plan:             # resolved LIVE when the plan is written; the user saw
-  judgment: <model> effort <level>   # and answered the model+effort question. When the
-                        # effort was READ rather than stated by the user, it carries its
-                        # source: `effort high (configured, per CLAUDE_EFFORT)`. A reader
-                        # at the gate cannot otherwise tell a read value from a confirmed
-                        # one; the read order lives in AGENTS.md. A
+model_plan:             # the judgment model and effort AS OF when the plan is written.
+  judgment: <model> effort <level>   # Either field may be STATED by the user (write it
+                        # plain) or READ in step 2 (the model from the session, the effort
+                        # from config) rather than resolved live in front of them. A READ
+                        # value carries its source, the SAME duty for both fields, so a
+                        # reader at the gate can tell it from a confirmed one:
+                        # `effort high (configured, per CLAUDE_EFFORT)`,
+                        # `judgment <model> (per session environment)`. The read order
+                        # lives in AGENTS.md. A
                         # PLAN-TIME SNAPSHOT: never "corrected" after the gate, even if
                         # the session model changes later (the step recommends switching
                         # up for architecture-critical work, so it legitimately can). A

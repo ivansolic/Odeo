@@ -90,17 +90,25 @@ The change mechanism is per host (Claude Code: `/model` + `/effort`; other hosts
 use their equivalent from the per-host adapter in AGENTS.md), so the same step
 works everywhere. In for-me mode, write into the plan's `model_plan:` the judgment
 model and effort AND `builder_tier:` (a tier word plus effort; that is the line the
-builder's contract requires). An effort value that came from step 2 carries its
-source into the file as well (`effort high (configured, per CLAUDE_EFFORT)`), because
-a reader at the gate cannot otherwise tell a read value from a confirmed one, and the
-plan is what a later reviewer trusts. The build model NAME never goes in the plan, see B5.4.
+builder's contract requires). A value that came from step 2 rather than from the user
+carries its source into the file, and this duty is the SAME for both fields: an effort
+READ in step 2 is written `effort high (configured, per CLAUDE_EFFORT)`, and a judgment
+model READ from the session rather than resolved live in front of the user is written
+`judgment <model> (per session environment)`. Reason, identical for both: a reader at
+the gate cannot otherwise tell a read value from a confirmed one, and the plan is what a
+later reviewer trusts. When either was stated by the user, write it plain, no source tag.
+The build model NAME never goes in the plan, see B5.4.
 In with-me mode the spoken question is the announcement.
 If judgment would run below the strongest model in the CURRENT OFFICIAL LINEUP
 (resolved live per AGENTS.md, which tells you what EXISTS, not what this account has)
 OR below `high` effort, say so in the same breath, name the stronger model and how to
 switch (`/model`, `/effort`), and for architecture-critical work (plans, security,
-reviews) recommend switching up first. If the user says it is not on their plan, drop
-the point. Question, never a block: the choice is the user's.
+reviews) recommend switching up first. A CONFIGURED value below the bar counts the same
+as a confirmed one here (a read `medium` effort, or a session model below the strongest):
+raise it WITH its source so the user can confirm or correct, rather than stay silent
+because the value was read and not stated, which withholds an architecture-critical
+recommendation. If the user says it is not on their plan, drop the point. Question, never
+a block: the choice is the user's.
 
 **Plan-first is the default in BOTH modes, and in for-me it is enforced by the
 pipeline.** With me: you enter plan mode and approve before building. For me: the
@@ -288,7 +296,7 @@ explicit user go.
 > sonnet is fine
 worktree-parallel-check: only USR-012 chosen, nothing overlaps -> proceed
 architect -> docs/plans/2026-07-14-usr-012-timer.md (approved: no)
-  model_plan: judgment <session model> effort high (configured, per CLAUDE_EFFORT)
+  model_plan: judgment <session model> (per session environment) effort high (configured, per CLAUDE_EFFORT)
               builder_tier: sonnet effort high (plan is precise, work mechanical)
 architecture-reviewer on the plan: fits inherited architecture, 1 note (shown)
 "Plan + independent check above. Approve, change, or reject?"
