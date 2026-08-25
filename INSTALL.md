@@ -125,6 +125,10 @@ cd claude-cofounder
 ./install.sh
 ```
 
+It asks once for your document language (English by default; German, Croatian, or
+French available). This sets only the language of generated *prose*, code and
+commits always stay English, and you can change it any time with `/language`.
+
 `install.sh` puts everything where Claude Code reads it:
 - `~/.claude/CLAUDE.md`, global baseline instructions + the Security Baseline + your chosen output-language default
 - `~/.claude/skills/`, all skills, available in every project: the workflow commands (`/build`, `/merge`, `/learn`, ...) and the auto-applying skills (TDD, ux-design)

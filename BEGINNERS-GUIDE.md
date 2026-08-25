@@ -79,6 +79,24 @@ and fills `CLAUDE.md` in for you. (Or you can pick a ready-made preset.) You onl
 do this **once per project.** After it, Claude knows what it's working with, and
 everything else (like the testing habit) reads from that file.
 
+**Working in your own language.** You don't have to work in English. Claude can
+write your PRDs, stories, plans, and reviews in German, Croatian, or French, while
+the code, the commit messages, and the filenames always stay English. Set it once:
+
+```
+/language de          (German, for this project)
+/language de --global (German, for every project)
+/language             (just show the current setting)
+```
+
+Only the *prose* Claude writes for you changes; anything a machine reads stays
+English, so nothing leaks into your code. There's also a gentle check that warns
+if a document drifts from your setting, it only warns, it never blocks you.
+
+> One honest note: this guide, and all the docs that explain how the system works,
+> stay in English on purpose. They describe the mechanics, and the mechanics stay
+> English. Your *own* documents follow the language you set.
+
 ---
 
 ## 5. The vocabulary (the words that scare beginners)
