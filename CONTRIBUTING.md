@@ -1,6 +1,6 @@
-# Contributing to Claude Cofounder
+# Contributing to Odeo
 
-Thank you for wanting to make this better. Claude Cofounder grows by what its
+Thank you for wanting to make this better. Odeo grows by what its
 users bring back, and **contributions are not just code.** In fact, most of the
 value here lives in the writing, the workflow, and the knowledge, so improving any
 of those counts just as much.

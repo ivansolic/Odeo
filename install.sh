@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# install.sh, Install Claude Cofounder onto this machine.
+# install.sh, Install Odeo onto this machine.
 #
 # Copies (or symlinks) the system into the locations Claude Code reads:
 #   ~/.claude/CLAUDE.md                  global baseline instructions
@@ -35,7 +35,7 @@ place() { # place <src> <dest>
   if $LINK; then ln -s "$src" "$dest"; else cp -R "$src" "$dest"; fi
 }
 
-echo "Installing Claude Cofounder from: $REPO_DIR"
+echo "Installing Odeo from: $REPO_DIR"
 [[ "$LINK" == true ]] && echo "  (symlink mode, git pull will update live)"
 
 # 1. Project templates (project-specific scaffolding: CLAUDE.md, tasks, docs, design, knowledge)
@@ -171,7 +171,7 @@ grep -q 'CLAUDE_CODE_AUTO_VERIFY' "$PROFILE" 2>/dev/null || echo 'export CLAUDE_
 
 cat <<'DONE'
 
-✅ Claude Cofounder installed (commands, agents, skills, and the PM skills).
+✅ Odeo installed (commands, agents, skills, and the PM skills).
 
 Reload your shell:  source ~/.bash_profile   (or ~/.zshrc)
 

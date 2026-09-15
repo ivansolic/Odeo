@@ -1,5 +1,5 @@
 <!--
-Claude Cofounder, baseline global instructions.
+Odeo, baseline global instructions.
 This is a starting point: copy it to ~/.claude/CLAUDE.md and make it yours.
 The first-person voice ("I want…") is intentional, when you adopt this file,
 "I" means you. Add your own preferences and let lessons accumulate over time

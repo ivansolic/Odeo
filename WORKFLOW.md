@@ -443,8 +443,8 @@ Way 2, MANY sessions, one per task (hands-on; the classic "several tabs" setup):
 ```
 
 Built-in Claude Code tools (use these, don't rebuild them; all work in any terminal, no desktop app needed):
-- **`claude agents`** , opens the **agent view**: a full-screen terminal dashboard of your background sessions (which are running / need input / done / their PR status). Enter to attach, Space to peek, type to dispatch a new one. Your main fleet control.
-- **`claude --bg "task"`** , start a background agent from the shell; **`claude --worktree <name>`** , an interactive session in its own isolated worktree; **`claude attach|logs|stop <id>`** , manage a background session.
+- **`claude agents`** opens the **agent view**: a full-screen terminal dashboard of your background sessions (which are running / need input / done / their PR status). Enter to attach, Space to peek, type to dispatch a new one. Your main fleet control.
+- **`claude --bg "task"`** starts a background agent from the shell; **`claude --worktree <name>`** opens an interactive session in its own isolated worktree; **`claude attach|logs|stop <id>`** manages a background session.
 - Our `builder` agent has `isolation: worktree`, so dispatched agents are isolated automatically. To check what's safe to parallelize, run **`worktree-parallel-check`** first.
 
 **When with-me vs for-me:** clear + independent work -> for me (agents, faster, parallel); fuzzy / needs your steering -> with me (build together). The mode is asked on every /build, never assumed. The isolation benefit ("no context-mixing = better output") holds for both; Mode A just lets you steer live.

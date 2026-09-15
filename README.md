@@ -1,4 +1,4 @@
-# Claude Cofounder
+# Odeo
 
 **The workflow system that turns one person into a product team.**
 
@@ -8,7 +8,7 @@ The whole product lifecycle, with you directing Claude: idea → discovery → P
 
 ## What is this?
 
-Claude Cofounder is an opinionated workflow system for [Claude Code](https://claude.com/claude-code). It covers the **whole product lifecycle**, from first idea and discovery, through PRD, design, build, test, and security, to ship, and then measuring the outcome and feeding what you learn back in. You direct Claude as your developer instead of writing code by hand. It bundles the global instructions, project scaffolding, PM workflow, a test-driven-development habit, a security baseline, and an end-to-end daily process into one install.
+Odeo is an opinionated workflow system for [Claude Code](https://claude.com/claude-code). It covers the **whole product lifecycle**, from first idea and discovery, through PRD, design, build, test, and security, to ship, and then measuring the outcome and feeding what you learn back in. You direct Claude as your developer instead of writing code by hand. It bundles the global instructions, project scaffolding, PM workflow, a test-driven-development habit, a security baseline, and an end-to-end daily process into one install.
 
 You bring the *what* and *why* (the product thinking). The system makes Claude deliver the *how* (the code), with guardrails so the result is actually solid.
 
@@ -72,6 +72,7 @@ claude-cofounder/
 │   ├── prototype/            ← /prototype build-to-learn (N variants, live compare)
 │   ├── improve/              ← /improve evidence-gated system improvement (A/B, keep/revert)
 │   ├── product-signal/       ← /product-signal weekly user-feedback memo + trend
+│   ├── language/             ← /language set the prose language (code stays English)
 │   ├── test-driven-development/ ← auto-applies to logic (RED-GREEN-REFACTOR)
 │   ├── ux-design/            ← auto-applies to UI (heuristics, states, a11y)
 │   ├── ux-writing/           ← auto-applies to UI copy (microcopy, errors)
@@ -81,19 +82,38 @@ claude-cofounder/
 │   ├── architect.md          ← plans a story as a contract (read-only, plan-only)
 │   ├── builder.md            ← executes the approved plan in its own worktree
 │   ├── codebase-analyst.md   ← maps an existing codebase (read-only)
+│   ├── debugger.md           ← root-cause investigation, minimal fix + regression test
+│   ├── code-reviewer.md      ← code, functions, security
+│   ├── architecture-reviewer.md ← architecture, and the plan reviewer
+│   ├── design-reviewer.md    ← UI: heuristics, states, a11y, tokens
 │   ├── pm-reviewer.md        ← scores PM documents against rubrics
 │   ├── skill-reviewer.md     ← scores skills against the authoring standard
-│   ├── code-reviewer.md      ← code, functions, security
-│   ├── debugger.md
-│   ├── architecture-reviewer.md
-│   └── design-reviewer.md    ← UI: heuristics, states, a11y, tokens
-├── bin/
+│   ├── agent-reviewer.md     ← scores agent definitions against the agent rubric
+│   └── agent-rubric.md       ← the rubric agent-reviewer scores against
+├── bin/                      ← 21 scripts: deterministic guards + scaffolding
 │   ├── init-project.sh       ← scaffolds the project-specific parts of a new project
-│   ├── privacy-scan.sh       ← deterministic privacy guard (blocks leaks before sharing)
+│   ├── install-git-guards.sh ← installs pre-push + pre-commit hooks into a repo
+│   │                           gates (exit codes, no judgment; each one blocks something):
+│   ├── merge-gate.sh         ← /merge preconditions (branch, clean tree, EVERY review approves)
+│   ├── spec-gate.sh          ← /build entry gate (a story/PRD needs a fresh passing review)
 │   ├── secret-scan.sh        ← staged-secrets gate (blocks the commit)
+│   ├── privacy-scan.sh       ← deterministic privacy guard (blocks leaks before sharing)
 │   ├── boundary-check.sh     ← DO-NOT-TOUCH path gate (blocks protected-path changes)
-│   ├── merge-gate.sh         ← /merge preconditions (branch, clean tree, fresh approved review)
-│   └── install-git-guards.sh ← installs pre-push + pre-commit hooks into a repo
+│   ├── skills-lint.sh        ← the system's own consistency gate over skills/ and agents/
+│   ├── coverage-check.sh     ← PRD-requirement coverage check
+│   ├── focus-check.sh        ← /focus session edit fence
+│   │                           output language (see /language):
+│   ├── resolve-language.sh   ← resolves the effective language (project > global > en)
+│   ├── language-guard.sh     ← keeps machine-read surfaces English (enforced)
+│   ├── language-status.sh    ← reports the effective language and where it came from
+│   ├── set-global-language.sh, set-project-language.sh  ← the writers
+│   ├── prose-language-check.sh ← advisory warning on a prose-language mismatch
+│   │                           publishing (the only sanctioned path out):
+│   ├── publish-snapshot.sh   ← builds a clean public snapshot (content, never history)
+│   ├── publish-guard.sh      ← fail-closed: nothing internal or unclassified ships
+│   ├── share-tunnel.sh       ← time-boxed public tunnel for a preview
+│   ├── second-opinion.sh     ← the sanctioned path for a paid cross-model review
+│   └── session-end-check.sh  ← advisory end-of-session sweep
 ├── project-templates/        ← project-specific scaffolding only (not the tools)
 │   ├── CLAUDE.md             ← per-project config incl. a Security & Data section
 │   ├── knowledge/            ← README for the project knowledge base
@@ -104,13 +124,17 @@ claude-cofounder/
 ├── global/
 │   └── CLAUDE.md             ← user-global baseline laid into ~/.claude by install.sh
 ├── tests/
-│   └── *.test.sh             ← test suites for every guard script (31 assertions)
+│   └── *.test.sh             ← 26 suites, ~818 assertions, one per guard script
 └── docs/
     ├── system-map.md         ← the catalog: every command/agent/loop by phase
     ├── eval-framework.md     ← rubrics, scorers, eval records, regression
     ├── plan-format.md        ← the architect's plan contract format + rubric
     ├── skill-authoring-standard.md ← how skills are written (+ skill rubric)
+    ├── invariants.md         ← the invariants the lint enforces
     ├── privacy-guard.md      ← design of the privacy guard
+    ├── second-opinion-protocol.md ← when and how a paid cross-model review runs
+    ├── internal-paths.txt    ← denylist: what never leaves the machine
+    ├── public-paths.txt      ← allowlist: what may be published (fail-closed)
     └── checklists/           ← recorded audit results (alignment, Anthropic practices)
 
 # Commands, agents, and skills are provided by the installed plugin (or install.sh),
@@ -139,7 +163,7 @@ claude-cofounder/
 - **Evals built in**, every artifact type has a rubric and a scorer: reviewers score code, UI, PM documents, and skills (review = eval, records in `docs/evals/`), regressions are visible, and `/improve` changes the system itself only when an A/B test proves the new version better, you keep or revert.
 - **Guardrails, enforced where it matters**, one `## Guardrails` section in `AGENTS.md` tags every hard rule as mechanism-enforced or instructed: no direct pushes to main (git hook), no secrets in commits (scan blocks the commit), no merges without a review record (gate script), protected paths can't be touched (boundary check), nothing private leaves the machine unscanned.
 - **Weekly listening** (`/product-signal`), your users' feedback becomes a themed memo compared against last week: what's new, what's growing, what faded, feeding `/prioritize` and `/roadmap` with reality.
-- **Three docs**, `INSTALL.md` (setup), `BEGINNERS-GUIDE.md` (concepts), `WORKFLOW.md` (daily use). Plus `CONTRIBUTING.md` for contributing back (code and beyond).
+- **The docs, by job**, `INSTALL.md` (setup, bare machine to ready), `BEGINNERS-GUIDE.md` (the concepts, in plain language), `WORKFLOW.md` (daily use, what to type), `AGENTS.md` (the operating baseline every agent reads), `ROADMAP.md` (direction), and `CONTRIBUTING.md` for contributing back (code and beyond).
 
 ## Your data: what's private, what's shared
 - **Your memory and project knowledge stay yours.** Your Claude Code memory (your preferences) and each project's `knowledge/` live on your machine; nothing is uploaded.

@@ -1,4 +1,4 @@
-# AGENTS.md, Claude Cofounder operating baseline
+# AGENTS.md, Odeo operating baseline
 
 The canonical rules for how this system works. Claude Code reads `AGENTS.md`
 automatically (before `CLAUDE.md`), so these rules govern both this repo and any

@@ -112,7 +112,7 @@ Follow the browser flow.
 
 ---
 
-## Step 6, Clone Claude Cofounder and install it
+## Step 6, Clone Odeo and install it
 
 Everything below, the global instructions, project templates, stack presets, the
 TDD skill, the `init-project.sh` scaffolder, your PATH, and the auto-verify env

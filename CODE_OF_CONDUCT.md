@@ -2,7 +2,7 @@
 
 ## Our pledge
 
-We want Claude Cofounder to be a welcoming, harassment-free project for everyone,
+We want Odeo to be a welcoming, harassment-free project for everyone,
 regardless of experience level, background, identity, or whether you write code.
 Many people here are PMs and first-time contributors. We pledge to keep it kind
 and constructive.

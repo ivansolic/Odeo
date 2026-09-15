@@ -1,4 +1,4 @@
-<!-- Thanks for contributing to Claude Cofounder. Contributions of every kind are welcome, not just code. -->
+<!-- Thanks for contributing to Odeo. Contributions of every kind are welcome, not just code. -->
 
 ## What does this change?
 
