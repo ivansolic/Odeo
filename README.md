@@ -127,7 +127,7 @@ Odeo/
 ├── global/
 │   └── CLAUDE.md             ← user-global baseline laid into ~/.claude by install.sh
 ├── tests/
-│   └── *.test.sh             ← 28 suites, 827 assertions. 22 of the 23 programs have their
+│   └── *.test.sh             ← 29 suites, 840 assertions. 22 of the 23 programs have their
 │                               own suite (session-end-check.sh has none yet); the remaining
 │                               suites are cross-cutting rather than per-program
 └── docs/
