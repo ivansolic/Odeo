@@ -113,9 +113,13 @@ h=$(run "$m")
 
 # 6. THE INVARIANT, asserted independently of every classification above: no path deletes
 #    the user's copy. If a future state is misclassified, this is what keeps it survivable.
-printf '%s' "$block" | grep -q 'rm -rf' \
-  && bad "the refresh block contains rm -rf; a misdiagnosis could destroy the user's copy" \
-  || ok "no path in the block deletes the mirror (move-aside only)"
+# The pattern covers the DESTRUCTIVE FAMILY, not one spelling of it. A literal `rm -rf`
+# check read as a class guarantee while `rm -fr`, `rm -r`, `git clean -xfd` and
+# `find -delete` all walked past it: the claim-wider-than-the-mechanism shape from
+# lessons.md, in the very assertion whose job is to bound a class.
+printf '%s' "$block" | grep -qE 'rm +-[a-zA-Z]*r|git +clean|-delete|> *"?\$COMMUNITY_DIR' \
+  && bad "the refresh block can destroy the mirror; a misdiagnosis would cost the user's work" \
+  || ok "no path in the block deletes or truncates the mirror (move-aside only)"
 
 echo ""
 if [[ "$fail" -eq 0 ]]; then echo "community-refresh: all $pass assertions passed."; else echo "community-refresh: $fail FAILURE(S) above."; fi

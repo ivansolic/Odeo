@@ -36,7 +36,7 @@ Evidence moves the work forward. You command the direction. That is what human-i
 
 So `spec-gate` and `merge-gate` never ask: a story cannot enter the build without a fresh passing review, and a branch cannot merge unless **every** review record approves. Approving a plan, merging, and publishing are judgments or are irreversible, so they are always yours.
 
-**The anchors are what keep the checking honest.** Tests that actually ran, scans that actually blocked, review records that name the commit they cover. Guardrails are tagged `[E]` where a mechanism enforces them and `[I]` where they are instructions, and nothing in the system can quietly weaken an `[E]`.
+**The anchors are what keep the checking honest.** Tests that actually ran, scans that actually blocked, review records that name the commit they cover. Guardrails are tagged `[E]` where a mechanism holds them and `[I]` where the model does: an `[E]` is backed by a script with an exit code rather than by the model's goodwill, and an `[I]` is layered with verifiers and your gate on top.
 
 **And the graph is not decoration, it is three things you can verify yourself.** The `architect` has no write tool, so it structurally cannot produce code. The `builder` works in its own git worktree and the reviewer never sees its context, so a review is independent instead of the same agent grading its own homework. Several stories build in parallel, isolated, then rejoin at one gate.
 
