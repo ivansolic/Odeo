@@ -82,18 +82,34 @@ done
 #    Selection is by SHEBANG, not by the exec bit: a checkout that lost its exec bits
 #    (the Windows case .gitattributes already guards against) would make an exec-bit
 #    test install NOTHING and still exit 0, which is the same silent-skip defect this
-#    loop exists to kill, widened from one file to all of them. The count guard below
-#    is the real backstop: copying zero programs can never be a silent success.
+#    loop exists to kill, widened from one file to all of them.
+#    TWO guards, because a selection rule can be wrong in two directions and each needs
+#    its own backstop: copying ZERO programs can never be a silent success, and SKIPPING
+#    any file in bin/ can never be silent either. The second is what makes the promise
+#    above ("every program in bin/") enforceable rather than aspirational: a new file
+#    that does not look like a program stops the install instead of quietly not shipping.
 echo "  → bin scripts → ~/bin/"
+# BEGIN bin-install   (tests/install-bin.test.sh extracts exactly this block and runs it;
+#                      keep both markers, the test fails LOUD if either one moves)
 installed=0
+skipped=""
 for script in "$REPO_DIR"/bin/*; do
   [[ -f "$script" ]] || continue
-  head -c 2 "$script" 2>/dev/null | grep -q '#!' || continue
+  if ! head -c 2 "$script" 2>/dev/null | grep -q '#!'; then
+    skipped="$skipped $(basename "$script")"
+    continue
+  fi
   place "$script" ~/bin/"$(basename "$script")"
   chmod +x ~/bin/"$(basename "$script")" 2>/dev/null || true
   installed=$((installed+1))
 done
 (( installed > 0 )) || { echo "install: FAILED, no programs found in $REPO_DIR/bin" >&2; exit 1; }
+[[ -z "$skipped" ]] || {
+  echo "install: FAILED, these files in bin/ carry no shebang and were not installed:$skipped" >&2
+  echo "         Add a shebang, or move them out of bin/ if they are not programs." >&2
+  exit 1
+}
+# END bin-install
 
 # 3b. Privacy deny-list (your own private terms; gitignored by living in ~/.claude)
 #     Never overwrite an existing one. Seed a commented sample so it is discoverable.

@@ -19,27 +19,33 @@ pass=0; fail=0
 ok()   { echo "ok   - $1"; pass=$((pass+1)); }
 bad()  { echo "FAIL - $1"; fail=$((fail+1)); }
 
-# The expected set: every file in bin/ carrying a shebang. Derived from the tree, never
-# hardcoded, so adding a program to bin/ cannot silently fall out of the contract.
+# The expected set: EVERY regular file in bin/, counted WITHOUT the shebang predicate the
+# implementation uses. Deriving it with the same rule made this suite structurally blind:
+# a planted shebang-less executable was skipped by the install and the suite still printed
+# "all assertions passed", because both sides agreed to ignore the same file. A test whose
+# expectation is filtered by the rule under test can only confirm that rule is consistent
+# with itself. The contract is "every file in bin/ is installed, or the install FAILS", so
+# the count comes from the directory and the skip case below covers the other direction.
 expected=0
-for s in "$ROOT"/bin/*; do
-  [[ -f "$s" ]] || continue
-  head -c 2 "$s" 2>/dev/null | grep -q '#!' && expected=$((expected+1))
-done
-[[ "$expected" -gt 0 ]] || { echo "FAIL - instrument broken: no programs found in bin/"; exit 1; }
-echo "ok   - instrument: bin/ carries $expected programs"
+for s in "$ROOT"/bin/*; do [[ -f "$s" ]] && expected=$((expected+1)); done
+[[ "$expected" -gt 0 ]] || { echo "FAIL - instrument broken: no files found in bin/"; exit 1; }
+ok "instrument: bin/ holds $expected files, counted independently of the shebang rule"
 
 # Extract the loop under test, so the assertion runs the REAL code rather than a
 # paraphrase of it, without executing the rest of install.sh (which writes to ~/.claude).
-loop="$(awk '/^installed=0$/,/^\(\( installed > 0 \)\)/' "$ROOT/install.sh")"
-# The extraction is a TEXT RANGE, so it fails open: if either marker moves, awk runs to EOF
-# and silently hands back the rest of install.sh, and the cases below then redden for the
-# wrong reason (measured: 9 lines becomes 111). Bound it explicitly, and fail LOUD, so a
-# marker drift can never masquerade as a behaviour finding.
+loop="$(awk '/^# BEGIN bin-install/,/^# END bin-install$/' "$ROOT/install.sh")"
+# The extraction is a TEXT RANGE, so it fails OPEN: if a marker moves, awk runs to EOF and
+# silently hands back the rest of install.sh, and the cases below then redden for the wrong
+# reason (measured with the previous markers: 9 lines became 111). Named BEGIN/END markers
+# replaced a range keyed on code lines, which broke the moment the code they pointed at
+# grew a second guard. Bound it and fail LOUD either way, so marker drift can never
+# masquerade as a behaviour finding.
 loop_lines=$(printf '%s\n' "$loop" | wc -l | tr -d ' ')
-if [[ -z "$loop" || "$loop_lines" -gt 20 ]] || ! printf '%s' "$loop" | grep -q 'installed > 0'; then
-  echo "FAIL - instrument broken: extracted $loop_lines lines from install.sh, expected the bin"
-  echo "       loop (<=20 lines ending at the count guard). The markers in install.sh moved."
+if [[ -z "$loop" || "$loop_lines" -gt 40 ]] \
+   || ! printf '%s' "$loop" | grep -q 'installed > 0' \
+   || ! printf '%s' "$loop" | grep -q 'END bin-install'; then
+  echo "FAIL - instrument broken: extracted $loop_lines lines from install.sh, expected the"
+  echo "       BEGIN/END bin-install block. A marker in install.sh moved or was removed."
   exit 1
 fi
 
@@ -59,6 +65,25 @@ run_loop() {
     eval "$loop"
   ) >/dev/null 2>&1
   return $?
+}
+
+# Same, but PRINTS stderr and still returns the status, so a case can assert the message
+# and not merely the exit code. Kept separate from run_loop rather than made to do both:
+# a helper that prints AND sets a status is the shape that produced the empty-string bug
+# above, so the two uses stay in two functions.
+run_loop_err() {
+  local repo="$1" home="$2" errfile
+  errfile="$(mktemp)"
+  (
+    set +e
+    REPO_DIR="$repo"; HOME="$home"
+    place() { cp "$1" "$2"; }
+    mkdir -p "$home/bin"
+    eval "$loop"
+  ) >/dev/null 2>"$errfile"
+  local rc=$?
+  cat "$errfile"; rm -f "$errfile"
+  return $rc
 }
 
 # 1. Normal checkout: every program lands in ~/bin, token-report.py included.
@@ -83,12 +108,31 @@ got=$(ls "$h/bin" 2>/dev/null | wc -l | tr -d ' ')
   || bad "exec-bitless checkout installed $got of $expected (silent-skip defect)"
 rm -rf "$tmp"
 
-# 3. Empty bin/: installing zero programs must FAIL LOUDLY, never exit 0 quietly.
+# 3. Empty bin/: installing zero programs must FAIL LOUDLY, never exit 0 quietly. The
+#    message is asserted too, not just the status: deleting the explanation while keeping
+#    `exit 1` would otherwise stay green, and a bare non-zero exit tells a user nothing.
 tmp="$(mktemp -d)"; h="$tmp/home"; emptyrepo="$tmp/repo"
 mkdir -p "$emptyrepo/bin" "$h"
-run_loop "$emptyrepo" "$h"; rc=$?
+err="$(run_loop_err "$emptyrepo" "$h")"; rc=$?
 [[ "$rc" != "0" ]] && ok "zero programs is a loud failure (exit $rc)" \
   || bad "zero programs exited 0: a clean-looking install with no guards on PATH"
+case "$err" in *"no programs found"*) ok "and it says why (message on stderr)";;
+  *) bad "failed without an explanation on stderr (got: ${err:-<empty>})";; esac
+rm -rf "$tmp"
+
+# 4. A file in bin/ that is NOT a program (no shebang) must STOP the install, naming it.
+#    This is the direction the suite was blind to: the implementation skipped such a file
+#    silently and this suite agreed, because both filtered by the same rule. Measured then:
+#    22 of 23 installed, suite green. Now a skip is a failure, so "every program in bin/"
+#    is enforceable instead of aspirational.
+tmp="$(mktemp -d)"; h="$tmp/home"; plantrepo="$tmp/repo"
+mkdir -p "$plantrepo/bin" "$h"; cp "$ROOT"/bin/* "$plantrepo/bin/" 2>/dev/null
+printf 'echo not-a-program\n' > "$plantrepo/bin/odeo-helper"; chmod +x "$plantrepo/bin/odeo-helper"
+err="$(run_loop_err "$plantrepo" "$h")"; rc=$?
+[[ "$rc" != "0" ]] && ok "a shebang-less file in bin/ stops the install (exit $rc)" \
+  || bad "a shebang-less file was skipped SILENTLY (install exited 0)"
+case "$err" in *odeo-helper*) ok "and the offending file is named";;
+  *) bad "failed without naming the skipped file (got: ${err:-<empty>})";; esac
 rm -rf "$tmp"
 
 echo ""
