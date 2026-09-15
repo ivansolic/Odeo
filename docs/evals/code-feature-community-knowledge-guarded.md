@@ -2,298 +2,282 @@
 artifact: community-knowledge-guarded
 type: code
 branch: feature/community-knowledge-guarded
-reviewed_commit: f941b84
+reviewed_commit: 3bed70a
 date: 2026-09-15
 scorer: code-reviewer
 model: claude-opus-5[1m] (Opus 5, 1M context)
 model_tier: strong
 effort: high
-record_version: 3
+record_version: 4
 scores: { correctness: 1, security: 1, performance: 2, readability: 2, testing: 1, conventions: 2 }
 total: 9/12
-previous_total: 8/12
+previous_total: 9/12
 verdict: APPROVE WITH COMMENTS
 ---
 
 ## Scope reviewed
 
-The delta `main..f941b84` (13 files, +637/-33), with deepest attention on the two
-commits added since `c0b67e3`:
+Narrow re-anchor of the delta `f941b84..3bed70a`, one commit, two files:
 
-- `4a46ec8` `fix(install): make a failed refresh non-destructive by construction, and
-  pin the matrix` (`install.sh` +63/-23, `tests/community-refresh.test.sh` new,
-  `skills/sync-community/SKILL.md`, `AGENTS.md`, `README.md`)
-- `f941b84` `docs(readme): lead with the lifecycle and the gate rule, and trade prose
-  for tables` (`README.md` +100/-33)
+- `3bed70a` `fix: stop overclaiming [E] on the front page, and bound the destructive
+  family not one spelling` (`README.md` +1/-1, `tests/community-refresh.test.sh` +7/-3)
 
-`git rev-parse --short HEAD` == `f941b84`, resolved by me. The working tree carries
-exactly one modification, this record, which `merge-gate.sh` excludes from its
-freshness comparison by construction; every other path is byte-identical to `f941b84`.
+Confirmed by `git diff f941b84 3bed70a --stat`: exactly those two files, 8 insertions,
+4 deletions. Nothing else moved.
+
+**On the anchor.** `git rev-parse --short HEAD` resolves to `bb5db9c`, not `3bed70a`.
+`bb5db9c` is `docs(evals): community-knowledge guards review, 9/12 APPROVE at f941b84`,
+the commit that made the previous version of THIS record tracked, and it touches
+`docs/evals/` and nothing else. The anchor is therefore recorded as `3bed70a`, which is
+the commit whose CODE I read: I verified `git hash-object` for `README.md`,
+`tests/community-refresh.test.sh` and `install.sh` equals `git rev-parse 3bed70a:<path>`
+for all three, and `git diff 3bed70a bb5db9c --stat` shows only this record. `3bed70a` is
+an ancestor of HEAD and `merge-gate.sh:294` compares with `':(exclude)docs/evals'`, so the
+freshness check passes on it by construction rather than by luck.
+
+This record is committed as of `bb5db9c`, so it now shows as MODIFIED rather than
+untracked, and is left modified and uncommitted as instructed.
 
 Provenance: ORCHESTRATING SESSION, not an isolated builder, so
 `build_model_as_dispatched:` is omitted by design.
 
-Mutation discipline: every mutation ran against copies under `/tmp/ck3*` and
-`/tmp/ckprobe/`, restored by re-copying from `/tmp`, never via git. Nothing was
-written into the repository and no command ran against the real
-`~/.claude/community-knowledge`.
+Mutation discipline: every mutation ran against copies under `/tmp/odeo-mut/`, a
+standalone tree holding `install.sh` plus `tests/`, so the repository was never the
+mutation target and no restore step was required. Re-verified afterwards anyway: all
+three files bit-identical to their `3bed70a` blobs, `git status --porcelain` clean
+except this record. No command ran against the real `~/.claude/community-knowledge`.
 
-Reach beyond the diff, each justified by a named risk: the five orchestrator
-`SKILL.md` files and `agents/architect.md` + `agents/builder.md` (the README makes
-falsifiable claims about each), `bin/spec-gate.sh` + `bin/merge-gate.sh` (the README
-states what they enforce), `AGENTS.md` Guardrails (the `[E]`/`[I]` claim),
-`skills/sync-docs/SKILL.md` and `install.sh:53-66,132-139` (whether the new rule
-reaches an already-installed user), and an exhaustive grep for every surface that
-ingests `community-knowledge`.
+Carried forward by agreement and deliberately NOT re-derived: I3 (the clone-path `else`
+arm), I4 (offline with no exit offered), I5 (delivery to already-installed users), and
+the round-3 nitpicks. They still ship, so they still hold their bands down; see Scores.
 
 ## Verification performed
 
-**The class-elimination claim holds.** There is no deletion of the mirror on any path
-in the block (`install.sh:180-234`), confirmed by reading and by behavioral fixtures.
-Both mutations the dispatch asked for go RED:
+### 1. I1, the publish hold, is closed
 
-| Mutation | Result |
+`README.md:39` now reads: guardrails are tagged `[E]` where a mechanism holds them and
+`[I]` where the model does, an `[E]` is backed by a script with an exit code rather than
+by the model's goodwill, an `[I]` is layered with verifiers and your gate on top.
+
+Checked clause by clause against `AGENTS.md:195-197`:
+
+| Clause | `AGENTS.md:195-197` | Verdict |
+|---|---|---|
+| tagged `[E]` where a mechanism holds them, `[I]` where the model does | "a mechanism physically stops it ... or [I] instructed, the model holds it" | TRUE |
+| `[E]` backed by a mechanism, not the model's goodwill | "a mechanism physically stops it" | TRUE |
+| `[E]` is "a script with an exit code" | "(script exit code, tool restriction, git hook)" | one of three kinds, see N1 |
+| `[I]` layered with verifiers and your gate on top | "layered with verifiers and the human gate" | TRUE |
+
+**The contradiction with `skills/commit-push/SKILL.md:104` is gone.** The old sentence
+made an absolute claim ("nothing in the system can quietly weaken an `[E]`") that
+`SKILL.md:104` ("Never bypass pre-commit hooks with `--no-verify` without asking")
+directly conceded was false. The new sentence makes no immutability claim at all, so
+there is nothing left to contradict. I re-grepped the README for sibling absolutes
+(`nothing (in|can)`, `never be`, `cannot be`, `impossible`, `guarantee`): the three hits
+are `:33` (the gate rule, a definition), `:144` and `:204` (both about `publish-guard`
+and `privacy-scan`, which are scripts with exit codes, so both are accurate). No sibling
+overclaim was left behind.
+
+**No new overclaim is introduced.** The one imprecision I found runs in the opposite,
+safe direction: it under-describes the mechanism set rather than overstating safety. See
+N1 in Nitpicks.
+
+### 2. I2, the invariant assertion, reddens on every named mutation
+
+The assertion at `:120` is now
+`grep -qE 'rm +-[a-zA-Z]*r|git +clean|-delete|> *"?\$COMMUNITY_DIR'`.
+
+Method: copy `install.sh` + `tests/` to `/tmp/odeo-mut/`, insert one destructive command
+immediately before the move-aside remedy at `install.sh` `if mv "$COMMUNITY_DIR"
+"$stale"`, run the suite, and read the INVARIANT's own line specifically rather than the
+overall exit code, which is what distinguishes "assertion 6 caught it" from "cases 3 and
+4 caught it". Baseline on the unmutated copy: 9/9 ok.
+
+| Mutation inserted | Assertion 6 itself |
 |---|---|
-| move-aside replaced by `rm -rf "$COMMUNITY_DIR"` | RED, 3 assertions fail |
-| `@{u}` reverted to `FETCH_HEAD` | RED, the detached-HEAD case reports `refreshed.` again |
+| `rm -fr "$COMMUNITY_DIR"` (the round-3 mutation that walked past) | REDDENS |
+| `rm -rf "$COMMUNITY_DIR"` | REDDENS |
+| `rm -r "$COMMUNITY_DIR"` | REDDENS |
+| `git clean -xfd` | REDDENS |
+| `find "$COMMUNITY_DIR" -mindepth 1 -delete` | REDDENS |
+| `: > "$COMMUNITY_DIR/f.md"` (truncation) | REDDENS |
 
-**Scenario matrix re-run, all non-destructive.** s8 detached HEAD: named, moved aside,
-never celebrated. s12/s13/s14 (upstream rename, orphan branch, missing remote): all
-resolve through `@{u}`, so the orphan-tip misresolution that produced a spurious
-delete command in round 2 cannot occur. Stale index: `.git/index.lock` left by a
-crashed git is misclassified as "its history has diverged" but the copy is preserved
-intact at `.stale-<ts>` and the install continues, which is exactly the designed
-behaviour of a non-load-bearing classifier. Same with `index.lock` plus local edits,
-verified the edit survives in the moved-aside copy.
+**I2 as filed is fixed.** The exact mutation that defeated the old check, and the three
+other spellings named in round 3, all now redden the invariant itself, not merely the
+scenario cases. The move from `grep -q` to `grep -qE` is correct and the alternation
+produces no false positive on the current block: `git clone` at `install.sh` does not
+match `git +clean`, and the human-facing "Delete it when you no longer need it" line does
+not match `-delete` (no leading hyphen).
 
-**Can the test pass for a wrong reason?** Partly, and it is worth naming precisely
-(see I2). The two instrument defects recorded in the file are real and correctly
-fixed: `mkmirror` advances upstream after each clone, so the fixtures are genuinely
-behind, and the diverged case captures the log before matching it rather than
-SIGPIPE-ing git under `pipefail`. The residual is that assertion 6's guard is a
-literal string match, and a mutation spelled `rm -fr` destroys the mirror while that
-assertion stays GREEN. The suite still goes RED overall because cases 3 and 4 assert
-survival behaviorally, so the protection holds; the belt has a hole, the suspenders
-do not.
+### 3. Is the pattern as wide as the claim it makes? No
 
-**Shell-flag fidelity.** `install.sh:17` is `set -euo pipefail`; the harness evaluates
-the block under `set +e` (`tests/community-refresh.test.sh:57`). I re-ran all nine
-assertions with the subshell switched to `set -euo pipefail` and all nine still pass,
-so nothing is wrong today. The gap is future regression invisibility (N4).
+The comment at `:116` says the pattern "covers the DESTRUCTIVE FAMILY, not one spelling
+of it". I probed the boundary with seven more destructive spellings, same method:
 
-**README claims, each checked against the tree.** All true as stated:
+| Mutation inserted | Assertion 6 | Total FAILs in suite |
+|---|---|---|
+| `rm -Rf "$COMMUNITY_DIR"` | WALKS PAST | 3 |
+| `rm --recursive --force "$COMMUNITY_DIR"` | WALKS PAST | 0 (BSD `rm` rejects the long option, so it is inert on macOS; on GNU it deletes) |
+| `git -C "$COMMUNITY_DIR" clean -xfd` | WALKS PAST | **0** |
+| `git -C "$COMMUNITY_DIR" reset --hard origin/main` | WALKS PAST | 2 |
+| `git -C "$COMMUNITY_DIR" checkout -- .` | WALKS PAST | 1 |
+| `find "$COMMUNITY_DIR" -type f -exec rm -f {} +` | WALKS PAST | 2 |
+| `mv` then `rmdir` the mirror | WALKS PAST | 3 |
 
-| Claim | Evidence |
-|---|---|
-| five orchestrators exist | `skills/{discover,plan,spec,build,go-to-market}/SKILL.md` |
-| `/discover` chains brainstorm → personas → journey map → opportunity tree → experiments | `skills/discover/SKILL.md:13-17`, exact match |
-| `/plan` chains prioritize → roadmap | `skills/plan/SKILL.md:14-16` |
-| `/spec` chains PRD → critique → stories | `skills/spec/SKILL.md:16-21` |
-| `/go-to-market` chains positioning → marketing → GTM plan → release notes | `skills/go-to-market/SKILL.md:13-16` |
-| "nothing chains past a gate on its own" | every one of the five carries explicit `GATE` steps; `/plan:25` and `/spec:30` state "never auto-advance" |
-| "the `architect` has no write tool" | `agents/architect.md:4` `tools: Read, Grep, Glob` |
-| "the `builder` works in its own git worktree" | `agents/builder.md:7` `isolation: worktree`, `skills/build/SKILL.md:199` |
-| "the reviewer never sees its context" | separate subagent dispatch; independent by construction |
-| `spec-gate`: no story without a fresh passing review | `bin/spec-gate.sh:5-13`, four conditions incl. record-newer-than-artifact |
-| `merge-gate`: no merge unless EVERY record approves | `bin/merge-gate.sh:165-216`, frontmatter-only, deny by default |
-| every surface named in "What's inside" exists | `/retro`, `/prototype`, `/product-signal`, `/language`, `/start`, `/guide`, `/outcome`, `/learn`, `publish-guard`, `privacy-scan`, `test-driven-development`, `ux-design`, `ux-writing`, `/setup-design`, `init-project.sh`, `/setup-project` all present |
+So the pattern is materially wider than `grep -q 'rm -rf'` and closes the filed finding,
+but it is still narrower than the class its comment names. See I1 below for the one case
+that matters most.
 
-`bin/docs-claims-check.sh` passes, and with `--assertions` too: 23 bin executables,
-29 suites, 22 programs with their own suite, 840 assertions. `bin/publish-guard.sh`
-clean.
+### 4. Nothing else changed, everything still green
 
-**The one README claim that does not hold is I1 below.**
-
-**Omitting community knowledge from "What's inside" is the right call.** The base is
-new and empty, and this very branch just established that its content is untrusted
-input. Advertising a curated knowledge base on the front page before a reader would
-find anything in it is the same overclaim class the branch exists to remove. Keep it
-out until it has content worth promising.
+- `git diff f941b84 3bed70a --stat`: `README.md` and `tests/community-refresh.test.sh`
+  only.
+- All 29 suites in `tests/`: **29 passed, 0 failed**.
+- `bin/docs-claims-check.sh`: rc=0, "every countable claim matches the tree"
+  (bin executables 23, test suites 29, programs with their own suite 22).
+- `bin/skills-lint.sh`: rc=0, "all invariants hold".
 
 ## Critical
 
-None. No path deletes or truncates the user's mirror; no path loses committed work or
-uncommitted edits; no injection surface (every interpolation is quoted, nothing is
-`eval`'d from remote data); the install completes in every state tested.
+None. No path deletes or truncates the user's mirror; the shipped `install.sh` block
+contains none of the destructive spellings probed above; the two changed files introduce
+no behavior change to the installer at all (one is a README sentence, one is a test
+assertion). The publish hold from round 3 is lifted.
 
 ## Important
 
-**I1, `README.md:39` overclaims the `[E]` guarantee on the public front page.**
-"nothing in the system can quietly weaken an `[E]`" is stronger than the system
-delivers, in two independently verifiable ways. First, `skills/commit-push/SKILL.md:104`
-says "Never bypass pre-commit hooks with `--no-verify` without asking", which concedes
-that the secret-scan `[E]` at `AGENTS.md:243` is bypassable and that an instruction is
-the only thing holding it; an agent running `git commit --no-verify` weakens an `[E]`
-exactly as quietly as the sentence denies. Second, nothing verifies that an `[E]` line
-still has a live mechanism: no suite in `tests/` reads the Guardrails section, so
-deleting `bin/spec-gate.sh` or the pre-push hook leaves the `[E]` tag standing and
-nothing goes red. Fix: say what `AGENTS.md:195-197` actually claims, e.g. "an `[E]` is
-held by a mechanism with an exit code, not by the model's goodwill; an `[I]` is held by
-the model, layered with verifiers and your gate." That is true, is still the strongest
-sentence on the page, and does not invite a reader to find the counterexample.
+**I1, `tests/community-refresh.test.sh:116-122`, the guard is still narrower than the
+class its comment names, and one realistic spelling is invisible to the ENTIRE suite.**
 
-**I2, `tests/community-refresh.test.sh:116-118`, the invariant guard is a
-spelling check presented as a class guarantee.** The comment at `:114-115` says this
-assertion is "asserted independently of every classification" and is "what keeps a
-future missed state survivable". The mechanism is `grep -q 'rm -rf'`. I mutated
-`mv "$COMMUNITY_DIR" "$stale"` to `rm -fr "$COMMUNITY_DIR"`, which destroys the mirror
-just as completely, and assertion 6 printed `ok - no path in the block deletes the
-mirror (move-aside only)`. `rm -r`, `git clean -xfd` and `find ... -delete` pass it
-too. This is the claim-wider-than-the-mechanism shape from `.claude/tasks/lessons.md`
-("Prove a coverage claim by mutation BEFORE writing it"). The suite as a whole still
-caught my mutation through cases 3 and 4, so nothing is broken today, but the
-assertion that is supposed to survive a regression of the classifier is the one that
-does not. Fix: widen to a pattern class, `grep -qE 'rm +-[a-zA-Z]*r|git +clean|-delete'`,
-and add the behavioral half, plant a sentinel file in every fixture and assert it is
-still readable somewhere under `$home` after each non-offline scenario. Then narrow
-the comment to whatever the widened check actually proves.
+`git -C "$COMMUNITY_DIR" clean -xfd` walks past the invariant AND reddens nothing else:
+total FAILs 0. Both halves matter. It evades `git +clean` because the pattern requires
+`git` immediately followed by whitespace and `clean`, while `git -C "$DIR" clean` puts
+`-C "$DIR"` in between; and it evades every behavioral case because no fixture in the
+file has an UNTRACKED file, so `clean -xfd` removes nothing the assertions look at.
+This is not a theoretical spelling: `git -C "$COMMUNITY_DIR" ...` is the form used by
+every single git call in the block under test (`install.sh` fetch, rev-parse, merge,
+status), so it is the spelling a future edit is most likely to reach for. `rm -Rf`
+(valid on both BSD and GNU) and `find ... -exec rm -f {} +` also walk past the invariant,
+caught only by the scenario cases, which is precisely the backstop the comment at
+`:114-115` says this assertion must not depend on ("asserted independently of every
+classification above ... If a future state is misclassified, this is what keeps it
+survivable"). For an unenumerated state the scenarios by definition do not cover it, so
+the invariant is the only net, and it has holes.
 
-**I3, `install.sh:226-232`, the sibling `else` branch still carries the exact defect
-class the `if` branch just eliminated.** The new comment at `:182-188` says the mirror
-is moved aside "for ANY reason including one not enumerated here", but that promise
-only covers the `[[ -d "$COMMUNITY_DIR/.git" ]]` arm. Two states verified under `/tmp`:
+`git -C "$DIR" reset --hard` is the other one worth naming: it destroys uncommitted user
+edits, is a plausible remedy for the "local edits" and "diverged" states this block
+classifies, and the invariant misses it entirely.
 
-- `~/.claude/community-knowledge` exists, is non-empty, and is not a git repo (a
-  restored backup, a manual copy, a clone killed before `.git` was written)
-- `.git` is a file rather than a directory (a gitlink left by a worktree or submodule)
+This is the second consecutive round patching the same guard with the same shape, which
+the repo's own `.claude/tasks/lessons.md` tells us to stop doing: "prefer a structural
+fix over patching instances: if the next round can find a fourth shape, the fix was an
+instance patch" (2026-08-06). I found four more shapes.
 
-In both, `git clone` refuses a non-empty destination and the user is told
-`! community knowledge repo not reachable yet, skipped (set up later). It will
-populate on the next install.sh once the repo is published.` That is a network excuse
-for a purely local cause, printed on every future install, telling the user to wait
-for something that has already happened. Nothing is destroyed, so this is not a
-Critical, and prevalence is low, but it is permanent invisible staleness with a
-misleading cause, which is the thing this branch exists to abolish. Fix: reuse the
-mechanism that is already three lines above, before the clone in the `else` arm, if
-`$COMMUNITY_DIR` exists, move it to `$COMMUNITY_DIR.stale-<ts>` and clone into the
-freed path, with the same "nothing was deleted" message.
-
-**I4, `install.sh:196-197`, the offline branch is the one arm that can freeze
-forever, and the residual is not documented.** `git fetch` failing is the only branch
-that never moves aside, which is the right default (you cannot re-clone what you
-cannot reach). But fetch also fails on a corrupt `.git`, on an `https` 401 under
-`GIT_TERMINAL_PROMPT=0`, and on a remote URL the user edited to something dead. All
-three print `could not reach the remote (offline?), kept the existing copy.` on every
-install, forever, with no way out offered. The `(offline?)` question mark is honest
-about the guess; what is missing is the exit. Fix: one line, `if this repeats on a
-machine that is online, this copy may be unusable: move it aside
-("mv <dir> <dir>.old") and re-run install.sh`. Then state the residual in the comment
-block, so the next reader knows the class was bounded deliberately rather than missed.
-
-**I5, the round-2 delivery gap has two halves and only one is in the deferral note.**
-The dispatch carries forward that `install.sh:134-137` never clobbers an existing
-`~/.claude/CLAUDE.md`, so an already-installed user's main session does not get the
-untrusted-input rule. Correct, and I verified the second half is still open too:
-nothing in the tree refreshes an existing project's `CLAUDE.md` either, so
-`project-templates/CLAUDE.md:165` reaches only projects scaffolded after this install.
-`skills/sync-docs/SKILL.md` is not that mechanism, it reconciles a project's docs
-against its own code, not against the upstream template. Mitigating fact I confirmed
-rather than assumed: `install.sh:53-66` overwrites `~/.claude/skills/` and
-`~/.claude/agents/` on every run, so `architect`, `builder` and `sync-community` DO
-carry the rule to existing users, which means the delegated build pipeline is covered
-and only the two `CLAUDE.md` surfaces are not. I agree the fix belongs in its own
-change: writing into a user's personal global file is precisely the irreversible class
-the README says stays with the human, and an ensure-line pass has its own failure
-modes (duplicate insertion, wrong section, clobbering a user edit) that deserve their
-own plan and tests. What does belong here or in the very next change is a zero-write
-bridge: at `install.sh:136`, when the personal global exists and does not contain a
-marker from the baseline's untrusted-input rule, print one line naming the rule and
-pointing at `~/.claude/odeo-baseline.md`. That is read-only, carries none of the write
-risk, and closes the silent half of the gap now.
+Concrete fix, structural rather than a third spelling round. Replace the source-text
+grep as the PRIMARY invariant with an outcome assertion no spelling can evade: in `run()`,
+before invoking the block, plant a canary in the mirror (one tracked file with known
+content, one UNTRACKED file), and after the block assert both are still reachable
+somewhere under `$home/.claude/` (in place or in the `.stale-*` copy). That is an
+assertion over outcomes, so `rm -Rf`, `git -C ... clean -xfd`, `reset --hard` and any
+spelling nobody has thought of all fail it identically, and it removes the class instead
+of enumerating it. Keep the grep as a cheap secondary tripwire, and narrow its comment
+to what it actually does (see N2). If the grep must stay primary for now, widen it to
+`rm +-[a-zA-Z]*[rR]|rm +--recursive|git( +-C +[^ ]+)* +(clean|reset +--hard|checkout)|-delete|-exec +rm|> *"?\$COMMUNITY_DIR` and say in the comment that it is a
+blocklist, which is the weaker form the security baseline tells us to avoid.
 
 ## Nitpicks
 
-- `install.sh:216`, the user-visible message states a guess as fact, "(its history has
-  diverged from the remote)", while the code comment at `:204-205` correctly calls it
-  "the likeliest cause". Verified with a stale `.git/index.lock`, where history had not
-  diverged at all. Fix: "(likely: its history has diverged from the remote)". On a
-  branch whose thesis is diagnostic honesty, the message should hedge where the code
-  says it is hedging.
-- `install.sh:213`, `date +%Y%m%d%H%M%S` collides if two failing installs land in the
-  same second; `mv dir existing-dir` then nests the copy inside the earlier stale
-  directory and the path printed at `:218` is wrong. Fix: bump on collision, or
-  `stale="$(mktemp -d "$COMMUNITY_DIR.stale-XXXXXX")"` and `rmdir` it before the `mv`.
-- `install.sh:212-225`, stale copies accumulate with no cap and each message mentions
-  only the one just created. Fix: count existing `.stale-*` siblings and say so, and
-  consider `git clone --depth 1` for a read-only mirror to bound both clone time and
-  stale-copy size.
-- `tests/community-refresh.test.sh:57`, the harness runs the block under `set +e` while
-  `install.sh:17` runs it under `set -euo pipefail`. All nine pass under the real flags
-  today (I checked), but a future `[[ ... ]] && cmd` whose left side goes false, or any
-  bare failing command, would abort the install mid-run and this suite would not see
-  it. Fix: `( set -euo pipefail; ... )` and assert the subshell's exit status is 0 in
-  each scenario.
-- `install.sh:221-224`, the restore branch has no case. I exercised it by hand with an
-  unreachable `COMMUNITY_KNOWLEDGE_REPO`: the copy is restored to the original path,
-  the user's commit survives, the message is accurate and the install continues. Worth
-  ten lines in the suite so it stays that way.
-- `INSTALL.md:255`, the `~/.claude/` directory map does not mention
-  `community-knowledge.stale-*`, which users will now find sitting next to the mirror.
-  One line in the map removes the "what is this and can I delete it" question.
-- `README.md:41`, "rejoin at one gate" compresses slightly: `skills/build/SKILL.md:158`
-  serializes `/merge` per story with your approval each time, which is stronger than
-  one gate, not weaker. Consider "rejoin one at a time, each at your gate".
+**N1, `README.md:39`, "an `[E]` is backed by a script with an exit code" names one of the
+three mechanism kinds `AGENTS.md:196` lists.** The source of truth says "(script exit
+code, tool restriction, git hook)", and at least three shipped `[E]` rules are not
+scripts: `AGENTS.md:244` (the personal layer is kept out of a public repo by gitignore),
+`:331` (`architect` and `architecture-reviewer` cannot write or execute anything, a tool
+restriction) and `:340` (worktree isolation). The README is internally inconsistent about
+this within the same section: `:41`, two lines later, describes the `architect`'s missing
+write tool as something you can verify yourself, which is exactly an `[E]` that is not a
+script. This is an UNDER-claim, not an overclaim, and the load-bearing contrast ("rather
+than by the model's goodwill") is true for every `[E]`, so it does not hold publish. Fix,
+one clause: "an `[E]` is backed by a mechanism, a script's exit code, a tool restriction
+or a git hook, rather than by the model's goodwill".
+
+**N2, `tests/community-refresh.test.sh:116`, "covers the DESTRUCTIVE FAMILY, not one
+spelling of it" is the claim-wider-than-the-mechanism shape the same comment cites
+`lessons.md` about, two sentences later.** The enumeration right after it is accurate
+(those four spellings are covered, verified above), so the defect is the summary line,
+not the detail. Until I1 is fixed structurally, narrow it to what is true: "covers the
+four spellings named below, which is wider than the single literal it replaces and still
+NOT the whole destructive family, see the suite's outcome assertions for the class."
+
+**N3, `tests/community-refresh.test.sh:120`, the assertion greps the SOURCE TEXT of the
+block, so it is fragile to prose.** A future comment inside `install.sh` explaining "this
+path never uses `rm -rf`" would turn the guard red while the code is correct. The block's
+current comment at `install.sh:3-9` already avoids the literal by writing "never deleted",
+which suggests the author felt this. The outcome-based canary in I1 removes this
+fragility too; if the grep stays, note the constraint above it so nobody spends a debug
+cycle on a red that is about a comment.
 
 ## Scores
 
 correctness 1/2 · security 1/2 · performance 2/2 · readability 2/2 ·
 testing 1/2 · conventions 2/2  -> total 9/12  (threshold: >=9, no zero)
 
-- **correctness 1**, the block is right in every state I could construct and the
-  destructive class is genuinely gone, but I3 and I4 are real diagnostic defects that
-  ship: two states get a network excuse for a local cause, and one can freeze forever
-  with no exit offered.
-- **security 1**, the untrusted-input rule now reaches every surface that ingests
-  community knowledge (exhaustive grep: `AGENTS.md`, `global/CLAUDE.md`,
-  `project-templates/CLAUDE.md`, `agents/architect.md`, `agents/builder.md`,
-  `skills/sync-community/SKILL.md`), and `sync-community` no longer runs a naive pull.
-  Held at 1 only by I5: an already-installed user's main session, the session that
-  `global/CLAUDE.md:171-172` tells to read the community base, still has no rule, and a
-  read-only warning would have closed that without taking on the write risk.
-- **performance 2**, nothing hot, nothing quadratic; the re-clone is bounded and rare.
-- **readability 2**, `refresh_note`/`stale`/`upstream` say what they hold, the block is
-  55 lines with the reasoning that produced it recorded above the code, and the README
-  is materially more scannable than the 19 bullets it replaces.
-- **testing 1**, a large step up from nothing: 9 assertions, a marker-drift guard, both
-  instrument defects recorded in the file, and two mutations I ran go RED. Held at 1 by
-  four named gaps: the spelling hole in the invariant guard (I2), the untested restore
-  branch, the entirely untested `else` arm (I3), and the `set +e` fidelity gap.
-- **conventions 2**, English comments, Conventional Commits with honest bodies that name
-  what was deferred, feature branch, no secrets, no TODOs, errors surfaced not
-  swallowed, and the `lessons.md` mutation discipline visibly applied rather than
-  claimed. The I2 residual is a gap in one guard, not a repeat of the lesson.
+- **correctness 1**, unchanged and not re-derived: this commit changes no installer
+  behavior at all, and the band is held where round 3 left it by I3 and I4, which still
+  ship (two states get a network excuse for a local cause; one can freeze with no exit
+  offered).
+- **security 1**, unchanged and not re-derived: held at 1 by I5, the delivery half that
+  is out of scope by agreement. Nothing in this delta touches the security surface; the
+  test change strengthens a data-destruction guard.
+- **performance 2**, one `grep -qE` over a 55-line string, run once.
+- **readability 2**, the README sentence is now materially more honest than what it
+  replaced and reads plainly for a non-developer; the test comment records why the change
+  was made and names the four spellings it covers. N1 and N2 are wording precision on
+  otherwise accurate prose, not confusion about what the code does.
+- **testing 1**, the filed I2 is genuinely closed (six mutations, including the exact one
+  that defeated round 3, now redden the invariant itself rather than a neighbouring
+  case). The band stays at 1 because three of the four gaps that held it there are
+  untouched, by agreement, and I1 adds a fourth: the untested restore branch, the
+  untested `else` arm, the `set +e` fidelity gap, and a class guard with a case
+  (`git -C "$DIR" clean -xfd`) that no assertion in the file can see.
+- **conventions 2**, English comments, Conventional Commits with a body that names both
+  the defect class and the lesson it comes from, correct feature branch, no secrets, no
+  unreferenced TODOs, mutation evidence produced before the claim was written for the
+  four spellings it enumerates. I1 is a residual gap in one guard, the same call round 3
+  made, not a fresh violation of a documented lesson.
 
 ## Ceiling
 
-11/12 reachable on this branch. Security structurally caps below 2 while the delivery
-half of I5 is deliberately out of scope: the rule exists correctly in the repository
-but cannot reach an already-installed user's personal global file without a change
-that, by the system's own rule, is a separate decision. Everything else was reachable
-at 2 this round; correctness and testing fall short on findings that have concrete
-fixes, not on anything structural.
+11/12 reachable on this branch, unchanged from round 3 and unchanged by this commit.
+Security structurally caps below 2 while the delivery half of I5 stays out of scope: the
+rule is correct in the repository but cannot reach an already-installed user's personal
+global file without a change that is a separate decision by the system's own rule.
+Correctness and testing fall short on findings with concrete fixes, not on anything
+structural; a two-file docs-and-test commit could not have moved correctness or security
+in either direction.
 
 ## What's good
 
-The response to round 2 did the harder and more durable thing. It did not add a sixth
-branch to the classifier, it changed the default answer so the classifier stopped
-being load-bearing for safety, which is the difference between patching instances and
-eliminating a class. The comment at `install.sh:182-194` is unusually valuable because
-it records why `FETCH_HEAD` was wrong and why "refreshed" is now asserted against HEAD
-rather than an exit code, so the next person cannot re-introduce either by accident.
+The README fix did the harder thing available to it. The easy repair was to soften the
+absolute ("almost nothing can weaken an `[E]`"), which would have kept the shape of the
+overclaim while making it unfalsifiable. Instead the sentence was rebuilt around the
+distinction that is actually true and actually load-bearing, mechanism versus the model's
+goodwill, and it is still the strongest sentence in that section. It no longer invites a
+reader to go find the counterexample, which is the property that matters for a public
+front page.
 
-Asserting the refresh by `HEAD == @{u}` instead of a merge exit code is the single
-line that would have caught round 2's worst bug on its own.
+Moving from `grep -q` to `grep -qE` with a named alternation, and writing the reason
+above it, converts a check that read as a class guarantee into one that at least attempts
+the class. The four spellings it names are exactly the four the previous review
+demonstrated, so the fix is anchored to evidence rather than to imagination, and I
+re-confirmed all four by mutation rather than by reading.
 
-The two instrument defects are recorded in the test file rather than in a commit
-message that nobody re-reads, at the exact cases where they would recur. That is the
-right home for them.
+The comment does not hide the history. It says plainly that a literal `rm -rf` check
+"read as a class guarantee" and names the shape from `lessons.md`. A test that records
+why it is shaped the way it is, at the line where the next person will change it, is
+worth more than the assertion itself.
 
-The README restructure earns its verdict on evidence: every chain in the orchestrator
-table matches its `SKILL.md` step for step, the three "verify it yourself" claims about
-`architect`, `builder` and the reviewer are all literally true, `spec-gate` and
-`merge-gate` do what the section says, and deleting "What is this?" rather than
-stacking a new section on top of it is the discipline that keeps a front page honest.
-Leaving community knowledge out of "What's inside" was the correct restraint.
+Scope discipline was exact: two files, eight insertions, four deletions, no drive-by
+edits, and the 29 suites plus both lint gates stayed green.
 
 ## History
 
@@ -309,11 +293,22 @@ Leaving community knowledge out of "What's inside" was the correct restraint.
   save path; I3, the classifier had no test after being wrong in three states across two
   commits; I4, `GIT_TERMINAL_PROMPT=0` did not cover the clone path; I5, the new rule
   did not reach already-installed users.
-- **Round 3, `f941b84`, 9/12, APPROVE WITH COMMENTS.** I1 through I4 closed and
-  independently verified here, including by mutation. I5 carried forward by agreement,
-  and widened: existing projects miss the rule as well as existing globals. Better than
-  round 2 on correctness (the destructive class is gone by construction, not by
-  branch count), testing (0 to 9 assertions, 2 of 2 requested mutations go RED) and
-  conventions. Security unchanged at 1 for the one reason named in I5. The new
-  findings are smaller in kind than every previous round's: message accuracy and test
-  fidelity, no data loss anywhere.
+- **Round 3, `f941b84`, 9/12, APPROVE WITH COMMENTS.** I1 through I4 of round 2 closed
+  and independently verified, including by mutation. Merge unblocked, but PUBLISH held
+  on one line: `README.md:39` overclaimed the `[E]` guarantee on the public front page,
+  contradicted by `skills/commit-push/SKILL.md:104`. Second finding: the invariant guard
+  in the new suite was a single-spelling `grep -q 'rm -rf'` presented as a class
+  guarantee, defeated by `rm -fr`. I5 carried forward by agreement and widened.
+- **Round 4, `3bed70a`, 9/12, APPROVE WITH COMMENTS. SAME total, but the publish hold is
+  lifted.** Both round-3 findings are closed as filed: the README sentence now matches
+  `AGENTS.md:195-197` clause for clause, no longer contradicts `SKILL.md:104`, and
+  introduces no new overclaim (the one imprecision, N1, runs in the safe direction); and
+  the invariant assertion now reddens on all six destructive spellings tested, including
+  the `rm -fr` that defeated it last round. The total is unchanged because neither fix
+  sat inside a band that could move: the README overclaim held PUBLISH rather than
+  docking a dimension, and testing stays at 1 because three of its four named gaps were
+  out of scope by agreement. Better than round 3 in substance despite the equal score.
+  One new Important: the widened pattern is still narrower than the class it names, and
+  `git -C "$COMMUNITY_DIR" clean -xfd`, the spelling that matches the block's own house
+  style, is invisible to every assertion in the file. Recommended fix is structural (an
+  outcome canary), not a third round of spellings.
