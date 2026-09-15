@@ -36,6 +36,11 @@ rules are also embedded in their bodies so they hold even when this file is abse
   before starting; broaden it beyond "compiles" to the criteria that matter (acceptance
   criteria, and where relevant plain-language quality targets like "loads fast",
   "works for keyboard/screen-reader users").
+  The REVIEW loop's own stop condition is declared in `docs/eval-framework.md`: approve, or
+  three rounds on one artifact, or two consecutive rounds of the same defect class,
+  whichever comes first, with a Critical always overriding the cap. It is written down
+  because this very rule went unapplied to the system's own review loop until one branch
+  had cost five rounds, each ended by a human asking whether to stop.
 
 ## Model policy (judgment inherits, execution defaults to sonnet)
 - Judgment (architect, all reviewers, PM work) runs on the SESSION model, run
