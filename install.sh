@@ -175,11 +175,54 @@ fi
 #     /contribute-lesson. Graceful if the repo is not reachable yet.
 COMMUNITY_KNOWLEDGE_REPO="${COMMUNITY_KNOWLEDGE_REPO:-https://github.com/ivansolic/Odeo-knowledge.git}"
 COMMUNITY_DIR="$HOME/.claude/community-knowledge"
+export GIT_TERMINAL_PROMPT=0   # never block the install on a credential prompt (clone path too)
 echo "  → community knowledge → $COMMUNITY_DIR"
+# BEGIN community-refresh  (tests/community-refresh.test.sh extracts this block; keep both markers)
 if [[ -d "$COMMUNITY_DIR/.git" ]]; then
-  git -C "$COMMUNITY_DIR" pull --ff-only -q 2>/dev/null \
-    && echo "    refreshed." \
-    || echo "    ! could not refresh (offline?), kept the existing copy."
+  # THE CLASS THIS ELIMINATES. Two rounds of review found the same shape here: a diagnosis
+  # that can be wrong, paired with a remedy that destroys data. Patching one more branch
+  # would trade one wrong state for the next, so the DEFAULT ANSWER changes instead: when
+  # this mirror cannot be fast-forwarded, for ANY reason including one not enumerated here,
+  # it is MOVED ASIDE and re-cloned, never deleted. A misdiagnosis then costs a directory
+  # rename the user can undo, not their work. The classification below only picks the
+  # message; it is no longer load-bearing for safety.
+  #
+  # Two derivations that must stay exact, because guessing them is what produced the
+  # earlier defects: the upstream tip comes from @{u} and never from FETCH_HEAD (which is
+  # ambiguous, and on a detached HEAD marks every line not-for-merge, so a merge silently
+  # succeeds without moving HEAD and the user is told "refreshed" forever), and "refreshed"
+  # is asserted by HEAD actually equalling that tip, not by an exit code.
+  refresh_note=""
+  if ! git -C "$COMMUNITY_DIR" fetch -q 2>/dev/null; then
+    echo "    ! could not reach the remote (offline?), kept the existing copy." >&2
+  elif ! upstream="$(git -C "$COMMUNITY_DIR" rev-parse --verify -q '@{u}' 2>/dev/null)"; then
+    refresh_note="it is not on a branch that tracks the remote"
+  elif git -C "$COMMUNITY_DIR" merge --ff-only -q "$upstream" 2>/dev/null \
+       && [[ "$(git -C "$COMMUNITY_DIR" rev-parse HEAD)" == "$upstream" ]]; then
+    echo "    refreshed."
+  else
+    # Name the likeliest cause for the message only. Every branch here has the same,
+    # non-destructive outcome, so a wrong guess costs nothing.
+    if [[ -n "$(git -C "$COMMUNITY_DIR" status --porcelain 2>/dev/null)" ]]; then
+      refresh_note="it has local edits"
+    else
+      refresh_note="its history has diverged from the remote"
+    fi
+  fi
+  if [[ -n "$refresh_note" ]]; then
+    stale="$COMMUNITY_DIR.stale-$(date +%Y%m%d%H%M%S)"
+    if mv "$COMMUNITY_DIR" "$stale" 2>/dev/null \
+       && git clone -q "$COMMUNITY_KNOWLEDGE_REPO" "$COMMUNITY_DIR" 2>/dev/null; then
+      echo "    ! this copy could not be refreshed ($refresh_note)." >&2
+      echo "      It is a read-only mirror, so a fresh one was cloned and NOTHING was deleted." >&2
+      echo "      Your previous copy is kept at: $stale" >&2
+      echo "      Delete it when you no longer need it. Your own lessons belong in your" >&2
+      echo "      project's knowledge/ via /learn, where nothing overwrites them." >&2
+    else
+      [[ -d "$stale" && ! -d "$COMMUNITY_DIR" ]] && mv "$stale" "$COMMUNITY_DIR" 2>/dev/null
+      echo "    ! could not refresh ($refresh_note) and could not re-clone; kept the existing copy." >&2
+    fi
+  fi
 else
   if git clone -q "$COMMUNITY_KNOWLEDGE_REPO" "$COMMUNITY_DIR" 2>/dev/null; then
     echo "    cloned."
@@ -188,6 +231,7 @@ else
     echo "      It will populate on the next install.sh once the repo is published."
   fi
 fi
+# END community-refresh
 
 # 5. Shell profile, PATH + auto-verify (idempotent)
 PROFILE="$HOME/.bash_profile"; [[ "${SHELL:-}" == *zsh* ]] && PROFILE="$HOME/.zshrc"

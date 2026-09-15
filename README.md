@@ -1,18 +1,46 @@
 # Odeo
 
-**The workflow system that turns one person into a product team.**
+**One person, the whole product team.**
 
-The whole product lifecycle, with you directing Claude: idea → discovery → PRD → design → build → test → secure → ship → measure → learn. **Built for PMs and builders.**
+Odeo covers the **entire product development lifecycle**, the work that normally takes three people: the **PM** who decides what to build and why, the **designer** who decides how it looks and behaves, and the **engineer** who builds, tests, secures and ships it. You stay the one who decides. Claude does the execution in all three.
+
+`discovery → PRD → critique → stories → design → build → test → security → ship → measure → learn`
+
+Built for PMs and builders. No engineering background assumed.
 
 ---
 
-## What is this?
+## Five commands carry the whole lifecycle
 
-Odeo is an opinionated workflow system for [Claude Code](https://claude.com/claude-code). It covers the **whole product lifecycle**, from first idea and discovery, through PRD, design, build, test, and security, to ship, and then measuring the outcome and feeding what you learn back in. You direct Claude as your developer instead of writing code by hand. It bundles the global instructions, project scaffolding, PM workflow, a test-driven-development habit, a security baseline, and an end-to-end daily process into one install.
+You do not memorize sixty commands. Five orchestrators chain the right ones in the right order, and each one **stops at a gate and waits for you** before the next phase begins.
 
-You bring the *what* and *why* (the product thinking). The system makes Claude deliver the *how* (the code), with guardrails so the result is actually solid.
+| | Phase | What it chains | You decide |
+|---|---|---|---|
+| **`/discover`** | PM, fuzzy idea | brainstorm → personas → journey map → opportunity tree → experiments | which opportunity is worth pursuing |
+| **`/plan`** | PM, portfolio | prioritize → roadmap | what gets built, and in what order |
+| **`/spec`** | PM, one feature | PRD → critique → stories | whether the spec is right before anyone builds |
+| **`/build`** | Design + engineering | plan → build → test → review → merge | the plan, and every merge |
+| **`/go-to-market`** | Launch | positioning → marketing → GTM plan → release notes | the story you take to market |
 
-**Why a human stays in command:** you hold the context advantage, you understand your users, market, and constraints in ways no model does. The approval gates aren't a brake on the system; they're where its best information enters. One person, the force of a whole product team, and you stay in command.
+Each is also runnable on its own. Skip straight to `/spec` for an incremental feature, or just build for a trivial fix. **Nothing chains past a gate on its own**, which is the subject of the next section.
+
+After shipping, `/outcome` compares the real result against what the PRD said it would achieve, and `/learn` banks what you solved so the next story starts smarter.
+
+## It stops asking. It never stops checking.
+
+**Odeo is a graph of loops with you at the gates.** Each node is its own small cycle, plan, execute, verify; the graph is what connects them; and one rule decides which transitions need a human:
+
+> **A gate runs automatically when its decision is derivable from an anchor. It stays yours when it is a judgment about value, or when it cannot be undone.**
+
+Evidence moves the work forward. You command the direction. That is what human-in-command means here, concretely rather than as a slogan: **you are not asked about everything, you are asked about the things only you can answer.**
+
+So `spec-gate` and `merge-gate` never ask: a story cannot enter the build without a fresh passing review, and a branch cannot merge unless **every** review record approves. Approving a plan, merging, and publishing are judgments or are irreversible, so they are always yours.
+
+**The anchors are what keep the checking honest.** Tests that actually ran, scans that actually blocked, review records that name the commit they cover. Guardrails are tagged `[E]` where a mechanism holds them and `[I]` where the model does: an `[E]` is backed by a script with an exit code rather than by the model's goodwill, and an `[I]` is layered with verifiers and your gate on top.
+
+**And the graph is not decoration, it is three things you can verify yourself.** The `architect` has no write tool, so it structurally cannot produce code. The `builder` works in its own git worktree and the reviewer never sees its context, so a review is independent instead of the same agent grading its own homework. Several stories build in parallel, isolated, then rejoin at one gate.
+
+---
 
 ## Who it's for
 
@@ -90,7 +118,7 @@ Odeo/
 │   ├── skill-reviewer.md     ← scores skills against the authoring standard
 │   ├── agent-reviewer.md     ← scores agent definitions against the agent rubric
 │   └── agent-rubric.md       ← the rubric agent-reviewer scores against
-├── bin/                      ← 22 executables: deterministic guards + scaffolding
+├── bin/                      ← 23 executables: deterministic guards + scaffolding
 │   ├── init-project.sh       ← scaffolds the project-specific parts of a new project
 │   ├── install-git-guards.sh ← installs pre-push + pre-commit hooks into a repo
 │   ├── token-report.py       ← session token usage (the one non-bash tool here)
@@ -103,6 +131,7 @@ Odeo/
 │   ├── skills-lint.sh        ← the system's own consistency gate (skills, agents, AGENTS.md,
 │   │                           the global baseline, and the system map)
 │   ├── coverage-check.sh     ← PRD-requirement coverage check
+│   ├── docs-claims-check.sh  ← re-derives the docs' countable claims from the tree
 │   ├── focus-check.sh        ← /focus session edit fence
 │   │                           output language (see /language):
 │   ├── resolve-language.sh   ← resolves the effective language (project > global > en)
@@ -126,7 +155,7 @@ Odeo/
 ├── global/
 │   └── CLAUDE.md             ← user-global baseline laid into ~/.claude by install.sh
 ├── tests/
-│   └── *.test.sh             ← 27 suites, 827 assertions. 21 of the 22 programs have their
+│   └── *.test.sh             ← 29 suites, 840 assertions. 22 of the 23 programs have their
 │                               own suite (session-end-check.sh has none yet); the remaining
 │                               suites are cross-cutting rather than per-program
 └── docs/
@@ -149,26 +178,41 @@ Odeo/
 
 ## What's inside
 
-- **Agent-first, plugin-native**, the repo is a Claude Code plugin: skills orchestrate, agents execute. The operating baseline lives in `AGENTS.md` (read before `CLAUDE.md`); the tools (commands, agents, skills) install once and are available in every project.
-- **Security, built in**, a comprehensive, OWASP-aligned **Security Baseline** (in `AGENTS.md` and `global/CLAUDE.md`) applied to all code; a per-project **Security & Data** section (PII inventory, auth model, GDPR); a security pre-mortem at the PRD stage; the discipline is also embedded in the skill/agent bodies so it holds for plugin-only installs; and Claude Code's **built-in `/security-review`** for sensitive changes.
-- **Project scaffolding** (`init-project.sh`), one command creates the project-specific parts (config, docs structure, task files, knowledge base, design tokens). The commands/agents/skills come from the installed plugin, so there are no per-project copies to drift.
-- **`/setup-project`**, interviews you about your stack, commands, and data, then fills the project config. Run once per project.
-- **Output language** (`/language`), choose the language the system writes human-facing prose in, English by default, plus German, Croatian, and French, as a global default with a per-project override. Code and every machine-read surface stay English: filenames, branch names, and commit type/scope by a deterministic guardrail, commit subjects and code identifiers by instruction and review. An advisory check warns when a document's prose drifts from the setting. Built for people who think in their own language but ship in English.
-- **First-party PM skills**, a full set built from public, named frameworks, spanning the lifecycle: **discovery** (`/brainstorm`, `/personas`, `/interview-synthesis`, `/competitor-analysis`, `/market-segments`, `/opportunity-solution-tree`, `/customer-journey-map`, `/experiments`), **strategy & viability** (`/vision`, `/strategy`, `/value-proposition`, `/okrs`, `/business-model`, `/pricing`), **planning** (`/prioritize`, `/roadmap`, `/stakeholder-map`), **spec** (`/prd`, `/critique`, `/stories`), **metrics & analytics** (`/metrics`, `/ab-test`, `/cohorts`, `/query`), and **launch & growth** (`/positioning`, `/marketing`, `/gtm-plan`, `/release-notes`, `/growth-loops`, `/battlecard`, `/product-name`). Four **orchestrators** chain them with human gates: **`/discover` -> `/plan` -> `/spec` -> `/go-to-market`**.
-- **TDD skill**, auto-applies test-first to backend logic, stays out of the way on UI.
-- **Design layer**, two auto-applying skills, `ux-design` (usability heuristics, UX laws, UI states, accessibility) and `ux-writing` (microcopy: button/link labels, error and empty-state copy, voice and tone); **design tokens** (`design/tokens.json`, DTCG) as the styling source of truth, set up by `/setup-design`; a `design-reviewer` subagent that reviews layout, states, a11y, tokens, and microcopy. Optional per project (`init-project.sh --no-ui` skips it).
-- **Hybrid agentic build** (`/build`), one entry, two modes, always your choice. **With me**: branch, seed todo, open your editor, plan and build together, file by file, live. **For me**: the `architect` (read-only) plans each story as a written contract, an `architecture-reviewer` independently checks the plan, **you approve it**, then a `builder` per story executes it exactly in its own git worktree (single or parallel), reviewers score the result, and you gate again. A builder never runs without an approved plan, and **`/merge`** runs only when you say so, integrating each approved branch with a clean linear history (rebase onto main, tests, merge, cleanup).
-- **Compounding knowledge** (`/learn`, `/knowledge-refresh`, `knowledge/`), verified solved problems become a reusable, maintained knowledge base that Claude consults before non-trivial work, so the system gets smarter per story. `/learn` shows the draft before writing.
-- **Community knowledge** (`/contribute-lesson`), opt-in, share a sanitized, generalized lesson with the shared knowledge base so the whole system gets smarter; on update you get back the curated knowledge of all contributors. Approval-gated, nothing leaves your machine without your OK.
-- **Privacy guard** (`bin/privacy-scan.sh`), a deterministic scan (emails, secrets/tokens, local paths, IPs, and your own deny-list terms) that runs as a hard gate before anything is shared via `/contribute-lesson`. The safety net under the model's sanitization and your approval, so private data can't leak by accident, including other users' data once this is a product. Your private terms live in a local `~/.claude/privacy-denylist.txt`, never in a repo.
-- **Post-ship outcome loop** (`/outcome`), about a week after shipping, compares the real outcome against the PRD's intended outcome and verdicts keep/iterate/kill. Never on fabricated data.
-- **Never lost** (`/start` + `/guide`), `/start` reads your project and says where you are, what's next, and which recurring loops are due; and whenever you ask "how do I do X here?", the `/guide` advisor auto-activates and routes your goal to the right commands, prerequisites first. It only recommends what actually exists.
-- **Grounded in established practice**, the skills implement named, public frameworks rather than improvised process: stories use **INVEST** and the **3 C's**; personas center on **Jobs-to-be-Done**; discovery follows **continuous-discovery** and **diverge-then-converge** ideation; critique combines a **red-team** pass with the classic **pre-mortem**; experiments follow **lean validation** across the **four product risks** (value, usability, feasibility, viability); accessibility gates on **WCAG AA**; engineering discipline uses **TDD** and **Conventional Commits**. You can hand any artifact to a seasoned PM or engineer and they'll recognize the method.
-- **Build-to-learn** (`/prototype`), spin up 2-3 disposable working variants (each in its own worktree, own port, running server), compare them live, kill the weak ones, and promote the winner's learnings into the real, fully-rigorous build. Prototypes never ship raw.
-- **Evals built in**, every artifact type has a rubric and a scorer: reviewers score code, UI, PM documents, and skills (review = eval, records in `docs/evals/`), regressions are visible, and `/improve` changes the system itself only when an A/B test proves the new version better, you keep or revert.
-- **Guardrails, enforced where it matters**, one `## Guardrails` section in `AGENTS.md` tags every hard rule as mechanism-enforced or instructed: no direct pushes to main (git hook), no secrets in commits (scan blocks the commit), no merges without a review record (gate script), protected paths can't be touched (boundary check), nothing private leaves the machine unscanned.
-- **Weekly listening** (`/product-signal`), your users' feedback becomes a themed memo compared against last week: what's new, what's growing, what faded, feeding `/prioritize` and `/roadmap` with reality.
-- **The docs, by job**, `INSTALL.md` (setup, bare machine to ready), `BEGINNERS-GUIDE.md` (the concepts, in plain language), `WORKFLOW.md` (daily use, what to type), `AGENTS.md` (the operating baseline every agent reads), `ROADMAP.md` (direction), and `CONTRIBUTING.md` for contributing back (code and beyond).
+### Decide what to build
+| | What it gives you |
+|---|---|
+| `/discover`, `/brainstorm`, `/personas`, `/experiments` | a de-risked direction instead of a hunch, built on named public frameworks (Jobs-to-be-Done, continuous discovery, the four product risks) |
+| `/prd`, `/critique`, `/stories` | a spec that survived a red-team and a pre-mortem, split into INVEST stories |
+| `/prioritize`, `/roadmap` | RICE ordering and a now/next/later roadmap |
+| `/product-signal` | a weekly themed memo of what users actually said, compared to last week |
+
+### Build it
+| | What it gives you |
+|---|---|
+| `/build` | two modes, always your choice: build live with Claude, or approve a written plan and let agents execute it in isolated worktrees |
+| `/prototype` | 2-3 disposable variants running side by side, so you learn before you commit |
+| `ux-design`, `ux-writing`, `/setup-design` | usability heuristics, every UI state, WCAG AA, and design tokens as the source of truth. Auto-applies to UI, stays out of the way elsewhere |
+| `test-driven-development` | tests written before the logic they check. Auto-applies to backend rules, skips UI exploration |
+| `init-project.sh`, `/setup-project` | the project scaffold, then an interview that fills in your stack, commands and data model. Once per project |
+
+### Keep it honest
+| | What it gives you |
+|---|---|
+| Security Baseline | OWASP-aligned rules applied to all code, a security pre-mortem at PRD stage, and `/security-review` for sensitive changes |
+| Evals | every artifact type has a rubric and a scorer. Reviews ARE the eval record, so regressions are visible |
+| Guardrails | `[E]` enforced by a mechanism, `[I]` by instruction. No direct push to main, no secrets in commits, no merge without an approving record |
+| `privacy-scan`, `publish-guard` | deterministic gates. Nothing private leaves the machine unscanned, nothing internal reaches the public repo |
+| `/language` | choose the language Odeo writes prose in (English, German, Croatian, French). Code and machine-read surfaces stay English |
+
+### Get smarter each time
+| | What it gives you |
+|---|---|
+| `/learn`, `knowledge/` | a verified solved problem becomes a reusable entry Claude reads before the next non-trivial task |
+| `/outcome` | a week after shipping, the real result against what the PRD promised. Never on fabricated data |
+| `/retro`, `lessons.md` | corrections become rules, so the same mistake does not return |
+| `/start`, `/guide` | where you are, what is next, and which command gets you there. Only ever recommends what exists |
+
+Every skill implements a named, public method rather than improvised process: INVEST and the 3 C's for stories, Jobs-to-be-Done for personas, continuous discovery, red-team plus pre-mortem for critique, lean validation across the four product risks, WCAG AA for accessibility, TDD and Conventional Commits for engineering. Hand any artifact to a seasoned PM or engineer and they will recognize the method.
 
 ## Your data: what's private, what's shared
 - **Your memory and project knowledge stay yours.** Your Claude Code memory (your preferences) and each project's `knowledge/` live on your machine; nothing is uploaded.

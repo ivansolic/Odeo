@@ -13,7 +13,7 @@ docs/second-opinion-logs/
 
 # Personal layer, never commit personal global instructions, memory, or
 # accumulated lessons into this public repo. Those live in the private
-# claude-cofounder-personal repo.
+# Odeo-personal repo.
 CLAUDE.local.md
 personal/
 *.local.md
@@ -22,7 +22,7 @@ memory/
 MEMORY.md
 
 # Internal build artifacts: our own war-room, NEVER ship to the public repo.
-# They stay on disk / in the private claude-cofounder-personal repo. The public
+# They stay on disk / in the private Odeo-personal repo. The public
 # repo is published as a clean snapshot, so these never enter its history either.
 .claude/tasks/todo.md
 .claude/tasks/lessons.md
