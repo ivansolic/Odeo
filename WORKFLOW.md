@@ -815,6 +815,11 @@ trusting auto-invocation.
 | Audit dependencies | `pnpm audit` after adding/updating packages |
 | Commit + push | `/commit-push` |
 | Integrate an approved branch | `/merge` (rebase onto main, test, merge PR, cleanup) |
+| Ship it to the platform | `/deploy` (re-checks green, deploys, verifies; after `/merge`) |
+| Get PRs tested automatically | `/ci` (sets up GitHub Actions, ~2 minutes) |
+| Market/web research with sources | `/research` (market size, competitors, pricing, verifying a claim) |
+| Docs drifted from the code | `/sync-docs` (reconciles README/docs/CLAUDE.md against what actually ships) |
+| Want an independent check from another vendor's model | `/second-opinion-code` · `/second-opinion-plan` · `/second-opinion-pm` · `/second-opinion-design`. **Paid**, opt-in, never automatic: an external model reviews, then OUR reviewer weighs its findings. See `docs/second-opinion-protocol.md` |
 | Record a decision | "Create an ADR for this decision" |
 | Teach Claude a lesson | "Update lessons.md so you don't repeat this" |
 | Wrap up a session / capture learnings | `/retro` |
