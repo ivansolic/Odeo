@@ -138,7 +138,8 @@ Odeo/
     ├── second-opinion-protocol.md ← when and how a paid cross-model review runs
     ├── internal-paths.txt    ← denylist: what never leaves the machine
     ├── public-paths.txt      ← allowlist: what may be published (fail-closed)
-    └── checklists/           ← recorded audit results (alignment, Anthropic practices)
+    ├── checklists/           ← recorded audit results (alignment, Anthropic practices)
+    └── examples/             ← worked examples of the artifacts this system produces
 
 # Commands, agents, and skills are provided by the installed plugin (or install.sh),
 # so they are available in EVERY project automatically, no per-project copies.

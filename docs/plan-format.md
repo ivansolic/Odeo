@@ -101,7 +101,7 @@ Constraints: <copied verbatim from the spec/story. Boundaries live in the
 ## Tasks
 <the smallest independently testable units, in dependency order; each task:>
 ### Task 1: <name>
-- Scrutiny: <mechanical | standard | judgment> (optional; omitted = standard) , a
+- Scrutiny: <mechanical | standard | judgment> (optional; omitted = standard), a
   complexity signal that tells the reviewer WHERE to spend the deepest attention
   (judgment tasks get the hardest look). It is NOT a model selector: reviews
   always run on the session judgment tier, and it never lowers coverage of the

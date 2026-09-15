@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Tests for bin/coverage-check.sh , deterministic PRD-requirement coverage gate.
+# Tests for bin/coverage-check.sh, deterministic PRD-requirement coverage gate.
 set -uo pipefail
 SCRIPT="$(cd "$(dirname "$0")/.." && pwd)/bin/coverage-check.sh"
 fail=0

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# prose-language-check.sh , SOFT check that a generated document's prose reads as the
+# prose-language-check.sh, SOFT check that a generated document's prose reads as the
 # project's effective output language.
 #
 # ADVISORY ONLY: it prints, it never blocks, and no document content, whatever it

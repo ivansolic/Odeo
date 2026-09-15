@@ -130,8 +130,8 @@ fi
 #      effort: from the allowed set, so a dispatched role's reasoning depth is
 #      DECLARED, not left to the ambient session (AGENTS.md model policy). Files in
 #      agents/ without a name: (e.g. a rubric) are not definitions and are skipped.
-# agent_frontmatter FILE  , the frontmatter block, empty when the file has none.
-# is_agent_definition FILE , true when that block declares a non-empty name:.
+# agent_frontmatter FILE, the frontmatter block, empty when the file has none.
+# is_agent_definition FILE, true when that block declares a non-empty name:.
 # ONE definition detector, shared by C12 and C13, so the two can never drift into
 # disagreeing about what an agent definition is (C2 requires C13 to detect one
 # "exactly as C12 does", and two verbatim copies could not be held to that).

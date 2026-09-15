@@ -76,11 +76,12 @@ for doc in "$REPO_DIR"/docs/checklists/*.md; do
   [[ -f "$doc" ]] && place "$doc" ~/.claude/odeo-docs/checklists/"$(basename "$doc")"
 done
 
-# 3. Scaffolder + guard scripts (all of bin/: init-project, privacy-scan,
-#    secret-scan, boundary-check, merge-gate, install-git-guards)
+# 3. Scaffolder + guard scripts: EVERY executable in bin/, not just *.sh. The glob
+#    used to be *.sh, which silently skipped bin/token-report.py while this comment
+#    claimed "all of bin/", so a user following the docs got "command not found".
 echo "  → bin scripts → ~/bin/"
-for script in "$REPO_DIR"/bin/*.sh; do
-  [[ -f "$script" ]] || continue
+for script in "$REPO_DIR"/bin/*; do
+  [[ -f "$script" && -x "$script" ]] || continue
   place "$script" ~/bin/"$(basename "$script")"
   chmod +x ~/bin/"$(basename "$script")" 2>/dev/null || true
 done

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# language-guard.sh , deterministic no-leak gate for machine surfaces.
+# language-guard.sh, deterministic no-leak gate for machine surfaces.
 #
 # Checks that every machine-read surface in the given paths and tokens is
 # ASCII and, where applicable, matches the project's allowlist vocabulary.
