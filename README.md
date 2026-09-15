@@ -126,7 +126,7 @@ Odeo/
 ├── global/
 │   └── CLAUDE.md             ← user-global baseline laid into ~/.claude by install.sh
 ├── tests/
-│   └── *.test.sh             ← 26 suites, 818 assertions. Most guards have their own suite;
+│   └── *.test.sh             ← 27 suites, 824 assertions. Most guards have their own suite;
 │                               five are cross-cutting, and session-end-check.sh has none yet
 └── docs/
     ├── system-map.md         ← the catalog: every command/agent/loop by phase

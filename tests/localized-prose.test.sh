@@ -99,7 +99,7 @@ assert_contains "guard reports machine surfaces clean" "machine surfaces clean" 
 # USR-005 design decision 3 (a localized PRD keeps English section headings).
 # Do NOT delete the body half as redundant: it is the in-suite positive control for the
 # frontmatter half's negative claim, which would otherwise pass on a broken instrument.
-# letter_lines FILE REGION  , REGION is body|frontmatter. PRINTS the number of lines in
+# letter_lines FILE REGION, REGION is body|frontmatter. PRINTS the number of lines in
 # that region carrying at least one non-ASCII LETTER. One site for the character class,
 # so the two assertions below cannot drift apart. It PRINTS a count and must never be
 # used as a predicate: grep -c exits 1 on zero matches, which this file's pipefail would

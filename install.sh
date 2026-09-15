@@ -76,15 +76,24 @@ for doc in "$REPO_DIR"/docs/checklists/*.md; do
   [[ -f "$doc" ]] && place "$doc" ~/.claude/odeo-docs/checklists/"$(basename "$doc")"
 done
 
-# 3. Scaffolder + guard scripts: EVERY executable in bin/, not just *.sh. The glob
-#    used to be *.sh, which silently skipped bin/token-report.py while this comment
-#    claimed "all of bin/", so a user following the docs got "command not found".
+# 3. Scaffolder + guard scripts: EVERY program in bin/, not just *.sh. The glob used
+#    to be *.sh, which silently skipped bin/token-report.py while this comment claimed
+#    "all of bin/", so a user following the docs got "command not found".
+#    Selection is by SHEBANG, not by the exec bit: a checkout that lost its exec bits
+#    (the Windows case .gitattributes already guards against) would make an exec-bit
+#    test install NOTHING and still exit 0, which is the same silent-skip defect this
+#    loop exists to kill, widened from one file to all of them. The count guard below
+#    is the real backstop: copying zero programs can never be a silent success.
 echo "  → bin scripts → ~/bin/"
+installed=0
 for script in "$REPO_DIR"/bin/*; do
-  [[ -f "$script" && -x "$script" ]] || continue
+  [[ -f "$script" ]] || continue
+  head -c 2 "$script" 2>/dev/null | grep -q '#!' || continue
   place "$script" ~/bin/"$(basename "$script")"
   chmod +x ~/bin/"$(basename "$script")" 2>/dev/null || true
+  installed=$((installed+1))
 done
+(( installed > 0 )) || { echo "install: FAILED, no programs found in $REPO_DIR/bin" >&2; exit 1; }
 
 # 3b. Privacy deny-list (your own private terms; gitignored by living in ~/.claude)
 #     Never overwrite an existing one. Seed a commented sample so it is discoverable.

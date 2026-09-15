@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Tests for bin/language-guard.sh , deterministic no-leak gate for machine surfaces.
+# Tests for bin/language-guard.sh, deterministic no-leak gate for machine surfaces.
 # All 14 cases mirror the plan's Task 1 spec exactly. TDD: run this FIRST (RED),
 # then implement language-guard.sh until all cases are GREEN.
 set -uo pipefail
