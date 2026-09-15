@@ -90,7 +90,7 @@ Odeo/
 │   ├── skill-reviewer.md     ← scores skills against the authoring standard
 │   ├── agent-reviewer.md     ← scores agent definitions against the agent rubric
 │   └── agent-rubric.md       ← the rubric agent-reviewer scores against
-├── bin/                      ← 22 executables: deterministic guards + scaffolding
+├── bin/                      ← 23 executables: deterministic guards + scaffolding
 │   ├── init-project.sh       ← scaffolds the project-specific parts of a new project
 │   ├── install-git-guards.sh ← installs pre-push + pre-commit hooks into a repo
 │   ├── token-report.py       ← session token usage (the one non-bash tool here)
@@ -103,6 +103,7 @@ Odeo/
 │   ├── skills-lint.sh        ← the system's own consistency gate (skills, agents, AGENTS.md,
 │   │                           the global baseline, and the system map)
 │   ├── coverage-check.sh     ← PRD-requirement coverage check
+│   ├── docs-claims-check.sh  ← re-derives the docs' countable claims from the tree
 │   ├── focus-check.sh        ← /focus session edit fence
 │   │                           output language (see /language):
 │   ├── resolve-language.sh   ← resolves the effective language (project > global > en)
@@ -126,7 +127,7 @@ Odeo/
 ├── global/
 │   └── CLAUDE.md             ← user-global baseline laid into ~/.claude by install.sh
 ├── tests/
-│   └── *.test.sh             ← 27 suites, 827 assertions. 21 of the 22 programs have their
+│   └── *.test.sh             ← 28 suites, 827 assertions. 22 of the 23 programs have their
 │                               own suite (session-end-check.sh has none yet); the remaining
 │                               suites are cross-cutting rather than per-program
 └── docs/

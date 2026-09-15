@@ -179,20 +179,31 @@ echo "  → community knowledge → $COMMUNITY_DIR"
 if [[ -d "$COMMUNITY_DIR/.git" ]]; then
   # Diagnose WHY a refresh failed instead of blaming the network. --ff-only REFUSES on
   # local edits rather than overwriting them, so a user who edited this copy would
-  # otherwise be told "offline?" and silently stop receiving updates forever. That is
-  # worse than losing the edits: it is permanent, invisible staleness.
-  if git -C "$COMMUNITY_DIR" pull --ff-only -q 2>/dev/null; then
-    echo "    refreshed."
-  elif [[ -n "$(git -C "$COMMUNITY_DIR" status --porcelain 2>/dev/null)" ]]; then
-    echo "    ! NOT refreshed: this copy has local edits, so it is now frozen." >&2
-    echo "      It is a read-only mirror; your own lessons belong in the project's" >&2
-    echo "      knowledge/ via /learn. Discard the edits to resume updates:" >&2
-    echo "      git -C $COMMUNITY_DIR checkout . && git -C $COMMUNITY_DIR clean -fd" >&2
-  elif ! git -C "$COMMUNITY_DIR" ls-remote -q origin >/dev/null 2>&1; then
-    echo "    ! could not reach the remote (offline?), kept the existing copy."
-  else
+  # otherwise be told "offline?" and silently stop receiving updates forever, which is
+  # permanent invisible staleness.
+  #
+  # Each cause is DERIVED, never guessed from a proxy. An earlier version tested the
+  # working tree first, which misdiagnosed "offline AND dirty" as an edit problem and
+  # handed the user a DESTRUCTIVE remedy for a network fault. Order matters here because
+  # the wrong branch costs data: fetch first (it is the only thing that can prove
+  # offline), then compare histories, then fall through to local edits.
+  export GIT_TERMINAL_PROMPT=0   # never block the install on a credential prompt
+  if ! git -C "$COMMUNITY_DIR" fetch -q 2>/dev/null; then
+    echo "    ! could not reach the remote (offline?), kept the existing copy." >&2
+  elif ! git -C "$COMMUNITY_DIR" merge-base --is-ancestor HEAD FETCH_HEAD 2>/dev/null; then
     echo "    ! NOT refreshed: this copy has diverged from the remote, so it is frozen." >&2
-    echo "      Re-clone it: rm -rf $COMMUNITY_DIR && ./install.sh" >&2
+    echo "      It is a read-only mirror. Re-clone it to resume updates:" >&2
+    echo "      rm -rf \"$COMMUNITY_DIR\" && ./install.sh" >&2
+  elif git -C "$COMMUNITY_DIR" merge --ff-only -q FETCH_HEAD 2>/dev/null; then
+    echo "    refreshed."
+  else
+    echo "    ! NOT refreshed: this copy has local edits, so it is now frozen." >&2
+    echo "      It is a read-only mirror; your own lessons belong in your project's" >&2
+    echo "      knowledge/ via /learn, where nothing overwrites them." >&2
+    echo "      To keep the edits and resume updates:" >&2
+    echo "      git -C \"$COMMUNITY_DIR\" stash -u" >&2
+    echo "      To discard them instead (PERMANENT, no undo):" >&2
+    echo "      git -C \"$COMMUNITY_DIR\" checkout . && git -C \"$COMMUNITY_DIR\" clean -fd" >&2
   fi
 else
   if git clone -q "$COMMUNITY_KNOWLEDGE_REPO" "$COMMUNITY_DIR" 2>/dev/null; then
