@@ -66,14 +66,14 @@ done
 
 # 2c. System docs (authoring standard, eval framework, system map), referenced by
 #     reviewers and /guide from any project.
-echo "  → system docs → ~/.claude/claude-cofounder-docs/"
-mkdir -p ~/.claude/claude-cofounder-docs
+echo "  → system docs → ~/.claude/odeo-docs/"
+mkdir -p ~/.claude/odeo-docs
 for doc in "$REPO_DIR"/docs/*.md; do
-  [[ -f "$doc" ]] && place "$doc" ~/.claude/claude-cofounder-docs/"$(basename "$doc")"
+  [[ -f "$doc" ]] && place "$doc" ~/.claude/odeo-docs/"$(basename "$doc")"
 done
-mkdir -p ~/.claude/claude-cofounder-docs/checklists
+mkdir -p ~/.claude/odeo-docs/checklists
 for doc in "$REPO_DIR"/docs/checklists/*.md; do
-  [[ -f "$doc" ]] && place "$doc" ~/.claude/claude-cofounder-docs/checklists/"$(basename "$doc")"
+  [[ -f "$doc" ]] && place "$doc" ~/.claude/odeo-docs/checklists/"$(basename "$doc")"
 done
 
 # 3. Scaffolder + guard scripts (all of bin/: init-project, privacy-scan,
@@ -106,9 +106,9 @@ fi
 echo "  → global baseline → ~/.claude/CLAUDE.md"
 mkdir -p ~/.claude
 if [[ -e ~/.claude/CLAUDE.md ]]; then
-  cp "$REPO_DIR/global/CLAUDE.md" ~/.claude/claude-cofounder-baseline.md
+  cp "$REPO_DIR/global/CLAUDE.md" ~/.claude/odeo-baseline.md
   echo "    ! ~/.claude/CLAUDE.md already exists, left untouched."
-  echo "      Baseline saved to ~/.claude/claude-cofounder-baseline.md, merge what you want."
+  echo "      Baseline saved to ~/.claude/odeo-baseline.md, merge what you want."
 else
   cp "$REPO_DIR/global/CLAUDE.md" ~/.claude/CLAUDE.md
 fi
@@ -147,7 +147,7 @@ fi
 #     Pulled into ~/.claude/community-knowledge so Claude can consult it alongside
 #     each project's local knowledge/. Opt-in by nature: contribute with
 #     /contribute-lesson. Graceful if the repo is not reachable yet.
-COMMUNITY_KNOWLEDGE_REPO="${COMMUNITY_KNOWLEDGE_REPO:-https://github.com/ivansolic/claude-cofounder-knowledge.git}"
+COMMUNITY_KNOWLEDGE_REPO="${COMMUNITY_KNOWLEDGE_REPO:-https://github.com/ivansolic/Odeo-knowledge.git}"
 COMMUNITY_DIR="$HOME/.claude/community-knowledge"
 echo "  → community knowledge → $COMMUNITY_DIR"
 if [[ -d "$COMMUNITY_DIR/.git" ]]; then

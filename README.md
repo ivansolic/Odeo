@@ -46,7 +46,7 @@ This repo **is** the Claude Code plugin. Agents, skills, and the manifest live a
 the root; the discipline lives in `AGENTS.md`.
 
 ```
-claude-cofounder/
+Odeo/
 ├── README.md                 ← you are here
 ├── INSTALL.md                ← full first-time setup (bare machine → ready)
 ├── BEGINNERS-GUIDE.md        ← the concepts, in plain language
@@ -90,16 +90,18 @@ claude-cofounder/
 │   ├── skill-reviewer.md     ← scores skills against the authoring standard
 │   ├── agent-reviewer.md     ← scores agent definitions against the agent rubric
 │   └── agent-rubric.md       ← the rubric agent-reviewer scores against
-├── bin/                      ← 21 scripts: deterministic guards + scaffolding
+├── bin/                      ← 22 executables: deterministic guards + scaffolding
 │   ├── init-project.sh       ← scaffolds the project-specific parts of a new project
 │   ├── install-git-guards.sh ← installs pre-push + pre-commit hooks into a repo
+│   ├── token-report.py       ← session token usage (the one non-bash tool here)
 │   │                           gates (exit codes, no judgment; each one blocks something):
 │   ├── merge-gate.sh         ← /merge preconditions (branch, clean tree, EVERY review approves)
 │   ├── spec-gate.sh          ← /build entry gate (a story/PRD needs a fresh passing review)
 │   ├── secret-scan.sh        ← staged-secrets gate (blocks the commit)
 │   ├── privacy-scan.sh       ← deterministic privacy guard (blocks leaks before sharing)
 │   ├── boundary-check.sh     ← DO-NOT-TOUCH path gate (blocks protected-path changes)
-│   ├── skills-lint.sh        ← the system's own consistency gate over skills/ and agents/
+│   ├── skills-lint.sh        ← the system's own consistency gate (skills, agents, AGENTS.md,
+│   │                           the global baseline, and the system map)
 │   ├── coverage-check.sh     ← PRD-requirement coverage check
 │   ├── focus-check.sh        ← /focus session edit fence
 │   │                           output language (see /language):
@@ -124,7 +126,8 @@ claude-cofounder/
 ├── global/
 │   └── CLAUDE.md             ← user-global baseline laid into ~/.claude by install.sh
 ├── tests/
-│   └── *.test.sh             ← 26 suites, ~818 assertions, one per guard script
+│   └── *.test.sh             ← 26 suites, 818 assertions. Most guards have their own suite;
+│                               five are cross-cutting, and session-end-check.sh has none yet
 └── docs/
     ├── system-map.md         ← the catalog: every command/agent/loop by phase
     ├── eval-framework.md     ← rubrics, scorers, eval records, regression
@@ -177,8 +180,8 @@ claude-cofounder/
 
 ```bash
 # 1. Clone and install the system
-git clone https://github.com/ivansolic/claude-cofounder.git
-cd claude-cofounder
+git clone https://github.com/ivansolic/Odeo.git
+cd Odeo
 ./install.sh                 # asks your doc language once (change it any time with /language); --link for live updates on `git pull`
 source ~/.bash_profile       # or ~/.zshrc
 

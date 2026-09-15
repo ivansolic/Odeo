@@ -4,7 +4,7 @@
 #
 # Scaffolds only the PROJECT-SPECIFIC parts (CLAUDE.md, docs/, tasks/, knowledge/,
 # design/). The commands, agents, and skills come from the installed
-# claude-cofounder plugin (or `install.sh`), so they are available in every
+# Odeo plugin (or `install.sh`), so they are available in every
 # project automatically, no per-project copies to drift.
 #
 # Usage:
@@ -259,7 +259,7 @@ echo "  ├── knowledge/           (reusable solved problems)"
 if $HAS_UI; then echo "  ├── design/              (tokens.json, design system source of truth)"; fi
 echo "  └── docs/                (prds, stories, decisions, research, templates)"
 echo ""
-echo "Available everywhere from the claude-cofounder plugin:"
+echo "Available everywhere from the Odeo plugin:"
 echo "  build:    /build /merge /ci /commit-push /optimize /worktree-parallel-check"
 echo "  PM:       /brainstorm /prd /critique /stories /prioritize /roadmap ... (full set:"
 echo "            discovery, strategy, planning, metrics, launch, see the system map)"

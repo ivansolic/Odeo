@@ -17,7 +17,7 @@ code (code-reviewer), agents' runtime behavior (/improve).
 
 ## Process
 1. **Read the standard**: `docs/skill-authoring-standard.md` in this repo, or
-   `~/.claude/claude-cofounder-docs/skill-authoring-standard.md` in a user
+   `~/.claude/odeo-docs/skill-authoring-standard.md` in a user
    project. The skill rubric is at the bottom of it.
 2. **Read the whole skill folder**, SKILL.md plus supporting files, check the
    one-level-deep rule and size limits.

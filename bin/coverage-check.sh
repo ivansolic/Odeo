@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# coverage-check.sh , deterministic PRD-requirement coverage gate.
+# coverage-check.sh, deterministic PRD-requirement coverage gate.
 #
 # Verifies that every requirement ID (R1..Rn) DEFINED in a PRD's Requirements
 # section is claimed by at least one story's `covers:` frontmatter field. Exits 1
@@ -53,4 +53,4 @@ if [ -n "$missing" ]; then
   echo "(each requirement needs a story with a matching 'covers:' field)" >&2
   exit 1
 fi
-echo "coverage: $prd_id , all $count requirements covered"
+echo "coverage: $prd_id, all $count requirements covered"

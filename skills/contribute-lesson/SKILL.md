@@ -51,7 +51,7 @@ Only for **generalizable** content (universal patterns), never project-specific.
    - This is a safety net under your sanitization, not a replacement for it.
 4. **Show the user the exact sanitized, scanned version** for review.
 5. **Only after approval**, open a PR to the community knowledge repo:
-   `gh repo fork ... ` then PR to `ivansolic/claude-cofounder-knowledge` (or the configured community repo).
+   `gh repo fork ... ` then PR to `ivansolic/Odeo-knowledge` (or the configured community repo).
 6. Confirm what was submitted and that nothing else left the machine.
 
 ## Safety rules (non-negotiable)

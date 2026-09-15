@@ -76,8 +76,8 @@ these, fill them in accurately._
 
 _Your house rules. Be concrete, these shape every change Claude makes._
 
-- dev_rigor: [tdd | tdd-lite | test-after]  , when tests are written (set by /setup-project; all three always end with tests + review + the security baseline)
-- teach_me_as_i_go: [yes | no]  , add the technical term as a labeled aside after plain explanations
+- dev_rigor: [tdd | tdd-lite | test-after], when tests are written (set by /setup-project; all three always end with tests + review + the security baseline)
+- teach_me_as_i_go: [yes | no], add the technical term as a labeled aside after plain explanations
 Output language for generated user-facing prose (PRDs, stories, plans, reviews); one of en|de|hr|fr; set by /setup-project. Code, comments, filenames, and all machine-read fields stay English regardless.
 output_language: en
 

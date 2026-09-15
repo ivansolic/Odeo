@@ -24,7 +24,7 @@ Neither layer can close AC1. That is why this file exists, and why the builder r
 AC1 as "wiring proven, live check pending at the gate" and never as passed.
 
 "Internal" for this file means stripped from the PUBLISHED snapshot. `install.sh:74-77`
-still copies every `docs/checklists/*.md` into `~/.claude/claude-cofounder-docs/checklists/`
+still copies every `docs/checklists/*.md` into `~/.claude/odeo-docs/checklists/`
 on a developer machine, exactly as it already does for `dogfood-protocol.md`.
 
 ## Preconditions
@@ -96,7 +96,7 @@ repo file or a stale copy. It cannot answer the question it would be asked.
      `./install.sh` from the repo root, re-run precondition 4, and RECORD in the run
      report that the installer ran, on what date, and which paths it brought into line.
      What it writes: `~/.claude-templates/`, `~/.claude/skills/`, `~/.claude/agents/`,
-     `~/.claude/claude-cofounder-docs/` and `~/bin/*.sh` (`install.sh:41-86`); it never
+     `~/.claude/odeo-docs/` and `~/bin/*.sh` (`install.sh:41-86`); it never
      clobbers an existing `~/.claude/CLAUDE.md` (`install.sh:108-114`). One side effect to
      check and report if it occurs: if `~/.claude/CLAUDE.md` carries no
      `^output_language:` line yet, the non-interactive path writes `en` into it

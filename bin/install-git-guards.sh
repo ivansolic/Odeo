@@ -86,7 +86,7 @@ if [ -n "$scan" ]; then
   "$scan" || exit 1
 else
   echo "pre-commit WARNING: secret-scan.sh not found, committing WITHOUT the secret gate." >&2
-  echo "Install it (claude-cofounder install.sh) to restore the guardrail." >&2
+  echo "Install it (Odeo install.sh) to restore the guardrail." >&2
 fi
 exit 0
 HOOK

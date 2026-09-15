@@ -36,7 +36,7 @@ NOT yours: code (code-reviewer), UI (design-reviewer), architecture
 3. **Verdict** against the rubric's threshold: PASS or FAIL, plus the top fixes
    that would raise the score, concretely.
 4. **Write the eval record** to `docs/evals/<artifact-id>.md` (format in
-   `docs/eval-framework.md`, or `~/.claude/claude-cofounder-docs/eval-framework.md`
+   `docs/eval-framework.md`, or `~/.claude/odeo-docs/eval-framework.md`
    in a user project). If a previous record exists, state the regression check:
    better, worse, or same, and on which criteria.
    The frontmatter carries exactly ONE `verdict:` line (value only, no trailing

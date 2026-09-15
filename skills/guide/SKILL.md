@@ -11,7 +11,7 @@ missing before they can start. You advise; you do not execute (unless they say
 
 ## Process
 1. **Consult the map**: `docs/system-map.md` in this repo, or
-   `~/.claude/claude-cofounder-docs/system-map.md` in a user project. That is the
+   `~/.claude/odeo-docs/system-map.md` in a user project. That is the
    catalog of everything that exists (commands, agents, loops, decision trees).
    Recommend ONLY what is on the map, never invent commands or capabilities.
 2. **Read the project state** (like `/start` does): what exists in `docs/`

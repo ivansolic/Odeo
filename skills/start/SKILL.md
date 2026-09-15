@@ -13,7 +13,7 @@ what the next step is, and which recurring loops are due. Changes nothing.
    (last date), `knowledge/` (last refresh, via git log), git (branches,
    worktrees, unmerged work), `.claude/tasks/todo.md` (active task).
 2. **Place the project on the lifecycle** (`docs/system-map.md`, or the installed
-   copy in `~/.claude/claude-cofounder-docs/`): what phase are they in, what is
+   copy in `~/.claude/odeo-docs/`): what phase are they in, what is
    done, what is in progress.
 3. **Recommend ONE next step** (with the exact command), based on dependency
    order and any in-progress work. If `worktree-parallel-check` matters (other

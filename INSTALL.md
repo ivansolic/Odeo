@@ -120,8 +120,8 @@ var, is installed by one script.
 
 ```bash
 mkdir -p ~/code && cd ~/code
-git clone https://github.com/ivansolic/claude-cofounder.git
-cd claude-cofounder
+git clone https://github.com/ivansolic/Odeo.git
+cd Odeo
 ./install.sh
 ```
 
@@ -138,7 +138,7 @@ cd claude-cofounder
 > operating baseline lives in `AGENTS.md` (read before `CLAUDE.md`).
 
 It will NOT overwrite an existing `~/.claude/CLAUDE.md` (it saves the baseline to
-`~/.claude/claude-cofounder-baseline.md` instead, so your personal global is safe).
+`~/.claude/odeo-baseline.md` instead, so your personal global is safe).
 
 > **Tip:** `./install.sh --link` symlinks instead of copying, so a later
 > `git pull` updates your installed system live, handy if you'll improve it.
@@ -247,7 +247,7 @@ gh repo delete test-setup --yes
 ```
 ~ (your home folder)
 ├── code/
-│   └── claude-cofounder/      ← the cloned repo (source you can `git pull` to update)
+│   └── Odeo/                  ← the cloned repo (source you can `git pull` to update)
 ├── .claude/
 │   ├── CLAUDE.md              ← global instructions (auto-loads everywhere)
 │   ├── skills/                ← all skills: /build /merge /learn ... + TDD, ux-design (Step 6)

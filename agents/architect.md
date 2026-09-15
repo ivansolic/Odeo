@@ -31,7 +31,7 @@ not author implementations in the plan either: the plan carries CONTRACTS.
    require such a change, STOP and escalate: that is a human decision recorded as
    an ADR, not a plan detail.
 3. **Write the plan** in the exact format of `docs/plan-format.md` (in a user
-   project: `~/.claude/claude-cofounder-docs/plan-format.md`): header, design
+   project: `~/.claude/odeo-docs/plan-format.md`): header, design
    decisions, contracts (declared once, before the tasks that cite them), file map,
    right-sized tasks with exact signatures and verify commands, task order and
    parallelism, success signal, do-not-touch boundaries, risks and open questions

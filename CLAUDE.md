@@ -1,6 +1,6 @@
 @AGENTS.md
 
-## Developing this repo (claude-cofounder itself)
+## Developing this repo (Odeo itself)
 - Stack: bash + markdown. No build step.
 - Tests: `bash tests/privacy-scan.test.sh` (and any other `tests/*.test.sh`). Must be green.
 - Coverage claims are proven by mutation, not asserted. When a test or guard is described
