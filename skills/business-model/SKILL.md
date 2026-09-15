@@ -15,13 +15,13 @@ Business Model Canvas and the Lean Canvas (the startup-focused variant).
 ## Process (Lean Canvas, best for new/uncertain)
 Fill briefly and honestly:
 1. **Problem** (top 1-3) + existing alternatives
-2. **Customer segments** (+ early adopters) , link `/market-segments`
-3. **Unique value proposition** , link `/value-proposition`
+2. **Customer segments** (+ early adopters), link `/market-segments`
+3. **Unique value proposition**, link `/value-proposition`
 4. **Solution** (top features)
-5. **Channels** , link `/gtm-plan`
-6. **Revenue streams** , link `/pricing`
+5. **Channels**, link `/gtm-plan`
+6. **Revenue streams**, link `/pricing`
 7. **Cost structure**
-8. **Key metrics** , link `/metrics`
+8. **Key metrics**, link `/metrics`
 9. **Unfair advantage** (hard to copy)
 
 For an established business, use the full **Business Model Canvas** (adds key partners, activities, resources, customer relationships).

@@ -48,7 +48,7 @@ what the next step is, and which recurring loops are due. Changes nothing.
 
 ## Output shape (keep it this tight)
 ```
-Where you are: <project>  , phase: <lifecycle phase>
+Where you are: <project>, phase: <lifecycle phase>
   done:        <the artifacts that exist, one line>
   in progress: <branches/worktrees/todo, one line>
   -> NEXT: <one command + why it's next>

@@ -13,10 +13,10 @@ scores each item by Reach, Impact, Confidence, and Effort.
 
 ## Process (RICE)
 For each item, estimate:
-- **Reach** , how many users/events in a period (use real numbers, not vibes).
-- **Impact** , how much it moves the goal per user (a simple scale, e.g. 3 massive / 2 high / 1 medium / 0.5 low / 0.25 minimal).
-- **Confidence** , how sure you are of Reach and Impact (100% high / 80% medium / 50% low). This is the honesty dial; it punishes guesses.
-- **Effort** , person-time (e.g. person-weeks). The only denominator.
+- **Reach**, how many users/events in a period (use real numbers, not vibes).
+- **Impact**, how much it moves the goal per user (a simple scale, e.g. 3 massive / 2 high / 1 medium / 0.5 low / 0.25 minimal).
+- **Confidence**, how sure you are of Reach and Impact (100% high / 80% medium / 50% low). This is the honesty dial; it punishes guesses.
+- **Effort**, person-time (e.g. person-weeks). The only denominator.
 
 **Score = (Reach x Impact x Confidence) / Effort.** Rank by score.
 
@@ -24,8 +24,8 @@ Then sanity-check: does the ranking respect dependencies (`/stories` order) and 
 focus (`/strategy`)? Strategy and dependencies can override a raw score, say so explicitly when they do.
 
 ## Other lenses (use when RICE doesn't fit)
-- **MoSCoW** (Must / Should / Could / Won't) , for release scoping and stakeholder alignment.
-- **Value vs. Effort** 2x2 , for a fast, rough cut.
+- **MoSCoW** (Must / Should / Could / Won't), for release scoping and stakeholder alignment.
+- **Value vs. Effort** 2x2, for a fast, rough cut.
 
 ## Output
 A scored, ranked list with the estimates shown (so others can challenge the inputs),

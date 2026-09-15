@@ -14,18 +14,18 @@ features. Structure adapted from common product-spec practice (an 8-section layo
 - For non-trivial work. Skip for a typo or a one-line fix.
 
 ## Walk through, in this order (do not jump to the solution)
-1. **Problem** , who hurts, how much, how often, why now. Cite evidence (`/interview-synthesis`) or mark as assumption.
-2. **Outcome & success metrics** , the measurable user outcome that means we won
+1. **Problem**, who hurts, how much, how often, why now. Cite evidence (`/interview-synthesis`) or mark as assumption.
+2. **Outcome & success metrics**, the measurable user outcome that means we won
    (e.g. "users who forgot their password regain access in <60s without support"),
    not "we shipped reset." Define the metric and target.
-3. **Context** , relevant research, the real alternative / competitors (`/competitor-analysis`), constraints.
+3. **Context**, relevant research, the real alternative / competitors (`/competitor-analysis`), constraints.
    If this section rests on assumptions instead of evidence, offer once:
    "shall I back this with `/research`? (cited sources, ~10 min quick scan)"
    and cite the resulting RES-NNN here.
-4. **Hypotheses & assumptions** , what we're betting is true, and **how we'd know we're wrong**.
-5. **Scope** , the thin slice (MVP) that tests the outcome. Explicit in / out. Non-goals.
-6. **Requirements & acceptance criteria** , high-level, observable. (Detailed ACs live in `/stories`.)
-7. **Risks & dependencies** , value/viability/feasibility/usability risks. **Security
+4. **Hypotheses & assumptions**, what we're betting is true, and **how we'd know we're wrong**.
+5. **Scope**, the thin slice (MVP) that tests the outcome. Explicit in / out. Non-goals.
+6. **Requirements & acceptance criteria**, high-level, observable. (Detailed ACs live in `/stories`.)
+7. **Risks & dependencies**, value/viability/feasibility/usability risks. **Security
    pre-mortem (required if the feature touches auth, PII, payments, uploads, or anything
    private):** "it's 6 months later and we had a breach through this, what was the hole?"
    Capture the answers as requirements, not afterthoughts.

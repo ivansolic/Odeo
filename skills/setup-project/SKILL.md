@@ -115,11 +115,11 @@ All three styles ALWAYS end with tests + review + the security baseline; the onl
 difference is WHEN tests are written. Ask with plain explanations, and propose the
 context-aware default:
 > "How should we handle tests while building?
->  - **TDD** , the test is written BEFORE the code, for everything (highest
+>  - **TDD**, the test is written BEFORE the code, for everything (highest
 >    discipline; slower on visual UI work).
->  - **TDD-lite** , test-first for logic (backend, APIs, calculations, bug
+>  - **TDD-lite**, test-first for logic (backend, APIs, calculations, bug
 >    fixes), tests-after for UI (the balanced default for new projects).
->  - **Test-after** , code first, tests right after, everywhere (fastest start;
+>  - **Test-after**, code first, tests right after, everywhere (fastest start;
 >    the sensible default on an existing codebase that has few or no tests).
 >  Whichever you pick, nothing merges without tests and review, this only sets
 >  the ORDER."
@@ -134,8 +134,8 @@ prices exist right now, never recite from this file), then ask:
 > "On which model should the thinking run, planning, discovery, reviews?
 >  (Code execution rides the builder's pinned execution tier, see AGENTS.md
 >  Model policy; this choice is for judgment.)
->  - **strongest** , the top tier that exists (name + price as resolved now)
->  - **strong-default** , the strongest standard-price tier (name it now)
+>  - **strongest**, the top tier that exists (name + price as resolved now)
+>  - **strong-default**, the strongest standard-price tier (name it now)
 >  This is a DEFAULT, not a lock: /model overrides it any moment, and one
 >  sentence changes it permanently."
 Record semantically in CLAUDE.md Conventions: `session_model_preference:

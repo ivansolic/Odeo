@@ -41,7 +41,7 @@ instead of reacting to the loudest recent voice.
 ```
 docs/signals/2026-07-14.md
 ## Themes (by strength)
-1. <theme>  , 14 mentions (up from 6)  TREND: growing
+1. <theme>, 14 mentions (up from 6)  TREND: growing
    "quote" · "quote"    -> suggests: <one line>
 2. ...
 ## New this week / Faded since last week

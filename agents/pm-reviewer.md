@@ -27,7 +27,7 @@ NOT yours: code (code-reviewer), UI (design-reviewer), architecture
 2. **Score every criterion 0-2**, quoting the exact line that earned or lost the
    point. Apply N/A rescaling where the rubric allows it.
 2b. **PRD coverage (story sets only).** When the artifact is a story SET that
-   decomposes a PRD, build a traceability table , every PRD requirement (R1, R2,
+   decomposes a PRD, build a traceability table, every PRD requirement (R1, R2,
    ...) maps to at least one story id. Report it (`Rn -> USR-NNN`). A requirement
    with no covering story is a **coverage FAIL**, reported separately from the
    rubric score, and it blocks `/build`; the fix is to add or split a story, never

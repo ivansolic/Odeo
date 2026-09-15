@@ -7,7 +7,7 @@ disable-model-invocation: true
 
 Strategy is **what you'll do and (harder) what you won't**, driven by insight, to make
 the vision real. Based on modern product-strategy practice (focus, leverage insights,
-pick a small number of hard problems) , strategy is choice, not a list of everything.
+pick a small number of hard problems), strategy is choice, not a list of everything.
 
 ## When to use
 - After vision + discovery/market work; before you commit a roadmap.

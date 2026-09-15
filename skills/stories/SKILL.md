@@ -45,7 +45,7 @@ files" stops it for the session.
 PRD-014 (saved searches) has requirements R1 (save a search), R2 (rerun one), R3 (delete
 one). One story from that set:
 
-> **USR-021 , Save a search** , `prd: PRD-014` · `covers: R1` · order 1 · ~1 day
+> **USR-021, Save a search**, `prd: PRD-014` · `covers: R1` · order 1 · ~1 day
 >
 > **Card:** As a shopper, I want to save my current search filters under a name, so that I
 > can find the same results later without rebuilding them.

@@ -24,7 +24,7 @@ human floor.
    what it names (usually: run the reviewers so the record exists), re-run, only
    then continue.
 1. `git fetch origin` (get the latest main).
-2. `git rebase origin/main` , replay this branch's commits on top of the latest main.
+2. `git rebase origin/main`, replay this branch's commits on top of the latest main.
    - **Conflict?** Read both sides, understand each change's intent (from the story and code), resolve: keep both if complementary, otherwise the version that meets the requirements/tests. If genuinely ambiguous, **ask the user.** Never weaken a test to resolve.
 3. Run tests + typecheck, HERE, and see them pass. **A suite that has never been
    executed is not green.** "Deferred to CI" only counts if CI actually exists

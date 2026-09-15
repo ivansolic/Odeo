@@ -13,7 +13,7 @@ Startup thinking (build-measure-learn, validated learning) and the four product 
 
 ## Process
 1. **List assumptions** across the four product risks:
-   - **Value** (will they want it?) , usually the riskiest
+   - **Value** (will they want it?), usually the riskiest
    - **Usability** (can they use it?)
    - **Feasibility** (can we build it?)
    - **Viability** (does it work for the business: cost, legal, model?)
@@ -27,7 +27,7 @@ A ranked assumption list + experiment designs (with pass/fail criteria) saved to
 ## Example
 ```
 Assumption (VALUE, high risk): "freelancers will switch tools to save invoicing time."
-Test: fake door , a "one-click invoice" button that logs intent + interview the clickers.
+Test: fake door, a "one-click invoice" button that logs intent + interview the clickers.
 Pass if: >= 30% of active testers click within a week. Fail -> reconsider the bet.
 ```
 
