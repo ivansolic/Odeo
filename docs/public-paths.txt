@@ -1,0 +1,51 @@
+# public-paths.txt: the KEEP-PUBLIC ALLOWLIST (single source of truth, fail-closed side).
+#
+# Match rules (shared with docs/internal-paths.txt, the denylist):
+#   - a line ending in "/" is a DIRECTORY PREFIX (matches that dir and everything under it)
+#   - a line without a trailing "/" is an EXACT repo-relative file path
+#   - lines starting with "#" and blank lines are ignored
+#
+# Only paths listed here may appear in the published snapshot. Any committed path
+# that matches neither this allowlist nor docs/internal-paths.txt is UNCLASSIFIED,
+# and bin/publish-guard.sh --require-allowlist refuses the publish until a human
+# classifies it. NEVER add a bare "docs/" line: docs/ is the mixed zone, so each
+# public docs entry is listed explicitly and any new docs path must be classified.
+
+# wholly-public top-level directories
+skills/
+agents/
+bin/
+tests/
+project-templates/
+global/
+.github/
+.claude-plugin/
+
+# public root files
+README.md
+ROADMAP.md
+INSTALL.md
+install.sh
+LICENSE
+CONTRIBUTING.md
+CODE_OF_CONDUCT.md
+AGENTS.md
+BEGINNERS-GUIDE.md
+WORKFLOW.md
+CLAUDE.md
+.gitignore
+# Must ship: without it a Windows clone gets CRLF and nothing executes.
+.gitattributes
+
+# public docs, listed explicitly (never a bare docs/ line)
+docs/examples/
+docs/checklists/review-calibration.md
+docs/eval-framework.md
+docs/invariants.md
+docs/plan-format.md
+docs/system-map.md
+docs/privacy-guard.md
+docs/skill-authoring-standard.md
+docs/second-opinion-protocol.md
+docs/internal-paths.txt
+docs/public-paths.txt

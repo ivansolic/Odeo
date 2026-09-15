@@ -18,7 +18,7 @@ hats, and the whole process is just *knowing which hat you're wearing*.
 - 🛠️ **Dev hat**, *build and ship* it. Planning, code, tests, review, merge.
   You don't type code, **Claude is your developer**; you direct and approve.
 
-`/dev-handoff` is the literal moment you **switch hats**: PM work is done, time to
+`/build` is the literal moment you **switch hats**: PM work is done, time to
 build. Everything before it is PM; everything after is Dev.
 
 And remember the relationship with Claude:
@@ -55,8 +55,8 @@ starting from zero; you're adding a delivery half to skills you already have.
         🎩 PM HAT                    switch         🛠️ DEV HAT
   (decide what & why)                 hats        (build & ship)
                                         │
- brainstorm → PRD → critique →  ──/dev-handoff──→  plan → build → verify
- (optional) user stories                          → review → PR → merge
+ brainstorm → PRD → critique →  ─────/build─────→  plan → build → verify
+ (optional) user stories                          → review → /merge
         │                                                        │
    saved in docs/                                          lives on GitHub
 ```
@@ -78,6 +78,24 @@ Claude interviews you, what's your stack, how do you run tests, any house rules,
 and fills `CLAUDE.md` in for you. (Or you can pick a ready-made preset.) You only
 do this **once per project.** After it, Claude knows what it's working with, and
 everything else (like the testing habit) reads from that file.
+
+**Working in your own language.** You don't have to work in English. Claude can
+write your PRDs, stories, plans, and reviews in German, Croatian, or French, while
+the code, the commit messages, and the filenames always stay English. Set it once:
+
+```
+/language de          (German, for this project)
+/language de --global (German, for every project)
+/language             (just show the current setting)
+```
+
+Only the *prose* Claude writes for you changes; anything a machine reads stays
+English, so nothing leaks into your code. There's also a gentle check that warns
+if a document drifts from your setting, it only warns, it never blocks you.
+
+> One honest note: this guide, and all the docs that explain how the system works,
+> stay in English on purpose. They describe the mechanics, and the mechanics stay
+> English. Your *own* documents follow the language you set.
 
 ---
 
@@ -104,17 +122,17 @@ Don't memorize these. They stick after a week of use.
 You'll see two kinds of capabilities. The difference is simple, **who decides to
 use it:**
 
-| | **Command** (e.g. `/setup-project`, `/dev-handoff`, `/retro`) | **Skill** (e.g. the TDD skill, the pm-skills) |
+| | **Command** (e.g. `/setup-project`, `/build`, `/retro`) | **Skill** (e.g. the TDD skill, ux-design) |
 |---|---|---|
 | Who starts it | **You**, by typing the `/name` | **Claude**, automatically, when the work matches |
 | Trigger | Explicit: you choose the moment | Contextual: Claude reads the skill's description and engages when it fits |
 | Good for | Deliberate actions you run at a specific point | Background expertise that should "just apply" |
-| Example | You type `/dev-handoff` when ready to build | You build a backend rule → the TDD skill kicks in on its own |
+| Example | You type `/build` when ready to build | You build a backend rule → the TDD skill kicks in on its own |
 
 Think of it as: **commands are buttons you press; skills are reflexes Claude has.**
-(The pm-skills are a special case, they're skills bundled in a plugin, and you
-invoke them by name like `/pm-execution:create-prd`, so they behave like commands
-in practice.)
+(Plugin-bundled skills are a special case: skills that ship inside a plugin are
+invoked by a namespaced name like `/plugin-name:command`, so they behave like
+commands in practice.)
 
 This is why the end-of-session retro is a **command** (`/retro`) and not a skill:
 Claude can't detect that you're wrapping up, so *you* press the button.
@@ -135,23 +153,33 @@ Claude can edit files, run commands, create branches, commit, actually act.
 
 **Why this matters (the question every beginner hits):** some commands need to
 *do* things, so they must run in **normal mode**. The clearest case is
-`/dev-handoff`, it creates a branch and writes a file; plan mode (read-only)
+`/build`, it creates a branch and writes a file; plan mode (read-only)
 would block it.
 
 > **The golden order:** set the stage first (normal mode), *then* think (plan
 > mode), *then* build (normal mode).
 >
-> `/dev-handoff` (DO) → `Shift+Tab` to plan mode (THINK) → approve → `Shift+Tab`
-> back (BUILD)
+> `/build` (DO) → `Shift+Tab` twice to plan mode (THINK) → Claude drafts the plan →
+> you **approve** (approving **automatically exits** plan mode) → it BUILDS.
+
+You don't manually switch back: approving the plan exits plan mode for you. And in
+Mode A, `/build` **tells you on screen** to press `Shift+Tab` and **waits**, it won't
+write code before you approve, so you can't forget.
 
 If you remember one thing: **set the stage in normal mode, plan in plan mode,
 build in normal mode.**
+
+### Three things called "plan", don't mix them up
+- **a plan** = the *list of steps* ("1. data model, 2. timer, ..."). Claude writes it; you approve it before code.
+- **plan mode** = the `Shift+Tab` *safety switch* that stops Claude from touching files while you review that list. (Optional lock; in Mode B the background agent doesn't use it, it just shows its plan and waits.)
+- **`/plan`** = a *PM skill* (a different thing): it prioritizes and roadmaps which features to build, way upstream, before any code.
+- (And **`todo.md`** = the saved checklist that carries your task across sessions; `/build` writes it for you.)
 
 ---
 
 ## 8. VS Code, your window into the code (and where to keep working)
 
-When you run `/dev-handoff`, it **opens VS Code automatically**. VS Code is just
+When you run `/build`, it **opens VS Code automatically**. VS Code is just
 the **editor where you can *see* the code**, your Claude session stays in the
 terminal regardless. The moment it opens, you choose where to work:
 
@@ -164,7 +192,7 @@ terminal regardless. The moment it opens, you choose where to work:
 
 > ⚠️ Don't run the *same* session in two terminals at once, one at a time.
 
-**No VS Code installed?** No problem, `/dev-handoff` notices, skips opening it,
+**No VS Code installed?** No problem, `/build` notices, skips opening it,
 and tells you. The branch and checklist are still created; you work terminal-only.
 
 ---
@@ -205,12 +233,13 @@ Full chain for a **bigger feature or a project built from scratch**:
 | 3 | 🎩 Critique | `/pm-execution:strategy-red-team` + `:pre-mortem` | weak spots & risks | (in chat) |
 | 4 | 🎩 Stories **+ acceptance criteria** | `/pm-execution:user-stories` | each story **with its acceptance criteria** | `docs/stories/USR-NNN-<slug>.md` |
 | 5 | 🎩 Pick a story | *(you decide)* |, |, |
-| 6 | switch hats | `/dev-handoff` | branch + starting checklist | `.claude/tasks/todo.md` |
+| 6 | switch hats + build | `/build` | branch + checklist, then plan & build | `.claude/tasks/todo.md` |
 | 7 | 🛠️ Plan | plan mode → "implement USR-NNN" | the step-by-step plan | `todo.md` |
 | 8 | 🛠️ Verify | "walk through each acceptance criterion" | proof each criterion passes | (in chat) |
 | 9 | 🛠️ Review | "invoke code-reviewer" | findings to fix | (in chat) |
-| 10 | 🛠️ Ship | `/commit-push`, then `gh pr create --fill` | commit + PR | GitHub |
+| 10 | 🛠️ Ship | `/commit-push`, then `/merge` | commit + PR merged, cleaned up | GitHub |
 | 11 | 🎩 Retro | `/retro` | lessons routed to the right file | `lessons.md` / CLAUDE.md |
+| 12 | 🎩 Capture / measure | `/learn` now, `/outcome` ~a week later | knowledge entry, real outcome verdict | `knowledge/` |
 
 **Key points beginners miss:**
 
@@ -326,20 +355,38 @@ times. Stop it, send it back to plan mode, make it rethink.
 5. 🎩 Run `/pm-execution:strategy-red-team` to poke holes. Fix the PRD.
 6. 🎩 (Bigger feature only) `/pm-execution:user-stories` → Claude writes stories
    and acceptance criteria. Review them.
-7. **switch hats.** Plan mode OFF. Run `/dev-handoff`, it makes your branch and
-   checklist, and opens VS Code (Section 8, choose where to work).
+7. **switch hats.** Plan mode OFF. Run `/build`, it makes your branch and
+   checklist, and opens VS Code (Section 8, choose where to work). (This is Mode A,
+   human-first. Once you trust the flow, Mode B has an architect plan each story,
+   you approve the plan, and builder agents execute it and present the result.)
 8. 🛠️ Plan mode ON. Ask Claude to plan the build. Read it. Approve it.
 9. 🛠️ Plan mode OFF. Let Claude build (it writes tests + code).
 10. 🛠️ "Walk through every acceptance criterion." Then "invoke code-reviewer."
     If the change touches login, personal data, payments, or uploads: also run
     `/security-review` (Section 13).
-11. 🛠️ Run `/commit-push`, then `gh pr create --fill`, look on GitHub, merge.
-12. 🎩 Before you stop: run `/retro`, capture what you learned.
-13. You shipped something. 🎉 Next piece: back to step 7.
+11. 🛠️ Run `/commit-push`, then `/merge` (rebase onto main, test, merge PR, clean up).
+12. 🎩 Before you stop: run `/retro`, capture what you learned. If you solved
+    something reusable, `/learn` it.
+13. You shipped something. 🎉 About a week later, run `/outcome` to see if it
+    actually solved the problem. Next piece: back to step 7.
 
 ---
 
-## 17. Where to go next
+## 17. Never lost: two helpers that always know the way
+
+- **`/start`**, type it any time: it reads your project and answers "where am I,
+  what's next?" with one concrete next command, plus any due reminders (like
+  "you haven't captured lessons this week").
+- **Just ask**, you don't need to memorize commands. Ask in plain words ("how do
+  I get these stories into Jira?", "what now?") and the built-in guide activates
+  by itself: it tells you the route, what's missing first, and offers to start.
+  It never runs anything without your yes.
+
+Rule of thumb: lost = `/start`; have a goal = just ask.
+
+---
+
+## 18. Where to go next
 
 - **`WORKFLOW.md`**, the exact commands, in order, for daily use. Your main map.
 - **`INSTALL.md`**, only for first-time setup or fixing a broken install.

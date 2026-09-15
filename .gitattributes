@@ -1,0 +1,28 @@
+# Line endings are normalized so a Windows checkout cannot break the toolchain.
+#
+# Why this file exists, measured rather than assumed: git on Windows defaults to
+# core.autocrlf=true, which rewrites LF to CRLF ON CHECKOUT. A bash script with CRLF
+# line endings does not run at all:
+#   set -uo pipefail   ->  "set: pipefail: invalid option name"
+#   case "$v" in       ->  "syntax error near unexpected token `in'"
+# So without this file, a Windows clone produced a repository where nothing executed, and
+# the failure looked like a broken product rather than a line-ending setting.
+#
+# Enforced by tests/line-endings.test.sh, so this is a checked rule and not a wish.
+* text=auto
+
+# Everything the toolchain executes or the gates parse stays LF on every platform.
+*.sh    text eol=lf
+*.py    text eol=lf
+*.md    text eol=lf
+*.txt   text eol=lf
+*.json  text eol=lf
+*.yml   text eol=lf
+*.yaml  text eol=lf
+LICENSE text eol=lf
+.gitignore     text eol=lf
+.gitattributes text eol=lf
+
+# `* text=auto` above lets git AUTO-DETECT binaries and leave them alone, so nothing here
+# mangles one. There are no binary files in this repo today; if one is added (an image, a
+# font, an archive), give it an explicit `-text` line so no future change can normalize it.

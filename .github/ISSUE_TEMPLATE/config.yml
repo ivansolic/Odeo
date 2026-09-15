@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Question or idea (discussion)
+    url: https://github.com/ivansolic/Odeo/discussions
+    about: For open-ended questions, ideas, and workflow discussion. Bugs and concrete requests should use the issue templates.

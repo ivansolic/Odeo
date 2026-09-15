@@ -33,7 +33,7 @@ the file over:
    export), define/export your tokens as a DTCG JSON, then provide that file via
    method 1 or 2.
 
-It's a **manual export-then-ingest, not a live sync**, Cofounder consumes the
+It's a **manual export-then-ingest, not a live sync**, Odeo consumes the
 file you give it; it doesn't reach into Figma on its own. On ingest, `/setup-design`
 validates the JSON is DTCG, ensures the semantic tokens components need exist
 (fills gaps), checks WCAG contrast, merges into `tokens.json`, and wires compilation.

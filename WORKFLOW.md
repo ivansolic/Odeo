@@ -9,16 +9,16 @@ Keep this open until the rhythm becomes muscle memory (~2-3 weeks).
 > language. This file is the *what to type*; that file is the *why*.
 
 The workflow (the phases, the discipline, the rhythm) is yours and stays fixed.
-The PM thinking inside Phase 1 is now powered entirely by the **pm-skills**
-plugins, you don't use any custom PM commands or subagents for that work.
+The PM thinking inside Phase 1 runs on our **first-party PM skills** (`/brainstorm`,
+`/prd`, `/critique`, `/stories`, ...).
 
 ---
 
 ## Returning to Work (day 2 and beyond)
 
-Your setup is installed once and stays, global `CLAUDE.md`, templates,
-`init-project.sh`, and the pm-skills plugins are all permanent. You do NOT
-reinstall any of that to start working again. You just open a project.
+Your setup is installed once and stays, global `CLAUDE.md`, the skills and agents
+(including the PM skills), templates, and `init-project.sh` are all permanent. You
+do NOT reinstall any of that to start working again. You just open a project.
 
 ### Start a brand-new project
 ```bash
@@ -48,13 +48,13 @@ fresh `claude` picks up where you left off.
 
 ### You do NOT need to redo
 - ❌ Copy CLAUDE.md / templates
-- ❌ Re-run `/plugin install` (pm-skills stay installed)
+- ❌ Re-run `install.sh` (the skills/agents stay installed)
 - ❌ Touch `~/.bash_profile`
 
 ### If commands seem missing in a session
 ```
-/plugin list pm-skills    # should show your pm-* plugins, enabled
-/reload-plugins           # if they show but don't respond
+# our skills/agents live in ~/.claude/skills and ~/.claude/agents; re-run install.sh if missing.
+/reload-plugins           # if a plugin's commands stop responding
 ```
 
 For first-time machine setup (or troubleshooting an install), see `INSTALL.md`.
@@ -69,21 +69,22 @@ IDEA (fresh or imported)
  ▼
 ┌─────────────────────────────────────────────┐
 │ PHASE 1: PM (discovery & specification)     │
-│ brainstorm → PRD → critique → user stories  │
-│ (all powered by pm-skills)                  │
+│ /brainstorm → /prd → /critique → /stories   │
+│ (first-party PM skills)                     │
 └──────────────────┬──────────────────────────┘
                    ▼
-            /dev-handoff
+               /build
                    │
                    ▼
 ┌─────────────────────────────────────────────┐
 │ PHASE 2: DEVELOPMENT (one story at a time)  │
-│ plan → implement → verify → review → commit │
+│ /build → plan → implement → verify → review │
+│   with me (live)      ·  for me (agents)    │
 └──────────────────┬──────────────────────────┘
                    ▼
 ┌─────────────────────────────────────────────┐
 │ PHASE 3: CLOSE (per story)                  │
-│ PR → merge → cleanup → lessons              │
+│ /merge (rebase, test, PR) → /outcome → /learn │
 └─────────────────────────────────────────────┘
 ```
 
@@ -121,51 +122,45 @@ After importing, continue normally, usually jump to step **1.3 (critique)** or
 ### External feature requests or user feedback
 
 ```
-/pm-product-discovery:analyze-feature-requests
+/interview-synthesis
 ```
-Paste the list, Claude triages, groups, and prioritizes them.
+Paste the list, Claude extracts opportunities and themes; then `/prioritize` to triage.
 
 ### External interview notes or research
 
 ```
-/pm-product-discovery:summarize-interview
+/interview-synthesis
 ```
-or
-```
-/pm-market-research:sentiment-analysis
-```
+Paste the notes; Claude turns them into structured insights and opportunities.
 
 ---
 
 ## PHASE 1: PM, From Idea to Stories
 
-All PM content here is produced by pm-skills. You keep the `docs/` folder
-structure as the home for the output, when a skill produces a PRD or stories,
-save them into `docs/prds/PRD-NNN-<slug>.md` and `docs/stories/USR-NNN-<slug>.md`
-so the rest of the workflow (handoff, branching, reviews) still lines up.
+PM here is driven by our **first-party PM skills** (built from public frameworks,
+credited by name). You keep the `docs/` folder as the home for the output, save
+PRDs and stories into `docs/prds/PRD-NNN-<slug>.md` and
+`docs/stories/USR-NNN-<slug>.md` so the rest of the workflow lines up.
 
 ### 1.1 Brainstorm
 
 Start Claude in your project, plan mode ON (`Shift+Tab` twice).
 
 ```
-/pm-product-discovery:brainstorm-ideas-new
+/brainstorm
 ```
 
-For an existing product (adding a feature to something that ships already):
-```
-/pm-product-discovery:brainstorm-ideas-existing
-```
-
-The skill diverges to multiple distinct options before converging. Push back,
-combine options, iterate until the idea has shape.
+It diverges into many distinct options before converging, problem-first. Push
+back, combine options, iterate until the idea has shape. (For discovery support:
+`/personas`, `/interview-synthesis`, `/competitor-analysis`, `/market-segments`;
+for direction: `/vision`, `/strategy`.)
 
 ### 1.2 Write the PRD
 
 When the idea has shape:
 
 ```
-/pm-execution:create-prd
+/prd
 ```
 
 Walk through, in this order:
@@ -182,18 +177,13 @@ hyphenated slug) so the folder convention stays intact.
 ### 1.3 Critique it
 
 ```
-/pm-execution:strategy-red-team
+/critique
 ```
 
-Attacks the assumptions, hunts for holes in the logic, challenges the scope.
-
-Then:
-```
-/pm-execution:pre-mortem
-```
-
-"It's 6 months later and this failed, why?" Top 3 failure modes ranked by
-likelihood, with the leading signal you'd see for each.
+Two passes in one skill: a **red-team** that attacks the assumptions, logic, and
+scope, then a **pre-mortem**, "it's 6 months later and this failed, why?", giving
+the top 3 failure modes ranked by likelihood, each with the leading signal you'd
+see early.
 
 **Security pre-mortem (required for sensitive features).** If the feature
 touches authentication, personal data (PII), payments, file uploads, or anything
@@ -214,7 +204,7 @@ Revise the PRD based on the findings. Re-run if the changes were large.
 ### 1.4 Break into user stories
 
 ```
-/pm-execution:user-stories
+/stories
 ```
 
 > "Order them by dependency, what must be built first. Save them into
@@ -263,25 +253,42 @@ on a `docs/` branch if you're on main).
 
 ---
 
-### Bonus PM skills (when the situation calls for it)
+### The full PM set (by lifecycle phase)
 
-| Situation | Skill |
-|---|---|
-| Understand your users | `/pm-market-research:user-personas` |
-| Segment the market | `/pm-market-research:market-segments` |
-| Competitor analysis | `/pm-market-research:competitor-analysis` |
-| Prioritize features | `/pm-product-discovery:prioritize-features` |
-| Metrics / north star | `/pm-product-discovery:metrics-dashboard` |
-| Value proposition | `/pm-product-strategy:value-proposition` |
-| Product strategy / vision | `/pm-product-strategy:product-strategy` |
-| OKRs | `/pm-execution:brainstorm-okrs` |
-| Sprint plan | `/pm-execution:sprint-plan` |
-| GTM / launch | `/pm-go-to-market:gtm-strategy` |
-| Release notes | `/pm-execution:release-notes` |
-| Retrospective | `/pm-execution:retro` |
+**Discovery & research:** `/brainstorm` · `/personas` (JTBD) · `/interview-synthesis` · `/competitor-analysis` · `/market-segments` · `/opportunity-solution-tree` (Torres) · `/customer-journey-map` · `/experiments` (assumption tests, Ries + Cagan's 4 risks)
+**Strategy & viability:** `/vision` · `/strategy` (Cagan) · `/value-proposition` · `/okrs` · `/business-model` (Lean/Business Model Canvas) · `/pricing` (value-based)
+**Planning (portfolio):** `/prioritize` (RICE) · `/roadmap` (now/next/later) · `/stakeholder-map`
+**Spec (feature):** `/prd` · `/critique` (red-team + pre-mortem) · `/stories` (INVEST + 3 C's)
+**Metrics & analytics:** `/metrics` (North Star) · `/ab-test` · `/cohorts` · `/query` (NL->SQL)
+**Launch & growth:** `/positioning` (Dunford) · `/marketing` · `/gtm-plan` · `/release-notes` · `/growth-loops` · `/battlecard` · `/product-name`
 
-Browse the full list with `/`, every pm-skills plugin namespaces its commands
-(e.g. `pm-execution:`, `pm-market-research:`).
+**Orchestrators (chain the above, with a human gate between each step):**
+`/discover` (front funnel) -> `/plan` (prioritize -> roadmap) -> `/spec` (prd -> critique -> stories) -> `/go-to-market` (positioning -> marketing -> gtm-plan -> release-notes).
+
+Browse everything with `/`. All first-party (built from named public frameworks).
+
+### The order, at a glance
+The lifecycle runs top-down by altitude: understand, decide, define, build, measure, launch.
+```
+NEW PRODUCT (full):
+  /discover  ->  strategy (/vision /strategy /market-segments /business-model /pricing)
+            ->  /plan (/prioritize -> /roadmap)
+            ->  per epic in roadmap order: /spec (/prd -> /critique -> /stories)
+            ->  /build -> /merge -> /outcome   (loop to /plan for the next epic)
+            ->  /go-to-market when an epic is ready for users
+INCREMENTAL FEATURE: skip to /spec -> /build -> /outcome
+TRIVIAL FIX:         just /build
+```
+**Worked example (new product: freelancer billable-time tracker):** `/discover` finds the
+opportunity (invoicing is a chore) -> `/plan` ranks epics and roadmaps them (NOW capture
+time, NEXT invoicing) -> `/spec` the MVP "capture time" (`/prd` -> `/critique` -> `/stories`
+ordered by dependency: data model -> timer -> tagging) -> `/build` each -> `/outcome` ->
+loop to `/plan` for invoicing -> `/go-to-market` at launch.
+
+**Two altitudes of prioritization (don't confuse them):** `/prioritize` + `/roadmap` rank
+*which epics* (value, portfolio level); `/stories` orders *which stories within an epic* (by
+dependency, not value). Every step is human-gated; merge-to-main, ship, and send-out always
+need your approval.
 
 ---
 
@@ -299,7 +306,7 @@ never goes away, it always holds the implementation plan for whatever you're
 building right now. A story is just an optional spec *above* todo.md, never a
 replacement for it.
 
-- **With stories:** PRD → stories → `/dev-handoff` (per story) seeds the plan
+- **With stories:** PRD → stories → `/build` (per story) seeds the plan
   into `todo.md` → build
 - **Without stories:** PRD → plan mode drafts the plan straight into `todo.md`
   → build
@@ -324,14 +331,13 @@ generating 40 stories at once. Instead, scope the PRD to a **thin vertical slice
 (the MVP)** and let stories sequence that slice:
 
 ```
-/pm-product-discovery:brainstorm-ideas-new      → shape the concept
-/pm-product-strategy:product-vision (optional)   → the north star
-/pm-execution:create-prd                          → PRD for the MVP slice ONLY
-/pm-execution:strategy-red-team + :pre-mortem    → pull it apart
-/pm-execution:user-stories                        → decompose the slice,
-                                                     order by dependency
+/brainstorm                → shape the concept
+/vision (optional)         → the north star
+/prd                       → PRD for the MVP slice ONLY
+/critique                  → red-team + pre-mortem, pull it apart
+/stories                   → decompose the slice, order by dependency
    USR-001 data model  →  USR-002 auth  →  USR-003 core flow  → ...
-/dev-handoff (per story) → build → review → PR → merge → next story
+/build (per story) → review → /merge → next story
 ```
 
 Each merged PR is one visible step toward the MVP.
@@ -343,7 +349,7 @@ For a typo, a copy tweak, a one-line fix, skip the PRD and stories entirely:
 ```
 git checkout -b fix/<short-description>
 # make the change → "Invoke code-reviewer" (still worth it) → /commit-push
-gh pr create --fill → merge
+/merge   # rebase onto main, test, open + merge PR, cleanup
 ```
 
 The one rule that always holds, in every track: **never batch multiple stories
@@ -367,26 +373,88 @@ your product context, then wires token compilation to your stack. One-time per
 project. (Skip for API-only/backend projects.) Tokens become the styling source
 of truth; the `ux-design` skill applies them when you build.
 
-### /dev-handoff
+### /build
 
-When stories are ready and you're switching to building:
+When stories are ready and you're switching to building, `/build` is the single
+entry. It has two modes; you pick at the start:
+
+- **With me (Mode A).** You and Claude build one story together, step by step,
+  with you reviewing at each stage. This folds in the old PM→Dev handoff: it
+  verifies the spec, creates the branch, seeds `todo.md`, and opens the editor
+  before you plan and build. Best while you're learning the rhythm.
+- **For me (Mode B).** A fixed, always-gated pipeline: the `architect` (read-only)
+  plans your stories as a written contract (`docs/plans/`), **you approve the
+  plan**, then a `builder` per story executes it exactly, each in its own isolated
+  git worktree (TDD per your dev-rigor setting, verify, review), and presents the
+  result for your approval. A builder never runs without an approved plan, that
+  gate is structural. Optionally open the worktree(s) in your editor to watch.
+  Best once you trust the flow.
+
+  **One story at a time is the default.** Parallel (several agents at once) is
+  opt-in and only offered when the stories you picked are *independent* (Claude
+  runs an overlap check first). To trigger it, either name multiple stories when
+  you invoke (`/build USR-001 USR-002 in parallel`) or just say "parallel" when
+  Claude asks. If you say "go", you get them one at a time. Keep parallel to 2 to 4
+  so your review stays the bottleneck, not a rubber stamp.
 
 ```
-/dev-handoff
+/build
 ```
 
-> ⚠️ **Run `/dev-handoff` in normal mode, not plan mode.** It creates the branch
-> and writes `todo.md`, actions that plan mode (read-only) would block. Enter
-> plan mode (`Shift+Tab` twice) only *after* it finishes, for step 2.1. Order:
-> **dev-handoff (do) → plan mode (think) → exit plan mode (build).**
+> ⚠️ **Run `/build` in normal mode, not plan mode.** It creates branches and
+> writes `todo.md`, actions that plan mode (read-only) would block. In Mode A,
+> enter plan mode (`Shift+Tab` twice) only *after* it sets up, for step 2.1.
+> Order: **build setup (do) → plan mode (think) → exit plan mode (build).**
 
-This will:
+In Mode A it will:
 1. Ask which spec you're implementing
 2. Verify the spec is actually ready (problem, outcome, scope all filled)
 3. Write a handoff summary into `.claude/tasks/todo.md` (so context survives
    even if you start a fresh session later)
 4. Create the feature branch from up-to-date main
 5. Open VS Code (as editor, your Claude session stays in this terminal)
+
+Then continue with 2.1 below. In Mode B the agents run that pipeline for you and
+you jump to reviewing their results (2.3 onward) before `/merge`.
+
+---
+
+## Parallel work (the agent fleet)
+
+The principle: **one focused, isolated context per task beats one session juggling
+everything** (less clutter in the agent's head means better work, "context minimalism").
+A widely shared productivity tip: **spin up 3 to 5 git worktrees at once, each running its
+own session in parallel.** A **git worktree** is one repo checked out into several separate
+folders, each on its own branch, so agents never trample each other's files.
+
+You can run a fleet two ways (both give the same win, focused + isolated agents):
+
+```
+Way 1, ONE session, background agents (Mode B parallel, easiest):
+  [tab: claude]   (architect planned, you approved the plans)
+      ├─ dispatches → builder A → own worktree (background)   (builder has isolation: worktree)
+      ├─ dispatches → builder B → own worktree (background)
+      └─ you watch + approve results in one place (the agent view, see below)
+
+Way 2, MANY sessions, one per task (hands-on; the classic "several tabs" setup):
+  [tab 1: claude --worktree feature-auth]      → you drive auth
+  [tab 2: claude --worktree feature-billing]   → you drive billing
+  (each gets its own isolated checkout under .claude/worktrees/<name>/)
+```
+
+Built-in Claude Code tools (use these, don't rebuild them; all work in any terminal, no desktop app needed):
+- **`claude agents`** opens the **agent view**: a full-screen terminal dashboard of your background sessions (which are running / need input / done / their PR status). Enter to attach, Space to peek, type to dispatch a new one. Your main fleet control.
+- **`claude --bg "task"`** starts a background agent from the shell; **`claude --worktree <name>`** opens an interactive session in its own isolated worktree; **`claude attach|logs|stop <id>`** manages a background session.
+- Our `builder` agent has `isolation: worktree`, so dispatched agents are isolated automatically. To check what's safe to parallelize, run **`worktree-parallel-check`** first.
+
+**When with-me vs for-me:** clear + independent work -> for me (agents, faster, parallel); fuzzy / needs your steering -> with me (build together). The mode is asked on every /build, never assumed. The isolation benefit ("no context-mixing = better output") holds for both; Mode A just lets you steer live.
+
+**When to parallelize, and the gotchas:**
+- Only **independent** tasks (different files/modules). `worktree-parallel-check` / the `/build` overlap check warns first; coupled work stays sequential, or you get merge conflicts.
+- Each worktree needs its **own `node_modules` and `.env`** (not shared); don't run two dev servers on the **same port**.
+- Integrate **serially**: `/merge` rebases each branch onto an up-to-date main, one at a time, so conflicts surface cleanly.
+- Keep each agent's context **lean** (let it pull from `knowledge/` on demand; context minimalism).
+- The human floor holds: every branch still merges only with your approval.
 
 ---
 
@@ -455,8 +523,9 @@ Skipping the review or ignoring Criticals = removing your own safety net.
 
 `code-reviewer` covers logic/security; `design-reviewer` covers UI only, 
 usability heuristics, all states (loading/empty/error + hover/focus/disabled),
-accessibility, and design-token adherence (no hardcoded styles). Same Critical →
-Important → Nitpicks rule. Skip it for backend-only changes.
+accessibility, design-token adherence (no hardcoded styles), and **microcopy**
+(button/link labels, error and empty-state copy, the `ux-writing` standards). Same
+Critical → Important → Nitpicks rule. Skip it for backend-only changes.
 
 ### 2.4b Security review (for sensitive changes)
 
@@ -506,7 +575,7 @@ Future-you (and future teammates) will thank you for the WHY being written down.
 
 ### Definition of Done (every story)
 
-pm-skills stories carry their own acceptance criteria but not a DoD checklist, 
+`/stories` gives each story its own acceptance criteria, but not a DoD checklist,
 this is yours, the same gate for every story before it's "done":
 
 - [ ] Code merged to main via PR
@@ -520,30 +589,51 @@ this is yours, the same gate for every story before it's "done":
 - [ ] No new `pnpm audit` criticals/highs, required if dependencies changed
 - [ ] No PII or secrets in logs, commits, or error messages introduced by this story
 
-### 3.1 Pull Request
+### 3.1 Integrate with /merge
 
-After the final push, open the PR on GitHub:
-```bash
-gh pr create --fill
+When the story is reviewed and you approve it, run:
+
 ```
-Or use the link GitHub prints after push.
-
-Even solo, read your own PR diff on GitHub once. You'll catch things.
-Then merge (squash-merge keeps main history clean).
-
-### 3.2 Cleanup
-
-```bash
-git checkout main
-git pull
-git branch -d feature/<name>
-git push origin --delete feature/<name>
+/merge
 ```
 
-### 3.3 Close the loop in the project
+It does the git mechanics for you, on a clean linear history:
+1. Fetches the latest `origin/main`
+2. Rebases your branch on top of it (resolving conflicts by intent + tests, asking
+   you if genuinely ambiguous; it never weakens a test to resolve)
+3. Runs tests + typecheck, must be green
+4. Updates the branch with `--force-with-lease` if it was already pushed
+5. Opens and squash-merges the PR
+6. Cleans up: back to main, pulls, deletes the branch local + remote
+
+Even solo, read your own PR diff once before approving the merge. You'll catch
+things. With multiple stories in flight, `/merge` integrates them one at a time so
+conflicts surface and resolve cleanly.
+
+### 3.2 Close the loop in the project
 
 > "Mark story USR-003 as Done. Add the Review section to todo.md:
 > what shipped, what was harder than expected, any follow-ups."
+
+### 3.3 Capture reusable knowledge (if you solved something worth keeping)
+
+If the story involved solving a non-trivial, verified problem that is likely to
+recur, capture it so the system reuses it next time:
+
+```
+/learn
+```
+
+It quality-gates (verified + non-trivial + reusable), shows you the drafted entry,
+and writes it to `knowledge/` only after you approve. Periodically, run
+`/knowledge-refresh` to audit that base against the current code and prune dead
+weight.
+
+If a lesson is **universal** (not specific to this project), Claude may offer
+`/contribute-lesson`, an opt-in way to share a sanitized, generalized version with
+the community knowledge base. You see exactly what would be shared and approve
+before anything leaves your machine; in return, future updates bring back the
+curated knowledge of all contributors.
 
 ### 3.4 Lessons (only if corrections happened)
 
@@ -575,6 +665,73 @@ every session." Over weeks, `lessons.md` and your CLAUDE.md files quietly become
 a record of how *you* like to work, and Claude stops repeating the same misses.
 
 ### Then: next story. Back to 2.1.
+
+---
+
+## POST-SHIP: Did it actually work? (about a week later)
+
+Shipping is not the finish line, the question the PRD asked was whether this
+*solves the problem*. About a week after a feature is live (enough time for real
+data), run:
+
+```
+/outcome
+```
+
+It reads the PRD's intended outcome and success criteria, gathers **real** signals
+only (analytics you provide or a connector, error logs, your own observations),
+compares actual vs intended, and gives a verdict: **keep / iterate / kill /
+need-more-data**.
+
+> ⚠️ It never fabricates data. If the feature isn't shipped, or there's no real
+> data yet, the honest output is "need-more-data, here's what to instrument," not
+> invented numbers. Fake outcomes would poison `knowledge/`.
+
+With your approval, the result feeds `/learn` (what worked or failed in
+production) and promotes or demotes related `knowledge/` entries, so the knowledge
+base is judged by real outcomes, not just whether code matched. This closes the
+loop: idea → ship → measure → learn → better next story.
+
+---
+
+## The loops, at every timescale
+
+One picture explains how the whole system improves itself. Loops are nested by
+how fast they turn, and every one has a verifier and a stop:
+
+```
+MINUTES   the agent's inner loop     build -> test -> fix, to the success-signal
+          (builder; verifier = tests/criteria; stop = all green or ~3 tries)
+HOURS     your steering loop         plan gate -> review -> approve/redirect
+          (you direct and taste; you don't QA line by line)
+DAYS      the users' loop            /outcome + /product-signal -> back into /plan
+          (real signals decide what's next; never fabricated)
+WEEKS     the system learns          /learn, /knowledge-refresh, /improve
+          (knowledge compounds; skills/rubrics only change with evidence)
+```
+
+Why a human stays in the loop: you hold the **context advantage**, you understand
+your users, market, and constraints in ways no model does. The gates aren't a
+brake on the system; they're where its best information enters.
+
+### 🔁 Recurring loops, when each runs (nudge reminds you; YOU run them)
+
+| Loop | Natural moment | Interval |
+|---|---|---|
+| `/knowledge-refresh` | session start (quiet, only if due) | every 2-4 weeks |
+| `/improve` | when evals show repeated drops | after ~3-5 same-criterion drops |
+| `/product-signal` | first session after the interval | ~weekly |
+| `/learn` + `/retro` | after `/merge`, or when you say you're wrapping up | per story / session |
+| `/outcome` | you decide, ~a week after shipping | per shipped feature |
+
+Rules: at most ONE nudge, short, easy to decline; nothing ever runs on a silent
+schedule (no scheduler exists, that's a guardrail).
+
+**Background option:** read-only loops (`/product-signal`, analysis parts of
+`/improve` and `/knowledge-refresh`) can run in the background while you work,
+they read and think in their own isolated worktree and STOP at "here's my
+proposal, approve?". Applying any change waits for your gate, at a calm moment
+(after `/merge` or at the next session start), never mid-build.
 
 ---
 
@@ -610,8 +767,8 @@ senior's job: "How do you know it works?" / "Did you actually run it?"
 
 ### Skill & subagent invocation (your current level)
 Invoke explicitly, every time:
-- PM thinking (Phase 1) → the `pm-skills` commands above (`/pm-execution:*`,
-  `/pm-product-discovery:*`, `/pm-market-research:*`, …)
+- PM thinking (Phase 1) → our PM skills (`/brainstorm`, `/prd`, `/critique`,
+  `/stories`, `/prioritize`, ...)
 - `code-reviewer` subagent → before every commit
 - `architecture-reviewer` subagent → any decision touching multiple modules
 
@@ -625,24 +782,51 @@ trusting auto-invocation.
 | I want to... | I do... |
 |---|---|
 | Start a new project | `init-project.sh <name>` → `gh repo create ...` → `claude` |
+| See where you are + what's next | `/start` (you-are-here + due loop reminders) |
+| Ask "how do I do X here?" | just ask, `/guide` auto-activates (routes goal -> commands) |
+| Try an idea by building it | `/prototype` (N disposable variants, live compare, keep the learnings) |
+| Improve a skill/rubric with evidence | `/improve` (A/B test, you keep or revert) |
+| Weekly listen to your users | `/product-signal` (themes + trend vs last week) |
 | Configure a new project (stack, commands) | `/setup-project` (once per project, first thing) |
+| Change the language of generated documents | `/language` (shows it) · `/language de` (this project) · `/language de --global` (all projects). Moves PROSE only; code, commits and filenames stay English, the prose check is advisory and never blocks |
 | Import an existing PRD | Paste it, or "Read docs/prds/... and evaluate it" |
-| Triage external requests | `/pm-product-discovery:analyze-feature-requests` |
-| Explore an idea | `/pm-product-discovery:brainstorm-ideas-new` |
-| Write a PRD | `/pm-execution:create-prd` |
-| Challenge a PRD | `/pm-execution:strategy-red-team` then `/pm-execution:pre-mortem` |
-| Create stories | `/pm-execution:user-stories` |
+| Triage external requests | `/interview-synthesis` then `/prioritize` |
+| Run the whole discovery cycle | `/discover` (brainstorm -> personas -> journey -> OST -> experiments) |
+| Explore an idea | `/brainstorm` |
+| De-risk before building | `/experiments` (assumption tests) |
+| Plan the portfolio | `/plan` (`/prioritize` -> `/roadmap`) |
+| Spec one feature | `/spec` (`/prd` -> `/critique` -> `/stories`) |
+| Check what's safe to build next / in parallel | `worktree-parallel-check` (read-only; recommends + warns on overlap) |
+| Watch the agent fleet (no desktop app) | `claude agents` (terminal dashboard) |
+| Write a PRD | `/prd` |
+| Challenge a PRD | `/critique` (red-team + pre-mortem) |
+| Create stories | `/stories` |
+| Prioritize epics / roadmap | `/prioritize` (RICE) · `/roadmap` (now/next/later) |
+| Take it to market (launch) | `/go-to-market` (positioning -> marketing -> gtm-plan -> release-notes) |
+| Price it / model the business | `/pricing` · `/business-model` |
+| Analyze a test / retention | `/ab-test` · `/cohorts` · `/query` |
+| Speed up something slow | `/optimize` (measure -> change -> re-measure; never guess) |
 | Set up the design system | `/setup-design` (once, after PM, before building UI) |
-| Switch to building | `/dev-handoff` |
-| Build a story | Plan mode + "Implement story docs/stories/USR-NNN..." |
+| Switch to building / build a story | `/build` (with me: live together, or for me: agents on your approved plan; you approve at the gate) |
 | Check it's really done | "Walk through every acceptance criterion" |
 | Review code | "Invoke code-reviewer on these changes" |
 | Review UI | "Invoke design-reviewer on these changes" (states, a11y, tokens, heuristics) |
 | Security-check a sensitive change | `/security-review` (auth, input, uploads, payments, data access) |
 | Audit dependencies | `pnpm audit` after adding/updating packages |
 | Commit + push | `/commit-push` |
+| Integrate an approved branch | `/merge` (rebase onto main, test, merge PR, cleanup) |
+| Ship it to the platform | `/deploy` (re-checks green, deploys, verifies; after `/merge`) |
+| Get PRs tested automatically | `/ci` (sets up GitHub Actions, ~2 minutes) |
+| Market/web research with sources | `/research` (market size, competitors, pricing, verifying a claim) |
+| Docs drifted from the code | `/sync-docs` (reconciles README/docs/CLAUDE.md against what actually ships) |
+| Want an independent check from another vendor's model | `/second-opinion-code` · `/second-opinion-plan` · `/second-opinion-pm` · `/second-opinion-design`. **Paid**, opt-in, never automatic: an external model reviews, then OUR reviewer weighs its findings. See `docs/second-opinion-protocol.md` |
 | Record a decision | "Create an ADR for this decision" |
 | Teach Claude a lesson | "Update lessons.md so you don't repeat this" |
 | Wrap up a session / capture learnings | `/retro` |
+| Capture a reusable solved problem | `/learn` (verified + non-trivial only; shows draft first) |
+| Keep the knowledge base current | `/knowledge-refresh` |
+| Share a lesson with the community | `/contribute-lesson` (opt-in, sanitized, approval-gated) |
+| Pull the latest community knowledge | `/sync-community` (vs `/plugin update` for the tooling) |
+| Check a shipped feature's outcome | `/outcome` (about a week after shipping, real data only) |
 | Resume yesterday's session | `claude --continue` |
 | Claude is stuck/looping | "Stop. Enter plan mode. Reinvestigate from scratch." |

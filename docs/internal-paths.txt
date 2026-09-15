@@ -1,0 +1,35 @@
+# internal-paths.txt: the DENYLIST (single source of truth for internal artifacts).
+#
+# Match rules (shared with docs/public-paths.txt, the allowlist):
+#   - a line ending in "/" is a DIRECTORY PREFIX (matches that dir and everything under it)
+#   - a line without a trailing "/" is an EXACT repo-relative file path
+#   - lines starting with "#" and blank lines are ignored
+#
+# These paths are internal build evidence and local config; they NEVER reach the
+# public repo. bin/publish-snapshot.sh strips them from the published tree and
+# bin/publish-guard.sh refuses any push or snapshot that still contains them.
+# The complementary docs/public-paths.txt is the KEEP-PUBLIC allowlist: any
+# committed path in NEITHER list is unclassified and blocks the publish until a
+# human classifies it (fail-closed).
+
+.claude/
+# local build-knowledge (/learn): kept in the working repo, shared only per-entry
+# via /contribute-lesson (sanitized, gated), never bulk-published.
+knowledge/
+docs/checklists/dogfood-protocol.md
+docs/checklists/dogfood-results.md
+docs/checklists/prototype-dogfood-protocol.md
+docs/checklists/prototype-dogfood-results.md
+docs/checklists/anthropic-practices-pass.md
+docs/checklists/skills-alignment-pass.md
+docs/checklists/language-live-check.md
+docs/evals/
+docs/plans/
+docs/prds/
+docs/stories/
+docs/research/
+# ADRs cite internal plans, evals and lessons as evidence, and record pre-launch
+# state; the RULES they decide ship publicly via docs/plan-format.md, the reasoning
+# stays here. Do not "restore" this to public: an ADR published without its
+# denylisted citations dangles every reference and leaks internal review scores.
+docs/decisions/

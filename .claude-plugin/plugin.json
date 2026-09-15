@@ -1,0 +1,9 @@
+{
+  "name": "odeo",
+  "description": "Opinionated PM-to-Dev workflow for Claude Code: discovery, PRD, design, agent-first build, review, ship, measure, and compounding knowledge. Built for PMs and builders.",
+  "version": "0.1.0",
+  "author": { "name": "ivansolic" },
+  "homepage": "https://github.com/ivansolic/Odeo",
+  "repository": "https://github.com/ivansolic/Odeo",
+  "license": "MIT"
+}

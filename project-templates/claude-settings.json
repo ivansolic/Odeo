@@ -1,0 +1,52 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm test:*)",
+      "Bash(pnpm test)",
+      "Bash(pnpm lint:*)",
+      "Bash(pnpm lint)",
+      "Bash(pnpm typecheck)",
+      "Bash(pnpm build)",
+      "Bash(pnpm tokens:build)",
+      "Bash(npm test:*)",
+      "Bash(npm run lint:*)",
+      "Bash(npm run typecheck)",
+      "Bash(npm run build)",
+      "Bash(git status:*)",
+      "Bash(git log:*)",
+      "Bash(git diff:*)",
+      "Bash(git branch)",
+      "Bash(git branch --list:*)",
+      "Bash(git branch -vv)",
+      "Bash(git worktree list)",
+      "Bash(git remote -v)",
+      "Bash(code -r:*)",
+      "Bash(code --add:*)",
+      "Bash(cursor -r:*)",
+      "Bash(cursor --add:*)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "command -v focus-check.sh >/dev/null 2>&1 && focus-check.sh || true"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "command -v session-end-check.sh >/dev/null 2>&1 && session-end-check.sh || true"
+          }
+        ]
+      }
+    ]
+  }
+}
