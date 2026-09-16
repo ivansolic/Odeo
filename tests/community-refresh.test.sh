@@ -206,9 +206,12 @@ done
   && ok "no scenario destroyed the user's files (both canaries survive every path)" \
   || bad "a scenario destroyed a canary: a misdiagnosis would cost the user's work"
 
+# Names exactly what it matches, and nothing wider: four spellings, chosen because each
+# appeared in a real mutation. It is a typo-catcher, not a class guard. The class guard is
+# the canary block above, which is why this line may stay narrow without lying.
 printf '%s' "$block" | grep -qiE 'rm +-[a-zA-Z]*r|git +(-C +[^ ]+ +)?clean|-delete' \
   && bad "early warning: the block contains a destructive-looking command; check the canaries above" \
-  || ok "early warning: no destructive-looking command in the block (not the guarantee, see above)"
+  || ok "early warning: none of the four spellings it knows (not a class guarantee; the canaries above are)"
 
 echo ""
 if [[ "$fail" -eq 0 ]]; then echo "community-refresh: all $pass assertions passed."; else echo "community-refresh: $fail FAILURE(S) above."; fi

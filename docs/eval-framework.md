@@ -187,6 +187,13 @@ The review loop is an autonomous loop, so it needs a declared stop, not a human 
    at round two, and say so. A recurring class means the last fix was an instance patch,
    and the next one will be too. This is Core Principles ("stop patching a recurring
    class; eliminate it or escalate") applied to the loop that keeps discovering it.
+   **Same class, operationally**, since "class" is otherwise a word two reviewers read
+   differently: the new finding would be closed by the SAME KIND of fix as the previous
+   one (another spelling in the same denylist, another branch of the same conditional,
+   another wording of the same claim), and closing it would leave the same next instance
+   possible. Two findings in one file, or sharing a severity, are NOT the same class.
+   The test is the shape of the fix, not the location of the defect. State the class in
+   one phrase when invoking this, so the human can judge whether it is real.
 
 Why the cap is three and not higher, stated so nobody quietly raises it: measured on the
 USR-006 and community-knowledge branches, rounds 2, 3 and 4 each returned the same defect

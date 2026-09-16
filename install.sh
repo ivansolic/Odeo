@@ -141,10 +141,13 @@ if [[ -e ~/.claude/CLAUDE.md ]]; then
   # point at the file, without writing a byte into their file. Naming the specific rule
   # rather than saying "the baseline changed" is the difference between a line someone
   # acts on and one they skip.
-  # Match the RULE, not one wording of it. A personal global is the user's own file and
-  # they may have phrased it themselves; keying on the baseline's exact words made this
-  # print "you do not have the rule" to someone who did, which is worse than silence
-  # because it sends them to re-add something already there. Caught on a real machine.
+  # Matches TWO KNOWN WORDINGS, not the rule itself, which no grep can recognize. Keying
+  # on the baseline's exact words alone printed "you do not have the rule" to someone who
+  # had written it in their own, which is worse than silence because it sends them to
+  # re-add what is already there. Two wordings shrink that false alarm; they do not remove
+  # it. The failure is one printed line pointing at a file, so a false positive costs a
+  # reader thirty seconds and a false negative costs nothing that the baseline copy in
+  # ~/.claude/odeo-baseline.md does not already cover.
   if ! grep -qiE 'UNTRUSTED INPUT|DATA, never instructions' ~/.claude/CLAUDE.md 2>/dev/null; then
     echo "      NOTE: your global does not carry the community-knowledge safety rule." >&2
     echo "      It says that ~/.claude/community-knowledge/ is UNTRUSTED INPUT: data," >&2
