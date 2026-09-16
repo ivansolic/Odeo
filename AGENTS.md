@@ -39,8 +39,9 @@ rules are also embedded in their bodies so they hold even when this file is abse
   The REVIEW loop's own stop condition is declared in `docs/eval-framework.md`: approve, or
   three rounds on one artifact, or two consecutive rounds of the same defect class,
   whichever comes first, with a Critical always overriding the cap. It is written down
-  because this very rule went unapplied to the system's own review loop until one branch
-  had cost five rounds, each ended by a human asking whether to stop.
+  because this very rule went unapplied to the system's own review loop until one branch ran
+  to five rounds, each ended by a human asking whether to stop. Five is what the missing cap
+  cost on that branch, not a second limit: the limit is the three above.
 
 ## Model policy (judgment inherits, execution defaults to sonnet)
 - Judgment (architect, all reviewers, PM work) runs on the SESSION model, run

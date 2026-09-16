@@ -199,7 +199,9 @@ Why the cap is three and not higher, stated so nobody quietly raises it: measure
 USR-006 and community-knowledge branches, rounds 2, 3 and 4 each returned the same defect
 class, and each fix moved the failure rather than removing it. The loop was not converging,
 it was circling, and the human paid for four rounds to learn something round two already
-showed. A cap makes that visible on schedule instead of by someone's patience running out.
+showed. Four is what those branches cost before this cap existed, not a competing cap: the
+cap is three. A cap makes that visible on schedule instead of by someone's patience running
+out.
 
 **What STOP does not mean.** It is not "ship it". The branch stays blocked by the gate if
 the record does not approve; the loop simply stops spending rounds and gives the human the
