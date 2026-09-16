@@ -32,20 +32,30 @@ global CLAUDE.md, which affects every project.
   phrased as a rule: `- YYYY-MM-DD, [what happened]. Rule: [what to do next time].`
 - Append approved durable rules to this project's `CLAUDE.md` → Corrections.
 - For approved global rules, edit `~/.claude/CLAUDE.md`.
-- **Then back up what git cannot.** `.claude/tasks/todo.md` and `lessons.md` are gitignored
-  on purpose, so the build ledger never reaches a published snapshot. That same gitignore
-  means **git does not back them up either**, and you just wrote to one of them. So:
-  - If the project records a backup location for them (a private mirror, a synced folder),
-    refresh the copy NOW and say where it went. This is the moment they changed.
-  - If it records none, say so ONCE, plainly: these two files hold the task state and every
-    correction the project has learned, they exist nowhere else, and a disk failure takes
-    them. Offer to set a location; take a no and do not raise it again this session.
-  Do not skip this because the files "are just notes". Measured on this system: the ledger
-  spent weeks claiming a repo was unprotected when it had been protected all along, and
-  claiming a repository did not exist after it was created. A stale or lost ledger is how a
-  session starts by re-deciding what was already decided.
+## 5. Back up what git cannot
+Run this **whether or not a lesson was written**: `todo.md` changes in almost every session,
+and it is gitignored, so nothing else carries it.
 
-## 5. Close out
+```bash
+bin/ledger-backup.sh          # from the project root
+```
+
+Report the result by its **exit code**, never by assumption:
+
+| Exit | Say |
+|---|---|
+| 0 | where the copy went (the script prints it) |
+| 3 | no location is recorded. Say ONCE what is at stake: `todo.md` and `lessons.md` hold the task state and every correction this project has learned, they exist nowhere else, and git does not carry them. Offer to add a `ledger_backup:` line to `CLAUDE.local.md` (gitignored, right place for a private target). Take a no and do not raise it again this session. |
+| 4 | the target was unreachable, so **nothing was backed up**. Say that plainly and show the message. |
+| 5 | the push was refused, so **nothing was backed up**. This is the case that used to pass as success: say it, and do not close the session claiming a backup. |
+| 6 | there was nothing to back up (no ledger files yet). |
+
+Never report a backup you did not see exit 0. Measured on this system: the ledger spent weeks
+claiming a repo was unprotected when it had been protected all along, and claiming a
+repository did not exist after it was created. A stale or lost ledger is how a session starts
+by re-deciding what was already decided.
+
+## 6. Close out
 Briefly confirm what was written and where. Remind the user they can resume this
 session later with `claude --continue`.
 
@@ -59,6 +69,19 @@ Proposed lessons:
 2. GLOBAL candidate: "always run worktree-parallel-check before parallel builds"
    -> propose for global CLAUDE.md?                    [yes/no]
 You approve #1, decline #2 -> only #1 is written. Confirmed: 1 lesson saved.
+
+Backing up the ledger (gitignored, git does not carry it):
+  $ bin/ledger-backup.sh
+  ledger-backup: refreshed (todo.md lessons.md -> backup/internal-files:internal-not-in-git/)
+```
+
+And the same session where the backup does not work, which is the case this step exists for:
+```
+  $ bin/ledger-backup.sh
+  ledger-backup: PUSH REFUSED to backup/internal-files, so NOTHING was backed up.
+  (exit 5)
+-> "Your lesson is saved in lessons.md. The backup did NOT happen: the push was refused,
+    probably expired credentials. todo.md and lessons.md are still only on this machine."
 ```
 
 ## Safety Rules

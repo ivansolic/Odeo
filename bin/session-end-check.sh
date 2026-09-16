@@ -40,6 +40,24 @@ if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   if [[ -n "$root" && -s "$root/.claude/focus-zone" ]]; then
     say "a /focus edit fence is still active on $(head -n1 "$root/.claude/focus-zone"); run /focus off to lift it."
   fi
+
+  # 5. The ledger backup has fallen behind the ledger.
+  #    This is the only check here that speaks about something git cannot recover: todo.md and
+  #    lessons.md are gitignored, so nothing else in this repo would notice them going stale
+  #    or the backup silently failing.
+  #    It asks ledger-backup.sh --check, which is OFFLINE (it reads a local stamp) and writes
+  #    nothing, so a Stop hook can afford it. Exit 3 means no backup location is recorded, and
+  #    that stays SILENT on purpose: a user who never asked for a backup should not be told
+  #    about one every session. The warning exists for the user who HAS one and believes it
+  #    is working.
+  lb="$(dirname "$0")/ledger-backup.sh"
+  if [[ -n "$root" && -x "$lb" ]]; then
+    lb_out="$("$lb" --check "$root" 2>/dev/null)"; lb_rc=$?
+    if [[ "$lb_rc" -eq 1 ]]; then
+      say "${lb_out#ledger-backup: }"
+      say "  (todo.md and lessons.md are gitignored, so git is not carrying them: run /retro, or bin/ledger-backup.sh)"
+    fi
+  fi
 fi
 
 exit 0

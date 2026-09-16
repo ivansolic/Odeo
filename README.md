@@ -128,7 +128,7 @@ Odeo/
 │   ├── skill-reviewer.md     ← scores skills against the authoring standard
 │   ├── agent-reviewer.md     ← scores agent definitions against the agent rubric
 │   └── agent-rubric.md       ← the rubric agent-reviewer scores against
-├── bin/                      ← 23 executables: deterministic guards + scaffolding
+├── bin/                      ← 24 executables: deterministic guards + scaffolding
 │   ├── init-project.sh       ← scaffolds the project-specific parts of a new project
 │   ├── install-git-guards.sh ← installs pre-push + pre-commit hooks into a repo
 │   ├── token-report.py       ← session token usage (the one non-bash tool here)
@@ -154,7 +154,8 @@ Odeo/
 │   ├── publish-guard.sh      ← fail-closed: nothing internal or unclassified ships
 │   ├── share-tunnel.sh       ← time-boxed public tunnel for a preview
 │   ├── second-opinion.sh     ← the sanctioned path for a paid cross-model review
-│   └── session-end-check.sh  ← advisory end-of-session sweep
+│   ├── ledger-backup.sh      ← backs up todo.md + lessons.md, which git deliberately ignores
+│   └── session-end-check.sh  ← advisory end-of-session sweep (incl. a stale ledger backup)
 ├── project-templates/        ← project-specific scaffolding only (not the tools)
 │   ├── CLAUDE.md             ← per-project config incl. a Security & Data section
 │   ├── knowledge/            ← README for the project knowledge base
@@ -165,11 +166,10 @@ Odeo/
 ├── global/
 │   └── CLAUDE.md             ← user-global baseline laid into ~/.claude by install.sh
 ├── tests/
-│   └── *.test.sh             ← 30 suites, 881 assertions. 22 of the 23 programs have their
-│                               own suite (session-end-check.sh has none yet); the remaining
-│                               suites are cross-cutting rather than per-program. A machine
-│                               without PowerShell counts fewer: install-ps1.test.sh skips
-│                               what it cannot run, and says so
+│   └── *.test.sh             ← 32 suites, 932 assertions. 24 of the 24 programs have their
+│                               own suite; the remaining suites are cross-cutting rather than
+│                               per-program. A machine without PowerShell counts fewer:
+│                               install-ps1.test.sh skips what it cannot run, and says so
 └── docs/
     ├── system-map.md         ← the catalog: every command/agent/loop by phase
     ├── eval-framework.md     ← rubrics, scorers, eval records, regression

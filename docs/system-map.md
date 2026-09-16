@@ -142,6 +142,7 @@ Plus deterministic scorers (tests, `privacy-scan.sh`, and the gates below) and t
 | Script | What it does |
 |---|---|
 | `token-report.py` | Per-agent token (and optional cost) breakdown of a session transcript, so build economics are measured, not guessed. Prices passed as args, never hardcoded. |
+| `ledger-backup.sh` | Backs up `.claude/tasks/todo.md` + `lessons.md`. They are gitignored so the ledger never reaches a published snapshot, which means nothing else carries them. Target is one `ledger_backup:` line in `CLAUDE.local.md` (read first, the right place for a private target) or `CLAUDE.md`: a git remote+branch, or a directory. Every failure has its own exit code (3 not configured, 4 unreachable, 5 push refused), and the local stamp is written ONLY after a verified success, so `--check` still reports "behind" for a backup that silently stopped working. Run by `/retro`; `--check` is what `session-end-check.sh` reads. |
 | `publish-snapshot.sh` | The only sanctioned publish path: materializes tracked HEAD (`git archive`, no history), strips the denylist, verifies with `publish-guard --require-allowlist` (fail-closed), and emits a clean snapshot dir. The pre-push hook (contract A) refuses every other push to the public remote (`CLAUDE_PUBLIC_REMOTE`, default `origin`) unless `CLAUDE_PUBLISH_SNAPSHOT=1`, which only this script sets after the human confirms any advisory privacy findings. |
 
 ## Second opinion (paid cross-model review, human-invoked only)
