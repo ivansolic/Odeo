@@ -81,13 +81,31 @@ emitted="${emitted% }"
 # `-h|--help) ...` to install.sh left `accepted` at exactly `--lang --link`, so case 3 stayed
 # green while `--help` was unreachable from Windows, and case 3 is reason #1 in this header.
 # Measured with that arm planted before the fix: 0 failures. Now: 2.
-arms="$(printf '%s\n' "$parser" | grep -oE '^[[:space:]]*[^ )|]+(\|[^ )|]+)*\)' \
-        | sed -E 's/\)$//; s/^[[:space:]]*//' | tr '|' '\n' | grep -v '^\*$' | sort -u)"
+arm_heads="$(printf '%s\n' "$parser" \
+             | grep -oE '^[[:space:]]*[^ )|]+([[:space:]]*\|[[:space:]]*[^ )|]+)*\)' \
+             | sed -E 's/\)$//; s/^[[:space:]]*//; s/[[:space:]]*$//' | grep -v '^\*$')"
+arms="$(printf '%s\n' "$arm_heads" | tr '|' '\n' | sed -E 's/^[[:space:]]*//; s/[[:space:]]*$//' \
+        | grep -v '^$' | sort -u)"
 accepted="$(printf '%s\n' "$arms" | grep -E '^-' | tr '\n' ' ')"
 accepted="${accepted% }"
 [ -n "$emitted" ]  || { echo "FAIL - instrument broken: no flags found in install.ps1's sh-args block"; exit 1; }
 [ -n "$accepted" ] || { echo "FAIL - instrument broken: no flags found in install.sh's parser"; exit 1; }
 echo "instrument: install.ps1 emits [$emitted], install.sh accepts [$accepted]"
+# How many arms the extractor SAW, counted against a source it does not own: every case arm
+# ends in `;;`, so the terminators count the arms independently of the pattern that reads
+# their labels. Without this the count was self-confirming, and it was: the first pattern
+# could not see a space around the `|`, so `-h | --help)` was invisible to both the extractor
+# and the count, leaving case 3 green with --help unreachable from Windows. Measured on
+# synthetic parser blocks: `-h|--help)` was caught, `-h | --help)` was not.
+# The +1 is the `*)` default arm, which is dropped above because it is not an option.
+n_arm_heads=$(printf '%s\n' "$arm_heads" | grep -c .)
+n_semis=$(printf '%s\n' "$parser" | grep -o ';;' | grep -c .)
+if [ "$((n_arm_heads + 1))" -eq "$n_semis" ]; then
+  ok "the extractor saw every arm install.sh has ($n_arm_heads + the default = $n_semis)"
+else
+  bad "install.sh's parser has $n_semis arms but the extractor saw $((n_arm_heads + 1)); an option it"
+  bad "  cannot read is an option case 3 cannot check, so a flag may be unreachable on Windows"
+fi
 # An arm that is not a flag would be a positional install.ps1 has no way to express, and the
 # flag comparison below would simply not see it. Count them rather than let them vanish.
 n_arms=$(printf '%s\n' "$arms" | grep -c .)
@@ -95,7 +113,7 @@ n_flags=$(printf '%s\n' "$accepted" | tr ' ' '\n' | grep -c .)
 if [ "$n_arms" -eq "$n_flags" ]; then
   ok "every option install.sh parses is a flag ($n_flags), so the comparison below sees all of them"
 else
-  bad "install.sh's parser has $n_arms arms but only $n_flags are flags; the rest are invisible to case 3"
+  bad "install.sh's parser has $n_arms option labels but only $n_flags are flags; the rest are invisible to case 3"
 fi
 
 # run_parser <args...> -> RETURNS the real parser's exit status, output discarded.
@@ -261,9 +279,23 @@ FAKE
 # HOME it is handed, on every launch. That is the HOST RUNTIME's bookkeeping, not an install,
 # and counting it would redden this case on every run, which is the fastest way to have a
 # real finding ignored. Nothing else is excluded.
+#
+# SYMLINKS AND DIRECTORIES ARE INCLUDED, and that is the load-bearing part. `find -type f`
+# alone sees a regular file and nothing else, while `install.sh --link` installs by
+# SYMLINKING into ~/.claude: a `New-Item -ItemType SymbolicLink` port, the most likely way
+# this file grows a second implementation, would have left the snapshot identical. Measured:
+# with -type f only, a planted symlink, a symlink into HOME, a new directory and a chmod +x
+# were all invisible. Links are recorded by TARGET, directories by name, files by hash.
 snapshot() {
   [ -d "$1" ] || return 0
-  ( cd "$1" && find . -type f -not -path './.cache/powershell/*' -exec shasum {} \; 2>/dev/null | sort )
+  ( cd "$1" || return 0
+    find . -not -path './.cache/powershell/*' \( -type f -o -type l -o -type d \) -print 2>/dev/null \
+    | sort | while IFS= read -r p; do
+        if [ -L "$p" ]; then printf 'L %s -> %s\n' "$p" "$(readlink "$p")"
+        elif [ -d "$p" ]; then printf 'D %s\n' "$p"
+        else printf 'F %s\n' "$(shasum "$p" 2>/dev/null)"
+        fi
+      done )
 }
 
 # run_ps1 <repo> <bindir|-> <capture> [args...] -> RETURNS pwsh's exit status.
@@ -380,15 +412,23 @@ PS
     printf '%s\n' "$before" > "$TMP/fs.before"; printf '%s\n' "$after" > "$TMP/fs.after"
     diff "$TMP/fs.before" "$TMP/fs.after" | head -10 | sed 's/^/       /'
   fi
-  #  And the comparison must be able to SEE a write, or "nothing changed" is just two empty
-  #  reads agreeing. Plant one file where an install would land and check it is noticed.
-  printf 'planted\n' > "$TMP/home/planted-by-the-test"
-  if [ "$before" != "$(snapshot "$TMP/home"; snapshot "$repo")" ]; then
-    ok "and the comparison notices a single planted file (canary: case 9b can fail)"
-  else
-    bad "the filesystem comparison cannot see a new file, so case 9b proves nothing"
-  fi
-  rm -f "$TMP/home/planted-by-the-test"
+  #  And the comparison must be able to SEE each shape an install leaves behind, or "nothing
+  #  changed" is two blind reads agreeing. A file, a DIRECTORY, and a SYMLINK: the last is
+  #  what `install.sh --link` actually creates, so a canary that plants only a file would
+  #  have certified a snapshot that could not see the likeliest port.
+  for shape in file dir link; do
+    case "$shape" in
+      file) printf 'planted\n' > "$TMP/home/planted-by-the-test" ;;
+      dir)  mkdir -p "$TMP/home/planted-dir" ;;
+      link) ln -s "$repo/install.sh" "$TMP/home/planted-link" ;;
+    esac
+    if [ "$before" != "$(snapshot "$TMP/home"; snapshot "$repo")" ]; then
+      ok "the comparison notices a planted $shape (canary: case 9b can fail)"
+    else
+      bad "the filesystem comparison cannot see a planted $shape, so case 9b is blind to it"
+    fi
+    rm -rf "$TMP/home/planted-by-the-test" "$TMP/home/planted-dir" "$TMP/home/planted-link"
+  done
 
   # 10. Close the loop: feed install.sh's real parser exactly the arguments install.sh
   #     RECEIVED (post quote-removal, read out of the no-op's echo), not the string that was
@@ -459,12 +499,21 @@ PS
   #      arm was the only one whose line was ever executed, and the two arms build it with
   #      different variables.
   bin="$(fakebin bin-wsl-run)"; repo="$(mkrepo repo-wsl-run)"; cap="$TMP/cap-wsl-run"; : > "$cap"
+  before="$(snapshot "$TMP/home"; snapshot "$repo")"
   EVAL_HANDOFF=1 WSLPATH_OUT="$repo" run_ps1 "$repo" "$bin" "$cap" -Lang fr; rc=$?
   called="$(cat "$cap" 2>/dev/null)"
   case "$called" in
     *"fake install.sh: --lang fr"*) ok "the WSL arm's line runs, and install.sh receives --lang fr" ;;
     *) bad "the WSL arm's command line did not reach install.sh (called: ${called:-<nothing>})" ;;
   esac
+  #  The byte-identity guarantee applies to THIS arm too, and it is the one that runs on a
+  #  real Windows install. Case 9b watched the Git Bash arm; the two build their command from
+  #  different variables, so neither covers the other.
+  if [ "$before" = "$(snapshot "$TMP/home"; snapshot "$repo")" ]; then
+    ok "and the WSL arm changed nothing under HOME or in the clone either"
+  else
+    bad "the WSL arm modified the filesystem itself"
+  fi
 
   # 13. THE DEFECT THE CODE CLAIMS TO PREVENT, verified: wsl.exe ships on modern Windows
   #     with no distro installed. Branching on the command's existence would hand the

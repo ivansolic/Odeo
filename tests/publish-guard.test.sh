@@ -139,9 +139,25 @@ assert_contains "names unclassified (flag-after-dir)" "docs/postmortems/p.md" "$
 #     The fixture lists exported at the top of this file are UNSET for this case: with them
 #     in scope the guard reads the hermetic four-line allowlist and calls most of the repo
 #     unclassified, which looks like the very defect this case exists to find.
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-if git -C "$ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-  real_out="$(git -C "$ROOT" ls-tree -r -z --name-only HEAD | ( cd "$ROOT" && env -u CLAUDE_INTERNAL_PATHS -u CLAUDE_PUBLIC_PATHS "$SCRIPT" --require-allowlist - 2>&1 ))"
+#     The tree is written to a FILE and its size asserted before the guard reads it. Piping
+#     `git ls-tree` straight in hides the pipeline's exit status inside a command
+#     substitution, and on an EMPTY feed the guard prints "clean (0 files checked)" and exits
+#     0: a failing git and a spotless repo would have been the same green line. Measured.
+REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+if git -C "$REPO_ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  tree_list="$TMP/real-tree.nul"
+  if ! git -C "$REPO_ROOT" ls-tree -r -z --name-only HEAD > "$tree_list" 2>/dev/null; then
+    echo "FAIL: could not list the tracked tree, so the classification case did not run"; fail=1
+  fi
+  n_paths=$(tr -cd '\0' < "$tree_list" | wc -c | tr -d ' ')
+  if [ "${n_paths:-0}" -ge 50 ]; then
+    echo "ok: the real tree feeds $n_paths tracked paths into the guard"
+  else
+    echo "FAIL: only ${n_paths:-0} tracked paths reached the guard; this repo has hundreds, so"
+    echo "       the classification case below would pass on an empty read"
+    fail=1
+  fi
+  real_out="$( cd "$REPO_ROOT" && env -u CLAUDE_INTERNAL_PATHS -u CLAUDE_PUBLIC_PATHS "$SCRIPT" --require-allowlist - < "$tree_list" 2>&1 )"
   unclassified="$(printf '%s\n' "$real_out" | grep 'unclassified path' || true)"
   if [ -z "$unclassified" ]; then
     echo "ok: every tracked path in the real tree is classified public or internal"
@@ -151,11 +167,14 @@ if git -C "$ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
     echo "       (publish-snapshot.sh deletes the snapshot on this, so a release stops here)"
     fail=1
   fi
-  #  The instrument must be able to SEE an unclassified path, or the case above is a
-  #  decoration that passes on an empty read. Same invocation, one planted path.
-  planted="$(printf 'definitely/unclassified-probe.md\0' | ( cd "$ROOT" && env -u CLAUDE_INTERNAL_PATHS -u CLAUDE_PUBLIC_PATHS "$SCRIPT" --require-allowlist - 2>&1 ))"
+  #  The instrument must be able to SEE an unclassified path. Planted into the SAME FILE the
+  #  case above reads, not through a different feed: a probe piped in separately proves the
+  #  guard works on something, never that the tree it actually read was non-empty.
+  cp "$tree_list" "$TMP/real-tree-plus-probe.nul"
+  printf 'definitely/unclassified-probe.md\0' >> "$TMP/real-tree-plus-probe.nul"
+  planted="$( cd "$REPO_ROOT" && env -u CLAUDE_INTERNAL_PATHS -u CLAUDE_PUBLIC_PATHS "$SCRIPT" --require-allowlist - < "$TMP/real-tree-plus-probe.nul" 2>&1 )"
   case "$planted" in
-    *unclassified*) echo "ok: and the same invocation still reports a planted unclassified path" ;;
+    *unclassified-probe*) echo "ok: and the same read reports a planted unclassified path" ;;
     *) echo "FAIL: the real-tree check cannot detect an unclassified path at all"; fail=1 ;;
   esac
 else

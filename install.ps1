@@ -115,12 +115,17 @@ if (Get-WslReady) {
     # 'Stop', a native command writing to stderr raises NativeCommandError on Windows
     # PowerShell 5.1, which is what `.\install.ps1` starts by default on Windows. Uncaught,
     # the user meets a stack trace instead of the message written for them right below.
+    $wslRepo = $null
+    $wslRc = 1          # failure until the call says otherwise, set INSIDE the try: after an
+                        # exception $LASTEXITCODE still holds whatever ran last, so testing it
+                        # would make this path fail closed by luck rather than by construction.
     try {
         $wslRepo = (& wsl.exe wslpath -a "$repoRoot" 2>$null)
+        $wslRc = $LASTEXITCODE
     } catch {
-        $wslRepo = $null
+        $wslRc = 1
     }
-    if ($LASTEXITCODE -ne 0 -or -not $wslRepo) {
+    if ($wslRc -ne 0 -or -not $wslRepo) {
         Write-Bad "Could not translate '$repoRoot' into a WSL path."
         Write-Host "Install from WSL instead (cd into the clone there and run ./install.sh),"
         Write-Host "or use Git Bash with: .\install.ps1 -UseGitBash"
