@@ -46,9 +46,19 @@ So `spec-gate` and `merge-gate` never ask: a story cannot enter the build withou
 
 PMs and builders who want to ship real software with Claude Code and don't want to figure out the workflow, testing, and security discipline from scratch. No engineering background assumed, the included `BEGINNERS-GUIDE.md` explains every concept in plain language.
 
-**Runs on:** macOS and Linux (developed and tested there). Windows is expected to work
-under WSL or Git Bash but is not yet verified; the toolchain is bash, so PowerShell cannot
-run it. See INSTALL.md.
+**Runs on:**
+
+| Platform | Install with | Status |
+|---|---|---|
+| macOS, Linux | `./install.sh` | developed and tested here |
+| Windows, via WSL (recommended) | `.\install.ps1` from PowerShell | written, **not yet verified** end to end |
+| Windows, via Git Bash | `.\install.ps1 -UseGitBash` | same, plus a symlink caveat (INSTALL.md Step 6w) |
+
+On Windows, PowerShell is the **entry point**, not the runtime: `install.ps1` hands off to
+bash in WSL or Git Bash. The guards are 22 bash scripts, and porting them would mean two
+implementations of every gate, which drift. So you start in PowerShell and then work in
+WSL, because a session run from PowerShell would give you the workflow without the guards.
+See INSTALL.md.
 
 ## The workflow at a glance
 

@@ -3,13 +3,10 @@
 Follow these steps **in order**. Total time: ~30-40 minutes if starting from zero.
 Each step ends with a ✓ CHECK, verify it before moving on.
 
-**Platforms: macOS and Linux are what this is developed and tested on.** The toolchain is
-bash and the gates are bash scripts, so PowerShell and `cmd` cannot run it. On Windows it is
-**expected to work under WSL or Git Bash but has not been verified end to end there**; WSL
-is the better bet, because `./install.sh --link` needs permission to create symlinks, which
-WSL has by default and native Windows does not without developer mode. Steps 0 to 4 below
+**Platforms: macOS and Linux are what this is developed and tested on.** Steps 0 to 4 below
 use Mac commands; on Linux and WSL substitute your package manager for Homebrew and the
-rest is identical.
+rest is identical. **On Windows, start at [Step 6w](#step-6w-windows-installing-from-powershell)
+instead.**
 
 **If the scripts fail with `set: pipefail: invalid option name` or `syntax error near
 unexpected token`, your checkout has CRLF line endings** (git's `core.autocrlf` does this on
@@ -164,6 +161,84 @@ source ~/.bash_profile     # or ~/.zshrc if you use zsh
 _The PM skills, the workflow commands, the agents, and the TDD skill are all
 installed by `install.sh` and available in every project. The TDD and ux-design
 skills auto-apply; the rest you invoke._
+
+---
+
+## Step 6w, Windows: installing from PowerShell
+
+**Status: written, NOT verified end to end on a Windows machine.** Everything in this
+section is reasoned from how the tools behave, not from a run someone watched. Treat it as
+a best effort, and if it fails, the failure is worth reporting rather than working around.
+
+In PowerShell, from inside the cloned folder:
+
+```powershell
+git clone https://github.com/ivansolic/Odeo.git
+cd Odeo
+.\install.ps1
+```
+
+`install.ps1` **does not install anything itself.** It finds a bash that Windows can reach,
+WSL first and Git Bash second, and runs the same `install.sh` through it. If it finds
+neither, it stops and prints the two commands that fix that (`wsl --install`, or
+`winget install --id Git.Git -e`).
+
+It accepts the same options as the bash installer:
+
+```powershell
+.\install.ps1 -Link            # symlink instead of copy
+.\install.ps1 -Lang de         # non-interactive document language
+.\install.ps1 -UseGitBash      # skip WSL even if it is present
+```
+
+### Why PowerShell is an entry point and not a port
+
+Odeo's guarantees are 22 bash scripts with exit codes: the merge gate, the secret scan, the
+publish guard. Reimplementing them in PowerShell would mean two implementations of every
+guard, and two implementations drift. That ends with a rule enforced on one platform and
+merely believed on the other, which is worse than a rule that is honestly unavailable.
+
+So the rule is one sentence: **start in PowerShell, then work in WSL.** After installing,
+run `claude` from WSL or Git Bash, not from PowerShell. A session started in PowerShell
+would give you the workflow without the guards, and the guards are the half that makes any
+of this trustworthy.
+
+### WSL is the recommended path, for a specific reason
+
+The repo tracks two symlinks, `.claude/agents` and `.claude/skills`. Windows only creates
+symlinks with developer mode enabled; without it, git writes them as **plain text files
+containing a path**, and every project-level agent and skill silently fails to load. WSL
+has the permission by default, so this whole class of problem does not arise there.
+
+On Git Bash, check it before trusting the install:
+
+```bash
+git config --get core.symlinks      # want: true
+file .claude/agents                 # want: "symbolic link", NOT "ASCII text"
+```
+
+If it says ASCII text, enable developer mode (Settings → For developers), then
+`git config --global core.symlinks true` and clone again. An existing clone will not
+repair itself.
+
+### If scripts fail with `set: pipefail: invalid option name`
+
+Your checkout has CRLF line endings; git's `core.autocrlf` does that on Windows and a CRLF
+bash script does not run at all. `.gitattributes` in this repo is written to prevent it, and
+`bash tests/line-endings.test.sh` names any affected file. To fix, commit or stash first,
+then:
+
+```bash
+git rm --cached -r . && git reset --hard    # discards uncommitted changes
+```
+
+or clone again. `git add --renormalize .` does **not** help: the committed content is
+already LF, so there is nothing to renormalize; only your checkout is CRLF, which is why
+the index looks clean while the files on disk do not run.
+
+**✓ CHECK (Windows):** in WSL or Git Bash, `bash tests/line-endings.test.sh` passes and
+`file .claude/agents` reports a symbolic link. Then continue with the Step 6 checks above,
+run from that same shell.
 
 ---
 

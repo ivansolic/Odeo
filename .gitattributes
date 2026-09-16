@@ -14,6 +14,11 @@
 # Everything the toolchain executes or the gates parse stays LF on every platform.
 *.sh    text eol=lf
 *.py    text eol=lf
+# .ps1 is pinned to LF deliberately, though CRLF is the Windows convention. PowerShell
+# parses LF-only scripts correctly, while a CRLF pin would make install.ps1 a permanent
+# offender in the tracked-CRLF scan in tests/line-endings.test.sh on every non-Windows
+# checkout. LF costs nothing here and keeps one rule instead of a rule plus an exception.
+*.ps1   text eol=lf
 *.md    text eol=lf
 *.txt   text eol=lf
 *.json  text eol=lf

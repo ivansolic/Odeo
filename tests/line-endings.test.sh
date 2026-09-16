@@ -39,7 +39,7 @@ fi
 #    Asserting the attribute rather than the text of .gitattributes means a reformat,
 #    a reordering, or a nested .gitattributes cannot make this pass vacuously.
 missing=""
-for probe in probe.sh probe.py probe.md probe.txt probe.json probe.yml probe.yaml LICENSE; do
+for probe in probe.sh probe.py probe.ps1 probe.md probe.txt probe.json probe.yml probe.yaml LICENSE; do
   eol="$(git check-attr eol -- "$probe" 2>/dev/null | sed 's/.*: eol: //')"
   [ "$eol" = "lf" ] || missing="${missing}${probe}(${eol:-unset}) "
 done
