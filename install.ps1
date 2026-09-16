@@ -49,10 +49,23 @@ Write-Host "The guards are bash scripts, so this hands off to WSL or Git Bash."
 Write-Host ""
 
 # Build the argument string once; both shells take the same flags.
+# BEGIN sh-args   (tests/install-ps1.test.sh extracts exactly this block to learn which
+#                  flags are passed through, and checks each against install.sh's real
+#                  parser; keep both markers, the test fails LOUD if either one moves)
 $shArgs = @()
 if ($Link) { $shArgs += '--link' }
 if ($Lang) { $shArgs += @('--lang', $Lang) }
 $shArgString = ($shArgs -join ' ')
+# END sh-args
+
+# The repo path is pasted into a bash command line, and a Windows home directory can hold an
+# apostrophe (C:\Users\O'Brien\...). Unescaped, it CLOSES the single-quoted string and the
+# rest of the path becomes shell syntax: the install then fails somewhere else entirely, or
+# runs in the wrong directory. Doubling it the way bash requires ('\'') costs one function.
+function ConvertTo-BashSingleQuoted {
+    param([string]$Text)
+    "'" + ($Text -replace "'", "'\''") + "'"
+}
 
 # ---------------------------------------------------------------------------
 # 1. WSL, preferred. `wsl.exe` exists on modern Windows even with NO distro
@@ -94,7 +107,7 @@ if (Get-WslReady) {
         exit 1
     }
     $wslRepo = $wslRepo.Trim()
-    & wsl.exe bash -lc "cd '$wslRepo' && ./install.sh $shArgString"
+    & wsl.exe bash -lc "cd $(ConvertTo-BashSingleQuoted $wslRepo) && ./install.sh $shArgString"
     $rc = $LASTEXITCODE
 }
 else {
@@ -125,7 +138,7 @@ else {
     Write-Note "    developer mode git writes them as text files and project-level"
     Write-Note "    definitions will not load. 'git config core.symlinks true' then re-clone."
     $unixRepo = $repoRoot -replace '\\', '/'
-    & $gitBash -lc "cd '$unixRepo' && ./install.sh $shArgString"
+    & $gitBash -lc "cd $(ConvertTo-BashSingleQuoted $unixRepo) && ./install.sh $shArgString"
     $rc = $LASTEXITCODE
 }
 
