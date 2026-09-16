@@ -75,10 +75,24 @@ claim "programs with their own suite" "$n_have" '[0-9]+ of the [0-9]+ programs'
 
 if [[ "$WITH_ASSERTIONS" -eq 1 ]]; then
   total=0
+  n_skipped=0
   for f in tests/*.test.sh; do
-    n=$(bash "$f" 2>&1 | grep -cE '^ok')
+    out=$(bash "$f" 2>&1)
+    n=$(printf '%s\n' "$out" | grep -cE '^ok')
+    s=$(printf '%s\n' "$out" | grep -cE '^SKIP')
     total=$((total+n))
+    n_skipped=$((n_skipped+s))
   done
+  # A suite may SKIP checks when an optional tool is absent (pwsh, for install.ps1), so this
+  # total is environment-dependent in a way the other claims are not. Saying so turns a
+  # confusing "the README drifted" into "this machine ran fewer assertions", which are
+  # opposite problems: one needs the document fixed, the other needs a tool installed.
+  # Counted in SKIP LINES, not assertions: a suite reports one line per skipped case, so this
+  # says how much went unverified, never how much the total is short by.
+  if [[ "$n_skipped" -gt 0 ]]; then
+    echo "note: $n_skipped check(s) were SKIPPED here (an optional tool is missing), so the"
+    echo "      count below can read LOW on this machine without the README being wrong."
+  fi
   claim "assertions" "$total" '[0-9]+ assertions'
 else
   echo "skipped: assertion count (re-run with --assertions; it runs every suite)"

@@ -52,6 +52,34 @@ out2="$( cd "$tmp2" && bash "$CHECK" 2>&1 )"; rc2=$?
   || bad "a README with no claims passed: the check would go green on a gutted document"
 rm -rf "$tmp2"
 
+# 4. --assertions counts what the suites report, and SAYS when some were skipped. A suite
+#    that skips assertions (install-ps1.test.sh without pwsh) makes the total
+#    environment-dependent; without the note, a machine missing an optional tool reads as a
+#    drifted README, which sends the reader to fix a document that is correct.
+#    Run against a miniature tree rather than this repo: the real --assertions pass runs
+#    every suite and takes minutes, and a slow test gets skipped, which is how this whole
+#    class of check rots.
+mini="$(mktemp -d)"; mkdir -p "$mini/bin" "$mini/tests"
+printf '#!/usr/bin/env bash\necho hi\n' > "$mini/bin/foo.sh"; chmod +x "$mini/bin/foo.sh"
+printf '#!/usr/bin/env bash\necho "ok   - a"\n' > "$mini/tests/foo.test.sh"
+printf '#!/usr/bin/env bash\necho "SKIP - b"\necho "ok   - c"\n' > "$mini/tests/skippy.test.sh"
+cat > "$mini/README.md" <<'MINI'
+├── bin/   ← 1 executables
+│   └── *.test.sh   ← 2 suites, 2 assertions. 1 of the 1 programs have their own suite
+MINI
+out4="$( cd "$mini" && bash "$CHECK" --assertions 2>&1 )"; rc4=$?
+[[ "$rc4" -eq 0 ]] && ok "--assertions totals the suites' ok lines (exit 0)" \
+  || bad "--assertions miscounted a tree built to match (exit $rc4): $out4"
+case "$out4" in *"1 check(s) were SKIPPED"*) ok "and it reports that 1 check was skipped";;
+  *) bad "a skipped check was counted silently (got: ${out4:-<empty>})";; esac
+#    The other direction: no skips, no note. A note that always prints teaches the reader to
+#    ignore it, which is the same as not having one.
+printf '#!/usr/bin/env bash\necho "ok   - b"\necho "ok   - c"\n' > "$mini/tests/skippy.test.sh"
+out5="$( cd "$mini" && bash "$CHECK" --assertions 2>&1 )"
+case "$out5" in *SKIPPED*) bad "the skip note printed when nothing was skipped";;
+  *) ok "and it stays quiet when nothing was skipped";; esac
+rm -rf "$mini"
+
 echo ""
 if [[ "$fail" -eq 0 ]]; then echo "docs-claims-check: all $pass assertions passed."; else echo "docs-claims-check: $fail FAILURE(S) above."; fi
 exit "$fail"
