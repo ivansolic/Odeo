@@ -171,6 +171,41 @@ is shared automatically.
   below max for this artifact (e.g. safety integration = 1 when no guardrail applies is
   correct, not a defect), say the max reachable and why. No one should have to wonder
   "why not full marks".
+
+### The review loop's STOP CONDITION (required by AGENTS.md: every loop declares one)
+
+The review loop is an autonomous loop, so it needs a declared stop, not a human asking
+"should this be the last round?" each time. It stops on the FIRST of these:
+
+1. **APPROVE.** The verdict clears the threshold (>= 9 of 12, no criterion at 0) with no
+   Critical. The normal exit.
+2. **THREE ROUNDS on the same artifact**, whatever the score. Stop, do not dispatch a
+   fourth, and hand the human: what is still open, what moved between rounds, and what did
+   not. Three rounds that have not converged is evidence about the CHANGE, not a reason to
+   buy a fourth opinion.
+3. **TWO CONSECUTIVE ROUNDS raising findings of the SAME CLASS.** Stop immediately, even
+   at round two, and say so. A recurring class means the last fix was an instance patch,
+   and the next one will be too. This is Core Principles ("stop patching a recurring
+   class; eliminate it or escalate") applied to the loop that keeps discovering it.
+   **Same class, operationally**, since "class" is otherwise a word two reviewers read
+   differently: the new finding would be closed by the SAME KIND of fix as the previous
+   one (another spelling in the same denylist, another branch of the same conditional,
+   another wording of the same claim), and closing it would leave the same next instance
+   possible. Two findings in one file, or sharing a severity, are NOT the same class.
+   The test is the shape of the fix, not the location of the defect. State the class in
+   one phrase when invoking this, so the human can judge whether it is real.
+
+Why the cap is three and not higher, stated so nobody quietly raises it: measured on the
+USR-006 and community-knowledge branches, rounds 2, 3 and 4 each returned the same defect
+class, and each fix moved the failure rather than removing it. The loop was not converging,
+it was circling, and the human paid for four rounds to learn something round two already
+showed. A cap makes that visible on schedule instead of by someone's patience running out.
+
+**What STOP does not mean.** It is not "ship it". The branch stays blocked by the gate if
+the record does not approve; the loop simply stops spending rounds and gives the human the
+decision, which is where a judgment about cost belongs. And a **Critical always overrides**
+the cap: a security or data-loss finding is reported whenever it is found, including at
+round four, because a cap is a budget on attention, never a budget on safety.
 - Flag **volatile external facts** stated as current without a source (model
   names/versions, prices, "the latest X", benchmarks, ownership, recent dates): the
   artifact must cite a source or label them `unverified`, never assert them from memory.
