@@ -1,12 +1,15 @@
 ---
 artifact: skills/build/SKILL.md
 type: skill
-branch: fix/build-model-effort-source
-reviewed_commit: e0ce263
-artifact_version: 15
-date: 2026-08-25
+branch: feature/windows-powershell-entry
+reviewed_commit: fab5c0d   # HEAD of the branch, supplied by the dispatcher
+                           # (full: fab5c0de7c35869a778a09df14973544abf83e96).
+                           # The delta under review is commit 54f3ab1, unchanged at HEAD.
+                           # Round 15's sha was e0ce263.
+artifact_version: 16
+date: 2026-09-16
 scorer: skill-reviewer
-model: claude-opus-4-8
+model: claude-opus-5[1m]
 model_tier: strongest
 effort: high
 scores: { trigger_clarity: 2, structure: 2, worked_example: 2, precision: 2, safety_integration: 2 }
@@ -15,150 +18,175 @@ verdict: PASS
 previous_total: 10/10
 ---
 
-Scope: the whole `skills/build/SKILL.md` (327 lines) plus its format contract
-`docs/plan-format.md`, read against `AGENTS.md:40-110` (the model policy, effort
-precedence, and the "report WITH source, as CONFIGURED not confirmed" rule) and
-`docs/skill-authoring-standard.md`. The delta under review is one commit
-(`main..e0ce263`) closing two follow-ups the round-14 record named as next-edit
-material: FU4a (the sub-high nudge on a configured value) and FU4b (the written
-model-source duty + the `plan-format.md:24` overclaim). Whole-surface grep run for
-a read `model_plan:` model WITHOUT its source tag (the "stale example far from the
-rule" failure mode). `docs/system-map.md` checked for the map duty. Orchestrating
-session, not an isolated builder, so `build_model_as_dispatched` is omitted by
-construction.
+Scope: the whole `skills/build/SKILL.md` (330 lines), read against
+`docs/skill-authoring-standard.md`, `docs/eval-framework.md:175-210` (the canonical review
+stop condition) and `AGENTS.md:39-44` (reworded in the same commit). The delta under review
+is commit `54f3ab1`: both review loops in Mode B, the plan loop (`:215-222`) and the
+code/design loop (`:262-268`), previously stated only the round cap and now carry the whole
+declared stop condition. Cross-document check run over the three files for competing caps
+and for wording drift, plus the thresholds the condition's APPROVE clause implies
+(`agents/code-reviewer.md:91`, `agents/design-reviewer.md:61`, `agents/architecture-reviewer.md:16`,
+`agents/skill-reviewer.md:49`, `agents/agent-rubric.md:37`). Structure re-measured against
+the mechanical trigger round 15 set. `docs/system-map.md` checked for the map duty. The
+branch stacks this change with several unrelated small items on purpose, one review cycle
+instead of several; the skill file is unchanged between `54f3ab1` and `fab5c0d`.
 
 ## Skill: build  (explicit command)
 
 ## Scores
-- trigger clarity **2**. `disable-model-invocation: true` with a description that says
-  what the user gets and shows the non-obvious invocation ("Name several stories to
-  build them in parallel, e.g. \"/build USR-001 USR-002 in parallel\""). Untouched this
-  branch; correct format for an explicit command.
-- structure **2**. Body shape intact (essence, enforced spec gate, mode choice, both
-  modes, worked example, after-building, safety rules); 327 lines against the 500 limit;
-  no supporting files, so one-level-deep is trivially satisfied. Regression discipline:
-  round 14 set a mechanical trigger for dropping this to 1, structure drops when the
-  model-plan block passes 75 lines OR 25% of the file, or gains a new subsection not
-  tied to a named finding. Today the block (`:37-111`) is exactly 75 lines and ~23% of
-  the file, and the edits are inline responses to findings 1 and 2, so no trigger fires
-  and I am not charging a point for compliance. But it is now SITTING ON the 75-line
-  edge: the next inline addition to this block trips the trigger. The standing structural
-  fix (lift `:37-111` into its own `## 3. Model plan`, or move the resolution mechanics
-  to a supporting file) is now overdue, carried below.
-- worked example **2**, and it improved. Round 14 named one omission, the example never
-  showed the step-2 model branch, so the model-source label was stated but never
-  demonstrated. `:299` now shows it: `model_plan: judgment <session model> (per session
-  environment) effort high (configured, per CLAUDE_EFFORT)`, delivering `:66`'s promise
-  concretely. Real story id, real paths, real verdict shape, directly imitable.
-- precision **2**. Both round-14 Mediums are closed IN TEXT, not by interpretation.
-  (1) FU4a, `:102-111`: "A CONFIGURED value below the bar counts the same as a confirmed
-  one here (a read `medium` effort, or a session model below the strongest): raise it
-  WITH its source so the user can confirm or correct, rather than stay silent because the
-  value was read and not stated". This is exactly the fix round 14 prescribed at `:98`;
-  the read-vs-ask asymmetry that split two agents on the nudge is gone. (2) FU4b,
-  `:91-100`: the written duty is now IDENTICAL for both fields, "an effort READ in step 2
-  is written `effort high (configured, per CLAUDE_EFFORT)`, and a judgment model READ
-  from the session rather than resolved live in front of the user is written
-  `judgment <model> (per session environment)`... When either was stated by the user,
-  write it plain, no source tag." The provenance gap round 14 named at `:92-96` is
-  closed. Exact commands/paths throughout (`spec-gate.sh`, `boundary-check.sh`,
-  `git worktree add`, `code -r -g`, exact frontmatter keys); no placeholders, no TBDs.
-- safety integration **2**. References, never restates. `:56-57` delegates the source
-  list to AGENTS.md ("never keep a second copy of it here"); the FU4a clause is
-  consistent with `AGENTS.md:88` ("reported WITH its source and as CONFIGURED, never as
-  confirmed") and `:50-51` (name the stronger model when the session is not strongest);
-  `:88` cites Guardrail 3 / lint C11; `:246` cites `merge-gate.sh`'s comparison; the spec
-  gate is enforced and never worked around. No guardrail copied or weakened.
+- trigger clarity **2**. Untouched this branch. `disable-model-invocation: true` with a
+  description that says what the user gets and shows the non-obvious invocation ("Name
+  several stories to build them in parallel, e.g. \"/build USR-001 USR-002 in parallel\"").
+  Correct format for an explicit command.
+- structure **2**, and the round-15 trigger did NOT fire. That trigger: structure drops when
+  the model-plan block passes 75 lines OR 25% of the file, or gains a new subsection not tied
+  to a named finding. Measured today: the block is still `:37-111`, exactly 75 lines, and the
+  file grew to 330 lines, so the block is 22.7%, further from the percentage edge than last
+  round. This commit added no subsection; it added one clause inside `B5.2` and one inside
+  `B5.4`, both tied to the named single-source finding. 330 lines against the 500 limit, no
+  supporting files. The block remains exactly ON the 75-line edge, so Top fix 1 from round 15
+  carries forward unchanged.
+- worked example **2**. Untouched and still concrete: real story id, real paths, real
+  frontmatter keys, a real verdict shape ("code-reviewer 12/12 APPROVE ->
+  docs/evals/code-USR-012.md"). It shows the loops' NORMAL exit (one round, clean), which is
+  the right default to teach. The new stop condition is not demonstrated there, but unlike
+  the usual "stale example far from the rule" failure, the file already carries a concrete
+  instantiation AT the point of use, `:225-226` ("v1: 2 blocking findings -> v2: 1 -> v3:
+  clean"). An agent is not left to invent the shape. A stopped-loop line in the example would
+  still teach the harder case, carried as a fix, not a deduction.
+- precision **2**. The wording matches the source, checked clause by clause rather than by
+  impression. `:218-222`: "repeat until the stop condition (`docs/eval-framework.md`: clean,
+  3 rounds, or two consecutive rounds of the same defect class, whichever comes first; a
+  Critical is always reported)". Against `docs/eval-framework.md:177-196` that is all three
+  exits, in source order, with the first-of-these semantics and the Critical clause intact.
+  `:264-268` states the same three for the code/design loop. Both are actionable without
+  reading the source: a builder-side agent now knows it may stop at round two on a repeated
+  class, which is the behavior the old "max 3" wording silently withheld. Exact paths, names
+  and commands hold throughout the rest of the file (`spec-gate.sh`, `boundary-check.sh`,
+  `worktree-parallel-check`, `arch_review:`, `builder_tier:`); no placeholders, no TBDs. Two
+  seams inside this delta do not reach "mostly exact" but are listed below and are worth the
+  next edit.
+- safety integration **2**. The condition is cited, not invented, and the rationale (why
+  three, what STOP does not mean, the operational definition of "same class") is left in
+  `docs/eval-framework.md` rather than copied. The partial restatement is sanctioned policy,
+  not a violation of "never restate a guardrail": `AGENTS.md:5-7` states that safety-critical
+  rules are deliberately embedded in skill and agent bodies so they hold when that file is
+  absent, for instance in a marketplace install. Nothing here weakens the rule; the skill's
+  version is strictly stricter than the old one. The enforced gates around it (`spec-gate.sh`
+  at `:12-16`, `boundary-check.sh` at `:271-273`, the plan gate, the merge-is-the-user's-move
+  rule at `:278-286`) are untouched.
 
 ## Total: 10/10   ## Verdict: PASS (threshold 8/10, no zero)
 
 ## Ceiling
-10/10, reached. Nothing structurally caps a criterion: explicit command (trigger
-clarity can be 2), real guardrails to reference (safety integration can be 2), concrete
-worked example present.
+10/10, reached. Nothing structurally caps a criterion: explicit command (trigger clarity can
+be 2), real guardrails to reference (safety integration can be 2), concrete worked example
+present.
 
-## The four verification points (checked, not taken on faith)
-1. **`:66` promise delivered, whole surface clean.** The new duty (`:91-100`) and the
-   worked example (`:299`) now carry the model's source tag into `model_plan:`'s
-   `judgment:` child. Grep of both files for `judgment`/`model_plan`/`per session`/
-   `configured`: every `judgment:` value that is a READ carries `(per session
-   environment)` (SKILL `:299`; plan-format `:25`, `:31`); none appears untagged. No
-   stale example 200 lines from the rule. Delivered.
-2. **FU4a consistent with AGENTS.md.** "Configured value below the bar counts, raised
-   with source" neither touches nor contradicts the effort read-order/precedence
-   (`AGENTS.md:74-90`) and matches the "as CONFIGURED not confirmed" rule (`:88`) and the
-   sub-strongest model-nudge duty (`:50-51`). Consistent.
-3. **`plan-format.md:24` correction accurate.** `SKILL.md:44-48` shows step 2 READS the
-   model from the session-start environment (source 2 of the model order), so "resolved
-   LIVE when the plan is written" was an overclaim; "AS OF when the plan is written" is
-   accurate, and `SKILL.md:96` mirrors it verbatim in spirit ("READ from the session
-   rather than resolved live in front of the user"). The two docs agree; the judgment
-   child in plan-format (`:25-31`) states the SAME both-fields duty with both example
-   tags.
-4. **No new divergence; the old one is removed.** For a read model + read effort, a
-   stated model + stated effort, and both mixed cases, the per-field duty at `:92-98`
-   ("this duty is the SAME for both fields... When either was stated by the user, write
-   it plain") makes two agents write the identical block. I tried to construct a
-   diverging pair against each new clause and could not land one on the written artifact.
-   The fix DELETES the round-14 nudge divergence rather than opening a new one.
+## Cross-document check (the three files, asked for explicitly)
+**Verdict: the caps agree; one real seam remains, and it is in `docs/eval-framework.md`, not
+in the skill.**
 
-## Minor seams (none block; none move a score)
-- **Spoken vs written wording for the model source.** The spoken qualifier is "per the
-  session-start environment" (`:48-49`); the written tag is "(per session environment)"
-  (`:97`, `:299`, `plan-format.md:31`), dropping "start". Both are given as literal
-  templates, so no agent has to invent and the written block does not diverge, but a
-  reader could wonder if they are the same source (they are: model-order source 2). One
-  word aligns them.
-- **The worked example's spoken line omits the model source.** `:293` speaks
-  "<the model the session is running now>" with no qualifier, while its own written block
-  at `:299` tags the model. For a read model the spoken side should also carry the
-  qualifier per `:48-49`. A teaching looseness inside one example, not a divergence.
-- **Carried-forward Low (not this branch's job, not a regression).** Round 14's finding 3
-  stands: step 1 of the effort order (a live `/effort` value) still has no spoken literal
-  of its own and every template in the block is a step-2 "configured" one, so an agent
-  must infer "per your `/effort`" / confirmed-not-configured. This branch scoped FU4a and
-  FU4b only; the Low was Low before and remains Low.
+1. **No competing cap survives.** All three say three. `AGENTS.md:39-44` labels the
+   historical five as an incident in the same breath: "Five is what the missing cap cost on
+   that branch, not a second limit: the limit is the three above". `docs/eval-framework.md:198-204`
+   does the same for four: "Four is what those branches cost before this cap existed, not a
+   competing cap: the cap is three". Both readings hold as stated; a reader cannot come away
+   with a number other than three, and each incident stays legible as evidence FOR the cap.
+   `SKILL.md:219` and `:266` both say three. Confirmed.
+2. **The live seam: the APPROVE clause is written in one rubric's units.**
+   `docs/eval-framework.md:179-180` defines exit 1 as "The verdict clears the threshold
+   (>= 9 of 12, no criterion at 0)". That is the code and design rubric
+   (`agents/code-reviewer.md:91`, `agents/design-reviewer.md:61`). The same stop condition
+   governs loops where it does not apply: the plan loop's reviewer produces no score at all
+   ("findings ranked blocking / important / note, or state \"clean\" explicitly",
+   `agents/architecture-reviewer.md:16`), and skill and agent reviews run on 8/10
+   (`docs/skill-authoring-standard.md:99`, `agents/agent-rubric.md:37`). So the canonical
+   document's own first exit is literally false for two of the loops it governs, and
+   `SKILL.md`'s paraphrase ("clean") is MORE accurate than the source it cites. Fix belongs
+   in `docs/eval-framework.md:179`: "the verdict clears ITS rubric's threshold (code and
+   design 9/12, skills and agents 8/10, plan review: an explicit 'clean') with no Critical".
+   Not a blocker for this skill; it is the next place this class returns.
+3. **Vocabulary drift, style not contradiction.** Three names for one exit (`AGENTS.md`
+   "approve", `eval-framework` "APPROVE ... clears the threshold", `SKILL.md` "clean") and
+   two phrasings of the Critical clause ("always overriding the cap" vs "is always
+   reported"). The skill's phrasing keeps the operative consequence, so no agent is misled,
+   but one vocabulary across the three files would cost nothing.
+
+## Seams inside this delta (none block, none move a score)
+- **Two pointers for one rule, inside one file.** `:219` cites `docs/eval-framework.md`, the
+  canonical home; `:266` cites "the AGENTS.md review-loop rule", and `AGENTS.md:39` is itself
+  a pointer ("declared in `docs/eval-framework.md`"). A reader of `B5.4` therefore reaches
+  the rule through a second hop, and a future editor has two places to keep true. In a commit
+  whose whole purpose is single-sourcing, both parentheses should cite the same file.
+- **The two copies are not verbatim.** `:266` drops "whichever comes first", and its "clean"
+  lives in the lead-in prose ("The review LOOPS until clean") rather than in the parenthesis,
+  so the parenthesis reads as two exits where `:219`'s reads as three. Substantively equal,
+  textually divergent, which is how copies start drifting.
+- **The B5.2 heading still carries the old shorthand.** `:215`: "Plan review LOOP
+  (architecture-reviewer x architect, to clean, max 3)". The full condition is one line
+  below, so nobody is misled in context, but the heading is the line people quote and skim,
+  and round-cap-only phrasing is precisely what this commit set out to remove.
+- **The code loop does not say what to hand the human on stop.** The plan loop does (`:222`,
+  "present the disagreement, the human arbitrates"); `B5.4` ends at "the user sees first ->
+  final score". `docs/eval-framework.md:181-184` asks for "what is still open, what moved
+  between rounds, and what did not", plus the class stated in one phrase when the class rule
+  is invoked (`:196`). One sentence closes it.
+- **Four written copies, no mechanism keeping them equal.** The condition now lives in
+  `eval-framework` (canonical), `AGENTS.md:39-44`, and twice in this skill. Policy allows the
+  embedding (`AGENTS.md:5-7`), and the duplication is deliberate. What is missing is the
+  tripwire: nothing fails when copy three drifts from copy one. That is the repo's own Core
+  Principle about eliminating a class rather than restating it, applied to this commit.
 
 ## Integrity
 No sign of text copied from another project. Voice is this system's; every cross-reference
-(`AGENTS.md` Guardrail 3, lint C11, `plan-format.md`, `merge-gate.sh`, `spec-gate.sh`,
-`boundary-check.sh`) resolves inside this repo.
+(`docs/eval-framework.md`, `AGENTS.md`, `docs/plan-format.md`, `merge-gate.sh`,
+`spec-gate.sh`, `boundary-check.sh`, `resolve-language.sh`) resolves inside this repo.
 
 ## Map duty
-No command surface added or altered; `/build` and `spec-gate.sh` already sit on
+No command surface added or altered; `/build` and its scripts already sit on
 `docs/system-map.md`. Not a finding.
 
 ## Top fixes (all next-edit polish, none a blocker)
-1. Structure (overdue): lift `:37-111` into its own `## 3. Model plan`, or move the
-   resolution mechanics to a supporting file. The block is now exactly on the 75-line
-   trigger; the next inline edit costs the point.
-2. Align the spoken model qualifier with the written tag (`:48-49` "session-start
-   environment" vs `:97`/`:299` "session environment"), one word.
-3. Show the model source qualifier on the worked example's SPOKEN line (`:293`) so the
-   example is internally consistent for a read model.
-4. Carried Low: give step-1 effort its own spoken literal ("effort high, per your
-   `/effort`", confirmed not configured) at `:53-54`.
+1. **Structure (overdue, carried from round 15)**: lift `:37-111` into its own `## 3. Model
+   plan`, or move the resolution mechanics to a supporting file. The block is exactly on the
+   75-line trigger; the next inline addition costs the point.
+2. **Make the two stop-condition parentheses verbatim identical** and have both cite
+   `docs/eval-framework.md`. Suggested text for both: "(`docs/eval-framework.md`: clean, 3
+   rounds, or two consecutive rounds of the same defect class, whichever comes first; a
+   Critical is always reported)".
+3. **Add the stop handoff to `B5.4`**: "On stop, present what is still open, what moved
+   between rounds and what did not, and name the class in one phrase; the human arbitrates."
+4. **Reword the `:215` heading** to "to clean, max 3 rounds or a repeated class", so the
+   skimmable line carries the whole rule.
+5. **Fix `docs/eval-framework.md:179`** per cross-document point 2 (the 9/12 threshold stated
+   as if universal). Outside this skill, but this is where the class recurs next.
+6. **Consider a `skills-lint.sh` C-rule**: fail any skill or agent file that states a review
+   round cap ("max 3", "3 rounds") without the same-defect-class clause in the same
+   paragraph. That is the mechanism that keeps the four copies equal; prose alone will not.
+7. **Optional, teaches the harder case**: one line in the worked example showing a stopped
+   loop, e.g. "architecture-reviewer v2: same class as v1 (missing precondition on the same
+   contract) -> loop stopped, presented for arbitration".
 
 ## Behavioral confirmation still owed
-Form verification only. Whether an agent actually raises the nudge on a configured
-sub-high value, and writes the model tag only for a session-read model (plain for a
-`/model`-set one), is an `/improve` subagent test. The form is good enough to test; the
-matrix case worth running is the exact round-14 split (`CLAUDE_EFFORT` unset,
-`effortLevel: medium` in the user file, session model below strongest), where both agents
-should now converge on raising the point with its source.
+Form only, as always. Whether an agent actually stops at round two on a repeated class,
+states the class in one phrase, and still reports a Critical found after the cap, is an
+`/improve` subagent test. The form is good enough to test. The matrix case worth running is
+the one the old wording got wrong: round 2 raises a finding closed by the same kind of fix as
+round 1, score still below threshold. The agent should stop AND say why, not spend round 3
+because the cap allows it.
 
 ## Vs previous version
-Round 14 (2f1c8b9, fix/effort-readable-sources) -> this round (e0ce263,
-fix/build-model-effort-source), per criterion: trigger clarity 2 -> 2, structure 2 -> 2,
-worked example 2 -> 2, precision 2 -> 2, safety integration 2 -> 2. Total 10 -> 10.
-The score held at the ceiling, but the two Mediums round 14 handed forward as next-edit
-material are now CLOSED in text: FU4a (`:102-111`) removes the nudge divergence, FU4b
-(`:91-100` + `plan-format.md:24`) removes the written provenance asymmetry and corrects
-the "resolved LIVE" overclaim. The recurring cause round 14 flagged ("a duty stated for
-one value and silent for its twin") is resolved this round by making the duty explicitly
-per-field for BOTH the model and the effort, rather than by splitting the block, so the
-structural pressure it warned about is now the leading open item (Top fix 1). Nothing
-blocks merge.
+Round 15 (`e0ce263`, fix/build-model-effort-source) -> this round (`54f3ab1`, read at branch
+HEAD `fab5c0d` on feature/windows-powershell-entry), per criterion: trigger clarity 2 -> 2,
+structure 2 -> 2, worked example 2 -> 2, precision 2 -> 2, safety integration 2 -> 2. Total
+10 -> 10. The score held at the ceiling; what changed is that both review loops now state the
+WHOLE stop condition instead of the round cap alone, which closes a rule that was enforced in
+`docs/eval-framework.md` and merely believed in the skill that runs the loops. The residuals
+are different in kind from round 15's: those were provenance asymmetries inside the model-plan
+block, these are duplication seams (two pointers, two non-identical copies, no lint keeping
+them equal). Round 15's Top fix 1 (structure, the 75-line edge) is unresolved and carried.
+Nothing blocks merge.
 
 ## History
 - Round 1 (2026-07-24, Opus 4.8, strongest): 9/10 PASS.
@@ -174,14 +202,17 @@ blocks merge.
 - Round 11 (2026-08-07, Opus 5, strongest, 895b667): 10/10 PASS, regeneration.
 - Round 12 (2026-08-10, Opus 5, strongest, sha NOT SUPPLIED): 8/10 PASS, incomplete record.
 - Round 13 (2026-08-10, Opus 5, strongest, b8f7de7): 9/10 PASS.
-- Round 14 (2026-08-10, Opus 5, strongest, 2f1c8b9): 10/10 PASS. Two Mediums handed
-  forward: a configured sub-high effort not clearly tripping the nudge (`:98`), and the
-  model's source spoken but not written into `model_plan:` (`:92-96`).
+- Round 14 (2026-08-10, Opus 5, strongest, 2f1c8b9): 10/10 PASS. Two Mediums handed forward.
 - Round 15 (2026-08-25, Opus 4.8, strongest, e0ce263, branch fix/build-model-effort-source):
-  10/10 PASS. This record REPLACES round 14's. Both round-14 Mediums CLOSED: FU4a
-  (`:102-111`, configured value below the bar trips the nudge, raised with source) and
-  FU4b (`:91-100` per-field written duty + `plan-format.md:24` "resolved LIVE" -> "AS OF
-  when the plan is written", + worked example `:299` now shows the model tag). No new
-  divergence introduced; the four verification points all pass. Residuals are polish
-  (structure on the 75-line edge, spoken/written wording, one carried Low). Nothing
-  blocks merge.
+  10/10 PASS. Both round-14 Mediums closed (FU4a and FU4b); residuals were polish, led by the
+  model-plan block sitting on the 75-line structure trigger.
+- Round 16 (2026-09-16, Opus 5 [1M], strongest, fab5c0d, branch
+  feature/windows-powershell-entry): 10/10 PASS. This record REPLACES round 15's. Scope:
+  commit 54f3ab1, the whole stop condition now stated in both review loops (`:218-222`,
+  `:264-268`), verified clause by clause against `docs/eval-framework.md:175-210` and
+  `AGENTS.md:39-44`. Cross-document check: no competing cap survives, five and four are
+  labeled as incidents and read that way; one live seam found in `docs/eval-framework.md:179`
+  (the APPROVE threshold written in the 12-point rubric's units while governing loops scored
+  8/10 or not scored at all). New residuals are duplication seams inside the delta; round 15's
+  structure fix is carried forward unresolved. Regenerated once, unchanged in scores or
+  findings, after the dispatcher supplied the HEAD sha that was missing at first write.
