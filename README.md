@@ -165,7 +165,7 @@ Odeo/
 ├── global/
 │   └── CLAUDE.md             ← user-global baseline laid into ~/.claude by install.sh
 ├── tests/
-│   └── *.test.sh             ← 30 suites, 875 assertions. 22 of the 23 programs have their
+│   └── *.test.sh             ← 30 suites, 881 assertions. 22 of the 23 programs have their
 │                               own suite (session-end-check.sh has none yet); the remaining
 │                               suites are cross-cutting rather than per-program. A machine
 │                               without PowerShell counts fewer: install-ps1.test.sh skips

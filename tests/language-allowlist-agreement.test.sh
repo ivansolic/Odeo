@@ -114,8 +114,13 @@ assert_true "init-project.sh default arm still exits 1" "printf '%s\\n' \"\$case
 #    missing here is rejected before the installer is ever reached, and an extra code is
 #    accepted at the door and then degraded to English by the resolver.
 #    The whole set is compared, not grepped for, so an ADDED entry is caught too.
-ps1_set="$(grep -oE "\[ValidateSet\([^)]*\)\]" "$ROOT/install.ps1" \
-           | head -1 | grep -oE "'[a-zA-Z-]+'" | tr -d "'" | tr '\n' ' ')"
+#    Exactly ONE ValidateSet is expected. Taking the first of several would let a second
+#    parameter carry a different list while this case kept reporting on the first, so the
+#    count is asserted before the contents.
+ps1_sets="$(grep -oE "\[ValidateSet\([^)]*\)\]" "$ROOT/install.ps1")"
+n_sets=$(printf '%s\n' "$ps1_sets" | grep -c .)
+assert_eq "install.ps1 declares exactly one ValidateSet" 1 "$n_sets"
+ps1_set="$(printf '%s\n' "$ps1_sets" | grep -oE "'[a-zA-Z-]+'" | tr -d "'" | tr '\n' ' ')"
 ps1_set="${ps1_set% }"
 assert_eq "install.ps1 accepts exactly the expected set" "$EXPECTED" "$ps1_set"
 

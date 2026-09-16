@@ -48,6 +48,21 @@ Write-Host "Odeo installer (Windows)" -ForegroundColor Cyan
 Write-Host "The guards are bash scripts, so this hands off to WSL or Git Bash."
 Write-Host ""
 
+# Everything pasted into a bash command line goes through here first: the repo path, and
+# every flag. A Windows home directory can hold an apostrophe (C:\Users\O'Brien\...), which
+# unescaped CLOSES the single-quoted string and turns the rest into shell syntax, so the
+# install runs in the wrong directory or fails somewhere unrelated. Doubling it the way bash
+# requires ('\'') costs one function.
+#
+# The FLAGS go through it too, though today's are four validated literals. The test that
+# guards this file asserts every option install.sh accepts is reachable from here, so this
+# block is where future options land, and one of them will eventually carry a value that is
+# not from a ValidateSet. Quoting now costs nothing; noticing later costs a defect.
+function ConvertTo-BashSingleQuoted {
+    param([string]$Text)
+    "'" + ($Text -replace "'", "'\''") + "'"
+}
+
 # Build the argument string once; both shells take the same flags.
 # BEGIN sh-args   (tests/install-ps1.test.sh extracts exactly this block to learn which
 #                  flags are passed through, and checks each against install.sh's real
@@ -55,17 +70,8 @@ Write-Host ""
 $shArgs = @()
 if ($Link) { $shArgs += '--link' }
 if ($Lang) { $shArgs += @('--lang', $Lang) }
-$shArgString = ($shArgs -join ' ')
+$shArgString = (($shArgs | ForEach-Object { ConvertTo-BashSingleQuoted $_ }) -join ' ')
 # END sh-args
-
-# The repo path is pasted into a bash command line, and a Windows home directory can hold an
-# apostrophe (C:\Users\O'Brien\...). Unescaped, it CLOSES the single-quoted string and the
-# rest of the path becomes shell syntax: the install then fails somewhere else entirely, or
-# runs in the wrong directory. Doubling it the way bash requires ('\'') costs one function.
-function ConvertTo-BashSingleQuoted {
-    param([string]$Text)
-    "'" + ($Text -replace "'", "'\''") + "'"
-}
 
 # ---------------------------------------------------------------------------
 # 1. WSL, preferred. `wsl.exe` exists on modern Windows even with NO distro
@@ -87,8 +93,12 @@ function Get-WslReady {
 # 2. Git Bash. Found via PATH, then the two standard install locations.
 # ---------------------------------------------------------------------------
 function Get-GitBashPath {
+    # The bash.exe in System32 is the WSL shim, not Git Bash: running the installer through
+    # it while Get-WslReady said no (no distro, or -UseGitBash) is how the "fall back to Git
+    # Bash" path would quietly go back to the WSL that was ruled out. SysWOW64 is the same
+    # shim seen from a 32-bit PowerShell, so both spellings are excluded.
     $onPath = Get-Command bash.exe -ErrorAction SilentlyContinue
-    if ($onPath -and $onPath.Source -notmatch 'System32') { return $onPath.Source }
+    if ($onPath -and $onPath.Source -notmatch 'System32|SysWOW64') { return $onPath.Source }
     foreach ($p in @(
             "$env:ProgramFiles\Git\bin\bash.exe",
             "${env:ProgramFiles(x86)}\Git\bin\bash.exe",
@@ -101,9 +111,19 @@ function Get-GitBashPath {
 if (Get-WslReady) {
     Write-Step "using WSL"
     # wslpath turns C:\Users\... into /mnt/c/Users/..., which is what bash needs.
-    $wslRepo = (& wsl.exe wslpath -a "$repoRoot" 2>$null)
+    # Inside try/catch for the same reason Get-WslReady is: with $ErrorActionPreference =
+    # 'Stop', a native command writing to stderr raises NativeCommandError on Windows
+    # PowerShell 5.1, which is what `.\install.ps1` starts by default on Windows. Uncaught,
+    # the user meets a stack trace instead of the message written for them right below.
+    try {
+        $wslRepo = (& wsl.exe wslpath -a "$repoRoot" 2>$null)
+    } catch {
+        $wslRepo = $null
+    }
     if ($LASTEXITCODE -ne 0 -or -not $wslRepo) {
         Write-Bad "Could not translate '$repoRoot' into a WSL path."
+        Write-Host "Install from WSL instead (cd into the clone there and run ./install.sh),"
+        Write-Host "or use Git Bash with: .\install.ps1 -UseGitBash"
         exit 1
     }
     $wslRepo = $wslRepo.Trim()
@@ -132,11 +152,10 @@ else {
     }
 
     Write-Step "using Git Bash ($gitBash)"
-    Write-Note "Note: WSL is the better-supported path. Git Bash works, with two caveats:"
-    Write-Note "  - '--link' needs Windows developer mode to create symlinks"
-    Write-Note "  - the repo tracks two symlinks (.claude/agents, .claude/skills); without"
-    Write-Note "    developer mode git writes them as text files and project-level"
-    Write-Note "    definitions will not load. 'git config core.symlinks true' then re-clone."
+    Write-Note "Note: WSL is the better-supported path. On Git Bash, '-Link' asks install.sh"
+    Write-Note "to symlink into ~/.claude instead of copying, and native Windows creates"
+    Write-Note "symlinks only in developer mode. Without it, install without -Link and re-run"
+    Write-Note "the installer after a 'git pull' to update."
     $unixRepo = $repoRoot -replace '\\', '/'
     & $gitBash -lc "cd $(ConvertTo-BashSingleQuoted $unixRepo) && ./install.sh $shArgString"
     $rc = $LASTEXITCODE

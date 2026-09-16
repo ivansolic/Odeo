@@ -128,6 +128,41 @@ out="$("$SCRIPT" "$d" --require-allowlist 2>&1)"; rc=$?
 assert_exit "flag after dir still enforces allowlist -> 1" 1 "$rc"
 assert_contains "names unclassified (flag-after-dir)" "docs/postmortems/p.md" "$out"
 
+# 16) THE REAL TREE, against the REAL lists. Every case above uses hermetic fixtures, which
+#     is right for the guard's logic and is exactly why nothing here noticed a new root file
+#     classified nowhere. Measured: install.ps1 shipped unclassified, and publish-snapshot.sh
+#     deletes the snapshot when this check exits 1, so the Windows entry point would have
+#     reached no user and taken the whole release with it.
+#     A path may be public or internal; what it may not be is UNSTATED. So this asserts only
+#     that. Internal BLOCK lines are expected (the working tree holds .claude/, docs/evals/)
+#     and are not what is counted here.
+#     The fixture lists exported at the top of this file are UNSET for this case: with them
+#     in scope the guard reads the hermetic four-line allowlist and calls most of the repo
+#     unclassified, which looks like the very defect this case exists to find.
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+if git -C "$ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  real_out="$(git -C "$ROOT" ls-tree -r -z --name-only HEAD | ( cd "$ROOT" && env -u CLAUDE_INTERNAL_PATHS -u CLAUDE_PUBLIC_PATHS "$SCRIPT" --require-allowlist - 2>&1 ))"
+  unclassified="$(printf '%s\n' "$real_out" | grep 'unclassified path' || true)"
+  if [ -z "$unclassified" ]; then
+    echo "ok: every tracked path in the real tree is classified public or internal"
+  else
+    echo "FAIL: tracked paths are in neither docs/public-paths.txt nor docs/internal-paths.txt:"
+    printf '%s\n' "$unclassified" | sed 's/^/       /'
+    echo "       (publish-snapshot.sh deletes the snapshot on this, so a release stops here)"
+    fail=1
+  fi
+  #  The instrument must be able to SEE an unclassified path, or the case above is a
+  #  decoration that passes on an empty read. Same invocation, one planted path.
+  planted="$(printf 'definitely/unclassified-probe.md\0' | ( cd "$ROOT" && env -u CLAUDE_INTERNAL_PATHS -u CLAUDE_PUBLIC_PATHS "$SCRIPT" --require-allowlist - 2>&1 ))"
+  case "$planted" in
+    *unclassified*) echo "ok: and the same invocation still reports a planted unclassified path" ;;
+    *) echo "FAIL: the real-tree check cannot detect an unclassified path at all"; fail=1 ;;
+  esac
+else
+  echo "FAIL: not inside a git work tree, so the real-tree classification case could not run"
+  fail=1
+fi
+
 echo
 if [ "$fail" = 0 ]; then echo "ALL PASS"; else echo "SOME FAILED"; fi
 exit "$fail"

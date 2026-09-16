@@ -166,11 +166,14 @@ skills auto-apply; the rest you invoke._
 
 ## Step 6w, Windows: installing from PowerShell
 
-**Status: written, NOT verified end to end on a Windows machine.** Everything in this
-section is reasoned from how the tools behave, not from a run someone watched. Treat it as
-a best effort, and if it fails, the failure is worth reporting rather than working around.
+**Status: NOT verified end to end on a Windows machine.** What the test suite does cover, on
+any machine with PowerShell installed, is the handoff itself: which shell is chosen, the
+flags that reach `install.sh`, the path translation, and the exit code coming back. What
+nobody has watched is a real Windows box: the real `wsl -l -q` output encoding, a real
+`C:\` path through `wslpath`, and whether symlink permission bites a `-Link` install. If it
+fails there, the failure is worth reporting rather than working around.
 
-In PowerShell, from inside the cloned folder:
+In PowerShell:
 
 ```powershell
 git clone https://github.com/ivansolic/Odeo.git
@@ -205,40 +208,20 @@ of this trustworthy.
 
 ### WSL is the recommended path, for a specific reason
 
-The repo tracks two symlinks, `.claude/agents` and `.claude/skills`. Windows only creates
-symlinks with developer mode enabled; without it, git writes them as **plain text files
-containing a path**, and every project-level agent and skill silently fails to load. WSL
-has the permission by default, so this whole class of problem does not arise there.
-
-On Git Bash, check it before trusting the install:
-
-```bash
-git config --get core.symlinks      # want: true
-file .claude/agents                 # want: "symbolic link", NOT "ASCII text"
-```
-
-If it says ASCII text, enable developer mode (Settings → For developers), then
-`git config --global core.symlinks true` and clone again. An existing clone will not
-repair itself.
+`install.sh --link` (`-Link` here) installs by **symlinking** into `~/.claude`, so a
+`git pull` updates your installation live. Native Windows only creates symlinks with
+developer mode enabled (Settings → For developers); WSL has the permission by default. On
+Git Bash without developer mode, install **without** `-Link` and re-run the installer after
+a `git pull` to update. That is the only thing you lose.
 
 ### If scripts fail with `set: pipefail: invalid option name`
 
-Your checkout has CRLF line endings; git's `core.autocrlf` does that on Windows and a CRLF
-bash script does not run at all. `.gitattributes` in this repo is written to prevent it, and
-`bash tests/line-endings.test.sh` names any affected file. To fix, commit or stash first,
-then:
+Your checkout has CRLF line endings, which git's `core.autocrlf` does on Windows, and a CRLF
+bash script does not run at all. The remedy is at the top of this file, under Platforms;
+`bash tests/line-endings.test.sh` names any affected file.
 
-```bash
-git rm --cached -r . && git reset --hard    # discards uncommitted changes
-```
-
-or clone again. `git add --renormalize .` does **not** help: the committed content is
-already LF, so there is nothing to renormalize; only your checkout is CRLF, which is why
-the index looks clean while the files on disk do not run.
-
-**✓ CHECK (Windows):** in WSL or Git Bash, `bash tests/line-endings.test.sh` passes and
-`file .claude/agents` reports a symbolic link. Then continue with the Step 6 checks above,
-run from that same shell.
+**✓ CHECK (Windows):** in WSL or Git Bash, `bash tests/line-endings.test.sh` passes. Then
+continue with the Step 6 checks above, run from that same shell.
 
 ---
 

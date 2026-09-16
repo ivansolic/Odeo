@@ -12,16 +12,22 @@
 #      from both shells. A well-meant `Copy-Item` added here is the first half of the second
 #      implementation the whole decision exists to prevent.
 #
-# HOW FAR THIS ACTUALLY GETS. The Git Bash and WSL handoffs are exercised END TO END on any
-# machine, against FAKE `bash.exe` and `wsl.exe` on PATH (the fake-binary pattern from
-# share-tunnel.test.sh). So the branch choice, the flag string, and the exit-code propagation
-# are verified by OUTCOME here, not by reading.
+# HOW FAR THIS ACTUALLY GETS. On a machine WITH PowerShell, the Git Bash and WSL handoffs run
+# end to end against FAKE `bash.exe` and `wsl.exe` on PATH (the fake-binary pattern from
+# share-tunnel.test.sh), so the branch choice, the flag string, the path translation and the
+# exit-code propagation are verified by OUTCOME. Without pwsh only the eight source-level
+# assertions run and the rest report SKIP; that is most of the file unproven, which is why
+# each skipped case is named rather than counted as passing.
 #
 # WHAT IS STILL UNVERIFIED, and stays unverified until someone runs this on Windows:
 #   - a real `wsl -l -q` prints UTF-16; the fake prints ASCII, so the DISTRO-PRESENT arm is
 #     verified in shape, not in encoding;
 #   - `wslpath` translation of a real C:\ path;
-#   - whether Windows symlink permission actually bites a `--link` install.
+#   - whether Windows symlink permission actually bites a `--link` install;
+#   - PowerShell 5.1, which is what `.\install.ps1` starts by default on Windows. Everything
+#     here runs on the pwsh that is installed, in practice 7.x. The 5.1-specific hazard the
+#     code guards against (native stderr raising NativeCommandError under EAP=Stop) is
+#     therefore reasoned about, not observed.
 # Those are the honest residual, and INSTALL.md says the Windows path is unverified for the
 # same reason. This suite narrows that claim; it does not retire it.
 #
@@ -70,12 +76,27 @@ fi
 emitted="$(printf '%s\n' "$shargs" | grep -oE "'--[a-z][a-z-]*'" | tr -d "'" | sort -u | tr '\n' ' ')"
 emitted="${emitted% }"
 # The flags install.sh ACCEPTS, read from the real parser's case arms.
-accepted="$(printf '%s\n' "$parser" | grep -oE '^[[:space:]]*--[a-z][a-z-]*\)' \
-            | grep -oE '\--[a-z][a-z-]*' | sort -u | tr '\n' ' ')"
+# EVERY arm is extracted and then split on `|`, not just the ones shaped like `--flag)`. The
+# narrower pattern failed OPEN, which is the worst way for this instrument to break: adding
+# `-h|--help) ...` to install.sh left `accepted` at exactly `--lang --link`, so case 3 stayed
+# green while `--help` was unreachable from Windows, and case 3 is reason #1 in this header.
+# Measured with that arm planted before the fix: 0 failures. Now: 2.
+arms="$(printf '%s\n' "$parser" | grep -oE '^[[:space:]]*[^ )|]+(\|[^ )|]+)*\)' \
+        | sed -E 's/\)$//; s/^[[:space:]]*//' | tr '|' '\n' | grep -v '^\*$' | sort -u)"
+accepted="$(printf '%s\n' "$arms" | grep -E '^-' | tr '\n' ' ')"
 accepted="${accepted% }"
 [ -n "$emitted" ]  || { echo "FAIL - instrument broken: no flags found in install.ps1's sh-args block"; exit 1; }
 [ -n "$accepted" ] || { echo "FAIL - instrument broken: no flags found in install.sh's parser"; exit 1; }
-ok "instrument: install.ps1 emits [$emitted], install.sh accepts [$accepted]"
+echo "instrument: install.ps1 emits [$emitted], install.sh accepts [$accepted]"
+# An arm that is not a flag would be a positional install.ps1 has no way to express, and the
+# flag comparison below would simply not see it. Count them rather than let them vanish.
+n_arms=$(printf '%s\n' "$arms" | grep -c .)
+n_flags=$(printf '%s\n' "$accepted" | tr ' ' '\n' | grep -c .)
+if [ "$n_arms" -eq "$n_flags" ]; then
+  ok "every option install.sh parses is a flag ($n_flags), so the comparison below sees all of them"
+else
+  bad "install.sh's parser has $n_arms arms but only $n_flags are flags; the rest are invisible to case 3"
+fi
 
 # run_parser <args...> -> RETURNS the real parser's exit status, output discarded.
 # Two helpers rather than one that prints and returns both: that shape is what produced the
@@ -139,21 +160,31 @@ for f in $accepted; do
   esac
 done
 
-# 4. install.ps1 DELEGATES, it does not reimplement. The design decision is one
-#    implementation of every guard reached from both shells; a copy primitive appearing here
-#    is how that decision quietly becomes two implementations. Textual by necessity: the
-#    absence of a second implementation cannot be observed by running the first.
-if grep -q 'install\.sh' "$ROOT/install.ps1"; then
-  ok "install.ps1 hands off to install.sh"
+# 4. install.ps1 DELEGATES, it does not reimplement.
+#    The delegation is asserted against the CODE, not the whole file: `install.sh` appears
+#    twice in the comment-based help at the top, so grepping the file cannot fail and stayed
+#    green on an install.ps1 with the handoff deleted. Without pwsh this is the only backing
+#    for the delegation claim, so it has to be able to fail. With pwsh, case 9 proves it by
+#    outcome instead.
+#    What is required is an INVOCATION: a shell asked to run install.sh, i.e. `-lc` and
+#    `./install.sh` on one line. Merely finding the string in the body is not enough either,
+#    since the code also NAMES install.sh in the message it prints when translation fails;
+#    measured, that alone kept this green with both handoff calls deleted.
+body="$(sed '1,/^#>/d' "$ROOT/install.ps1")"
+if printf '%s\n' "$body" | grep -qE '\-lc .*\./install\.sh'; then
+  ok "install.ps1's code hands a shell the command to run ./install.sh"
 else
-  bad "install.ps1 never mentions install.sh, so it is no longer an entry point"
+  bad "no shell invocation of ./install.sh outside the comment header: it no longer hands off"
 fi
+#    The port guard below is an EARLY WARNING, not a guarantee: it knows five spellings, and
+#    `cp`, `ni`, `md`, `Move-Item`, `>` and [IO.File]::WriteAllText all walk past it. Naming
+#    that is the point; the class guarantee is case 9b, which watches the filesystem instead.
 port=""
 for verb in 'Copy-Item' 'New-Item' 'Remove-Item' 'Set-Content' 'Out-File'; do
   grep -q "$verb" "$ROOT/install.ps1" && port="$port $verb"
 done
 if [ -z "$port" ]; then
-  ok "install.ps1 contains no install primitives of its own"
+  ok "early warning: none of the five install primitives it knows (case 9b is the guarantee)"
 else
   bad "install.ps1 has started doing the install itself ($port); that is the second implementation"
 fi
@@ -204,13 +235,35 @@ FAKE
 printf 'wsl.exe %s\n' "$*" >> "$CAPTURE"
 case "${1:-}" in
   -l)      [ "${FAKE_NO_DISTRO:-0}" = 1 ] && exit 1; printf 'Ubuntu\n'; exit 0 ;;
-  wslpath) printf '/mnt/c/repo\n'; exit 0 ;;
+  # A path that does not exist by default, so a case asserting "the translated path is the
+  # one bash gets" cannot pass on the untranslated one. $WSLPATH_OUT points it at a real
+  # directory for the case that RUNS the command instead of reading it.
+  wslpath) printf '%s\n' "${WSLPATH_OUT:-/mnt/c/repo}"; exit 0 ;;
 esac
+# `wsl.exe bash -lc "<cmd>"`: same eval contract as the fake bash, so the WSL arm's command
+# line is executable shell by observation too, not only the Git Bash one.
+if [ "${EVAL_HANDOFF:-0}" = 1 ] && [ "${1:-}" = bash ]; then
+  ( eval "$3" ) >> "$CAPTURE" 2>&1 || printf 'EVAL-FAILED rc=%s\n' "$?" >> "$CAPTURE"
+fi
 exit "${FAKE_RC:-0}"
 FAKE
   chmod +x "$d/bash.exe" "$d/wsl.exe"
   [ "${2:-}" = "bash-only" ] && rm -f "$d/wsl.exe"
   printf '%s' "$d"
+}
+
+# snapshot <dir> -> a stable listing of every file under <dir> with its hash, or nothing when
+# the directory does not exist. Used to assert that a run changed NOTHING: comparing content,
+# not mtimes, so a rewrite with identical bytes is correctly called no change and a touch is
+# correctly ignored.
+#
+# `.cache/powershell/` is excluded by name: pwsh writes a startup-profile cache into whatever
+# HOME it is handed, on every launch. That is the HOST RUNTIME's bookkeeping, not an install,
+# and counting it would redden this case on every run, which is the fastest way to have a
+# real finding ignored. Nothing else is excluded.
+snapshot() {
+  [ -d "$1" ] || return 0
+  ( cd "$1" && find . -type f -not -path './.cache/powershell/*' -exec shasum {} \; 2>/dev/null | sort )
 }
 
 # run_ps1 <repo> <bindir|-> <capture> [args...] -> RETURNS pwsh's exit status.
@@ -223,7 +276,7 @@ run_ps1() {
   [ "$bin" != "-" ] && path="$bin"
   ( cd "$repo" && env -i HOME="$TMP/home" PATH="$path:/usr/bin:/bin" CAPTURE="$cap" \
       FAKE_RC="${FAKE_RC:-0}" FAKE_NO_DISTRO="${FAKE_NO_DISTRO:-0}" \
-      EVAL_HANDOFF="${EVAL_HANDOFF:-0}" \
+      EVAL_HANDOFF="${EVAL_HANDOFF:-0}" WSLPATH_OUT="${WSLPATH_OUT:-}" \
       "$PWSH" -NoProfile -File "$repo/install.ps1" "$@" ) >"$TMP/ps.out" 2>&1
   return $?
 }
@@ -234,10 +287,12 @@ if [ -z "$PWSH" ]; then
   skip "run outside the clone -> exit 2"
   skip "no bash anywhere -> exit 1 naming both remedies"
   skip "Git Bash handoff passes the right flags"
+  skip "install.ps1 writes nothing itself (the anti-port guarantee)"
   skip "the flags reaching install.sh are accepted by the real parser"
   skip "a repo path containing an apostrophe still reaches install.sh"
   skip "install.sh's exit code propagates"
   skip "WSL is preferred when a distro exists"
+  skip "the WSL arm's command line runs and reaches install.sh"
   skip "wsl.exe with NO distro falls through to Git Bash"
   skip "-UseGitBash skips an available WSL"
   skip "an invalid -Lang is refused before any handoff"
@@ -288,11 +343,13 @@ PS
     bad "the no-bash message does not name both remedies"
   fi
 
-  # 9. The Git Bash handoff, end to end against a fake bash.exe. This is the case that turns
-  #    "written" into "observed": the flags, the working directory, and the delegation to
-  #    ./install.sh are read back out of what the fake was actually called with.
+  # 9. The Git Bash handoff, end to end against a fake bash.exe that RUNS what it is handed.
+  #    This is the case that turns "written" into "observed", and running the line matters:
+  #    the arguments are single-quoted for bash, so what install.sh finally receives in $@ is
+  #    a fact about quote removal, not about the string install.ps1 printed.
   bin="$(fakebin bin-gitbash bash-only)"; repo="$(mkrepo repo-gitbash)"; cap="$TMP/cap-gitbash"; : > "$cap"
-  run_ps1 "$repo" "$bin" "$cap" -Link -Lang de; rc=$?
+  before="$(snapshot "$TMP/home"; snapshot "$repo")"
+  EVAL_HANDOFF=1 run_ps1 "$repo" "$bin" "$cap" -Link -Lang de; rc=$?
   called="$(cat "$cap" 2>/dev/null)"
   [ "$rc" = "0" ] && ok "Git Bash handoff exits 0 when the shell succeeds" \
                   || bad "Git Bash handoff exited $rc (want 0); called: ${called:-<nothing>}"
@@ -301,7 +358,7 @@ PS
     *) bad "bash was not asked to run ./install.sh (called: ${called:-<nothing>})" ;;
   esac
   case "$called" in
-    *"--link"*"--lang de"*) ok "-Link -Lang de become '--link --lang de'" ;;
+    *"fake install.sh: --link --lang de"*) ok "install.sh receives exactly: --link --lang de" ;;
     *) bad "flags did not survive the handoff (called: ${called:-<nothing>})" ;;
   esac
   case "$called" in
@@ -309,19 +366,44 @@ PS
     *) bad "the handoff does not cd into the clone (called: ${called:-<nothing>})" ;;
   esac
 
-  # 10. Close the loop: feed the flag string install.ps1 ACTUALLY produced to install.sh's
-  #     real parser. Case 1 checked the flags one at a time as install.ps1 spells them; this
-  #     checks the whole line as it arrives, including their order and spacing.
-  line="$(printf '%s\n' "$called" | sed -n 's|.*\./install\.sh ||p' | head -1)"
+  # 9b. THE ANTI-PORT GUARANTEE, by outcome. The denylist in case 4 knows five spellings and
+  #     a sixth walks past it, which is the instance-patch shape this repo's lessons.md
+  #     forbids and which commit 2423381 removed from community-refresh.test.sh two commits
+  #     ago. Here the class is decidable: install.ps1's whole job is to delegate, so it must
+  #     leave the filesystem BYTE-IDENTICAL, whatever primitive a future edit reaches for.
+  #     The run above did the work; this reads the same two trees back.
+  after="$(snapshot "$TMP/home"; snapshot "$repo")"
+  if [ "$before" = "$after" ]; then
+    ok "install.ps1 changed nothing under HOME or in the clone (it only delegates)"
+  else
+    bad "install.ps1 modified the filesystem itself; it is becoming a second implementation"
+    printf '%s\n' "$before" > "$TMP/fs.before"; printf '%s\n' "$after" > "$TMP/fs.after"
+    diff "$TMP/fs.before" "$TMP/fs.after" | head -10 | sed 's/^/       /'
+  fi
+  #  And the comparison must be able to SEE a write, or "nothing changed" is just two empty
+  #  reads agreeing. Plant one file where an install would land and check it is noticed.
+  printf 'planted\n' > "$TMP/home/planted-by-the-test"
+  if [ "$before" != "$(snapshot "$TMP/home"; snapshot "$repo")" ]; then
+    ok "and the comparison notices a single planted file (canary: case 9b can fail)"
+  else
+    bad "the filesystem comparison cannot see a new file, so case 9b proves nothing"
+  fi
+  rm -f "$TMP/home/planted-by-the-test"
+
+  # 10. Close the loop: feed install.sh's real parser exactly the arguments install.sh
+  #     RECEIVED (post quote-removal, read out of the no-op's echo), not the string that was
+  #     printed. Case 1 checked the flags one at a time as install.ps1 spells them; this
+  #     checks the whole line as it arrives, including order and spacing.
+  line="$(printf '%s\n' "$called" | sed -n 's|^fake install\.sh: ||p' | head -1)"
   if [ -n "$line" ]; then
     # shellcheck disable=SC2086
     if run_parser $line; then
-      ok "the produced command line ('$line') is accepted by install.sh's parser"
+      ok "the arguments that arrived ('$line') are accepted by install.sh's parser"
     else
-      bad "install.sh rejects the line install.ps1 produced: '$line'"
+      bad "install.sh rejects the arguments install.ps1 sent it: '$line'"
     fi
   else
-    bad "could not read a command line out of the handoff (called: ${called:-<nothing>})"
+    bad "could not read install.sh's arguments out of the handoff (called: ${called:-<nothing>})"
   fi
 
   # 10b. A path with an APOSTROPHE in it, which a Windows home directory can have
@@ -369,6 +451,19 @@ PS
   case "$called" in
     *"cd '/mnt/c/repo'"*) ok "and bash is given the translated path, not the Windows one" ;;
     *) bad "wslpath was called but its output was not used (called: ${called:-<nothing>})" ;;
+  esac
+
+  # 12b. The WSL arm's command line must also be RUNNABLE, not merely well-shaped. Case 12
+  #      reads the string; this one hands it to a shell, with wslpath pointed at a directory
+  #      that exists so `cd && ./install.sh` can actually complete. Without this the Git Bash
+  #      arm was the only one whose line was ever executed, and the two arms build it with
+  #      different variables.
+  bin="$(fakebin bin-wsl-run)"; repo="$(mkrepo repo-wsl-run)"; cap="$TMP/cap-wsl-run"; : > "$cap"
+  EVAL_HANDOFF=1 WSLPATH_OUT="$repo" run_ps1 "$repo" "$bin" "$cap" -Lang fr; rc=$?
+  called="$(cat "$cap" 2>/dev/null)"
+  case "$called" in
+    *"fake install.sh: --lang fr"*) ok "the WSL arm's line runs, and install.sh receives --lang fr" ;;
+    *) bad "the WSL arm's command line did not reach install.sh (called: ${called:-<nothing>})" ;;
   esac
 
   # 13. THE DEFECT THE CODE CLAIMS TO PREVENT, verified: wsl.exe ships on modern Windows
