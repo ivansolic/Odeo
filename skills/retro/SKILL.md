@@ -32,6 +32,18 @@ global CLAUDE.md, which affects every project.
   phrased as a rule: `- YYYY-MM-DD, [what happened]. Rule: [what to do next time].`
 - Append approved durable rules to this project's `CLAUDE.md` → Corrections.
 - For approved global rules, edit `~/.claude/CLAUDE.md`.
+- **Then back up what git cannot.** `.claude/tasks/todo.md` and `lessons.md` are gitignored
+  on purpose, so the build ledger never reaches a published snapshot. That same gitignore
+  means **git does not back them up either**, and you just wrote to one of them. So:
+  - If the project records a backup location for them (a private mirror, a synced folder),
+    refresh the copy NOW and say where it went. This is the moment they changed.
+  - If it records none, say so ONCE, plainly: these two files hold the task state and every
+    correction the project has learned, they exist nowhere else, and a disk failure takes
+    them. Offer to set a location; take a no and do not raise it again this session.
+  Do not skip this because the files "are just notes". Measured on this system: the ledger
+  spent weeks claiming a repo was unprotected when it had been protected all along, and
+  claiming a repository did not exist after it was created. A stale or lost ledger is how a
+  session starts by re-deciding what was already decided.
 
 ## 5. Close out
 Briefly confirm what was written and where. Remind the user they can resume this
