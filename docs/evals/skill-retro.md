@@ -2,193 +2,228 @@
 artifact: skills/retro/SKILL.md
 type: skill
 branch: feature/windows-powershell-entry
-reviewed_commit: cebc0a0   # HEAD of the branch, supplied by the dispatcher.
-                           # The delta under review is commit cebc0a0 itself.
-artifact_version: 2        # second review round, not a claim about edit count
-date: 2026-09-16
+reviewed_commit: 2e7c7408fea086eca2ddb02b72e6ef5d01ee1ede
+artifact_version: 3
+date: 2026-09-17
 scorer: skill-reviewer
 model: claude-opus-5[1m]
 model_tier: strongest
 effort: high
-scores: { trigger_clarity: 1, structure: 2, worked_example: 2, precision: 1, safety_integration: 2 }
-total: 8/10
+scores: { trigger_clarity: 2, structure: 2, worked_example: 2, precision: 2, safety_integration: 2 }
+total: 10/10
 verdict: PASS
-previous_total: 6/10
+previous_total: 8/10
 ---
 
-Scope: the whole `skills/retro/SKILL.md` (91 lines), read against
-`docs/skill-authoring-standard.md` and its rubric. The delta under review is commit
-`cebc0a0`: the prose backup step moved out of `## 4. Apply` into its own
-`## 5. Back up what git cannot` (`:35-56`) and now calls a real program. Cross-read for this
-round: `bin/ledger-backup.sh` (all 199 lines, to check the exit-code table against the actual
-codes rather than trusting it), `tests/ledger-backup.test.sh`, `bin/session-end-check.sh:48-58`,
-`project-templates/CLAUDE.md:84-90`, `docs/system-map.md:102,145`. Form only, no runtime
-behavior tested. Output language `en`, read from `CLAUDE.md:21`.
+Scope: the whole `skills/retro/SKILL.md` (102 lines) at HEAD `2e7c740`, read against
+`docs/skill-authoring-standard.md` and its rubric. Cross-read for this round, because they are
+what a user reads before invoking the command and they now make claims about the backup step:
+`bin/ledger-backup.sh` (all 377 lines, to check the exit-code table against the actual codes
+rather than trusting it), `tests/ledger-backup.test.sh` (case 21 in particular),
+`bin/session-end-check.sh:44-69`, `bin/skills-lint.sh`, `install.sh:96-108`,
+`project-templates/CLAUDE.md:84-96`, `docs/system-map.md:102,145`, `WORKFLOW.md:648-674`,
+`BEGINNERS-GUIDE.md:241,320-332,377-379`. Form only, no runtime behavior tested. Output
+language `en`, supplied at dispatch.
 
 ## Skill: retro  (explicit command)
 
 ## Scores
-- trigger clarity **1**. Unchanged from round 1, and this is now the weakest line in the file.
-  The description (`:2`) still reads "Captures what was learned this session and routes each
-  lesson to the right place... Run before wrapping up a working session." Correct shape for an
-  explicit command, but what the user gets changed again and the description did not follow:
-  `/retro` now ALWAYS runs a backup (`:36` "whether or not a lesson was written") that can push
-  gitignored files to a configured remote, or press the user to configure one. Round 1 flagged
-  this when the write was conditional; the commit made it unconditional and left the one line a
-  user reads before invoking untouched. Format right, contents incomplete.
-- structure **2**. The promotion is exactly the fix that was asked for: its own numbered step
-  between `## 4. Apply` and `## 6. Close out`, with its own heading, its own trigger sentence,
-  a table where a table earns its place (five discrete outcomes, one line each), and no diagram
-  for a linear step. 91 lines against the 500 limit, no supporting files, so the one-level rule
-  is trivially satisfied. Placement is right on both sides: after `## 4. Apply` because
-  `lessons.md` must be written before it is copied, before `## 6. Close out` because the close
-  reports the outcome. One mechanical nit only: `:34` (a list item) is followed immediately by
-  `:35 ## 5.` with no blank line.
-- worked example **2**. Round 1's thin score is closed. Both branches are shown with real
-  values, and the transcript strings are the program's actual output, not paraphrase:
-  `:75` "ledger-backup: refreshed (todo.md lessons.md -> backup/internal-files:internal-not-in-git/)"
-  matches `bin/ledger-backup.sh:192` verbatim under `remote=backup branch=internal-files`, and
-  `:81` "PUSH REFUSED to backup/internal-files, so NOTHING was backed up." matches `:187`
-  verbatim. The failing branch also shows the hard part, what the agent SAYS afterwards
-  (`:83-84` "The backup did NOT happen... still only on this machine"), which is the behavior
-  the step exists to produce. Directly imitable.
-- precision **1**. The undecidable condition is gone: `:40` names one command, `:48` names one
-  field and one file, and `project-templates/CLAUDE.md:84-90` plus `docs/system-map.md:145`
-  document `ledger_backup:` in both accepted forms. What holds this at 1 is the exit-code
-  table itself, checked against the script rather than taken on trust:
-  - **Exit 2 is missing from the table and is reachable from the plain invocation the skill
-    prescribes.** `bin/ledger-backup.sh` exits 2 for "not a git work tree" (`:54`), `'dir' needs
-    a path` (`:129`), `'git' needs <remote> <branch>` (`:147`), and `unknown ledger_backup kind`
-    (`:196`). The last one is a typo in the config line, and the project's own tests treat it as
-    important enough to assert (`tests/ledger-backup.test.sh:183-185`, "An unknown kind is a
-    usage error, not a silent skip"). An agent that meets exit 2 has no row to read, in a step
-    whose whole premise is `:43` "Report the result by its exit code, never by assumption".
-  - **The exit 4 row claims more than the program does.** `:49` says "the target was
-    unreachable, so **nothing was backed up**". Exit 4 also covers `cannot write to $dest`
-    (`:135`), `copy failed for $f` (`:138`), `no temp dir`, `git init failed`, and `commit
-    failed` (`:183`). In the `dir` case the copy loop is per file, so `todo.md` can land and
-    `lessons.md` fail, giving exit 4 with a partial copy present; the skill instructs the agent
-    to say nothing was backed up. Understating is the safe direction, but it is still a claim
-    the program does not support, in the one step written against unsupported claims. ("show
-    the message" in the same row limits the damage.)
-  - Exits 0, 3, 5 and 6 are accurate, and exit 1 is correctly absent (it is `--check`-only,
-    unreachable from `bin/ledger-backup.sh` with no flag).
-  Everything else is exact: paths, the command and where to run it from, the field name, the
-  file precedence (`CLAUDE.local.md` first, matching `read_config` at `:65-74`). No TBDs.
-- safety integration **2**. Up from 1. The step now carries the honesty rule in its own voice,
-  at the point of use, and references rather than restates: `:53` "Never report a backup you did
-  not see exit 0", `:50` "do not close the session claiming a backup", and the exit-3 row keeps
-  the file's consent discipline ("Take a no and do not raise it again this session"). The
-  round-1 collision with `bin/install-git-guards.sh` is gone, and gone structurally rather than
-  by wording: the skill no longer tells anyone to improvise `git push`, and the program pushes
-  from a fresh temp clone (`:151-184`), which carries none of this repo's hooks, so a backup
-  push cannot trip the guard that refuses direct pushes to main. The justification at `:53-56`
-  is evidence-based and calm, not shouted. Residual, one clause, listed in Top fixes: the
-  exit-3 row asks the agent to OFFER a `ledger_backup:` target without saying the target must
-  be private, and the gitignore rationale it stands on is the publish contract.
+- trigger clarity **2**. Up from 1, and this closes the finding that survived rounds 1 and 2.
+  The description (`:2`) now states both halves of what the user gets and where the second half
+  writes: "routes each lesson to the right place, project-specific lessons to
+  .claude/tasks/lessons.md, general rules as a proposed global CLAUDE.md update, then backs up
+  the gitignored build ledger (todo.md, lessons.md) to wherever the project records, which
+  writes OUTSIDE the repo", closing with when to run it ("Run before wrapping up a working
+  session"). That is the standard's explicit-command form: plain what-you-get plus the moment.
+  The invocation shape is trivial and shown anyway at `:75` (`> /retro`). `disable-model-invocation: true`
+  is set, so lint C1 ("Use when") correctly does not apply.
+- structure **2**. Unchanged. Essence (`:6-7`), numbered process (`:9-71`), worked example
+  (`:73-96`), output and close-out (`:69-71`), safety rules (`:98-101`). The backup keeps its own
+  numbered step between `## 4. Apply` and `## 6. Close out`, which is the only correct placement
+  (`lessons.md` must be written before it is copied, and the close reports the result). 102 lines
+  against the 500 limit, no supporting files, so the one-level rule is trivially satisfied. The
+  table earns its place (six discrete outcomes, one line each) and there is no diagram for a
+  linear step. Round 2's mechanical nit (a list item butted against `## 5.`) is gone: `:36` is
+  followed by a blank line. Residual, not scoring: the body has no explicit "when NOT to" (the
+  standard's element 2); it exists only as the degenerate case at `:14`.
+- worked example **2**. Unchanged, and re-verified against the program at this HEAD rather than
+  carried over. `:86` "ledger-backup: refreshed (todo.md lessons.md -> backup/internal-files:internal-not-in-git/)"
+  is `bin/ledger-backup.sh:369` rendered with `remote=backup branch=internal-files`, character
+  for character; `:92` "PUSH REFUSED to backup/internal-files, so NOTHING was backed up." is
+  `:364` verbatim. Both branches are shown, and the failing one shows the hard part, what the
+  agent SAYS afterwards (`:94-95` "The backup did NOT happen ... still only on this machine"),
+  which is the behavior the step exists to produce. Directly imitable.
+- precision **2**. Up from 1; both round-2 defects are addressed, one of them mechanically.
+  - **The exit 2 row exists** (`:51`) and is accurate against the program: unknown kind (`:373`),
+    missing branch (`:277`), relative path (`:176`), a target inside any git repository (`:230`),
+    the project's publish remote (`:316`), an unreadable ledger (`:70`), a repository git cannot
+    read (`:222`). It also carries the instruction the old gap cost most: "**Do not read this as
+    'not configured'**", which is exactly what the program's own test asserts
+    (`tests/ledger-backup.test.sh:187`).
+  - **The exit 4 row no longer overclaims by construction.** `:53` gives the honest reason:
+    "The program stages the files and moves them only if all of them copied", which matches the
+    staging directory and the two-phase copy/move at `bin/ledger-backup.sh:257-269`. The claim
+    is now supported by a mechanism instead of asserted.
+  - **The table is drift-proofed**, which is the round-2 fix that mattered most:
+    `tests/ledger-backup.test.sh:295-319` greps every `exit N` out of the script and fails if any
+    reachable code has no `| N |` row, with exit 1 excluded because it is `--check`-only and the
+    skill says so in words at `:57`. The prose can no longer fall behind the program silently.
+  - Everything concrete is exact: the command and where it comes from (`:43`, and `install.sh:107`
+    does copy every `bin/` program to `~/bin`, asserted by `tests/install-bin.test.sh:89-97`),
+    the field name, the file precedence (`CLAUDE.local.md` first, matching `read_config` at
+    `:79-88`), the paths. No TBDs, no vague steps.
+  - Two residuals, both hedged by "Show the message" in the same rows and neither large enough
+    to hold the criterion at 1; listed in Top fixes. (a) `:53` covers exit 4 as "unreachable
+    remote, missing directory, a copy that failed", but exit 4 also covers a `ledger_backup:`
+    line naming a remote that does not exist (`:279`, "this repo has no remote named"), which is
+    a configuration mistake to fix rather than a target to retry. (b) the `dir` branch's second
+    loop can fail between moves (`:267`, "could not place $f, the copy is incomplete"), so the
+    row's blanket "the backup did not happen" is one word stronger than the program's own
+    message in that one case.
+- safety integration **2**. Unchanged, and now with the private-target clause round 2 asked for.
+  The honesty rule is in the step's own voice at the point of use (`:64` "Never report a backup
+  you did not see exit 0"; `:54` "do not close the session claiming a backup"), consent
+  discipline is preserved (`:52` "Take a no and do not raise it again this session"), and `:52`
+  now says where a private target belongs and why ("`CLAUDE.local.md` (gitignored, right place
+  for a private target)"). `:59-62` adds the limit honestly, in our voice, without restating the
+  publish contract: "What the program cannot decide for you: whether a remote is PUBLIC ...
+  Choosing a backup target that nobody else reads stays a human decision." No guardrail is
+  restated or weakened, and no collision with `bin/install-git-guards.sh` remains: the git branch
+  pushes from a fresh temp clone (`bin/ledger-backup.sh:319-367`) that carries none of this
+  repo's hooks. The justification at `:64-67` is evidence-based and calm, not shouted.
 
-## Total: 8/10   ## Verdict: PASS (threshold 8/10, no zero)
+## Total: 10/10   ## Verdict: PASS (threshold 8/10, no zero)
 
 ## Ceiling
-10/10, reachable. Nothing structurally caps a criterion: explicit command (trigger clarity can
-be 2), real guardrails in range to reference (safety integration is already 2), and both
-remaining deductions are one-edit fixes. This is a narrow pass, not a comfortable one: two
-criteria at 1, and one of them is the same unfixed finding as round 1.
+10/10, reached. Nothing structurally caps a criterion here: it is an explicit command (trigger
+clarity can be 2) and real guardrails are in range to reference (safety integration can be 2).
+A 10 means the file meets the authoring standard, not that the step is proven in use; see
+"Behavioral confirmation still owed".
 
-## The four round-1 findings, checked against the text
-1. **"The condition cannot be decided"** — CLOSED. `:48` names `ledger_backup:` and
-   `CLAUDE.local.md`; the field exists in `project-templates/CLAUDE.md:89-90` and
-   `docs/system-map.md:145`; `bin/ledger-backup.sh:76-83` exits 3 printing the file and both
-   accepted forms. The condition is now a lookup the program performs, not a judgment the agent
-   makes, which is the stronger version of the fix that was asked for.
-2. **"Bound to lesson-writing, not the session"** — MOSTLY CLOSED, one seam left. `:36` "Run
-   this **whether or not a lesson was written**" covers the approve-nothing path. It does not
-   cover the other exit: `:14` says "If genuinely nothing notable happened, say so and **stop**",
-   and an agent that obeys `stop` at step 1 never reaches step 5. Round 1 asked for this case by
-   name. One clause at `:14` closes it.
-3. **"No failing branch"** — CLOSED as a design, incomplete as a table. Exit codes, a table, the
-   never-report-without-exit-0 rule, and the refusal written into the worked example. The gap is
-   coverage of the table (exit 2), not the presence of the branch.
-4. **"Collides with install-git-guards.sh"** — CLOSED, see safety integration. The temp-clone
-   push means the refusal case in the example is credential/protection failure, which is what
-   `:84` says ("probably expired credentials"), consistent with `bin/ledger-backup.sh:188`.
+## The seven round-2 required fixes, checked against the tree at HEAD
+1. **Add the exit 2 row.** CLOSED. `:51`, contents verified against every `exit 2` site in the
+   script, and enforced from now on by `tests/ledger-backup.test.sh:295-319`.
+2. **Reword the exit 4 row to match the program.** CLOSED for the defect that was named (the
+   staging mechanism at `bin/ledger-backup.sh:257-269` now makes the claim true for the copy
+   phase, and `:53` cites it). Residual (a) and (b) above are new, narrower, and non-blocking.
+3. **Update the description.** CLOSED. `:2` names the backup, the two files, and that it writes
+   outside the repo. This is what moved trigger clarity 1 -> 2.
+4. **Close the `:14` seam.** CLOSED. "If genuinely nothing notable happened, say so and skip to
+   **step 5** ... The backup still runs: `todo.md` changes in almost every session, whether or
+   not the session taught anyone anything." The one path that reaches no lesson now reaches the
+   backup.
+5. **One clause on the target in the exit 3 row.** CLOSED. `:52` names `CLAUDE.local.md` as
+   "gitignored, right place for a private target", and `:59-62` states what the program cannot
+   judge about a remote being public. Referenced, not restated.
+6. **Make the table drift-proof with a test.** CLOSED, and better than asked: the assertion
+   derives the code set from the script instead of hard-coding it, and its comment records why
+   the first pattern under-matched (`tests/ledger-backup.test.sh:302-306`). This is the
+   mechanism-at-the-point-of-use answer to a lesson that had already recurred twice.
+7. **One clause on the `/retro` row of `docs/system-map.md`.** CLOSED (commit `ef829d0`,
+   verified at HEAD). `:102` now reads "Then runs `ledger-backup.sh`, which copies the gitignored
+   ledger (`todo.md`, `lessons.md`) to the recorded `ledger_backup:` target outside the repo and
+   reports the result by exit code."
 
-## Does anything in the step still claim more than the program does?
-Yes, one thing, the exit-4 "nothing was backed up" (see precision). Everything else is at or
-below what the program guarantees. Notably `:44-51` does NOT claim the stamp, the `--check`
-mode, or the session-end warning, all of which exist (`bin/session-end-check.sh:48-58`); leaving
-them out of a skill body is correct restraint, not an omission.
+## The surrounding documents, checked against the skill and the program
+In scope this round because they are what a user reads before invoking `/retro`.
+- `WORKFLOW.md:648-674`. Matches. The three load-bearing claims are all true of the program:
+  `CLAUDE.local.md` is read first (`bin/ledger-backup.sh:81`), the target is outside the
+  repository in both kinds (the `dir` invariant at `:213-249`, the publish-remote refusal at
+  `:310-317`), and "the 'last backup' stamp is written only after a verified success" matches
+  `stamp_now` being called only at `:270`, `:352` and `:368`, never on the exit 4 or 5 paths.
+  The warning at `:673` ("`/retro` is something you invoke") agrees with
+  `disable-model-invocation: true`.
+- `BEGINNERS-GUIDE.md`. Matches, at all three places the dispatcher named. Step table row 11
+  (`:241`) "then the gitignored ledger backed up outside the repo", output column "plus your
+  backup target"; the lessons section (`:325-332`) "If you haven't set one, Claude tells you
+  once and offers to add the line", which is exactly the exit 3 row's contract including the
+  once; quick guide step 12 (`:377-379`). No exit codes are quoted here, which is right for the
+  beginner surface: nothing to drift.
+- `docs/system-map.md:145`. Accurate as an exit-code summary ("2 the line or the state is
+  refused, 3 not configured, 4 unreachable, 5 push refused, 6 nothing to back up") and it names
+  the two refusals that carry the design. It inherits the same "4 = unreachable" shorthand as
+  the skill's row, so residual (a) should be fixed in both places or neither.
+- `project-templates/CLAUDE.md:84-96`. Consistent, and it is the reason the exit 3 row's
+  placeholder clause exists: the template ships both example lines commented out (`:91-92`) and
+  the program treats a live `<...>` value as not-configured (`bin/ledger-backup.sh:109-115`).
+  The skill's `:52` handles that case separately ("offer to fill it in rather than to add a
+  line"), which is the correct distinction.
+No contradiction found between what these documents promise and what
+`skills/retro/SKILL.md` plus `bin/ledger-backup.sh` do.
 
 ## Map duty
-Satisfied. No command surface added, `/retro` is already at `docs/system-map.md:102`, and the
-new program has its own row at `:145` naming the exit codes. Advisory, unchanged from round 1
-and now more warranted: the `/retro` row still reads "End-of-session lessons, routed to
-lessons.md / CLAUDE.md with your approval" and does not mention that `/retro` also runs the
-ledger backup every session. One clause.
+Satisfied. No new command surface; `/retro` is at `docs/system-map.md:102` with the backup
+clause, and `ledger-backup.sh` has its own row at `:145`.
 
-## Still open elsewhere (carried from round 1, not fixed at this HEAD)
-`docs/eval-framework.md:180` (was `:179` at `fab5c0d`, the file shifted by one line; text
-unchanged) states the review loop's APPROVE exit as "The verdict clears the threshold (>= 9 of
-12, no criterion at 0)". That is the code/design rubric only. The same stop condition governs
-the plan loop, which has no numeric score at all, and skill and agent reviews, whose threshold
-is 8/10 with no criterion at 0, as applied in this very record. A loop whose declared stop
-names one rubric's numbers cannot be evaluated by the other two loops it governs. Outside this
-skill, so it is recorded, not scored: fix by phrasing the exit as "clears the threshold of the
-rubric in force for this artifact type (code/UI 9/12, skill and agent 8/10, plan: no open
-Critical), no criterion at 0".
+## Lint
+Clean by inspection for the checks that apply to this file: C5 (every script it names exists:
+`bin/ledger-backup.sh`), C7 (no em or en dash), C9 (non-empty description), C11 (no
+version-pinned model name). C1, C3, C10 and C13 do not apply to this skill.
+
+## Still open elsewhere (carried from rounds 1 and 2, outside this skill)
+`docs/eval-framework.md` still states the review loop's APPROVE exit in the code/design rubric's
+numbers only (">= 9 of 12"), while the same stop condition governs skill and agent reviews at
+8/10 and the plan loop, which has no numeric score. Recorded, not scored, for the third time:
+fix by phrasing the exit as "clears the threshold of the rubric in force for this artifact type
+(code/UI 9/12, skill and agent 8/10, plan: no open Critical), no criterion at 0".
 
 ## Integrity
 No sign of text copied from another project. Voice, terminology and every reference
 (`.claude/tasks/lessons.md`, the published-snapshot rationale, `claude --continue`,
-`bin/ledger-backup.sh`) are this system's own.
+`ledger-backup.sh`) are this system's own.
 
 ## Top fixes
-1. **Add the exit 2 row.** `| 2 | the configuration line or the working directory is wrong (a
-   typo in \`ledger_backup:\`, or not a git work tree). Nothing was backed up: show the message
-   and offer to fix the line. |` This is the reachable code the table omits, and the one a first
-   configuration attempt hits.
-2. **Reword the exit 4 row so it matches the program.** "the backup did not complete (target
-   unreachable, or the copy or commit failed), so it cannot be counted; with a `dir` target a
-   partial copy may exist. Say that plainly and show the message." Keeps the honesty direction
-   without asserting what the script does not guarantee.
-3. **Update the description (`:2`).** Add one clause: "Also backs up the gitignored task ledger
-   (`todo.md`, `lessons.md`) to the location recorded in `ledger_backup:`, which may be a
-   remote." This is the only fix that moves trigger clarity to 2, and it has now been asked for
-   twice.
-4. **Close the `:14` seam.** Make it "say so and stop the lesson pass, then go to step 5", so
-   the one path that reaches no lesson still reaches the backup.
-5. **One clause on the target in the exit-3 row.** After the offer, "the target must be private:
-   these files are gitignored so the ledger never reaches a published snapshot" plus a pointer
-   to the publish contract. Reference it, do not restate it.
-6. **Make the table drift-proof.** Add an assertion to `tests/ledger-backup.test.sh` that every
-   exit code the script can return (grep `exit [0-9]`) has a row in `skills/retro/SKILL.md`.
-   Round 1's defect was "the prose promises what nothing implements"; round 2's is "the prose
-   describes the implementation incompletely". Same shape, one level up. A test is the mechanism
-   that stops round 3 from finding the third spelling of it.
-7. **One clause on the `/retro` row of `docs/system-map.md:102`** mentioning the ledger backup.
+None blocking. Three small edits, in order of value:
+1. **Split the configuration case out of the exit 4 row.** After "a copy that failed", add: "If
+   the message says *no remote named X*, the `ledger_backup:` line names a remote this repo does
+   not have: offer to fix the line or add the remote, do not treat it as a network problem."
+   Then mirror the same distinction in `docs/system-map.md:145`, which carries the identical
+   "4 unreachable" shorthand.
+2. **Soften the one word the program does not guarantee.** In `:53`, "so this means the backup
+   did not happen" -> "so the backup did not happen; if the message says the copy is incomplete,
+   say that instead, some files may have landed". Keeps the honesty direction and matches
+   `bin/ledger-backup.sh:267`.
+3. **Make step 6 say the backup out loud.** `:70` currently reads "Briefly confirm what was
+   written and where." Make it "Briefly confirm what was written and where, including the backup
+   result from step 5 (its exit code decides what you may claim)." The rows already forbid the
+   lie; the close-out step should point at them rather than leave it implicit.
 
 ## Behavioral confirmation still owed
-Form only, and the form is now good enough that the open question is behavioral: does an agent
-actually run the program, and does it report exit 5 as a failure rather than closing the session
-on the lesson it did write? That is an `/improve` subagent test. The matrix cases worth running:
-(a) exit 5, does the close-out claim a backup; (b) exit 3 twice in one session, does the offer
-stay quiet the second time per `:48`; (c) the `:14` early stop, is the backup still attempted.
+Form only, and the form now meets the standard, so everything left is behavioral: does an agent
+actually run the program, and does it report a failure as a failure rather than closing on the
+lesson it did write? That is an `/improve` subagent test, not a review. Matrix cases worth
+running, unchanged from round 2 except the last: (a) exit 5, does the close-out claim a backup;
+(b) exit 3 twice in one session, does the offer stay quiet the second time; (c) the `:14` early
+stop, is the backup still attempted now that the text says "skip to step 5"; (d) exit 2 from a
+placeholder-shaped typo, does the agent offer to fix the line instead of reading it as "not
+configured".
 
 ## History
 - Round 1 (2026-09-16, Opus 5 [1M], strongest, `fab5c0d`, branch
   feature/windows-powershell-entry): 6/10 FAIL. Scores 1/2/1/1/1. First record for this skill.
-  The pre-existing lesson-routing flow was sound; the new backup step at `:35-46` failed on
-  precision (no recorded-location convention existed to read), on its trigger (bound to
-  lesson-writing, not to the session), on the missing failure branch, and on the missing
-  example. Regenerated once, unchanged in scores or findings, after the dispatcher supplied the
-  HEAD sha that was missing at first write.
+  The pre-existing lesson-routing flow was sound; the new backup step failed on precision (no
+  recorded-location convention existed to read), on its trigger (bound to lesson-writing, not to
+  the session), on the missing failure branch, and on the missing example. Regenerated once,
+  unchanged in scores or findings, after the dispatcher supplied the HEAD sha that was missing at
+  first write.
 - Round 2 (2026-09-16, Opus 5 [1M], strongest, `cebc0a0`, same branch): 8/10 PASS. Scores
-  1/2/2/1/2. What moved: worked example 1 -> 2 (both branches now shown, with the program's
-  verbatim output), safety integration 1 -> 2 (honesty rule at the point of use, and the
+  1/2/2/1/2. What moved: worked example 1 -> 2 (both branches shown, with the program's verbatim
+  output), safety integration 1 -> 2 (honesty rule at the point of use, and the
   install-git-guards collision removed structurally by pushing from a temp clone). What did not
-  move: precision stays 1, for a different reason than round 1 (the undecidable condition is
-  gone; the exit-code table now omits reachable exit 2 and overstates exit 4), and trigger
-  clarity stays 1 for the SAME reason as round 1 (the description never mentions the
-  out-of-repo write, which this commit made unconditional). The round-1 recommendation to make
-  it a mechanism was also taken beyond what was asked: `bin/session-end-check.sh:48-58` now
-  reads `ledger-backup.sh --check`.
+  move: precision stayed 1 (the table omitted reachable exit 2 and overstated exit 4) and trigger
+  clarity stayed 1 for the same reason as round 1 (the description never mentioned the
+  out-of-repo write). Seven fixes were required.
+- Round 3 (2026-09-17, Opus 5 [1M], strongest, `2e7c740`, same branch): 10/10 PASS. Scores
+  2/2/2/2/2. Regenerated because HEAD moved past round 2's commit, not re-dated. All seven
+  required fixes are closed. What moved: trigger clarity 1 -> 2 (`:2` now names the backup, the
+  two files, and the out-of-repo write, the finding that had survived two rounds) and precision
+  1 -> 2 (exit 2 row added and verified site by site; exit 4's claim now rests on the staging
+  mechanism at `bin/ledger-backup.sh:257-269`; and `tests/ledger-backup.test.sh:295-319` derives
+  the required row set from the script, so the table cannot silently fall behind the program
+  again). What did not move: structure and worked example, both already at 2, re-verified against
+  the program at this HEAD rather than carried over. New this round, non-blocking: the exit 4 row
+  labels a missing-remote configuration error as unreachability (same shorthand in
+  `docs/system-map.md:145`), and its "the backup did not happen" is one word stronger than the
+  program's message when the `dir` move loop fails partway. Also new this round: WORKFLOW.md 3.5,
+  the three BEGINNERS-GUIDE.md passages and both system-map rows were checked against the skill
+  and the script and agree with them.

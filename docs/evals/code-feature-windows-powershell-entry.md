@@ -2,56 +2,65 @@
 artifact: install.ps1 + tests/install-ps1.test.sh + tests/publish-guard.test.sh real-tree case + install.sh arg-parse markers + docs-claims-check skip reporting + community-refresh canary content + language-allowlist sixth copy + .gitattributes/.ps1 + README/INSTALL Windows claims
 type: code
 branch: feature/windows-powershell-entry
-reviewed_commit: cebc0a0
-artifact_version: 3
-date: 2026-09-16
+reviewed_commit: 2e7c740
+artifact_version: 4
+date: 2026-09-17
 scorer: code-reviewer
 model: claude-opus-5[1m]
 model_tier: strongest
 effort: high
-scores: { correctness: 2, security: 2, performance: 2, readability: 2, testing: 2, conventions: 2 }
-total: 12/12
-verdict: APPROVE
-previous_total: 9/12
+scores: { correctness: 2, security: 2, performance: 2, readability: 2, testing: 1, conventions: 2 }
+total: 11/12
+verdict: APPROVE WITH COMMENTS
+previous_total: 12/12
 ---
 
 ## Artifact
 
-Round 3. The subject is `4416477`, which answers the three round-2 Importants and two of the
-four nitpicks. `reviewed_commit` is `cebc0a0` because that is HEAD of the branch and the gate
-compares the whole tree against it; the ledger-backup program that `cebc0a0` adds is reviewed
-separately in `docs/evals/code-ledger-backup.md`, which carries this same branch. Scope still
-excludes `skills/build/SKILL.md` (skill-reviewer). No plan exists in `docs/plans/` for this
-branch, so there is no contract to compare against.
+Round 4, a re-anchor at `2e7c740` after non-evals files moved past the round-3 sha. Same
+artifact scope as rounds 1 to 3. Two things inside that scope moved since `cebc0a0`:
+`tests/install-ps1.test.sh` (18 lines, closing two of the five round-3 nitpicks) and one
+README line (the suite and assertion counts). Everything else in `cebc0a0..2e7c740` belongs
+to the ledger-backup program, reviewed separately in `docs/evals/code-ledger-backup.md`; it
+is not re-scored here, but it was checked for collateral damage to this artifact and there
+is none (see Verification). Scope still excludes `skills/build/SKILL.md`. No plan exists in
+`docs/plans/` for this branch, so there is no contract to compare against.
 
-Every claim below was reproduced here rather than read out of the commit body.
+`install.ps1` itself is byte-identical to the round-3 sha. The only movement in this round is
+in the harness that guards it.
 
-## Round-2 findings, verified one by one
+## What moved, verified one by one
 
-| # | Round-2 finding | Status |
+| # | Round-3 nitpick | Status at `2e7c740` |
 |---|---|---|
-| I1 | case 16 passes on an empty feed, canary uses a different feed | **Closed, by mechanism.** `tests/publish-guard.test.sh:143-177`. The tree goes to a file, the NUL count is asserted before the guard reads it, and the probe is appended to a COPY of that same file. Measured here: `ok: the real tree feeds 238 tracked paths into the guard`, then `ok: and the same read reports a planted unclassified path`, whose pattern is now `*unclassified-probe*` rather than the generic `*unclassified*`. A `git ls-tree` that fails now reddens twice (the `if !` branch and the count), where before it was indistinguishable from a clean repo. |
-| I2 | arm extractor still fails open on `-h \| --help)`, cross-check self-confirming | **Closed, and fail-closed.** `tests/install-ps1.test.sh:81-116`. I ran the shipped extractor against six synthetic parser blocks: real block `heads=2 semis=3` GREEN; `-h \| --help)` now READ (`arms=[--help --lang --link -h]`, which makes case 3 fail twice because install.ps1 emits neither); `-h\|--help)` likewise; two arms on one line `heads=2 semis=4` RED; an arm the regex cannot see terminated by `;&` RED; an arm body containing `;;` in a string RED. Every mutation I could construct either becomes visible or reddens the count. The `;;` source is genuinely not owned by the label regex, which is what round 2 asked for. |
-| I3 | byte-identity snapshot blind to symlinks, directories, chmod | **Closed for the two shapes that matter.** `tests/install-ps1.test.sh:282-300`. Links are recorded by `readlink` target, directories by name, files by hash, and the canary is a loop over file/dir/link. Measured in the shipped suite: three separate `ok - the comparison notices a planted {file,dir,link}` lines. This is the right fix for the named risk, `install.sh --link` symlinking into `~/.claude`. Residual: modes are still invisible, see the nitpicks. |
-| nit | WSL arm not bracketed by the no-write assertion | **Closed.** `tests/install-ps1.test.sh:502,509-514`, and it passes: `ok - and the WSL arm changed nothing under HOME or in the clone either`. |
-| nit | `$LASTEXITCODE` stale when the catch fires | **Closed, by construction.** `install.ps1:118-127`. `$wslRc` is initialized to 1 and assigned INSIDE the try, so the failure path no longer depends on which native command ran last. The comment states exactly that reason. |
-| nit | case 16 FAILs rather than SKIPs outside a work tree | Not taken. Still `fail=1` at `tests/publish-guard.test.sh:180-183`. Defensible as fail-closed; carried forward unchanged. |
-| nit | `WSLPATH_OUT` wired for every case, comment explains only the default | Not taken. Harmless, carried forward. |
+| n1 | the snapshot comment lists `chmod +x` among what the old `-type f` missed, but modes were still invisible | **Closed, by mechanism.** `tests/install-ps1.test.sh:300-303` now records the mode column alongside the hash, and `:426-443` adds a fourth canary shape that flips the exec bit on a file whose BYTES do not change. Reproduced here: `ok - the comparison notices a planted mode (canary: case 9b can fail)`. The bytes are identical and no mtime is recorded, so the mode column is the only thing that can have made the two snapshots differ; the canary means what it says. |
+| n2 | `-not -path './.cache/powershell/*'` excludes the children but not the directory itself | **Half closed, see I1.** `:295-296` replaces the `-not -path` with a `-prune` pair, which does exclude the directory entry. It does not close the hazard the nitpick named, because `.cache/powershell` is not the only tree pwsh creates in a fresh HOME. |
+| n3 | `find -print` into `read -r` splits a path containing a newline | Not taken. Carried forward. |
+| n4 | the arm-count failure message names only one of the two causes | Not taken. Carried forward. |
+| n5 | the commit body's "235 paths" versus the code's `>= 50` | Moot, that commit body is history; the tree now feeds 240. |
+| README | `32 suites, 932 assertions` -> `33 suites, 1007 assertions` | **Verified against the tree**, not against the diff: `bin/docs-claims-check.sh --assertions` reports `test suites = 33`, `assertions = 1007`, `bin executables = 24`, `programs with their own suite = 24`, all `ok`. The neighbouring `24 of the 24 programs` line is still true: `bin/ledger-backup.sh` already existed at `cebc0a0` and already had a suite. |
 
 ## Verification (by measurement, on this machine)
 
-- `bash tests/install-ps1.test.sh` -> `all 37 assertions passed`, pwsh present.
-- `bash tests/publish-guard.test.sh` -> `ALL PASS`, 238 tracked paths through the real lists,
-  zero unclassified.
-- `bash bin/docs-claims-check.sh --assertions` -> `bin executables = 24`, `test suites = 32`,
-  `programs with their own suite = 24`, `assertions = 932`. Every countable claim in the README
-  matches the tree.
-- Extractor probe, six mutated parser blocks, results in the I2 row above.
-- Snapshot probe, the shipped `snapshot()` function lifted verbatim: a `chmod +x` on an existing
-  file leaves `before` and `after` identical (still blind); pwsh under a fresh HOME created
-  nothing at all across three runs, so widening to `-type d` introduces no flakiness from the
-  host runtime's own bookkeeping.
-- Em/en dash scan over both commits: clean.
+- `bash tests/install-ps1.test.sh` -> `all 38 assertions passed`, pwsh 7.6.6 present. 37 -> 38
+  is the new mode canary.
+- `bash tests/publish-guard.test.sh` -> `ALL PASS`, `the real tree feeds 240 tracked paths
+  into the guard`, zero unclassified. This is the collateral-damage check on the sibling
+  artifact: the files the ledger-backup work added are classified, so this artifact's
+  real-tree case is not broken by them.
+- `bash bin/docs-claims-check.sh --assertions` -> four `ok` lines, `every countable claim
+  matches the tree`.
+- Snapshot probe, the shipped `snapshot()` lifted verbatim into a scratch HOME (see I1 for the
+  numbers): a fresh HOME plus one pwsh launch yields six spurious entries; a second launch
+  after that yields zero.
+- Prune-necessity probe, the same function with the prune removed: two consecutive launches
+  differ on `.cache/powershell/StartupProfileData-NonInteractive`. The prune is still load
+  bearing; the fix below adds to it rather than replacing it.
+- Language allowlist, the sixth copy: `tests/language-allowlist-agreement.test.sh:120-125`
+  asserts exactly one `ValidateSet` in `install.ps1` and compares the WHOLE set, so an added
+  code is caught as well as a missing one. Unchanged this round, re-read because the scope
+  line names it.
+- Em/en dash scan over the in-scope diff: clean.
 
 ## Findings
 
@@ -61,88 +70,116 @@ None.
 
 ### Important
 
-None. All three round-2 Importants are closed by a mechanism rather than by narrowing a
-sentence, and I reproduced each mechanism's failure mode rather than trusting the commit body.
+- `tests/install-ps1.test.sh:292-296`. **The prune closes one instance of the hazard the
+  round-3 nitpick named, and the comment reads as if it closed the hazard.** The comment's
+  stated reason is "the first run that created it would report a change that install.ps1 did
+  not make". Measured against the shipped function, with a fresh HOME and one pwsh launch,
+  that is still true after the fix:
+
+  ```
+  > D .
+  > D ./.cache
+  > D ./.local
+  > D ./.local/share
+  > D ./.local/share/powershell
+  > D ./.local/share/powershell/Modules
+  ```
+
+  `~/.local/share/powershell` is host-runtime bookkeeping by exactly the definition the
+  comment above it uses, and it is not excluded; the parents `.cache` and `.local` are not
+  excluded either, and neither is HOME itself. Case 9b is green today only because cases 7
+  and 8 launch pwsh under the same HOME before the `before` snapshot at `:390` is taken, and
+  nothing in the file says so. A reordering, a new first case, or a future pwsh that invents a
+  seventh directory turns the anti-port guarantee into a false FAIL attributed to
+  `install.ps1`. This is the repo's own recurring class (`lessons.md`, 2026-09-16: a guard's
+  comment may name only what it verifies) reappearing one directory over, and it is worth
+  saying that round 3's suggested fix was itself partial, so applying it literally inherited
+  the gap.
+  Fix, which removes the class rather than enumerating a second directory: warm the HOME up
+  once before any snapshot is taken, right after `PWSH` is resolved, e.g.
+  `env -i HOME="$TMP/home" PATH="$TMP/empty-bin:/usr/bin:/bin" "$PWSH" -NoProfile -Command exit >/dev/null 2>&1`,
+  with a comment saying that every later comparison therefore straddles a HOME whose runtime
+  bookkeeping already exists, whatever directories that runtime invents. Keep the prune: I
+  measured that `.cache/powershell/StartupProfileData-NonInteractive` is rewritten on every
+  launch, so it is churn the warm-up cannot fix. If the warm-up is rejected, the honest
+  minimum is a line in the comment stating that case 9b depends on an earlier case having
+  launched pwsh under this HOME.
 
 ### Nitpicks
 
-- `tests/install-ps1.test.sh:282-288`. The widening comment reads "Measured: with `-type f`
-  only, a planted symlink, a symlink into HOME, a new directory and a chmod +x were all
-  invisible", and the next sentence lists what IS recorded (targets, names, hashes), which
-  correctly omits modes. Strictly the comment is true, but three of the four items in that list
-  were fixed and the fourth was not, in one sentence, under a heading that says the widening is
-  "the load-bearing part". Measured: `chmod +x` is still invisible. Either drop `chmod +x` from
-  the sentence or record the mode (`printf 'F %s %s\n' "$(ls -l "$p" | cut -c1-10)" "$(shasum "$p")"`).
-  The same applies to the older "Nothing else is excluded" line, which now also elides fifos,
-  sockets and devices via the `\( -type f -o -type l -o -type d \)` filter.
-- `tests/install-ps1.test.sh:290`. `-not -path './.cache/powershell/*'` excludes the children of
-  that directory but no longer the directory itself, now that `-type d` is in scope. It is safe
-  today only because earlier cases have already created it; a reordering that made 9b the first
-  pwsh run would redden it as an "install". Drop the slash: `-not -path './.cache/powershell*'`.
-- `tests/install-ps1.test.sh:291-298`. `find -print` piped into `while IFS= read -r p` splits a
-  path containing a newline into two entries. Sandbox-only, but `-print0` plus `read -r -d ''`
-  costs one line and removes the class.
-- `tests/install-ps1.test.sh:108-110`. When the `;;` count disagrees because an arm BODY contains
-  `;;` inside a string (measured: RED), the message says "the parser has 5 arms but the extractor
-  saw 4", which sends the next reader after a missing arm that does not exist. Name both
-  possibilities in the second line.
-- The commit body says the tree's "NUL count asserted (235 paths)"; the code asserts `>= 50` and
-  the tree is now 238. The loose threshold is the right choice, so it is the sentence that is
-  imprecise, not the guard.
+- `tests/install-ps1.test.sh:288`. "Links are recorded by TARGET, directories by name, files by
+  hash" is now incomplete in the good direction: files are recorded by mode AND hash as of
+  this round. Add the word so the enumeration keeps matching the code it describes.
+- `tests/install-ps1.test.sh:297`. Carried forward from round 3, not taken: `find -print` piped
+  into `while IFS= read -r p` splits a path containing a newline into two entries. Sandbox
+  only, but `-print0` plus `read -r -d ''` costs one line and removes the class.
+- `tests/install-ps1.test.sh:106-107`. Carried forward from round 3, not taken: when the `;;`
+  count disagrees because an arm BODY contains `;;` inside a string, the message sends the
+  reader after a missing arm that does not exist. Name both causes in the second line.
+- `tests/install-ps1.test.sh:441`. `chmod 644 "$TMP/home/mode-probe"` runs on all four
+  iterations though only one dirties it. Harmless, and arguably the safer shape; noted only so
+  the next reader does not hunt for the reason.
 
 ## Scores
 
-correctness 2/2 - the only production change in this round, `install.ps1:118-127`, replaces an
-accidental fail-closed with a constructed one, and the reason is written down. Nothing else in
-the shipped Windows path moved, and what cannot be checked off Windows is still stated.
+correctness 2/2 - `install.ps1` did not move, and what did move asserts more than it did
+before without asserting anything false. The mode canary cannot pass for the wrong reason: the
+probe file's bytes are unchanged between the two snapshots and no mtime is recorded, so the
+mode column is the only possible source of the difference. The `-prune` rewrite is correct
+find semantics (prune is true, the `-o` short-circuits, nothing is printed for the pruned
+subtree) and I confirmed the suite is green at 38.
 
 security 2/2 - unchanged and still clean: every element pasted into a bash command line goes
 through `ConvertTo-BashSingleQuoted`, the harness stays sealed (`env -i`, redirected HOME,
-replaced PATH, no-op `install.sh`), no secrets, no PII, no network.
+replaced PATH, no-op `install.sh`), no secrets, no PII, no network. The new canary writes only
+inside `$TMP`.
 
-performance 2/2 - the widened snapshot adds one `find` pass over a sandbox HOME, the real-tree
-case one `ls-tree` over 238 paths. Nothing in a hot path.
+performance 2/2 - the snapshot now forks `ls` per regular file on top of `shasum`. The trees
+are a sandbox HOME and a four-file fixture repo, and the suite still finishes in seconds.
+Nothing in a hot path.
 
-readability 2/2 - raised from 1. The three comments round 2 docked for claiming a class over a
-narrow mechanism now describe mechanisms that deliver the class, and each says how it was
-measured and what the earlier version missed. The residual is half a sentence about `chmod`,
-filed as a nitpick because the enumeration that follows it is accurate.
+readability 2/2 - both new comments say what was measured and why the old shape was wrong,
+which is the standard this file set for itself. Held rather than raised: the comment at
+:292-294 is true sentence by sentence but leaves a reader believing a hazard is closed that is
+not, which is why the finding is filed against the mechanism rather than the prose.
 
-testing 2/2 - raised from 1. This is the round where the class stopped being narrowed and started
-being eliminated: the arm count now comes from the `;;` terminators, a source the label regex
-does not own, and every mutation I could build either becomes visible or reddens it; the real
-tree case asserts the size of its own feed and plants the probe into that same feed; the
-snapshot records the primitive `--link` actually uses, with a canary per shape. I verified all
-three by running them, not by reading about them.
+testing 1/2 - lowered from 2, on a measurement rather than on a regression in intent. The mode
+shape is a genuine widening with a canary that proves it can fail, and that part is round-3
+quality work. But the other half of this round's diff is a fix for a named hazard that does
+not close it, and the suite now depends on case ORDER for the correctness of its flagship
+guarantee with nothing written down and nothing asserting it. A harness whose green depends on
+an undeclared precondition is the shape this file is otherwise unusually good at refusing.
 
-conventions 2/2 - raised from 1. The recurring lesson (`lessons.md`, 2026-09-16, "a guard's
-comment may name only what it verifies; to claim a CLASS the mechanism must assert an OUTCOME")
-was answered the way the user's own standing rule demands, with a mechanism at the point of use
-rather than a fourth phrasing of the sentence. Countable claims verified against the tree, no em
-or en dashes, comments English, classification intact.
+conventions 2/2 - countable claims re-verified against the tree rather than against the
+commit body, no em or en dashes, comments English, `docs/evals` record regenerated at the new
+head rather than re-dated (`lessons.md`, 2026-08-19), publish classification intact at 240
+paths.
 
-total 12/12 (threshold >= 9, no zero) -> APPROVE.
+total 11/12 (threshold >= 9, no zero) -> APPROVE WITH COMMENTS.
 
 ## Ceiling
 
-12/12, reached. Nothing structurally caps this change: the Windows-unverifiable half is handled
-the way this repo accepts (a stated residual, including PowerShell 5.1), and the five nitpicks
-above are each one line and none of them weakens a claim the code makes.
+12/12 is reachable and was reached at `cebc0a0`. Nothing about this change structurally caps
+it; the single Important is a ten-line edit plus a comment, and closing it returns testing to
+2/2. The Windows-unverifiable half (PowerShell 5.1, UTF-16 `wsl -l -q`, real `wslpath`, native
+symlink permission) is handled the way this repo accepts, as a stated residual in the suite
+header and in INSTALL.md, so it does not cap the score.
 
 ## What's good
 
-- The response to all three findings was the same shape, and it is the right one: find a signal
-  the broken instrument does not control (the `;;` terminators for the arm count, the feed's own
-  NUL count for the tree case, the file TYPE for the snapshot) and assert against that. Two
-  rounds of narrowing sentences ended here with the class actually removed.
-- The canary loop over file/dir/link is the detail that makes I3 stay closed: a canary that
-  plants only what the mechanism already sees is how the narrow snapshot got certified in the
-  first place, and the loop makes the next widening self-checking.
-- `$wslRc` initialized to 1 and assigned inside the try, with the comment explaining that the
-  old code failed closed "by luck rather than by construction", is precisely the distinction
-  worth writing down at the point of use.
-- Every measurement I re-ran matched the commit body: 2 failures from the spaced arm, 238 paths,
-  the three canary shapes, the WSL arm's no-write line, 37 and 932 assertions.
+- The mode canary is the right response to nitpick n1. Recording the mode without a canary
+  would have been a claim; the probe file with fixed bytes and a flipped exec bit makes the
+  claim falsifiable, and it is the shape a port of `install.sh`'s `bin/` step would actually
+  leave behind.
+- Both new comments name the OLD behaviour and why it was insufficient, so the next reader
+  inherits the reasoning rather than the conclusion. That is why this round's gap is a
+  mechanism gap and not a misleading file.
+- The README count was moved in the same commit range as the suite that changed it, and
+  `docs-claims-check` confirms it against the tree. The countable claims in this repo have
+  stayed true across four rounds, which is rare.
+- The sibling ledger-backup work added tracked files without breaking this artifact's
+  real-tree publish case, and the classification lists were updated rather than the assertion
+  loosened.
 
 ## History
 
@@ -160,3 +197,14 @@ above are each one line and none of them weakens a claim the code makes.
   independently re-measured here, plus two of the four nitpicks. The recurring class (comment
   claims a class, mechanism covers an instance) did not survive this round: each guard now keys
   on a signal it does not itself produce. Five nitpicks remain, none of which weakens a claim.
+- 2026-09-17 (`2e7c740`, claude-opus-5[1m], effort high): round 4, a re-anchor after the
+  ledger-backup work moved the tree. APPROVE WITH COMMENTS, 11/12. **Worse, -1**: testing
+  2 -> 1; the other five held at 2. Two round-3 nitpicks were addressed in scope. The mode
+  canary (n1) is fully closed and measured. The `.cache/powershell` prune (n2) is not: on a
+  fresh HOME the snapshot still reports six entries pwsh created, because `~/.local/share/
+  powershell` and the parent directories are the same host-runtime bookkeeping and are not
+  excluded, so case 9b stays green only by case ORDER. The drop is a NEW measurement, not new
+  damage: the hazard predates round 3, which recorded it as a nitpick and proposed a fix that
+  was itself partial, and the builder applied that fix literally. Round 3's 12/12 was a
+  half-point generous in hindsight on the same code path. No Critical, no security or
+  correctness movement, `install.ps1` byte-identical since `cebc0a0`.
