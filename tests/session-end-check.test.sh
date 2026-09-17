@@ -89,6 +89,26 @@ out="$(run "$p4")"; rc=$?
 [ "$rc" = 0 ] && ok "a ledger check exiting 99 still leaves the hook at exit 0" \
   || bad "the hook exited $rc because a check it calls failed"
 
+# 4b. A check that CANNOT DECIDE must be spoken, not swallowed. The program exits 2 when it
+#     cannot read a ledger file's timestamp, saying that silence would be a lie; the hook then
+#     reacted to exit 1 only and discarded stderr, so the user's seat looked exactly like
+#     "all fine". The silence had moved one level out, not gone.
+p4b="$(mkproject undecidable "ledger_backup: dir $TMP/synced/ledger")"
+printf '#!/usr/bin/env bash\nexit 3\n' > "$p4b/bin/ledger-backup.sh"   # any non-0/1 "cannot decide"
+chmod +x "$p4b/bin/ledger-backup.sh"
+out="$(run "$p4b")"
+case "$out" in *ledger*|*backup*) bad "exit 3 (not configured) was spoken; it must stay silent" ;;
+  *) ok "exit 3 stays silent (nobody asked for a backup)" ;; esac
+printf '#!/usr/bin/env bash\necho "ledger-backup: cannot read the modification time of: todo.md" >&2\nexit 2\n' \
+  > "$p4b/bin/ledger-backup.sh"
+chmod +x "$p4b/bin/ledger-backup.sh"
+out="$(run "$p4b")"; rc=$?
+[ "$rc" = 0 ] && ok "an undecidable check: hook still exits 0" || bad "hook exit $rc"
+case "$out" in *"cannot read the modification time"*) ok "and the reason reaches the user" ;;
+  *) bad "exit 2 was swallowed, so an unknown state reads as fine (got: ${out:-<silence>})" ;; esac
+case "$out" in *UNKNOWN*) ok "and it is named as UNKNOWN, not as a lag" ;;
+  *) bad "the undecidable case is reported as if it were a measurement" ;; esac
+
 # 5. And a MISSING ledger-backup.sh is not a crash either, because the hook ships into
 #    projects installed before this program existed.
 p5="$(mkproject missing "ledger_backup: dir $dest/ledger")"

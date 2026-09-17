@@ -93,8 +93,11 @@ CONFIG="$(read_config)" || not_configured
 # setting: the program then fails with "no remote named <remote-name>" and the end-of-session
 # check nags about a backup nobody set up, in the default state of every new project. Measured
 # on a fresh scaffold before this guard existed.
+# Matched as a PLACEHOLDER SHAPE (<word>), not on the characters themselves: `<` and `>` are
+# legal in a directory name, and rejecting any value containing one would silently turn the
+# backup off for a real target called `out>put`, with the hook then quiet forever.
 case "$CONFIG" in
-  *'<'*|*'>'*)
+  *'<'*'>'*)
     echo "ledger-backup: the ledger_backup: line still holds the template placeholder:" >&2
     echo "    ledger_backup: $CONFIG" >&2
     echo "  Replace <...> with a real target, or delete the line to turn the backup off." >&2
@@ -164,26 +167,45 @@ case "$KIND" in
          echo "  A relative path resolves against the caller's directory, not the project." >&2
          exit 2 ;;
     esac
-    # And never inside the project, for the same reason: a copy in the work tree is not a
-    # backup, it is the same file with a second name and the same single point of failure.
-    case "$dest/" in
-      "$PROJECT_DIR"/*) echo "ledger-backup: the target is inside the project ($dest)" >&2
-         echo "  A copy in the work tree is not a backup; point it outside the repo." >&2
-         exit 2 ;;
-    esac
     # The PARENT must exist: creating a whole tree for a mistyped path would silently back up
     # into a directory nobody syncs, which reads as success and protects nothing.
     parent="$(dirname "$dest")"
     [ -d "$parent" ] || { echo "ledger-backup: no such directory: $parent" >&2; exit 4; }
+
+    # And never inside the project: a copy in the work tree is not a backup, it is the same
+    # file with a second name and the same single point of failure, and the next `git add -A`
+    # commits it.
+    #
+    # ASKED OF GIT, not of the strings. Comparing "$dest/" against "$PROJECT_DIR"/* was a raw
+    # prefix test on unresolved paths, and three ordinary shapes walked straight through it,
+    # each landing the ledger inside the work tree at exit 0 with a stamp: a symlink outside
+    # the repo pointing back in, a path containing `..`, and a prefix differing only in case
+    # on the case-insensitive filesystem macOS ships by default. git resolves all three,
+    # because it answers about the repository a path is actually in.
+    parent_real="$(cd "$parent" 2>/dev/null && pwd -P)" \
+      || { echo "ledger-backup: cannot resolve $parent" >&2; exit 4; }
+    dest_top="$(git -C "$parent_real" rev-parse --show-toplevel 2>/dev/null || true)"
+    proj_top="$(git -C "$PROJECT_DIR" rev-parse --show-toplevel 2>/dev/null || true)"
+    if [ -n "$dest_top" ] && [ -n "$proj_top" ] \
+       && [ "$(cd "$dest_top" && pwd -P)" = "$(cd "$proj_top" && pwd -P)" ]; then
+      echo "ledger-backup: the target is inside the project ($dest)" >&2
+      echo "  Resolved, it lands in the work tree at $dest_top." >&2
+      echo "  A copy in the work tree is not a backup; point it outside the repo." >&2
+      exit 2
+    fi
     mkdir -p "$dest/internal-not-in-git" 2>/dev/null \
       || { echo "ledger-backup: cannot write to $dest" >&2; exit 4; }
     # Staged, then moved into place. Copying straight in could leave todo.md refreshed and
     # lessons.md not, which would make the exit-4 message ("nothing was backed up") false, and
     # a half-true failure message is worse than a blunt one. Both files are written to a
     # staging dir on the SAME filesystem first, so the moves are renames.
+    # The trap matters because the staging dir sits INSIDE the destination: an interrupted run
+    # would otherwise leave a full copy of the ledger in a synced folder forever, under a name
+    # nobody recognises.
     staging="$dest/internal-not-in-git/.staging.$$"
     rm -rf "$staging"; mkdir -p "$staging" 2>/dev/null \
       || { echo "ledger-backup: cannot write to $dest" >&2; exit 4; }
+    trap 'rm -rf "$staging"' EXIT INT TERM
     for f in $present; do
       cp "$LEDGER_DIR/$f" "$staging/$f" \
         || { rm -rf "$staging"; echo "ledger-backup: copy failed for $f, NOTHING was backed up" >&2; exit 4; }
@@ -223,8 +245,17 @@ case "$KIND" in
         || { echo "ledger-backup: cannot reach '$remote' (offline, or no access)" >&2; exit 4; }
     fi
 
-    mkdir -p "$work/internal-not-in-git"
-    for f in $present; do cp "$LEDGER_DIR/$f" "$work/internal-not-in-git/$f"; done
+    # Checked, for the same reason the dir branch checks: an unchecked cp on a cloned branch
+    # leaves the file the CLONE brought, which is the previous backup. `add -A` then sees no
+    # change, the run reports "already current", and the stamp moves. A silently skipped
+    # update would be indistinguishable from a successful one, which is the whole failure
+    # class this program exists to close, one branch over from where it was closed.
+    mkdir -p "$work/internal-not-in-git" \
+      || { echo "ledger-backup: cannot write the clone, NOTHING was backed up" >&2; exit 4; }
+    for f in $present; do
+      cp "$LEDGER_DIR/$f" "$work/internal-not-in-git/$f" \
+        || { echo "ledger-backup: copy failed for $f, NOTHING was backed up" >&2; exit 4; }
+    done
     git -C "$work" add -A >/dev/null 2>&1
     if git -C "$work" diff --cached --quiet 2>/dev/null; then
       # Nothing changed since the last backup. That IS a current backup, so the stamp moves:

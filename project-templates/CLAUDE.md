@@ -83,7 +83,7 @@ output_language: en
 
 Where `.claude/tasks/todo.md` and `lessons.md` are backed up. They are gitignored so the build
 ledger never reaches a published snapshot, which also means git does not carry them: this line
-is the only thing that does. `/retro` and `bin/ledger-backup.sh` read it, and the end-of-session
+is the only thing that does. `/retro` and `ledger-backup.sh` (installed in `~/bin`) read it, and the end-of-session
 check warns when the copy falls behind. Leave it out and nothing will nag you about it. Put it
 in `CLAUDE.local.md` instead (gitignored, read first) when the target is private.
 Uncomment ONE and fill it in. The `#` matters: an example left live is read as real

@@ -287,9 +287,13 @@ case "$out" in *placeholder*) ok "and it says the line is still the placeholder"
 #     up, so it gets a mechanism instead of a third wording.
 SKILL="$ROOT/skills/retro/SKILL.md"
 if [ -f "$SKILL" ]; then
+  # EVERY `exit N` in the file, with no shape rules. The earlier pattern anchored at line
+  # start and demanded a trailing `;`, so a one-line case arm (`--check) ...; exit 2 ;;`) and
+  # an `|| { ...; exit 4; }` were both invisible, and the check passed only because those
+  # codes happened to appear elsewhere in a shape it could see. Over-matching a code that
+  # appears in a comment costs one extra table row; under-matching costs the contract.
   missing=""
-  for code in $(grep -oE '^[[:space:]]*(\}; )?exit [0-9]+|exit [0-9]+;' "$SCRIPT" \
-                | grep -oE '[0-9]+' | sort -un); do
+  for code in $(grep -oE 'exit [0-9]+' "$SCRIPT" | grep -oE '[0-9]+' | sort -un); do
     [ "$code" = 1 ] && continue   # --check only; the table says so in words
     grep -qE "^\| $code \|" "$SKILL" || missing="$missing $code"
   done
@@ -300,6 +304,73 @@ if [ -f "$SKILL" ]; then
   fi
 else
   bad "skills/retro/SKILL.md is missing, so the exit-code contract could not be checked"
+fi
+
+# 22. The containment guard, against paths that are inside the project WITHOUT LOOKING LIKE IT.
+#     The first version compared "$dest/" to "$PROJECT_DIR"/* as raw strings, and three
+#     ordinary shapes walked through it, each landing the ledger in the work tree at exit 0
+#     with a stamp written. The guard asks git now, so it answers about the repository the
+#     path is really in rather than about how the path was spelled.
+p22="$(mkproject p22)"
+p22_real="$(cd "$p22" && pwd -P)"
+ln -s "$p22_real" "$TMP/sneaky-link"
+mkdir -p "$TMP/sideways"
+i=0
+for shape in "$TMP/sneaky-link/backups" "$TMP/sideways/../$(basename "$p22")/backups"; do
+  i=$((i + 1))
+  printf 'ledger_backup: dir %s\n' "$shape" > "$p22/CLAUDE.local.md"
+  out="$(run "$p22")"; rc=$?
+  [ "$rc" = 2 ] && ok "a disguised in-project target is refused ($i: exit 2)" \
+    || bad "disguised target $i reached exit $rc: $shape"
+  [ -e "$p22/backups" ] && bad "and it wrote the ledger into the work tree ($i)" \
+    || ok "and nothing landed in the work tree ($i)"
+  has_stamp "$p22" && bad "and it stamped success for a refused target ($i)" \
+    || ok "and no stamp was written ($i)"
+done
+#     Case-only difference, which matters because macOS ships a case-insensitive filesystem:
+#     the path resolves to the same directory while the strings differ. Asserted as "does not
+#     succeed" rather than a specific code, because on a case-SENSITIVE filesystem the same
+#     line is simply a missing directory, and both answers are correct refusals.
+upper="$(dirname "$p22_real")/$(basename "$p22_real" | tr 'a-z' 'A-Z')"
+printf 'ledger_backup: dir %s/backups\n' "$upper" > "$p22/CLAUDE.local.md"
+out="$(run "$p22")"; rc=$?
+[ "$rc" != 0 ] && ok "a case-differing in-project target does not succeed (exit $rc)" \
+  || bad "a case-differing path backed up into the project and reported success"
+[ -e "$p22/backups" ] && bad "and it wrote into the work tree via the case-differing path" \
+  || ok "and nothing landed in the work tree"
+rm -f "$p22/CLAUDE.local.md"
+
+# 23. A REAL directory whose name contains an angle bracket is not a placeholder. Rejecting
+#     any value containing `<` or `>` would turn the backup off for it silently, and the hook
+#     would then stay quiet forever about a project that asked for a backup.
+odd="$TMP/od>d"; mkdir -p "$odd"
+p23="$(mkproject p23 "ledger_backup: dir $odd/ledger")"
+out="$(run "$p23")"; rc=$?
+[ "$rc" = 0 ] && ok "a real path containing '>' still backs up (exit 0)" \
+  || bad "a legitimate path was read as a placeholder: exit $rc ($out)"
+[ -f "$odd/ledger/internal-not-in-git/todo.md" ] && ok "and the file is there" \
+  || bad "nothing was copied to the odd-named directory"
+
+# 24. An unreadable ledger file must FAIL the git branch too. The cp there was unchecked, so a
+#     failed copy left the file the CLONE brought (the previous backup), `add -A` saw no
+#     change, and the run reported "already current" and stamped it: a skipped update that
+#     cannot be told from a successful one, on the branch beside the one where that reasoning
+#     was already applied.
+b24="$(mkremote r24)"; p24="$(mkproject p24 "ledger_backup: git backup internal-files")"
+git -C "$p24" remote add backup "$b24" >/dev/null 2>&1
+run "$p24" >/dev/null 2>&1                      # first backup succeeds
+sleep 1
+printf 'ledger v2\n' > "$p24/.claude/tasks/todo.md"
+chmod 000 "$p24/.claude/tasks/todo.md"
+out="$(run "$p24")"; rc=$?
+chmod 644 "$p24/.claude/tasks/todo.md"
+if [ "$(id -u)" = "0" ]; then
+  echo "SKIP - running as root, an unreadable file is still readable"
+else
+  [ "$rc" = 4 ] && ok "an unreadable ledger file on the git path -> exit 4" \
+    || bad "unreadable file -> exit $rc (want 4): $out"
+  case "$out" in *"NOTHING was backed up"*) ok "and it says nothing was backed up" ;;
+    *) bad "a failed copy did not say so (got: $out)" ;; esac
 fi
 
 echo ""

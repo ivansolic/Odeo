@@ -90,10 +90,15 @@ out="$(bash "$LEDGER" --check "$P" 2>&1)"; rc=$?
 cp "$ROOT/bin/session-end-check.sh" "$ROOT/bin/ledger-backup.sh" "$P/" 2>/dev/null
 out="$( cd "$P" && bash ./session-end-check.sh 2>&1 )"; rc=$?
 [ "$rc" = 0 ] && ok "the end-of-session hook exits 0 in a fresh project" || bad "hook exit $rc"
-case "$out" in
-  *ledger*|*backup*) bad "the hook warns about a backup in a brand new project: $out" ;;
-  *) ok "and says nothing about a backup nobody set up" ;;
-esac
+#    Only the LEDGER lines are examined. Matching the hook's whole output made this depend on
+#    the machine: the same sweep reports tunnels, dev servers and worktrees, so a dev server
+#    called "backup-api" would have failed a case about something else entirely.
+ledger_lines="$(printf '%s\n' "$out" | grep -iE 'ledger|backed up' || true)"
+if [ -z "$ledger_lines" ]; then
+  ok "and says nothing about a backup nobody set up"
+else
+  bad "the hook warns about a backup in a brand new project: $ledger_lines"
+fi
 rm -f "$P/session-end-check.sh" "$P/ledger-backup.sh"
 
 # 6. The template's example lines must not READ as configuration. This is the mechanism for
