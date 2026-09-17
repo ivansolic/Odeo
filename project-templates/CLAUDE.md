@@ -90,6 +90,10 @@ Uncomment ONE and fill it in. The `#` matters: an example left live is read as r
 configuration, and then every session ends with a warning about a backup nobody set up.
 #  ledger_backup: git <remote-name> <branch>     e.g. git backup ledger-files
 #  ledger_backup: dir <absolute-path>            e.g. dir /Users/me/Dropbox/project-ledger
+Refused on purpose, each with its reason on screen: a directory inside ANY git repository (a
+copy in a repo shares the disk it protects against and one `git add -A` publishes it), and this
+project's own publish remote. What the program cannot judge is whether some OTHER remote is
+public; pick a target nobody else reads.
 
 ### Frontend
 - [e.g. component model, state patterns, control-flow syntax, file organization]

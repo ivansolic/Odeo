@@ -354,8 +354,13 @@ for shape in "$TMP/sneaky-link/backups" "$TMP/sideways/../$(basename "$p22")/bac
   out="$(run "$p22")"; rc=$?
   [ "$rc" = 2 ] && ok "a disguised in-project target is refused ($i: exit 2)" \
     || bad "disguised target $i reached exit $rc: $shape"
-  [ -e "$p22/backups" ] && bad "and it wrote the ledger into the work tree ($i)" \
-    || ok "and nothing landed in the work tree ($i)"
+  #  Asked of the PROJECT, not of one expected path. Checking `$p22/backups` could not fail
+  #  for shapes 3 to 5, which land elsewhere: under the destination-check mutation, shape 3
+  #  leaked and that assertion still printed ok. A search for the ledger anywhere in the work
+  #  tree is the harm itself, and is shape-independent.
+  leaked="$(find "$p22" -name 'todo.md' -not -path "$p22/.claude/tasks/*" 2>/dev/null)"
+  [ -n "$leaked" ] && bad "and the ledger landed in the work tree ($i): $leaked" \
+    || ok "and no copy of the ledger exists anywhere in the work tree ($i)"
   has_stamp "$p22" && bad "and it stamped success for a refused target ($i)" \
     || ok "and no stamp was written ($i)"
 done
@@ -424,6 +429,61 @@ out="$(run "$p25")"; rc=$?
   || bad "an alias of the publish remote was accepted (exit $rc)"
 git -C "$b25" rev-parse --verify internal-files >/dev/null 2>&1 \
   && bad "and it pushed the ledger to the publish remote" || ok "and nothing was pushed there"
+#     THREE SPELLINGS OF ONE REPOSITORY, each measured pushing the ledger to the publish
+#     remote before the URLs were normalised. A guard that compares text is only as good as
+#     the spellings someone thought of, so the comparison now runs through git's own
+#     `ls-remote --get-url` and then resolves a local path the same way the `dir` invariant
+#     does. What it still cannot see (ssh vs https for one host, a mirror, a fork) is stated
+#     in the program header rather than implied by this passing.
+j=0
+for spelling in "$b25/" "$b25/." "$(dirname "$b25")/../$(basename "$(dirname "$b25")")/$(basename "$b25")"; do
+  j=$((j + 1))
+  git -C "$p25" remote remove alias >/dev/null 2>&1
+  git -C "$p25" remote add alias "$spelling" >/dev/null 2>&1
+  printf 'ledger_backup: git alias internal-files\n' > "$p25/CLAUDE.local.md"
+  out="$(run "$p25")"; rc=$?
+  [ "$rc" = 2 ] && ok "publish remote spelled differently is still refused ($j)" \
+    || bad "spelling $j reached exit $rc and was accepted: $spelling"
+done
+git -C "$b25" rev-parse --verify internal-files >/dev/null 2>&1 \
+  && bad "one of the spellings pushed the ledger to the publish remote" \
+  || ok "and after all three, the publish remote still has no ledger branch"
+
+# 25b. `internal-not-in-git` itself planted as a symlink into the project. The invariant was
+#      asked about the destination, and this sits one level deeper, which is the difference
+#      between asking the right question and asking it of the right argument.
+p25b="$(mkproject p25b)"
+p25b_real="$(cd "$p25b" && pwd -P)"
+synced="$TMP/synced-planted"; mkdir -p "$synced"
+mkdir -p "$p25b_real/leak"
+ln -s "$p25b_real/leak" "$synced/internal-not-in-git"
+printf 'ledger_backup: dir %s\n' "$synced" >> "$p25b/CLAUDE.md"
+out="$(run "$p25b")"; rc=$?
+[ "$rc" = 2 ] && ok "a planted symlink at the landing directory is refused (exit 2)" \
+  || bad "planted landing symlink -> exit $rc (want 2)"
+leaked="$(find "$p25b" -name 'todo.md' -not -path "$p25b/.claude/tasks/*" 2>/dev/null)"
+[ -n "$leaked" ] && bad "and the ledger landed in the work tree: $leaked" \
+  || ok "and no copy of the ledger reached the work tree"
+
+# 25c. A git that CANNOT ANSWER is not a git that said "no repository". With an unreadable
+#      .git/config (the portable stand-in for dubious ownership on a shared mount, which is
+#      routine in containers) the check used to read the failure as "not a repo" and put the
+#      ledger inside that repository at exit 0. The program refuses an unreadable LEDGER for
+#      exactly this reason; the two had opposite policies for the same ignorance.
+broken="$TMP/broken-repo"; mkdir -p "$broken"
+( cd "$broken" && git init -q . ) >/dev/null 2>&1
+chmod 000 "$broken/.git/config" 2>/dev/null
+p25c="$(mkproject p25c "ledger_backup: dir $broken/backups")"
+out="$(run "$p25c")"; rc=$?
+chmod 644 "$broken/.git/config" 2>/dev/null
+if [ "$(id -u)" = "0" ]; then
+  echo "SKIP - running as root, an unreadable config is still readable"
+else
+  [ "$rc" = 2 ] && ok "a repository git cannot read -> exit 2, not 'no repository here'" \
+    || bad "unreadable repo state -> exit $rc (want 2): $out"
+  [ -e "$broken/backups" ] && bad "and it wrote into that repository anyway" \
+    || ok "and nothing was written into it"
+fi
 
 # 26. An UNREADABLE ledger directory is not an empty one. `chmod 000 .claude/tasks` made every
 #     file test false, so the program reported "nothing to back up" at exit 0 and the Stop

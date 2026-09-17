@@ -200,7 +200,28 @@ case "$KIND" in
     # The KNOWN RESIDUAL, written down rather than discovered later: a synced folder that
     # happens to live inside some unrelated repository is refused too. That is a real cost and
     # a deliberate one.
-    in_work_tree() { git -C "$1" rev-parse --is-inside-work-tree >/dev/null 2>&1; }
+    # THREE answers, not two. git exiting non-zero means "not a repository" only when it says
+    # so; it also fails when it cannot READ the repository (dubious ownership on a shared
+    # mount, an unreadable .git/config), and treating that ignorance as "no repository here"
+    # put the ledger inside that repository at exit 0. One line above, this same program
+    # refuses an unreadable ledger because reporting nothing would be a lie; the two had
+    # opposite policies for the same ignorance.
+    # Note what this really asks: `--is-inside-work-tree` prints false but EXITS 0 in a bare
+    # repo and inside a .git dir, so keying on the exit status means "git finds a repository
+    # here". Stricter than the name suggests, deliberately kept, and said out loud so nobody
+    # has to rediscover it.
+    in_work_tree() {
+      local err
+      err="$(git -C "$1" rev-parse --is-inside-work-tree 2>&1 >/dev/null)" && return 0
+      case "$err" in
+        *"not a git repository"*|*"not a working tree"*) return 1 ;;
+        *) echo "ledger-backup: git cannot read the repository state at $1:" >&2
+           echo "  ${err:-<no message>}" >&2
+           echo "  Whether this target sits in a repository cannot be decided, and guessing" >&2
+           echo "  'no' is how the ledger ends up inside one." >&2
+           exit 2 ;;
+      esac
+    }
     refuse_in_repo() {
       echo "ledger-backup: the target is inside a git repository ($1)" >&2
       echo "  A backup in a repo is not a backup: it shares the disk it protects against, and" >&2
@@ -214,15 +235,17 @@ case "$KIND" in
     in_work_tree "$parent_real" && refuse_in_repo "$parent_real"
     mkdir -p "$dest/internal-not-in-git" 2>/dev/null \
       || { echo "ledger-backup: cannot write to $dest" >&2; exit 4; }
-    # ...and again on the destination ITSELF once it exists, because `dest` can be a symlink
-    # that mkdir follows somewhere else entirely. Same question, asked of the place the files
-    # would actually land. The empty directories are removed on refusal; rmdir cannot take
-    # anything that is not empty.
-    dest_real="$(cd "$dest" 2>/dev/null && pwd -P)" \
-      || { echo "ledger-backup: cannot resolve $dest" >&2; exit 4; }
-    if in_work_tree "$dest_real"; then
+    # ...and again on the directory the files ACTUALLY LAND IN, once it exists. Not on `$dest`:
+    # either `$dest` or `internal-not-in-git` inside it can be a symlink that mkdir follows
+    # somewhere else, and asking about `$dest` missed the second one by exactly one level. The
+    # question is unchanged; only the argument is now the real landing place.
+    # Empty directories are removed on refusal; rmdir cannot take anything that is not empty,
+    # and it cannot take a symlink either, so a planted one is left as it was found.
+    landing_real="$(cd "$dest/internal-not-in-git" 2>/dev/null && pwd -P)" \
+      || { echo "ledger-backup: cannot resolve $dest/internal-not-in-git" >&2; exit 4; }
+    if in_work_tree "$landing_real"; then
       rmdir "$dest/internal-not-in-git" "$dest" 2>/dev/null
-      refuse_in_repo "$dest_real"
+      refuse_in_repo "$landing_real"
     fi
     # Staged, then moved into place. Copying straight in could leave todo.md refreshed and
     # lessons.md not, which would make the exit-4 message ("nothing was backed up") false, and
@@ -260,9 +283,32 @@ case "$KIND" in
     # reads, and the whole reason these files are gitignored is that they must never get
     # there. Compared by URL as well as by name, because a second remote name can point at the
     # same repository and the name is not the thing that publishes.
+    # Compared after NORMALISATION, because the plain text compare was three spellings of one
+    # repository away from useless, and all three were measured pushing the ledger to the
+    # publish remote: a trailing slash, a trailing `/.`, and a `..` in the middle.
+    #   - `ls-remote --get-url` is GIT's own answer, so `insteadOf` rewrites are applied by
+    #     the tool that will do the pushing rather than guessed at here;
+    #   - a URL that is a local PATH is resolved with `pwd -P`, the same mechanism the `dir`
+    #     invariant already uses, which settles every punctuation spelling at once;
+    #   - otherwise one trailing `/` and one trailing `.git` are dropped, which is the whole
+    #     of what this normalisation claims.
+    # WHAT IT DOES NOT DO, so nobody reads more into it: it cannot decide whether a remote is
+    # PUBLIC. ssh and https spellings of the same host, a mirror under another name, a fork:
+    # all invisible here. Choosing a backup target that is not published stays the human's
+    # call, and /retro's exit-2 row says so.
+    canon_url() {
+      local u="$1"
+      [ -n "$u" ] || return 0
+      if [ -d "$u" ]; then ( cd "$u" 2>/dev/null && pwd -P ) && return 0; fi
+      u="${u%/}"; u="${u%.git}"
+      printf '%s' "$u"
+    }
     pub_remote="${CLAUDE_PUBLIC_REMOTE:-origin}"
-    pub_url="$(git -C "$PROJECT_DIR" remote get-url "$pub_remote" 2>/dev/null || true)"
-    if [ "$remote" = "$pub_remote" ] || { [ -n "$pub_url" ] && [ "$url" = "$pub_url" ]; }; then
+    pub_url="$(git -C "$PROJECT_DIR" ls-remote --get-url "$pub_remote" 2>/dev/null || true)"
+    [ "$pub_url" = "$pub_remote" ] && pub_url=""     # git echoes the name back when unknown
+    url="$(git -C "$PROJECT_DIR" ls-remote --get-url "$remote" 2>/dev/null || printf '%s' "$url")"
+    if [ "$remote" = "$pub_remote" ] \
+       || { [ -n "$pub_url" ] && [ "$(canon_url "$url")" = "$(canon_url "$pub_url")" ]; }; then
       echo "ledger-backup: '$remote' is this project's publish remote ($url)." >&2
       echo "  The ledger is gitignored precisely so it never reaches there; pushing it to the" >&2
       echo "  public repository would publish the task state and every recorded correction." >&2

@@ -48,13 +48,18 @@ Report the result by its **exit code**, never by assumption:
 | Exit | Say |
 |---|---|
 | 0 | where the copy went (the script prints it) |
-| 2 | the `ledger_backup:` line is malformed (unknown kind, missing branch, a relative or in-project path), or this is not a git work tree. Show the message and offer to fix the line. **Do not read this as "not configured"**: someone tried to set it up and the setup is broken. |
+| 2 | the `ledger_backup:` line is refused: malformed (unknown kind, missing branch), a relative path, a target inside **any** git repository, the project's own publish remote, or a state the program could not decide (an unreadable ledger, a repository git cannot read). Show the message and offer to fix the line. **Do not read this as "not configured"**: someone tried to set it up and the setup is broken. |
 | 3 | no location is recorded, **or** the line is still the template's `<placeholder>` (the message says which). For a placeholder, offer to fill it in rather than to add a line. Otherwise say ONCE what is at stake: `todo.md` and `lessons.md` hold the task state and every correction this project has learned, they exist nowhere else, and git does not carry them. Offer to add a `ledger_backup:` line to `CLAUDE.local.md` (gitignored, right place for a private target). Take a no and do not raise it again this session. |
 | 4 | the target could not be used: unreachable remote, missing directory, a copy that failed. Show the message. The program stages the files and moves them only if all of them copied, so this means the backup did not happen. |
 | 5 | the push was refused, so **nothing was backed up**. This is the case that used to pass as success: say it, and do not close the session claiming a backup. |
 | 6 | there was nothing to back up (no ledger files yet). |
 
 Exit 1 belongs to `--check` only (the backup is behind); a plain run never returns it.
+
+**What the program cannot decide for you:** whether a remote is PUBLIC. It refuses the
+project's publish remote by name and by normalised URL, which catches the obvious mistake, but
+an ssh and an https spelling of the same host, a mirror under another name, or a fork are all
+invisible to it. Choosing a backup target that nobody else reads stays a human decision.
 
 Never report a backup you did not see exit 0. Measured on this system: the ledger spent weeks
 claiming a repo was unprotected when it had been protected all along, and claiming a
