@@ -49,6 +49,10 @@ for a in "$@"; do
 done
 PROJECT_DIR="${PROJECT_DIR:-$PWD}"
 [ -d "$PROJECT_DIR" ] || { echo "ledger-backup: no such directory: $PROJECT_DIR" >&2; exit 2; }
+# Absolute from here on. A relative project dir would make "is the target inside the project"
+# below compare a path against "." and answer no for every target, which is the check that
+# stops this program from writing the ledger into the work tree it is meant to keep it out of.
+PROJECT_DIR="$(cd "$PROJECT_DIR" && pwd)" || exit 2
 
 GIT_DIR="$(git -C "$PROJECT_DIR" rev-parse --absolute-git-dir 2>/dev/null)" || GIT_DIR=""
 [ -n "$GIT_DIR" ] || { echo "ledger-backup: $PROJECT_DIR is not a git work tree" >&2; exit 2; }
@@ -83,6 +87,19 @@ not_configured() {
 }
 
 CONFIG="$(read_config)" || not_configured
+# A value still holding the template's placeholder is NOT configuration. Without this, every
+# project scaffolded from project-templates/ ships a live `ledger_backup: git <remote-name>
+# <branch>` line, because the documentation example matches the same grep that reads the
+# setting: the program then fails with "no remote named <remote-name>" and the end-of-session
+# check nags about a backup nobody set up, in the default state of every new project. Measured
+# on a fresh scaffold before this guard existed.
+case "$CONFIG" in
+  *'<'*|*'>'*)
+    echo "ledger-backup: the ledger_backup: line still holds the template placeholder:" >&2
+    echo "    ledger_backup: $CONFIG" >&2
+    echo "  Replace <...> with a real target, or delete the line to turn the backup off." >&2
+    exit 3 ;;
+esac
 KIND="$(printf '%s' "$CONFIG" | awk '{print $1}')"
 
 # --- --check: offline, reads the stamp, writes nothing ------------------------------------
@@ -90,13 +107,23 @@ KIND="$(printf '%s' "$CONFIG" | awk '{print $1}')"
 # command". A run that failed leaves no stamp, so a broken backup reports BEHIND exactly like
 # one that was never attempted, which is the failure this program exists to make visible.
 if [ "$CHECK" -eq 1 ]; then
-  newest=0
+  # "no ledger files" and "I could not read a timestamp" are counted separately on purpose.
+  # Folding them (|| echo 0) made an unreadable mtime look like an empty ledger, so the check
+  # went SILENT and reported fine forever: the exact silent-failure shape this program exists
+  # to eliminate, inside the code that does the eliminating.
+  newest=0; n_present=0; unreadable=""
   for f in $FILES; do
     [ -f "$LEDGER_DIR/$f" ] || continue
-    t="$(date -r "$LEDGER_DIR/$f" +%s 2>/dev/null || echo 0)"
+    n_present=$((n_present + 1))
+    t="$(date -r "$LEDGER_DIR/$f" +%s 2>/dev/null)" || t=""
+    case "$t" in ''|*[!0-9]*) unreadable="$unreadable $f"; continue ;; esac
     [ "$t" -gt "$newest" ] && newest="$t"
   done
-  [ "$newest" -eq 0 ] && { echo "ledger-backup: nothing to back up"; exit 0; }
+  [ "$n_present" -eq 0 ] && { echo "ledger-backup: nothing to back up"; exit 0; }
+  [ -n "$unreadable" ] && {
+    echo "ledger-backup: cannot read the modification time of:$unreadable" >&2
+    echo "  so whether the backup is current cannot be decided, and silence would be a lie." >&2
+    exit 2; }
   if [ ! -f "$STAMP" ]; then
     echo "ledger-backup: the ledger has NEVER been backed up (no stamp), and git does not carry it"
     exit 1
@@ -127,16 +154,45 @@ case "$KIND" in
     dest="$(printf '%s' "$CONFIG" | sed -E 's/^dir[[:space:]]+//')"
     dest="${dest/#\~/$HOME}"
     [ -n "$dest" ] || { echo "ledger-backup: 'dir' needs a path" >&2; exit 2; }
+    # ABSOLUTE ONLY. A relative target resolves against whatever directory the caller happens
+    # to be in, and /retro runs this from the project root: `dir backupdir` then writes the
+    # ledger INTO the work tree, where nothing ignores it, and reports success. That is this
+    # program putting the content it exists to keep out of git into git.
+    case "$dest" in
+      /*) ;;
+      *) echo "ledger-backup: 'dir' needs an absolute path (got '$dest')" >&2
+         echo "  A relative path resolves against the caller's directory, not the project." >&2
+         exit 2 ;;
+    esac
+    # And never inside the project, for the same reason: a copy in the work tree is not a
+    # backup, it is the same file with a second name and the same single point of failure.
+    case "$dest/" in
+      "$PROJECT_DIR"/*) echo "ledger-backup: the target is inside the project ($dest)" >&2
+         echo "  A copy in the work tree is not a backup; point it outside the repo." >&2
+         exit 2 ;;
+    esac
     # The PARENT must exist: creating a whole tree for a mistyped path would silently back up
     # into a directory nobody syncs, which reads as success and protects nothing.
     parent="$(dirname "$dest")"
     [ -d "$parent" ] || { echo "ledger-backup: no such directory: $parent" >&2; exit 4; }
     mkdir -p "$dest/internal-not-in-git" 2>/dev/null \
       || { echo "ledger-backup: cannot write to $dest" >&2; exit 4; }
+    # Staged, then moved into place. Copying straight in could leave todo.md refreshed and
+    # lessons.md not, which would make the exit-4 message ("nothing was backed up") false, and
+    # a half-true failure message is worse than a blunt one. Both files are written to a
+    # staging dir on the SAME filesystem first, so the moves are renames.
+    staging="$dest/internal-not-in-git/.staging.$$"
+    rm -rf "$staging"; mkdir -p "$staging" 2>/dev/null \
+      || { echo "ledger-backup: cannot write to $dest" >&2; exit 4; }
     for f in $present; do
-      cp "$LEDGER_DIR/$f" "$dest/internal-not-in-git/$f" \
-        || { echo "ledger-backup: copy failed for $f" >&2; exit 4; }
+      cp "$LEDGER_DIR/$f" "$staging/$f" \
+        || { rm -rf "$staging"; echo "ledger-backup: copy failed for $f, NOTHING was backed up" >&2; exit 4; }
     done
+    for f in $present; do
+      mv -f "$staging/$f" "$dest/internal-not-in-git/$f" \
+        || { rm -rf "$staging"; echo "ledger-backup: could not place $f, the copy is incomplete" >&2; exit 4; }
+    done
+    rmdir "$staging" 2>/dev/null
     stamp_now
     echo "ledger-backup: refreshed ($present -> $dest/internal-not-in-git/)"
     exit 0

@@ -206,6 +206,102 @@ out="$(run "$p10" --check)"; rc=$?
 case "$out" in *NEVER*) ok "and says it has never been backed up, rather than a lag in minutes" ;;
   *) bad "the never-backed-up message is not distinguishable (got: $out)" ;; esac
 
+# 16. THE STEADY STATE: an existing branch whose content CHANGED. Cases 2 and 9 create the
+#     branch through the orphan path and case 4 stops at "already current", so clone -> commit
+#     -> push, the path every run after the first takes and the only one that pushes from a
+#     shallow clone, had no coverage at all.
+b4="$(mkremote r16)"; p16="$(mkproject p16 "ledger_backup: git backup internal-files")"
+git -C "$p16" remote add backup "$b4" >/dev/null 2>&1
+run "$p16" >/dev/null 2>&1
+sleep 1
+printf 'ledger v2-changed\n' > "$p16/.claude/tasks/todo.md"
+out="$(run "$p16")"; rc=$?
+[ "$rc" = 0 ] && ok "a changed ledger on an existing branch: exit 0" || bad "second backup failed: $rc ($out)"
+landed="$(git -C "$b4" show internal-files:internal-not-in-git/todo.md 2>/dev/null)"
+[ "$landed" = "ledger v2-changed" ] && ok "and the branch carries the NEW content" \
+  || bad "the second backup did not update the branch (got: ${landed:-<nothing>})"
+n=$(git -C "$b4" rev-list --count internal-files 2>/dev/null || echo 0)
+[ "$n" = 2 ] && ok "and the branch has exactly 2 commits, one per real change" \
+  || bad "expected 2 commits on the branch, found $n"
+
+# 17. Someone else advanced the branch between our runs (a second machine, another clone).
+#     A shallow clone that force-pushed would silently drop their work, so the contract is:
+#     fast-forward or fail. Their file must still be there afterwards.
+third="$TMP/third"; git clone -q "$b4" "$third" >/dev/null 2>&1
+git -C "$third" checkout -q internal-files >/dev/null 2>&1
+printf 'from another machine\n' > "$third/internal-not-in-git/other-machine.md"
+git -C "$third" add -A >/dev/null 2>&1
+git -C "$third" commit -q -m "other machine" >/dev/null 2>&1
+git -C "$third" push -q origin internal-files >/dev/null 2>&1
+sleep 1
+printf 'ledger v3\n' > "$p16/.claude/tasks/todo.md"
+out="$(run "$p16")"; rc=$?
+[ "$rc" = 0 ] && ok "a branch advanced by someone else still accepts our backup" \
+  || bad "backup failed after a third party advanced the branch: $rc ($out)"
+git -C "$b4" show internal-files:internal-not-in-git/other-machine.md >/dev/null 2>&1 \
+  && ok "and their file survived (no force push)" \
+  || bad "the other machine's commit was destroyed"
+
+# 18. A RELATIVE dir target is refused. Run from somewhere else entirely, it resolves against
+#     the caller's directory; run from the project root, which is what /retro does, it writes
+#     the ledger INTO the work tree where nothing ignores it and reports success. That is this
+#     program putting into git the content it exists to keep out of git.
+p18="$(mkproject p18 "ledger_backup: dir backupdir")"
+elsewhere="$TMP/elsewhere"; mkdir -p "$elsewhere"
+out="$( cd "$elsewhere" && "$SCRIPT" "$p18" 2>&1 )"; rc=$?
+[ "$rc" = 2 ] && ok "a relative dir target -> exit 2" || bad "relative dir -> exit $rc (want 2)"
+[ -e "$elsewhere/backupdir" ] && bad "it wrote into the caller's directory anyway" \
+  || ok "and nothing is written next to the caller"
+out="$( cd "$p18" && "$SCRIPT" . 2>&1 )"; rc=$?
+[ -e "$p18/backupdir" ] && bad "run from the project root it wrote the ledger into the work tree" \
+  || ok "and nothing is written into the work tree"
+has_stamp "$p18" && bad "a refused relative target still stamped success" || ok "and leaves no stamp"
+
+# 19. A target INSIDE the project is refused even when absolute: a copy in the work tree is
+#     the same file with a second name and the same single point of failure, and it would be
+#     committed by the next `git add -A`.
+p19="$(mkproject p19)"
+printf 'ledger_backup: dir %s/backups\n' "$p19" >> "$p19/CLAUDE.md"
+out="$(run "$p19")"; rc=$?
+[ "$rc" = 2 ] && ok "an absolute target inside the project -> exit 2" \
+  || bad "in-project target -> exit $rc (want 2)"
+case "$out" in *"inside the project"*) ok "and it says why, rather than blaming the path" ;;
+  *) bad "the refusal does not explain itself (got: $out)" ;; esac
+
+# 20. The placeholder from the template is NOT configuration. Every project scaffolded from
+#     project-templates/ carried a live `ledger_backup: git <remote-name> <branch>` because the
+#     documentation example matched the same grep that reads the setting; the program then
+#     failed with "no remote named <remote-name>" and the Stop hook nagged every session.
+#     Exit 3, the silent one, because a placeholder means nothing was promised.
+p20="$(mkproject p20 "ledger_backup: git <remote-name> <branch>")"
+out="$(run "$p20")"; rc=$?
+[ "$rc" = 3 ] && ok "a template placeholder -> exit 3 (not configured), not a broken target" \
+  || bad "placeholder -> exit $rc (want 3)"
+case "$out" in *placeholder*) ok "and it says the line is still the placeholder" ;;
+  *) bad "the placeholder message does not name the cause (got: $out)" ;; esac
+
+# 21. Every `exit N` the program can produce has a row in the /retro table that tells an agent
+#     what to say about it. The reviewed defect in round 1 was prose promising what nothing
+#     implemented; the defect in round 2 was prose describing the implementation INCOMPLETELY
+#     (the table had no row for 2, which is what a config typo returns). Same shape, one level
+#     up, so it gets a mechanism instead of a third wording.
+SKILL="$ROOT/skills/retro/SKILL.md"
+if [ -f "$SKILL" ]; then
+  missing=""
+  for code in $(grep -oE '^[[:space:]]*(\}; )?exit [0-9]+|exit [0-9]+;' "$SCRIPT" \
+                | grep -oE '[0-9]+' | sort -un); do
+    [ "$code" = 1 ] && continue   # --check only; the table says so in words
+    grep -qE "^\| $code \|" "$SKILL" || missing="$missing $code"
+  done
+  if [ -z "$missing" ]; then
+    ok "every exit code the program can return has a row in /retro's table"
+  else
+    bad "exit code(s)$missing are reachable but have no row in skills/retro/SKILL.md"
+  fi
+else
+  bad "skills/retro/SKILL.md is missing, so the exit-code contract could not be checked"
+fi
+
 echo ""
 if [ "$fail" -eq 0 ]; then echo "ledger-backup: all $pass assertions passed."; else echo "ledger-backup: $fail FAILURE(S) above."; fi
 exit "$fail"

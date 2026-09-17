@@ -1,5 +1,5 @@
 ---
-description: End-of-session retro. Captures what was learned this session and routes each lesson to the right place, project-specific lessons to .claude/tasks/lessons.md, general rules as a proposed global CLAUDE.md update. Run before wrapping up a working session.
+description: End-of-session retro. Captures what was learned this session and routes each lesson to the right place, project-specific lessons to .claude/tasks/lessons.md, general rules as a proposed global CLAUDE.md update, then backs up the gitignored build ledger (todo.md, lessons.md) to wherever the project records, which writes OUTSIDE the repo. Run before wrapping up a working session.
 disable-model-invocation: true
 ---
 
@@ -11,7 +11,9 @@ Look back over this session (the conversation, any corrections the user made, an
 dead ends or surprises) and propose a short list of concrete lessons. Phrase each
 as a **rule for next time**, not a vague observation.
 
-If genuinely nothing notable happened, say so and stop, don't invent lessons.
+If genuinely nothing notable happened, say so and skip to **step 5**, don't invent lessons.
+The backup still runs: `todo.md` changes in almost every session, whether or not the session
+taught anyone anything.
 
 ## 2. Categorize each lesson by scope
 For each lesson, decide where it belongs:
@@ -32,12 +34,13 @@ global CLAUDE.md, which affects every project.
   phrased as a rule: `- YYYY-MM-DD, [what happened]. Rule: [what to do next time].`
 - Append approved durable rules to this project's `CLAUDE.md` → Corrections.
 - For approved global rules, edit `~/.claude/CLAUDE.md`.
+
 ## 5. Back up what git cannot
 Run this **whether or not a lesson was written**: `todo.md` changes in almost every session,
 and it is gitignored, so nothing else carries it.
 
 ```bash
-bin/ledger-backup.sh          # from the project root
+ledger-backup.sh              # installed in ~/bin, on PATH; repo fallback bin/ledger-backup.sh
 ```
 
 Report the result by its **exit code**, never by assumption:
@@ -45,10 +48,13 @@ Report the result by its **exit code**, never by assumption:
 | Exit | Say |
 |---|---|
 | 0 | where the copy went (the script prints it) |
+| 2 | the `ledger_backup:` line is malformed (unknown kind, missing branch, a relative or in-project path), or this is not a git work tree. Show the message and offer to fix the line. **Do not read this as "not configured"**: someone tried to set it up and the setup is broken. |
 | 3 | no location is recorded. Say ONCE what is at stake: `todo.md` and `lessons.md` hold the task state and every correction this project has learned, they exist nowhere else, and git does not carry them. Offer to add a `ledger_backup:` line to `CLAUDE.local.md` (gitignored, right place for a private target). Take a no and do not raise it again this session. |
-| 4 | the target was unreachable, so **nothing was backed up**. Say that plainly and show the message. |
+| 4 | the target could not be used: unreachable remote, missing directory, a copy that failed. Show the message. The program stages the files and moves them only if all of them copied, so this means the backup did not happen. |
 | 5 | the push was refused, so **nothing was backed up**. This is the case that used to pass as success: say it, and do not close the session claiming a backup. |
 | 6 | there was nothing to back up (no ledger files yet). |
+
+Exit 1 belongs to `--check` only (the backup is behind); a plain run never returns it.
 
 Never report a backup you did not see exit 0. Measured on this system: the ledger spent weeks
 claiming a repo was unprotected when it had been protected all along, and claiming a
@@ -71,13 +77,13 @@ Proposed lessons:
 You approve #1, decline #2 -> only #1 is written. Confirmed: 1 lesson saved.
 
 Backing up the ledger (gitignored, git does not carry it):
-  $ bin/ledger-backup.sh
+  $ ledger-backup.sh
   ledger-backup: refreshed (todo.md lessons.md -> backup/internal-files:internal-not-in-git/)
 ```
 
 And the same session where the backup does not work, which is the case this step exists for:
 ```
-  $ bin/ledger-backup.sh
+  $ ledger-backup.sh
   ledger-backup: PUSH REFUSED to backup/internal-files, so NOTHING was backed up.
   (exit 5)
 -> "Your lesson is saved in lessons.md. The backup did NOT happen: the push was refused,

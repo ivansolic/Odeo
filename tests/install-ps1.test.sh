@@ -289,11 +289,18 @@ FAKE
 snapshot() {
   [ -d "$1" ] || return 0
   ( cd "$1" || return 0
-    find . -not -path './.cache/powershell/*' \( -type f -o -type l -o -type d \) -print 2>/dev/null \
+    # The exclusion covers the directory ITSELF as well as its contents. With -type d in
+    # scope, matching only './.cache/powershell/*' left the directory entry in the listing,
+    # so the first run that created it would report a change that install.ps1 did not make.
+    find . -path './.cache/powershell' -prune -o -path './.cache/powershell/*' -prune -o \
+         \( -type f -o -type l -o -type d \) -print 2>/dev/null \
     | sort | while IFS= read -r p; do
         if [ -L "$p" ]; then printf 'L %s -> %s\n' "$p" "$(readlink "$p")"
         elif [ -d "$p" ]; then printf 'D %s\n' "$p"
-        else printf 'F %s\n' "$(shasum "$p" 2>/dev/null)"
+        # The MODE is recorded with the hash, because an installer that only flipped an exec
+        # bit would otherwise leave the snapshot identical, and `chmod +x` is exactly what a
+        # port of install.sh's bin/ step would do.
+        else printf 'F %s %s\n' "$(ls -l "$p" 2>/dev/null | cut -c1-10)" "$(shasum "$p" 2>/dev/null)"
         fi
       done )
 }
@@ -416,11 +423,14 @@ PS
   #  changed" is two blind reads agreeing. A file, a DIRECTORY, and a SYMLINK: the last is
   #  what `install.sh --link` actually creates, so a canary that plants only a file would
   #  have certified a snapshot that could not see the likeliest port.
-  for shape in file dir link; do
+  printf 'mode-probe\n' > "$TMP/home/mode-probe"; chmod 644 "$TMP/home/mode-probe"
+  before="$(snapshot "$TMP/home"; snapshot "$repo")"
+  for shape in file dir link mode; do
     case "$shape" in
       file) printf 'planted\n' > "$TMP/home/planted-by-the-test" ;;
       dir)  mkdir -p "$TMP/home/planted-dir" ;;
       link) ln -s "$repo/install.sh" "$TMP/home/planted-link" ;;
+      mode) chmod +x "$TMP/home/mode-probe" ;;   # same bytes, different mode
     esac
     if [ "$before" != "$(snapshot "$TMP/home"; snapshot "$repo")" ]; then
       ok "the comparison notices a planted $shape (canary: case 9b can fail)"
@@ -428,7 +438,9 @@ PS
       bad "the filesystem comparison cannot see a planted $shape, so case 9b is blind to it"
     fi
     rm -rf "$TMP/home/planted-by-the-test" "$TMP/home/planted-dir" "$TMP/home/planted-link"
+    chmod 644 "$TMP/home/mode-probe"
   done
+  rm -f "$TMP/home/mode-probe"
 
   # 10. Close the loop: feed install.sh's real parser exactly the arguments install.sh
   #     RECEIVED (post quote-removal, read out of the no-op's echo), not the string that was
