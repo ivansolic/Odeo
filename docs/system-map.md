@@ -99,7 +99,7 @@ Agents here: `architect` (plans, read-only), `builder` (executes the approved pl
 | Command | Recurring | What it does |
 |---|---|---|
 | `/learn` | per story | Capture a verified, non-trivial, reusable solution into `knowledge/` (draft shown first). |
-| `/retro` | per session | End-of-session lessons, routed to lessons.md / CLAUDE.md with your approval. |
+| `/retro` | per session | End-of-session lessons, routed to lessons.md / CLAUDE.md with your approval. Then runs `ledger-backup.sh`, which copies the gitignored ledger (`todo.md`, `lessons.md`) to the recorded `ledger_backup:` target outside the repo and reports the result by exit code. |
 | `/outcome` | per shipped feature (~1 week after) | Did it actually solve the problem? Real data only; feeds /learn and suggests next steps. |
 | `/knowledge-refresh` | every 2-4 weeks | Audit and prune the knowledge base against current code. |
 | `/product-signal` | weekly | Gather user feedback -> themes -> compare vs last memo -> signal memo. |

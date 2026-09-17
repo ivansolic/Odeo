@@ -238,7 +238,7 @@ Full chain for a **bigger feature or a project built from scratch**:
 | 8 | 🛠️ Verify | "walk through each acceptance criterion" | proof each criterion passes | (in chat) |
 | 9 | 🛠️ Review | "invoke code-reviewer" | findings to fix | (in chat) |
 | 10 | 🛠️ Ship | `/commit-push`, then `/merge` | commit + PR merged, cleaned up | GitHub |
-| 11 | 🎩 Retro | `/retro` | lessons routed to the right file | `lessons.md` / CLAUDE.md |
+| 11 | 🎩 Retro | `/retro` | lessons routed to the right file, then the gitignored ledger backed up outside the repo | `lessons.md` / CLAUDE.md, plus your backup target |
 | 12 | 🎩 Capture / measure | `/learn` now, `/outcome` ~a week later | knowledge entry, real outcome verdict | `knowledge/` |
 
 **Key points beginners miss:**
@@ -322,6 +322,15 @@ press it; Claude can't tell when you're done). It proposes what you learned and
 routes each lesson, with your approval, to the right file. Over weeks this quietly
 becomes a record of how *you* like to work, and Claude stops repeating misses.
 
+`/retro` also **backs those files up outside the repository**. `lessons.md` and
+`todo.md` are gitignored, so they never ship in a published snapshot and no commit
+carries them either: without a backup they exist only on this machine. At the end
+of the retro Claude runs `ledger-backup.sh`, which copies both to the target you
+record once as a `ledger_backup:` line in `CLAUDE.local.md` (gitignored, so a
+private target never becomes public) or in `CLAUDE.md`, either a git remote and
+branch or a folder. If you haven't set one, Claude tells you once and offers to
+add the line.
+
 *(Knowledge for other domains, marketing, etc., should live in its own folder
 with its own CLAUDE.md, never mixed into the coding setup.)*
 
@@ -365,8 +374,9 @@ times. Stop it, send it back to plan mode, make it rethink.
     If the change touches login, personal data, payments, or uploads: also run
     `/security-review` (Section 13).
 11. 🛠️ Run `/commit-push`, then `/merge` (rebase onto main, test, merge PR, clean up).
-12. 🎩 Before you stop: run `/retro`, capture what you learned. If you solved
-    something reusable, `/learn` it.
+12. 🎩 Before you stop: run `/retro`, capture what you learned, and let it back up
+    `todo.md` + `lessons.md` outside the repo (git ignores them, so nothing else
+    carries them). If you solved something reusable, `/learn` it.
 13. You shipped something. 🎉 About a week later, run `/outcome` to see if it
     actually solved the problem. Next piece: back to step 7.
 
