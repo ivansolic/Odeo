@@ -573,6 +573,78 @@ else
     || ok "and the branch still carries the previous backup, not the new one"
 fi
 
+# 30. A REPOSITORY GIT CANNOT FOLLOW is still a repository. This is the measured fail-open that
+#     stopped round 5: the containment guard decided "not in a repository" by matching git's
+#     stderr, and git prints the SAME "not a git repository" sentence for a linked worktree
+#     whose administrative directory it cannot read. The ledger then landed in the live work
+#     tree, the run reported success, and the stamp was written, so --check said "up to date"
+#     about a copy sitting inside the repository it is supposed to survive.
+#     The guard no longer reads messages at all, so this case is decided by the target's
+#     ancestors on disk, which do not depend on git's wording, locale or version.
+wtmain="$TMP/wt-main"; mkdir -p "$wtmain"
+( cd "$wtmain" && git init -q . && printf 'x\n' > f && git add -A && git commit -qm base ) >/dev/null 2>&1
+git -C "$wtmain" worktree add -q "$TMP/wt-linked" -b wt-broken >/dev/null 2>&1
+chmod 000 "$wtmain/.git/worktrees" 2>/dev/null
+p30="$(mkproject p30 "ledger_backup: dir $TMP/wt-linked/backups")"
+out="$(run "$p30")"; rc=$?
+chmod 755 "$wtmain/.git/worktrees" 2>/dev/null
+if [ "$(id -u)" = "0" ]; then
+  echo "SKIP - running as root, an unreadable worktree directory is still readable"
+else
+  [ "$rc" = 2 ] && ok "a worktree whose gitdir git cannot follow is still refused (exit 2)" \
+    || bad "unfollowable worktree -> exit $rc (want 2): $out"
+  [ -e "$TMP/wt-linked/backups" ] && bad "and the ledger landed inside that work tree" \
+    || ok "and nothing was written into the work tree"
+  has_stamp "$p30" && bad "and it stamped a backup that went into a repository" \
+    || ok "and no stamp was written"
+fi
+
+# 31. The same class without any permission trick, so it runs everywhere including as root: a
+#     `.git` FILE pointing at a gitdir that does not exist. git says "not a git repository" here
+#     too, and the marker on disk says otherwise. Which of the two is authoritative about
+#     "is this path in a repository" is the whole question this guard got wrong three times.
+orph="$TMP/orphan-pointer"; mkdir -p "$orph"
+printf 'gitdir: %s/nowhere/.git/worktrees/gone\n' "$TMP" > "$orph/.git"
+p31="$(mkproject p31 "ledger_backup: dir $orph/backups")"
+out="$(run "$p31")"; rc=$?
+[ "$rc" = 2 ] && ok "a .git pointer to a missing gitdir is refused (exit 2)" \
+  || bad "dangling .git pointer -> exit $rc (want 2): $out"
+[ -e "$orph/backups" ] && bad "and it wrote next to the dangling pointer" \
+  || ok "and nothing was written there"
+
+# 32. REGRESSION GUARD for the rewrite itself. The old guard keyed on git's EXIT STATUS, which
+#     is 0 inside a bare repository and inside a .git directory, and the header called that
+#     strictness deliberate. A guard that walks ancestors for a `.git` entry would lose exactly
+#     that, since a bare repo has no `.git` child, so both shapes are pinned here rather than
+#     left to be rediscovered as a leak.
+bare32="$TMP/bare32.git"; git init -q --bare "$bare32" >/dev/null 2>&1
+p32="$(mkproject p32 "ledger_backup: dir $bare32/backups")"
+out="$(run "$p32")"; rc=$?
+[ "$rc" = 2 ] && ok "a target inside a BARE repository is refused (exit 2)" \
+  || bad "bare repo target -> exit $rc (want 2): $out"
+[ -e "$bare32/backups" ] && bad "and it wrote into the bare repository" \
+  || ok "and nothing was written into it"
+p32b="$(mkproject p32b)"
+printf 'ledger_backup: dir %s/.git/backups\n' "$p32b" > "$p32b/CLAUDE.local.md"
+out="$(run "$p32b")"; rc=$?
+[ "$rc" = 2 ] && ok "a target inside a .git directory is refused (exit 2)" \
+  || bad "target inside .git -> exit $rc (want 2): $out"
+
+# 33. The HEADER's exit-code table is the caller contract the file itself claims to publish, and
+#     case 21 checks that contract only in /retro. This is the same mechanism pointed at the
+#     second reader: every reachable code must have a row in the header too.
+#     WHAT IT CANNOT CATCH, said plainly so a green run is not read as more: the drift that was
+#     actually found here was a row that EXISTED and described six states too few ("usage, or
+#     not inside a git work tree", while exit 2 had grown to cover refused targets and an
+#     unreadable ledger). A row's presence is mechanical; whether its sentence is still true is
+#     not, and that one was fixed by reading it.
+missing_hdr=""
+for code in $(grep -oE 'exit [0-9]+' "$SCRIPT" | grep -oE '[0-9]+' | sort -un); do
+  grep -qE "^#[[:space:]]+$code[[:space:]]" "$SCRIPT" || missing_hdr="$missing_hdr $code"
+done
+[ -z "$missing_hdr" ] && ok "every exit code the program can return has a row in its own header" \
+  || bad "exit code(s)$missing_hdr are reachable but missing from the header table"
+
 echo ""
 if [ "$fail" -eq 0 ]; then echo "ledger-backup: all $pass assertions passed."; else echo "ledger-backup: $fail FAILURE(S) above."; fi
 exit "$fail"

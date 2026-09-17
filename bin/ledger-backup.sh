@@ -30,12 +30,24 @@
 # Exit codes (the whole point; a caller must be able to tell these apart):
 #   0  backed up, or already current  (--check: the backup is up to date)
 #   1  --check only: the backup is BEHIND the ledger
-#   2  usage, or not inside a git work tree
+#   2  refused or undecidable: usage, a ledger_backup: line this program will not act on (a
+#      relative dir, an unknown kind, a target inside ANY git repository, the project's own
+#      publish remote), an unreadable ledger, or the caller is not inside a git work tree
+#      What this program CANNOT decide, so nobody reads more into a green run: whether a remote
+#      is PUBLIC. It refuses the project's publish remote by name and by normalised URL, which
+#      catches the obvious mistake; an ssh spelling of the same host, a mirror or a fork are
+#      invisible here, and choosing a private target stays the human's call.
 #   3  no ledger_backup: line recorded (not a failure: nothing was promised)
 #   4  target unreachable (no such remote, clone/fetch failed, directory missing)
 #   5  the copy was made but PUSH WAS REFUSED, so nothing was backed up
 #   6  nothing to back up (neither ledger file exists)
 set -uo pipefail
+# Every git call below is meant to be about the PROJECT DIRECTORY passed in. Inherited GIT_DIR
+# or GIT_WORK_TREE silently redirect all of them at the repository the caller's environment
+# names instead, which is routine when this runs from a git hook, and would make the program
+# read one repository's ledger and stamp another's. Dropped once, here, rather than guarded at
+# each call site.
+unset GIT_DIR GIT_WORK_TREE
 
 CHECK=0
 PROJECT_DIR=""
@@ -206,21 +218,40 @@ case "$KIND" in
     # put the ledger inside that repository at exit 0. One line above, this same program
     # refuses an unreadable ledger because reporting nothing would be a lie; the two had
     # opposite policies for the same ignorance.
-    # Note what this really asks: `--is-inside-work-tree` prints false but EXITS 0 in a bare
-    # repo and inside a .git dir, so keying on the exit status means "git finds a repository
-    # here". Stricter than the name suggests, deliberately kept, and said out loud so nobody
-    # has to rediscover it.
+    # DECIDED ON DISK, NEVER FROM A MESSAGE. This guard asked git and then read the ANSWER OUT
+    # OF ITS STDERR, and git prints the same "not a git repository" sentence for two opposite
+    # situations: there is no repository here, and there is one it cannot follow (a linked
+    # worktree whose administrative directory is unreadable, a `.git` file pointing at a gitdir
+    # that is gone). Measured on the shipped script: the second landed the ledger in the LIVE
+    # work tree at exit 0, with the stamp written, so `--check` then reported "up to date"
+    # about a copy inside the repository it exists to survive.
+    #
+    # That was the third round in which this same guard failed open on a decision keyed to text,
+    # so the wording is not patched again. The question is answered without asking git at all:
+    # a path is inside a repository if any ancestor carries a repository MARKER. Markers do not
+    # move with git's locale, version or error phrasing, and an unreadable one is still visible,
+    # which turns the whole failure mode from "guess no" into "see it".
+    #
+    # Both marker shapes are checked, because the old exit-status version accepted both and
+    # losing either would be a silent regression (pinned by case 32):
+    #   - a `.git` entry, whether directory, file (linked worktree, submodule) or dangling link;
+    #   - a git directory itself, i.e. HEAD + objects/ + refs/, which is what a BARE repository
+    #     and a `.git` directory look like from outside, and neither has a `.git` child.
+    # Only traversal is required, never read permission, so a repository locked down to 000 is
+    # detected rather than walked into.
+    #
+    # KNOWN RESIDUAL, unchanged and stated rather than discovered: a directory that merely
+    # CONTAINS a file named `.git` without being a repository is refused too. Fail-closed, and
+    # the cost is one confusing refusal against a leak that reports success.
     in_work_tree() {
-      local err
-      err="$(git -C "$1" rev-parse --is-inside-work-tree 2>&1 >/dev/null)" && return 0
-      case "$err" in
-        *"not a git repository"*|*"not a working tree"*) return 1 ;;
-        *) echo "ledger-backup: git cannot read the repository state at $1:" >&2
-           echo "  ${err:-<no message>}" >&2
-           echo "  Whether this target sits in a repository cannot be decided, and guessing" >&2
-           echo "  'no' is how the ledger ends up inside one." >&2
-           exit 2 ;;
-      esac
+      local p="$1"
+      while :; do
+        if [ -e "$p/.git" ] || [ -L "$p/.git" ]; then return 0; fi
+        if [ -e "$p/HEAD" ] && [ -d "$p/objects" ] && [ -d "$p/refs" ]; then return 0; fi
+        [ "$p" = "/" ] && break
+        p="$(dirname "$p")"
+      done
+      return 1
     }
     refuse_in_repo() {
       echo "ledger-backup: the target is inside a git repository ($1)" >&2

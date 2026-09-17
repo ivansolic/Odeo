@@ -197,8 +197,13 @@ Constraints: <copied verbatim from the spec/story. Boundaries live in the
   `docs/codebase-map.md`; the plan lists which boundaries are nearby.
 
 ## Plan rubric (0-2 per criterion)
-Scored by `architecture-reviewer` during plan review, which is the actor that can
+Applied by `architecture-reviewer` during plan review, which is the actor that can
 walk the reference graph and the labels, and read again by the human at the gate.
+It is a checklist here, not a published score: that reviewer writes no eval record,
+and the plan loop stops on **clean**, not on a total (`docs/eval-framework.md`, the
+stop condition). The criteria below say what "clean" has to cover; the numbers are
+for the reviewer's own reasoning and for a human reading the plan, and nothing reads
+them as a gate.
 ```
 1. Executability   0 needs interpretation / 1 mostly / 2 context-free builder could run it.
                    "Could run it" = every signature, behavior rule, invariant, test case,

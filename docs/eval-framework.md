@@ -198,7 +198,7 @@ The review loop is an autonomous loop, so it needs a declared stop, not a human 
    **The plan loop is the one exit without a number.** `architecture-reviewer` writes no
    record and publishes no score, so its clearing verdict is **clean** (no real findings
    left), recorded by the orchestrator as `arch_review: clean (v<N>, <date>)` in the plan's
-   frontmatter, per `skills/build/SKILL.md` step 2. Stop conditions 2 and 3 below apply to
+   frontmatter, per `skills/build/SKILL.md`, mode B5 step 2. Stop conditions 2 and 3 below apply to
    it unchanged. The plan rubric still governs WHAT the reviewer checks; it just is not the
    thing the loop reads to stop.
 

@@ -336,6 +336,20 @@ if [ -z "$PWSH" ]; then
   skip "-UseGitBash skips an available WSL"
   skip "an invalid -Lang is refused before any handoff"
 else
+  # WARM THE REDIRECTED HOME ONCE, before anything snapshots it. pwsh creates its own
+  # bookkeeping under HOME on first launch (`.local/share/powershell/Modules`, `.cache`), and
+  # the anti-port case compares a before/after snapshot of that same HOME to prove install.ps1
+  # writes nothing itself. Pruning `.cache/powershell` covered one directory; the others were
+  # invisible only because earlier cases happen to launch pwsh first, which made a REORDERING
+  # of the cases, or a pwsh version that invents a seventh directory, turn the guarantee into a
+  # false failure blamed on install.ps1. One warm-up removes the ordering dependency for every
+  # directory at once, present and future, instead of naming them one by one. The prune stays:
+  # `.cache/powershell/StartupProfileData-NonInteractive` is rewritten on EVERY launch, which
+  # is churn no warm-up can settle.
+  mkdir -p "$TMP/empty-bin" "$TMP/home"
+  env -i HOME="$TMP/home" PATH="$TMP/empty-bin:/usr/bin:/bin" \
+      "$PWSH" -NoProfile -Command exit >/dev/null 2>&1
+
   cat > "$TMP/parse.ps1" <<'PS'
 param([string]$Path)
 $errors = $null
