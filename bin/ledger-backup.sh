@@ -59,6 +59,16 @@ GIT_DIR="$(git -C "$PROJECT_DIR" rev-parse --absolute-git-dir 2>/dev/null)" || G
 
 LEDGER_DIR="$PROJECT_DIR/.claude/tasks"
 FILES="todo.md lessons.md"
+# An UNREADABLE ledger directory is not an empty one. Without this, `chmod 000 .claude/tasks`
+# makes every `[ -f ]` below false, so the program reports "nothing to back up" and exits 0,
+# and the Stop hook then stays silent forever about a ledger it cannot see. That is the same
+# silent-failure shape this program exists to close, one line above the branch where it was
+# closed for timestamps.
+if [ -d "$LEDGER_DIR" ] && ! ls "$LEDGER_DIR" >/dev/null 2>&1; then
+  echo "ledger-backup: $LEDGER_DIR exists but cannot be read, so whether there is anything to" >&2
+  echo "  back up cannot be decided. Reporting nothing would be a lie." >&2
+  exit 2
+fi
 # The stamp lives inside the GIT DIR, never in the work tree. Nothing under .git is ever
 # tracked, in any project, so this needs no .gitignore entry anywhere and cannot be committed
 # by accident. It is also per-worktree, which is correct: it describes this clone's copy.
@@ -172,29 +182,48 @@ case "$KIND" in
     parent="$(dirname "$dest")"
     [ -d "$parent" ] || { echo "ledger-backup: no such directory: $parent" >&2; exit 4; }
 
-    # And never inside the project: a copy in the work tree is not a backup, it is the same
-    # file with a second name and the same single point of failure, and the next `git add -A`
-    # commits it.
+    # THE INVARIANT: a backup target may not live inside ANY git work tree.
     #
-    # ASKED OF GIT, not of the strings. Comparing "$dest/" against "$PROJECT_DIR"/* was a raw
-    # prefix test on unresolved paths, and three ordinary shapes walked straight through it,
-    # each landing the ledger inside the work tree at exit 0 with a stamp: a symlink outside
-    # the repo pointing back in, a path containing `..`, and a prefix differing only in case
-    # on the case-insensitive filesystem macOS ships by default. git resolves all three,
-    # because it answers about the repository a path is actually in.
+    # This replaced three rounds of asking the narrower question, "is it inside THIS project",
+    # which turned out to have an endless supply of disguises. Each round closed the spelling
+    # the previous one demonstrated and opened another: the raw prefix compare missed a
+    # symlink, a `..` and a case difference; asking git about the destination's PARENT closed
+    # those and reopened a nested repo the prefix compare had caught, plus a sibling worktree
+    # and a destination that is itself a symlink. Trading one failure shape for another is the
+    # signature of guarding instances instead of removing the class.
+    #
+    # So the question changed instead of the answer. "Not in any repository" is decided by git
+    # in one call, for every disguise at once, because a resolved directory either sits in a
+    # work tree or does not. It is also the stronger rule, and the honest one: a backup inside
+    # a repo shares the disk it protects against, and any `git add -A` can publish it.
+    #
+    # The KNOWN RESIDUAL, written down rather than discovered later: a synced folder that
+    # happens to live inside some unrelated repository is refused too. That is a real cost and
+    # a deliberate one.
+    in_work_tree() { git -C "$1" rev-parse --is-inside-work-tree >/dev/null 2>&1; }
+    refuse_in_repo() {
+      echo "ledger-backup: the target is inside a git repository ($1)" >&2
+      echo "  A backup in a repo is not a backup: it shares the disk it protects against, and" >&2
+      echo "  the next 'git add -A' commits the ledger you are keeping out of git." >&2
+      echo "  Point it at a directory outside every repository." >&2
+      exit 2
+    }
     parent_real="$(cd "$parent" 2>/dev/null && pwd -P)" \
       || { echo "ledger-backup: cannot resolve $parent" >&2; exit 4; }
-    dest_top="$(git -C "$parent_real" rev-parse --show-toplevel 2>/dev/null || true)"
-    proj_top="$(git -C "$PROJECT_DIR" rev-parse --show-toplevel 2>/dev/null || true)"
-    if [ -n "$dest_top" ] && [ -n "$proj_top" ] \
-       && [ "$(cd "$dest_top" && pwd -P)" = "$(cd "$proj_top" && pwd -P)" ]; then
-      echo "ledger-backup: the target is inside the project ($dest)" >&2
-      echo "  Resolved, it lands in the work tree at $dest_top." >&2
-      echo "  A copy in the work tree is not a backup; point it outside the repo." >&2
-      exit 2
-    fi
+    # Asked BEFORE creating anything, so an obvious mistake costs no directory...
+    in_work_tree "$parent_real" && refuse_in_repo "$parent_real"
     mkdir -p "$dest/internal-not-in-git" 2>/dev/null \
       || { echo "ledger-backup: cannot write to $dest" >&2; exit 4; }
+    # ...and again on the destination ITSELF once it exists, because `dest` can be a symlink
+    # that mkdir follows somewhere else entirely. Same question, asked of the place the files
+    # would actually land. The empty directories are removed on refusal; rmdir cannot take
+    # anything that is not empty.
+    dest_real="$(cd "$dest" 2>/dev/null && pwd -P)" \
+      || { echo "ledger-backup: cannot resolve $dest" >&2; exit 4; }
+    if in_work_tree "$dest_real"; then
+      rmdir "$dest/internal-not-in-git" "$dest" 2>/dev/null
+      refuse_in_repo "$dest_real"
+    fi
     # Staged, then moved into place. Copying straight in could leave todo.md refreshed and
     # lessons.md not, which would make the exit-4 message ("nothing was backed up") false, and
     # a half-true failure message is worse than a blunt one. Both files are written to a
@@ -225,6 +254,21 @@ case "$KIND" in
     [ -n "$remote" ] && [ -n "$branch" ] || { echo "ledger-backup: 'git' needs <remote> <branch>" >&2; exit 2; }
     url="$(git -C "$PROJECT_DIR" remote get-url "$remote" 2>/dev/null)" \
       || { echo "ledger-backup: this repo has no remote named '$remote'" >&2; exit 4; }
+
+    # NEVER the project's publish remote. `ledger_backup: git origin internal-files` is one
+    # plausible typo away from pushing todo.md and lessons.md to the repository the world
+    # reads, and the whole reason these files are gitignored is that they must never get
+    # there. Compared by URL as well as by name, because a second remote name can point at the
+    # same repository and the name is not the thing that publishes.
+    pub_remote="${CLAUDE_PUBLIC_REMOTE:-origin}"
+    pub_url="$(git -C "$PROJECT_DIR" remote get-url "$pub_remote" 2>/dev/null || true)"
+    if [ "$remote" = "$pub_remote" ] || { [ -n "$pub_url" ] && [ "$url" = "$pub_url" ]; }; then
+      echo "ledger-backup: '$remote' is this project's publish remote ($url)." >&2
+      echo "  The ledger is gitignored precisely so it never reaches there; pushing it to the" >&2
+      echo "  public repository would publish the task state and every recorded correction." >&2
+      echo "  Use a separate private remote for the backup." >&2
+      exit 2
+    fi
 
     tmp="$(mktemp -d)" || { echo "ledger-backup: no temp dir" >&2; exit 4; }
     trap 'rm -rf "$tmp"' EXIT

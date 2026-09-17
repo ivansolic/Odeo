@@ -265,8 +265,20 @@ printf 'ledger_backup: dir %s/backups\n' "$p19" >> "$p19/CLAUDE.md"
 out="$(run "$p19")"; rc=$?
 [ "$rc" = 2 ] && ok "an absolute target inside the project -> exit 2" \
   || bad "in-project target -> exit $rc (want 2)"
-case "$out" in *"inside the project"*) ok "and it says why, rather than blaming the path" ;;
+case "$out" in *"inside a git repository"*) ok "and it says why, rather than blaming the path" ;;
   *) bad "the refusal does not explain itself (got: $out)" ;; esac
+#     And inside an UNRELATED repository too. The rule is not "not in this project", which
+#     turned out to have an endless supply of disguises, but "not in any repository": one
+#     question git can answer for every disguise at once, and the stronger claim anyway, since
+#     a backup in someone else's repo is still on the same disk and still one `add -A` from
+#     being published.
+other="$TMP/unrelated-repo"; mkdir -p "$other"; ( cd "$other" && git init -q . ) >/dev/null 2>&1
+p19b="$(mkproject p19b "ledger_backup: dir $other/backups")"
+out="$(run "$p19b")"; rc=$?
+[ "$rc" = 2 ] && ok "a target inside an UNRELATED repository -> exit 2" \
+  || bad "target in another repo -> exit $rc (want 2)"
+[ -e "$other/backups" ] && bad "and it left a directory behind in that repo" \
+  || ok "and it leaves no directory behind"
 
 # 20. The placeholder from the template is NOT configuration. Every project scaffolded from
 #     project-templates/ carried a live `ledger_backup: git <remote-name> <branch>` because the
@@ -315,9 +327,29 @@ p22="$(mkproject p22)"
 p22_real="$(cd "$p22" && pwd -P)"
 ln -s "$p22_real" "$TMP/sneaky-link"
 mkdir -p "$TMP/sideways"
+#     The list is every disguise any round of review produced, kept together so a future
+#     change has to face all of them at once instead of one at a time:
+#       1 a symlink whose PARENT is outside but which points back in
+#       2 a path containing `..`
+#       3 the destination ITSELF being a symlink into the repo (mkdir follows it)
+#       4 a nested repository inside the project (the shape the git-toplevel version regressed)
+#       5 a sibling worktree of the same repository
+mkdir -p "$p22/vendor/nested" && ( cd "$p22/vendor/nested" && git init -q . ) >/dev/null 2>&1
+( cd "$p22" && git add -A && git commit -qm base ) >/dev/null 2>&1
+git -C "$p22" worktree add -q "$TMP/sibling-wt" -b wt-branch >/dev/null 2>&1
+#     Shape 3's symlink points at a directory that EXISTS, which is the measured bypass: the
+#     parent is outside the repo, so a guard that only asks about the parent says yes, and
+#     then mkdir follows the link and the files land in the work tree.
+mkdir -p "$p22_real/backups-via-link"
+ln -s "$p22_real/backups-via-link" "$TMP/dest-is-a-link"
 i=0
-for shape in "$TMP/sneaky-link/backups" "$TMP/sideways/../$(basename "$p22")/backups"; do
+for shape in "$TMP/sneaky-link/backups" "$TMP/sideways/../$(basename "$p22")/backups" \
+             "$TMP/dest-is-a-link" "$p22_real/vendor/nested/backups" "$TMP/sibling-wt/backups"; do
   i=$((i + 1))
+  # The stamp is cleared per shape, or one shape that WRONGLY succeeded leaves a stamp that
+  # the next shape's assertion then blames on itself. Measured while mutation-testing: shape 3
+  # slipped through and shape 4 was reported as stamping success it never wrote.
+  rm -f "$(stamp_of "$p22")/odeo-ledger-backup-stamp"
   printf 'ledger_backup: dir %s\n' "$shape" > "$p22/CLAUDE.local.md"
   out="$(run "$p22")"; rc=$?
   [ "$rc" = 2 ] && ok "a disguised in-project target is refused ($i: exit 2)" \
@@ -371,6 +403,45 @@ else
     || bad "unreadable file -> exit $rc (want 4): $out"
   case "$out" in *"NOTHING was backed up"*) ok "and it says nothing was backed up" ;;
     *) bad "a failed copy did not say so (got: $out)" ;; esac
+fi
+
+# 25. The project's PUBLISH remote is refused as a backup target. `ledger_backup: git origin
+#     internal-files` is one plausible typo from pushing the task state and every recorded
+#     correction to the repository the world reads, and being unreadable there is the entire
+#     reason these files are gitignored. Checked by URL as well as by name, since a second
+#     remote name can point at the same repository and the name is not what publishes.
+b25="$(mkremote r25)"; p25="$(mkproject p25 "ledger_backup: git origin internal-files")"
+git -C "$p25" remote add origin "$b25" >/dev/null 2>&1
+out="$(run "$p25")"; rc=$?
+[ "$rc" = 2 ] && ok "the publish remote by name -> exit 2" || bad "git origin -> exit $rc (want 2)"
+case "$out" in *"publish remote"*) ok "and it says that is what it is" ;;
+  *) bad "the refusal does not name the reason (got: $out)" ;; esac
+#     Same repository, different remote name: the name is not the thing that publishes.
+printf 'ledger_backup: git mirror internal-files\n' > "$p25/CLAUDE.local.md"
+git -C "$p25" remote add mirror "$b25" >/dev/null 2>&1
+out="$(run "$p25")"; rc=$?
+[ "$rc" = 2 ] && ok "a second name pointing at the publish URL -> exit 2" \
+  || bad "an alias of the publish remote was accepted (exit $rc)"
+git -C "$b25" rev-parse --verify internal-files >/dev/null 2>&1 \
+  && bad "and it pushed the ledger to the publish remote" || ok "and nothing was pushed there"
+
+# 26. An UNREADABLE ledger directory is not an empty one. `chmod 000 .claude/tasks` made every
+#     file test false, so the program reported "nothing to back up" at exit 0 and the Stop
+#     hook stayed silent forever about a ledger it could not see: the silent-failure shape
+#     this program exists to close, one line above where it was closed for timestamps.
+p26="$(mkproject p26 "ledger_backup: dir $TMP/synced/ledger26")"
+mkdir -p "$TMP/synced"
+chmod 000 "$p26/.claude/tasks"
+out="$(run "$p26")"; rc=$?
+out2="$(run "$p26" --check)"; rc2=$?
+chmod 755 "$p26/.claude/tasks"
+if [ "$(id -u)" = "0" ]; then
+  echo "SKIP - running as root, an unreadable directory is still readable"
+else
+  [ "$rc" = 2 ] && ok "an unreadable ledger directory -> exit 2, not 'nothing to back up'" \
+    || bad "unreadable ledger dir -> exit $rc (want 2): $out"
+  [ "$rc2" = 2 ] && ok "and --check refuses too, instead of reporting fine" \
+    || bad "--check on an unreadable ledger -> exit $rc2 (want 2)"
 fi
 
 echo ""
