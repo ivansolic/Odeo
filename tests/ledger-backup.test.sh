@@ -504,6 +504,75 @@ else
     || bad "--check on an unreadable ledger -> exit $rc2 (want 2)"
 fi
 
+# 27. PUSH REFUSED BY GIT ITSELF, with no hook in sight. Case 6 proves exit 5 against a
+#     `pre-receive` hook we wrote, which is a fixture of a refusal: it proves the program reads
+#     a non-zero push, not that git refuses anything on its own. Here the remote is an ORDINARY
+#     NON-BARE repository with the backup branch checked out, and git's own
+#     `receive.denyCurrentBranch` refuses the push. Nothing in this case is our invention
+#     except the mistake, which is a realistic one: pointing the backup at a working clone on
+#     another disk instead of at a bare repo.
+nb="$TMP/nonbare-remote"
+git init -q -b internal-files "$nb" >/dev/null 2>&1
+printf 'seed\n' > "$nb/seed.md"
+git -C "$nb" add -A >/dev/null 2>&1
+git -C "$nb" commit -q -m seed >/dev/null 2>&1
+p27="$(mkproject p27 "ledger_backup: git backup internal-files")"
+git -C "$p27" remote add backup "$nb" >/dev/null 2>&1
+out="$(run "$p27")"; rc=$?
+[ "$rc" = 5 ] && ok "git's own refusal of a checked-out branch -> exit 5" \
+  || bad "denyCurrentBranch -> exit $rc (want 5): $out"
+has_stamp "$p27" && bad "and it stamped success for a push git refused" \
+  || ok "and no stamp, so --check still reports behind"
+git -C "$nb" show "internal-files:internal-not-in-git/todo.md" >/dev/null 2>&1 \
+  && bad "and the ledger reached the remote anyway" || ok "and nothing reached the remote"
+
+# 28. NO WRITE ACCESS to a reachable remote, which is what an expired credential or a
+#     read-only deploy key looks like from here: the refs advertise fine, the push cannot land.
+#     The exit-5 message names credentials as a common cause, and until now nothing proved the
+#     program reaches exit 5 for anything but a hook. Permissions are the portable stand-in: a
+#     real expired token needs a server, and a test that needs a server does not get run.
+b28="$(mkremote r28)"; p28="$(mkproject p28 "ledger_backup: git backup internal-files")"
+git -C "$p28" remote add backup "$b28" >/dev/null 2>&1
+chmod -R a-w "$b28" 2>/dev/null
+out="$(run "$p28")"; rc=$?
+chmod -R u+w "$b28" 2>/dev/null
+if [ "$(id -u)" = "0" ]; then
+  echo "SKIP - running as root, a read-only repository is still writable"
+else
+  [ "$rc" = 5 ] && ok "a reachable remote that refuses the write -> exit 5" \
+    || bad "read-only remote -> exit $rc (want 5): $out"
+  case "$out" in *"NOTHING was backed up"*) ok "and it says nothing was backed up" ;;
+    *) bad "a refused write did not say the backup failed (got: $out)" ;; esac
+  has_stamp "$p28" && bad "and it stamped a backup that never landed" || ok "and leaves no stamp"
+fi
+
+# 29. EXIT 4 FROM THE CLONE, not from the probe. The program asks the remote whether the branch
+#     exists, and only then clones; case 7 kills the whole target so both calls fail together,
+#     which leaves the clone's own failure branch unproven. Here the refs stay readable (the
+#     branch exists, so the program takes the clone path) while the objects do not, so the
+#     failure happens where nothing had exercised it. Both branches print the same message on
+#     purpose, so this asserts the CODE and the absence of a stamp, not the wording.
+b29="$(mkremote r29)"; p29="$(mkproject p29 "ledger_backup: git backup internal-files")"
+git -C "$p29" remote add backup "$b29" >/dev/null 2>&1
+run "$p29" >/dev/null 2>&1                        # first backup creates the branch
+sleep 1
+printf 'ledger v2\n' > "$p29/.claude/tasks/todo.md"
+rm -f "$(stamp_of "$p29")/odeo-ledger-backup-stamp"
+chmod -R 000 "$b29/objects" 2>/dev/null
+out="$(run "$p29")"; rc=$?
+chmod -R 755 "$b29/objects" 2>/dev/null
+if [ "$(id -u)" = "0" ]; then
+  echo "SKIP - running as root, unreadable objects are still readable"
+else
+  [ "$rc" = 4 ] && ok "an existing branch whose objects cannot be read -> exit 4" \
+    || bad "unreadable objects -> exit $rc (want 4): $out"
+  has_stamp "$p29" && bad "and it stamped success for a backup that never got off the disk" \
+    || ok "and leaves no stamp"
+  landed="$(git -C "$b29" show internal-files:internal-not-in-git/todo.md 2>/dev/null)"
+  [ "$landed" = "ledger v2" ] && bad "and the new content reached the branch anyway" \
+    || ok "and the branch still carries the previous backup, not the new one"
+fi
+
 echo ""
 if [ "$fail" -eq 0 ]; then echo "ledger-backup: all $pass assertions passed."; else echo "ledger-backup: $fail FAILURE(S) above."; fi
 exit "$fail"
