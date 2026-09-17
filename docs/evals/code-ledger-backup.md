@@ -1,9 +1,9 @@
 ---
-artifact: bin/ledger-backup.sh + tests/ledger-backup.test.sh (+ session-end-check.sh, init-project.ledger, project-templates/CLAUDE.md, skills/retro, README counts)
+artifact: bin/ledger-backup.sh + tests/ledger-backup.test.sh (+ tests/install-ps1.test.sh, README counts, docs/eval-framework.md, docs/plan-format.md)
 type: code
 branch: feature/windows-powershell-entry
-reviewed_commit: 2e7c740
-artifact_version: 5
+reviewed_commit: 994ede8
+artifact_version: 6
 date: 2026-09-17
 scorer: code-reviewer
 model: claude-opus-5[1m]
@@ -17,199 +17,300 @@ previous_total: 8/12
 
 ## Artifact
 
-Commit `2e7c740` on `feature/windows-powershell-entry`, clean tree. Two commits moved the code
-since round 4: `26e69a9` closed I1, I2 and I3 from that record, and `2e7c740` added test cases
-27, 28 and 29. No plan exists in `docs/plans/` for this work, so the binding statements remain
-the program header, the guard comments, the `/retro` exit table and the commit bodies.
+Commit `994ede8` on `feature/windows-powershell-entry`, clean tree. One commit since round 5.
+It removes the class round 5 stopped on: `in_work_tree` no longer calls git, it walks the
+target's resolved ancestors for a repository MARKER. It also unsets `GIT_DIR`/`GIT_WORK_TREE`,
+rewrites the header's exit-2 row, and adds cases 30 to 33 (94 -> 103 assertions). No plan exists
+in `docs/plans/` for this work, so the binding statements remain the program header, the guard
+comments, `/retro`'s exit table and the commit bodies.
 
-## Round 4's required fixes, checked against the tree
+## Round 5's blocker, checked against the tree
 
-| round-4 finding | status at HEAD |
+**C1 is CLOSED, structurally, and the class is removed rather than patched.** Verified by
+probe, not by reading:
+
+| probe | result at HEAD |
 |---|---|
-| I1, publish guard made a CLASS claim with a TEXT compare (3 spellings pushed) | **closed, the honest way.** The comparison runs through `ls-remote --get-url`, resolves a local path with `pwd -P`, and the comment now states exactly what it does and what it cannot judge. All three spellings refused, pinned by case 25. |
-| I2, `mkdir -p` followed a symlink one level below the check | **closed.** The question is now asked of `$dest/internal-not-in-git` after creating it (`:244-249`); case 25b pins it. I re-ran the round-4 probe: exit 2, nothing in the work tree. |
-| I3, "git could not answer" read as "not in a repository" | **half closed.** The unreadable-`.git/config` spelling now refuses (case 25c, reproduced). A repository git cannot read whose message happens to read "not a git repository" still lands the ledger inside a live work tree at exit 0. See C1 below. |
-| N, `in_work_tree` is named for a question it does not ask | closed, said out loud at `:209-212`. |
-| N, three assertions in the disguise loop could not fail | closed, replaced by a `find` for the harm itself (`:361`), which is shape-independent. |
-| N, `/retro` exit-2 row understated | closed, the row now lists every refusal and the paragraph below states what the program cannot judge. |
-| N, config docs read before choosing a target | closed for `project-templates/CLAUDE.md:93-96`; the program header still does not carry it (I2 below). |
-| N, `GIT_DIR` assigned in a shell that may have inherited it exported | **still open**, and still measured: with `GIT_DIR` exported, a legitimate outside target is refused with a message naming a repository it is not in. |
-| N, case 26 `chmod 444` platform note | still open. |
-| carried nits (case-only assertions, `awk '{print $3}'`, unused `d`) | still open. |
+| round-5 C1 exactly (linked worktree, `chmod 000 .git/worktrees`) | refused, exit 2, nothing written, no stamp (case 30, green) |
+| `.git` file pointing at a gitdir that is gone | refused, exit 2 (case 31, green) |
+| bare repository, and a target inside a `.git` directory | both refused (case 32, green); `git init --bare --ref-format=reftable` still creates `refs/`, so the HEAD+objects+refs test holds on git 2.50.1 |
+| a repo whose `.git` sits in a **traversable but unreadable** ancestor (`chmod 111`) | refused. `[ -e "$p/.git" ]` needs search, not read, and every ancestor of a path that `cd`+`pwd -P` resolved has search by construction |
+| symlinked ancestors, `..`, case-differing, dest-is-a-symlink | all resolved away before the walk starts (`pwd -P` on `$parent` and on the real landing dir), cases 22 and 25b green |
+| `GIT_DIR`+`GIT_WORK_TREE` exported at a different repo, legitimate outside target | now backs up correctly and stamps the RIGHT repo. Round 4's carried nit is closed |
+
+**Did dropping the "git cannot decide" exit-2 branch lose a signal?** No. I looked for a state
+git calls "inside a work tree" that the walk cannot see, and every candidate is covered: dubious
+ownership and an unreadable `.git/config` both still have a `.git` entry on disk; `GIT_DIR` and
+`GIT_WORK_TREE` are unset, so git can no longer see a repository the disk does not show;
+`GIT_CEILING_DIRECTORIES` and the filesystem-boundary rule only make git's discovery *narrower*
+than the walk. The walk is strictly stricter than what it replaced, and it is now the only
+mechanism, so there is nothing left for a "cannot decide" branch to decide. Marker detection is
+permission- and locale-independent, which is what the round-5 finding asked for.
+
+`/retro`'s exit-2 row (`skills/retro/SKILL.md:51`) still says exit 2 covers "a state the program
+could not decide ... a repository git cannot read". After this commit that is no longer a state:
+such a repository is now plainly detected and refused. Small overstatement, noted under nitpicks.
 
 ## Findings
 
 ### Critical
 
-None. No default-state path leaks, and no probe made the stamp claim a backup that never
-happened **except** under C1's precondition, which is not a default state.
+None. Every default-state path I probed refuses correctly, the containment invariant holds
+against every disguise this branch has accumulated, and no configuration the project ships or
+documents reaches the two Importants below.
 
 ### Important
 
-**C1. The containment guard now decides the safety question from git's STDERR TEXT, and a work
-tree whose gitdir git cannot read is read as "no repository", so the ledger lands in it at exit
-0 with a stamp.** `bin/ledger-backup.sh:213-224`. `in_work_tree` returns "not in a repo" when
-the message matches `*"not a git repository"*`. git prints exactly that, with an exit of 128,
-when it finds a `.git` file it cannot follow. Measured on the shipped script:
+**I1. The environment guard added by this very commit covers two of the four git variables that
+matter, and the one it misses lets the backup DESTROY the caller's index while reporting success.**
+`bin/ledger-backup.sh:45-50`. The rationale written above `unset GIT_DIR GIT_WORK_TREE` names the
+scenario itself: "routine when this runs from a git hook". Measured which variables git actually
+exports to hooks on 2.50.1:
 
 ```
-git worktree add $SB/wt ; mkdir $SB/wt/backups ; chmod 000 $SB/main/.git/worktrees
-ledger_backup: dir $SB/wt/backups
--> exit 0, "refreshed", todo.md + lessons.md in the live work tree
--> STAMP WRITTEN, so --check then answers "up to date"
--> after permissions are restored: git status shows `?? backups/`, check-ignore says NOT IGNORED
+pre-commit / prepare-commit-msg / commit-msg / post-commit -> GIT_INDEX_FILE
+git commit      -> GIT_INDEX_FILE=.git/index          (relative, harmless by accident:
+                                                       `git -C "$work"` re-roots it in the clone)
+git commit -a   -> GIT_INDEX_FILE=/abs/.git/index.lock (absolute, and then it bites)
 ```
 
-The same message, and the same acceptance, for a `.git` file pointing at a gitdir that no longer
-exists (a moved main repo, a submodule copied without `.git/modules`). This is the exact shape
-`26e69a9` says it closed ("Now three answers: in a repo, not in a repo, and cannot tell, which
-refuses"): the third answer exists, but which answer you get is decided by a string, so one
-spelling of "cannot tell" is still classified as "no repository". It also means the guard's
-behaviour depends on git's locale: a translated "not a git repository" would fail the match and
-refuse every legitimate target (fail-closed, unverified here, this macOS git ships no
-translations).
-
-**This is the same CLASS as round 3's containment spellings and round 4's I1, which is three
-consecutive rounds, so `docs/eval-framework.md` stop condition 3 applies and I am not proposing a
-fourth string pattern.** The decidable, message-free version exists and I measured it against the
-fixtures that matter before writing it here:
+`git -C "$work" add -A` (`:380`) and the commit at `:388-391` obey an inherited `GIT_INDEX_FILE`.
+Measured on the shipped script:
 
 ```
-p="$landing_real"; while :; do [ -e "$p/.git" ] && refuse; [ "$p" = / ] && break; p="$(dirname "$p")"; done
-  C1's unreadable worktree gitdir -> refused
-  case 25c's unreadable .git/config -> refused
-  an ordinary outside target       -> accepted (no false positive)
-  a target under a $HOME that is a repo -> refused (the residual already accepted, unchanged)
+GIT_INDEX_FILE=$proj/.git/index  ledger-backup.sh $proj
+  -> exit 0, "refreshed", stamp WRITTEN
+  -> project index BEFORE: CLAUDE.md, src.txt
+  -> project index AFTER : internal-not-in-git/lessons.md, internal-not-in-git/todo.md
+  -> git status in the project: "fatal: unable to read 1f9d725a..."   (the objects lived in
+     the temp clone, which the EXIT trap has already deleted)
+
+as a real pre-commit hook, `git commit -am`:
+  -> "error: invalid object ... error: Error building trees", the user's commit does NOT happen,
+     their work stays uncommitted, and ledger-backup reported success and stamped it
 ```
 
-Combined with `git rev-parse` exiting 0 (which keeps the bare-repo and `.git`-dir strictness) and
-with `unset GIT_DIR GIT_WORK_TREE` at the top of the program (the still-open round-4 nit, which
-closes the one case a filesystem walk cannot see), the stderr text stops being load-bearing for
-safety and is left to choose wording only. If the human prefers not to take that, the other
-honest close is the one this branch already used for the publish guard: state in the header, the
-guard comment and `/retro` that a repository git cannot READ is not always detected, and this
-becomes a documented residual instead of a falsified invariant. What must not happen is a fifth
-phrasing of the lesson at `lessons.md` 2026-09-16; the global rule for a recurring lesson is a
-mechanism at the point of use, and a test that plants an unreadable gitdir is that mechanism.
+Staged-only work (anything built with `git add -p`) is gone with the index; the blobs may survive
+in `.git/objects`, the arrangement does not. This is the program's own signature failure, a tool
+reporting a success it did not have, pointed at the user's repository instead of at the backup.
 
-**I2. The header's exit-code table, which the program itself calls the caller contract, still
-describes exit 2 as it was three rounds ago.** `bin/ledger-backup.sh:30-37` says "2 usage, or not
-inside a git work tree". Exit 2 today also means: the target is inside any git repository, git
-could not decide that question, the ledger directory or an mtime is unreadable, the target is the
-publish remote, the kind is unknown, and `dir` got a relative path. `/retro`'s row was rewritten
-in the same commit that widened the code; the header was not. Case 21 only checks that each
-`exit N` has a row in `skills/retro/SKILL.md`, so this drift is invisible to the suite that was
-built to prevent exactly it. Fix: mirror the `/retro` wording into the header, and extend case 21
-to require each code to appear in the header's table as well, so the two cannot separate again.
+Fix, one line, and I proved it rather than proposing it:
+
+```
+unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_OBJECT_DIRECTORY \
+      GIT_ALTERNATE_OBJECT_DIRECTORIES GIT_COMMON_DIR GIT_NAMESPACE GIT_QUARANTINE_PATH
+  original script + GIT_INDEX_FILE -> project index replaced, `git status` fatal
+  patched  script + GIT_INDEX_FILE -> project index byte-identical, backup still exit 0
+```
+
+And pin it: a case that sets `GIT_INDEX_FILE` to the project's index, runs the git branch, and
+asserts `git -C "$p" ls-files` is unchanged. The guard this commit added currently has no test at
+all, which is `lessons.md` 2026-08-03 ("a guard never observed failing is false confidence")
+applied to the guard, not to the code it guards.
+
+**I2. The containment invariant is enforced on the `dir` branch and not on the `git` branch, so
+the same mistake succeeds through the other kind.** `bin/ledger-backup.sh:197-280` versus
+`:305-348`. `in_work_tree` is defined INSIDE the `dir)` arm, so the `git)` arm cannot reach it and
+does not ask. Measured:
+
+```
+ledger_backup: git backup internal-files, with remote `backup` = $PROJECT/inside-bare.git
+  -> exit 0, "refreshed", stamp written
+  -> git status in the project: `?? inside-bare.git/`
+  -> git check-ignore: NOT IGNORED
+  -> git add -A stages 24 files from it, including 5 loose objects that ARE todo.md and
+     lessons.md verbatim
+```
+
+The `dir` branch refuses exactly this shape at exit 2 with "a backup in a repo is not a backup:
+it shares the disk it protects against, and the next 'git add -A' commits the ledger you are
+keeping out of git" (`:258-259`). That sentence is true of the `git` branch too, and the header's
+exit-2 row (`:34`) promises the refusal for "a target inside ANY git repository" without saying
+it means only the `dir` kind. Fix: hoist `in_work_tree` and `refuse_in_repo` above the `case`,
+and in the `git` arm, after `url` has been through `ls-remote --get-url`, resolve a local-path URL
+(`[ -d "$url" ]`, and the `file://` spelling the nitpicks below already flag) and run the same
+check on it. Pin with a case that points `backup` at a bare repo inside the work tree.
+
+**I3. The commit fixed the header's exit-2 row and left exit 4 and exit 3 drifting the same way,
+and case 33 is structurally blind to it.** `bin/ledger-backup.sh:40-41`. The header says exit 4 is
+"target unreachable (no such remote, clone/fetch failed, directory missing)". Exit 4 is also
+returned for an unwritable destination (`:268`, `:290`), a failed copy (`:294`, `:378`), a failed
+move (`:298`), no temp dir (`:350`), a failed `git init` (`:361`) and a failed commit (`:391`).
+Case 24 in the suite deliberately pins exit 4 for an *unreadable ledger file*, which the header
+describes as the target being unreachable. `/retro` already has the right wording
+(`skills/retro/SKILL.md:53`, "unreachable remote, missing directory, **a copy that failed**"), so
+the two tables this commit set out to reconcile are still apart, one row down from the one it
+reconciled. Same for exit 3: `/retro:52` carries the template-placeholder state, the header
+(`:40`) does not, and `:121-127` returns 3 for it. Case 33 checks that a row EXISTS, and its own
+comment says it cannot catch a row that lies, so the mechanism added this round would never have
+found the defect this round fixed. Fix: mirror `/retro`'s rows 3 and 4 into the header, and
+delete the "a repository git cannot read" clause from `/retro`'s row 2, which stopped being a
+state at this commit.
+
+**I4. The refusal message names the target and throws away the only fact the user needs, which
+ancestor carried the marker.** `bin/ledger-backup.sh:256-262`, called with `$landing_real` at
+`:266` and `:279`. Measured: with a repository three levels up, the message is "the target is
+inside a git repository (/.../hid/repo/sub/target)" and never mentions `/.../hid/repo`. This
+matters more after this rewrite than before it, because the guard now fires on a pure disk rule
+with no exceptions: a user whose `$HOME` is a dotfiles repo gets every target under `$HOME`
+refused, including `~/Dropbox/odeo-ledger`, which is the header's own documented example at `:26`.
+The walk already knows the answer and discards it. Fix: have `in_work_tree` print the marker path
+it stopped at, and have `refuse_in_repo` name both ("the target `<x>` is inside the repository at
+`<y>`"). One extra sentence when the marker is at `$HOME` would pay for itself.
 
 ### Nitpicks
 
-- `tests/ledger-backup.test.sh:436-437` and the body of `26e69a9` both say the publish-remote
-  residual "is stated in the program header". It is not: `grep -n 'ssh\|public' bin/ledger-backup.sh`
-  puts it in the guard comment (`:295-298`), and it is also in `/retro`, the project template and
-  the system map. Point at the guard comment, or add the sentence to the header.
-- `bin/ledger-backup.sh:299-305`. `canon_url` tests `[ -d "$u" ]` against the CALLER's cwd, while
-  git resolves a relative remote URL against the repository. Measured: with `alias = ../pub.git`
-  and cwd `/tmp`, the publish compare misses. No leak follows, because the later bare
-  `git ls-remote "$url"` uses the same wrong base and the run dies at exit 4, but the message it
-  prints then ("offline, or no access") is false. Fix: resolve inside `$PROJECT_DIR`.
-- Measured, inside the stated residual but worth one clause: `origin = $SB/pub.git`,
-  `alias = file://$SB/pub.git` -> exit 0, ledger PUSHED to the publish remote. The comment says a
-  URL that is a local path is settled by `pwd -P` "at once"; a `file://` URL is a local path with
-  a scheme and is not. Say so where the residual is written, do not add another comparison.
-- `bin/ledger-backup.sh:57`, carried from round 4 and re-measured at HEAD: `GIT_DIR` exported by
-  the caller makes every `git -C` in the program obey it, and a legitimate outside target is
-  refused with a message naming a repository it is not in. Fail-closed, message false. Fixing it
-  is also half of C1's fix.
-- `tests/ledger-backup.test.sh:529-575`. Cases 28 (`:536-538`) and 29 (`:561-563`) `chmod` the fixture,
-  run, restore, and only then check for root and skip; if an assertion aborts the suite between
-  the chmod and the restore, the `trap rm -rf "$TMP"` hits a read-only tree. Put the restore in a
-  per-case subshell trap. Case 29 restores `objects` to 755 rather than git's 444, which is
-  harmless in `$TMP` but reads as an accident.
-- Carried, unchanged and still true: `awk '{print $3}'` at `:276` silently truncates
-  `ledger_backup: git backup my branch` to branch `my` (measured: exit 4, no mention of the
-  branch name); the case-only assertions at `tests/ledger-backup.test.sh:371-377` are vacuous on
-  a case-sensitive filesystem; `tests/ledger-backup.test.sh:148` still assigns an unused `d`; case
-  26 tests `chmod 000` only, with no note that `444` rests on this platform's `ls`.
+- `bin/ledger-backup.sh:251-252`. The loop terminates on `[ "$p" = "/" ]`. Measured on this
+  platform `pwd -P` can return `//` (POSIX permits it) and `dirname //` returns `/`, so it
+  terminates here; on a platform whose `dirname //` returns `//` this hangs forever. Make it a
+  fixpoint instead of a literal: `np="$(dirname "$p")"; [ "$np" = "$p" ] && break; p="$np"`. Same
+  cost, no platform assumption.
+- `bin/ledger-backup.sh:243-245`. The stated residual names only the "`.git` entry that is not a
+  repository" false positive. The second marker shape has one too: any directory holding a file
+  `HEAD` plus directories `objects/` and `refs/` is refused. Fail-closed and fine, but the comment
+  should carry both shapes since it carries one.
+- `bin/ledger-backup.sh:50` and `:69`. `GIT_DIR` is unset at 50 and then re-used at 69 as the
+  script's own variable. It is safe only because `unset` strips the export attribute; one `export`
+  or one `set -a` re-arms the exact bug just fixed, in a variable whose name is a git control
+  variable. Rename to `PROJECT_GIT_DIR`. That is `lessons.md`'s "mechanism at the point of use": a
+  name that cannot collide beats a comment explaining why the collision is currently harmless.
+- `tests/ledger-backup.test.sh:468-487`. Case 25c's comment still frames itself as "a git that
+  CANNOT ANSWER is not a git that said no repository". Nothing asks git any more, so the case now
+  duplicates case 22's plain-repo detection and no longer pins a distinct axis. The version that
+  pins what the new comment actually claims ("an unreadable one is still visible") is
+  `chmod 000 "$broken/.git"` rather than `.git/config`: the marker test needs search on `$broken`
+  only, so it must still refuse. Restate the comment to match the mechanism, per `lessons.md`
+  2026-09-16.
+- `tests/ledger-backup.test.sh:633-644`. Case 33 greps `exit [0-9]+` over the whole file, comments
+  included, so a comment mentioning "exit 7" would demand a header row for a code the program
+  cannot return. Case 21 accepted that trade explicitly; worth one clause in case 33's comment so
+  the next reader does not rediscover it.
+- Carried from round 5, re-measured at HEAD and unchanged: `canon_url` (`:330-336`) resolves a
+  local URL against the CALLER's cwd while git resolves it against the repository, so a relative
+  remote URL misses the publish compare and the run then dies at exit 4 with a false "offline"
+  message; `origin = $SB/pub.git` versus `alias = file://$SB/pub.git` still pushes at exit 0 and
+  the residual text should say `file://` is a local path the `pwd -P` step does not settle;
+  `awk '{print $3}'` (`:307`) truncates `ledger_backup: git backup my branch` to branch `my`;
+  the case-only assertions at `tests/ledger-backup.test.sh:371-377` are vacuous on a
+  case-sensitive filesystem; `tests/ledger-backup.test.sh:147` still assigns an unused `d`;
+  cases 28 and 29 still `chmod` without a per-case restore trap (case 30 got this right,
+  restoring before its assertions, which is the pattern the other two should copy); case 26 still
+  has no note that `chmod 444` rests on this platform's `ls`.
+- Not re-scored here, flagged as the other record's finding: `tests/install-ps1.test.sh:339-352`
+  adds a one-time HOME warm-up. It does not touch ledger-backup and I did not re-run that suite.
 
 ## Scores
 
-correctness 1/2, two of round 4's three Importants are closed and independently reproduced here
-(the leaf-symlink landing dir, the three publish spellings), exits 4 and 5 are now proven against
-git's own refusals rather than a fixture hook, and 94 assertions are green. Docked for C1: a
-measured path still puts the ledger in a live work tree at exit 0 with a stamp, and for the
-cwd-relative URL resolution. Not 0: the precondition is an unreadable or missing gitdir, not a
-default state, and every default path I probed refuses correctly.
+correctness 1/2, the blocker is genuinely gone and I could not find a way back into it: the
+containment guard now holds against unreadable gitdirs, dangling `.git` pointers, bare repos,
+`.git` directories, unreadable-but-traversable ancestors, symlinks and `..`, and it holds without
+reading a message from anything. Docked, not raised to 0, for two measured wrong outcomes at
+exit 0 with a stamp: I1 replaces the caller's git index, I2 lets the git branch accept a target
+the dir branch refuses by name. Both need a configuration this project neither ships nor
+documents, and every default path I probed refuses correctly, which is why these are Important
+and not Critical. A reader who thinks "the tool corrupts the user's index" is Critical regardless
+of precondition will reach 7/12 and the same verdict; the facts are the same either way.
 
-security 1/2, the round-4 security dock is closed, the publish guard no longer overclaims and the
-three spellings that pushed the ledger to the publish remote are refused and pinned. The new dock
-is C1's confidentiality path: `todo.md` and `lessons.md` are gitignored precisely so they cannot
-be committed, and under C1 they land untracked and unignored in a work tree while `--check`
-reports "up to date". Hygiene stays good: quoting, no `eval`, no ledger content on stdout, stamp
-under `.git`, no network on `--check`, `ls-remote --get-url` contacts nothing.
+security 1/2, the confidentiality path that docked round 5 is closed and independently
+reproduced: the ledger no longer reaches a live work tree through any containment disguise I
+could construct, and the publish-remote guard still refuses all three spellings. The new dock is
+I2: the ledger's content ends up inside the work tree as loose objects, untracked and NOT
+ignored, so the next `git add -A` stages it, which is precisely what gitignoring these files was
+for. Hygiene remains good: quoting throughout, no `eval`, no ledger content on stdout, stamp
+under the git dir, `--check` offline, `ls-remote --get-url` contacts nothing.
 
-performance 2/2, the added calls are local config reads. The suite runs in 16s, dominated by
-three deliberate `sleep 1`s that the mtime assertions need.
+performance 2/2, the rewrite removed a git process from the hot path and replaced it with a
+handful of `test` calls plus one `dirname` fork per ancestor. The suite runs in 16.3s, still
+dominated by three deliberate `sleep 1`s that the mtime assertions need.
 
-readability 1/2, the guard comments are now accurate about their own mechanism, which is what
-round 4 asked for, and the publish comment states its residual in the same breath as its claim.
-Docked for I2: the header's exit-code table, which the file itself calls the thing "a caller must
-be able to tell apart", describes a version of exit 2 that stopped being true two commits ago,
-and for the test comment that sends a reader to the header for a residual the header does not
-carry.
+readability 1/2, the code got much simpler (nine lines, no subprocess, no message parsing) and
+the comment states its own residual instead of implying none. Docked for I3 (the header's exit-4
+and exit-3 rows describe a program that has not existed for several commits, while `/retro` is
+correct), I4 (a refusal that names the wrong path), and the `GIT_DIR` name re-use at `:69`.
+The guard now carries roughly 25 lines of historical narrative over 9 lines of code; that
+history earned its place across five rounds, but it is at the point where a one-line statement of
+the rule plus a pointer to this record would read better than the third retelling.
 
-testing 1/2, the real step up this round: cases 27, 28 and 29 replace a hook we wrote with git's
-own refusals (`receive.denyCurrentBranch`, a read-only remote) and reach the clone branch's exit
-4 for the first time, each asserting the absent stamp, which is the property that keeps `--check`
-honest. The three assertions that could not fail are gone, replaced by a search for the harm.
-Docked because coverage still follows the fix rather than the risk: 25c pins one spelling of "git
-cannot answer" and C1 is the spelling nobody wrote a case for, and nothing pins the header's exit
-table the way case 21 pins `/retro`'s.
+testing 1/2, cases 30 and 31 are the right mechanism for the right reason: they reproduce the
+measured blocker, they were verified failing before the fix, and 31 needs no permission trick so
+it runs as root too. Case 32 pins what a rewrite could silently have dropped, which is the
+discipline `lessons.md` 2026-08-18 asks for. 103 assertions green, re-run here. Docked because
+the same commit shipped a second guard, `unset GIT_DIR GIT_WORK_TREE`, with zero coverage, and
+that is where I1 lives: no case would notice the variable list being wrong, short, or deleted.
+Also case 25c now claims an axis its mechanism no longer has.
 
-conventions 2/2, verified rather than accepted: `docs-claims-check.sh --assertions` is green with
-24 executables, 33 suites and 1007 assertions, matching README. Conventional commits, feature
-branch, no secrets, English comments, no em or en dashes in any changed file.
+conventions 2/2, verified rather than accepted: `docs-claims-check.sh --assertions` green with
+24 executables, 33 suites, 24 programs with their own suite and 1016 assertions, matching README.
+Conventional commit with a body that states what was measured and what was derived, feature
+branch, no secrets, English comments, no em or en dashes in any changed file. The headline
+`lessons.md` rule for this branch, eliminate a recurring class structurally rather than write a
+fourth pattern, was followed exactly, including declining to re-word the lesson.
 
 total 8/12 (threshold >= 9, no zero) -> REQUEST CHANGES.
 
 ## Ceiling
 
-12/12 stays structurally reachable and is now one decision away. C1 is decidable without another
-heuristic (the ancestor walk above, measured on four fixtures, plus unsetting git's environment
-variables), and I2 is a wording change plus one extra loop in case 21. The remote-side residual is
-unchanged from rounds 2 to 5: exits 4 and 5 are now proven against git's own refusals, and exit 0
-against a real network remote remains proven by owner attestation I did not reproduce. That
-residual is worth stating, not scoring.
+12/12 is reachable and closer than the unchanged total suggests. I1 is one line, proven here to
+fix it, plus one case. I2 is hoisting two functions above the `case` and one `[ -d "$url" ]`
+check. I3 is copying two rows `/retro` already has. I4 is returning the marker path the walk
+already computed. The remote-side residual is unchanged from rounds 2 to 6 and is worth stating
+rather than scoring: exits 4 and 5 are proven against git's own refusals, exit 0 against a real
+network remote remains owner attestation I did not reproduce.
+
+## Loop position
+
+**This is round 6 on this artifact, against a cap of three** (`docs/eval-framework.md`, stop
+condition 2). The loop ran this long only because the human took the escalation twice, after
+rounds 3 and 5, which is the intended use of the cap rather than a breach of it.
+
+**The class that stopped round 5 did not recur, it was removed.** That class was "a safety
+decision keyed on TEXT" (round 3's containment spellings, round 4's publish-remote compare,
+round 5's stderr match). At HEAD nothing in the containment guard reads a string produced by
+another program, so the next instance of that class is not available to be found, and stop
+condition 3 does not fire. I checked that operationally rather than by name: none of I1 to I4
+would be closed by the same kind of fix as any round-3-to-5 finding.
+
+The four findings are three different classes, each raised for the first time: an incomplete
+environment isolation (I1), an invariant enforced on one of two code paths (I2), and a contract
+document lagging the code it documents (I3, I4). None is a repetition. But I3 is the second
+consecutive round in which the header's exit table has drifted from `/retro`, so if a round 7
+happens and the header drifts again, that IS a class and the answer is a test that compares the
+two tables to each other rather than each to the code.
+
+**Recommended next step, which is the human's call and not an automatic round 7:** apply I1 and
+I2 (both narrow, both with a proven fix and a named test), decide whether I3 and I4 are fixed or
+recorded as residuals, then re-run this reviewer ONCE to re-anchor the record at the new head. If
+that round produces a fifth first-time class, the evidence is about the surface area of this
+program, not about any one fix, and the honest move is to freeze the containment contract and
+document the residuals rather than to buy an eighth opinion.
 
 ## Does this cover HEAD for the merge gate?
 
-The record describes `2e7c740` exactly, with a clean tree. It does NOT clear the gate: the verdict
-is REQUEST CHANGES on C1, with I2 as a should-fix that would not block by itself. Round 5 is where
-the review loop's stop condition matters more than the finding: three consecutive rounds have
-raised a fail-open in the same class (a safety decision keyed on text), so the next move is a
-structural elimination or a documented residual chosen by the human, not a sixth round of the same
-loop. Whichever is chosen, re-run this reviewer at the new head; do not re-date this record.
+The record describes `994ede8` exactly, with a clean tree. It does NOT clear the gate: the verdict
+is REQUEST CHANGES, on I1 and I2, both measured, both at exit 0 with a stamp written. Do not
+re-date this record; regenerate it at the new head after the fixes.
 
 ## What's good
 
-- Cases 27 and 28 are the right kind of test: exit 5 was previously proven only against a
-  `pre-receive` hook this suite writes, which shows the program reads a non-zero push and nothing
-  more. Pointing the backup at an ordinary non-bare clone and letting git's own
-  `receive.denyCurrentBranch` refuse it proves the same code against a refusal nobody in this repo
-  authored, and the mistake it models (backup target is a working clone, not a bare repo) is one a
-  real user makes.
-- Case 29 found the branch nothing had executed: the reachability probe and the clone used to fail
-  together, so the clone's own exit 4 had never run. Splitting readable refs from unreadable
-  objects is a precise way to reach it.
-- The publish guard took the honest close offered in round 4 rather than inventing a third
-  comparison: the claim was narrowed to what the mechanism does (one trailing `/`, one `.git`,
-  local paths through `pwd -P`) and the residual was published in four places a user actually
-  reads. That is `lessons.md` 2026-09-16 applied correctly, in the same file where C1 shows it
-  recurring.
-- The vacuous-assertion fix is the right generalisation: searching the whole work tree for a copy
-  of the ledger asserts the HARM, so it stays valid for shapes nobody has thought of yet.
-- Every count the docs publish was re-measured green, and the commit body that admitted one count
-  was derived rather than measured is exactly the honesty this system asks for.
+- The fix is the structural one, not a fourth pattern, and it is smaller than what it replaced.
+  Nine lines of `test` that read the disk beat a subprocess whose answer had to be parsed out of
+  prose, and the property that closes the class is stated in one sentence: a marker does not move
+  with git's locale, version or phrasing, and an unreadable marker is visible rather than absent.
+  That is "eliminate the class" done properly, and it is the first fix on this branch whose
+  failure mode I could not extend.
+- Case 32 is the discipline that makes rewrites safe: the author asked what the OLD mechanism
+  caught that the new one might silently lose (bare repos and `.git` directories have no `.git`
+  child), and pinned both before anyone could rediscover them as a leak. Most rewrites do not get
+  that question asked at all.
+- Case 31 deliberately reproduces the blocker with no permission trick so it runs as root, which
+  means the regression guard for the most expensive finding on this branch is the one case that
+  never skips.
+- Case 33's comment says out loud what the mechanism cannot catch, in the same breath as adding
+  it. That is exactly the honesty `lessons.md` 2026-09-16 asks for, and it is why I3 is a finding
+  about the rows and not about the test.
+- The commit body reports what was measured, names which numbers moved, and separates the folded
+  fixes from the blocker. Someone reading this history in a year will be able to reconstruct the
+  reasoning without the eval records.
 
 ## History
 
@@ -240,3 +341,18 @@ loop. Whichever is chosen, re-run this reviewer at the new head; do not re-date 
   exit 0 with a stamp. Three consecutive rounds of that class means the next step is the
   structural version (measured here) or a documented residual chosen by the human, not another
   pattern.
+- **Round 6** (`994ede8`, 2026-09-17): REQUEST CHANGES, 8/12. Regression note: **same total,
+  materially better artifact, and the loop's own class is gone.** The human chose the structural
+  option and it holds: C1 is closed, and I attacked it from seven directions (unreadable
+  worktree gitdir, dangling `.git` pointer, bare repo, `.git` directory, unreadable-but-traversable
+  ancestor, symlinked and `..` ancestors, reftable layout) without getting back in. The
+  text-keyed-safety-decision class is removed, not patched, so stop condition 3 does not fire for
+  a fourth time. Round 4's exported-`GIT_DIR` nit is closed. What blocks the merge is four
+  first-time findings in three new classes: the same commit's environment guard covers two of the
+  four git variables that matter and the missing one (`GIT_INDEX_FILE`) makes the backup replace
+  the caller's index at exit 0 with a stamp (I1, fix proven here); the containment invariant is
+  enforced on the `dir` branch only, so a `git` target inside the work tree lands the ledger's
+  objects untracked and unignored (I2); and the header's exit-4 and exit-3 rows drift from
+  `/retro` exactly as exit-2 did, in the commit that fixed exit 2 and added a mechanism that
+  cannot see it (I3, I4). Total unchanged because two measured exit-0-with-a-stamp paths remain;
+  composition much improved, and every remaining fix is narrow.

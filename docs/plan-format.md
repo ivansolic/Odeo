@@ -227,5 +227,9 @@ them as a gate.
                    do-not-touch respected, escalations flagged
 5. Honesty         0 hides ambiguity / 1 some / 2 risks and open questions listed for the
                    builder to ask, not guess
-Threshold: total >= 8/10 AND no criterion at 0.
+No threshold, and no score is published: the plan loop clears on CLEAN, meaning no real
+finding is left, and nothing downstream reads a number from here. The bar the reviewer
+works toward is every criterion at 2; anything below that is a finding to state, not a
+total to weigh. (`Threshold:` is the token the SCORED rubrics use to declare a gate, so
+it is deliberately absent here.)
 ```

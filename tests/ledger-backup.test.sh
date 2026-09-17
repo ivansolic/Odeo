@@ -645,6 +645,77 @@ done
 [ -z "$missing_hdr" ] && ok "every exit code the program can return has a row in its own header" \
   || bad "exit code(s)$missing_hdr are reachable but missing from the header table"
 
+# 34. THE CALLER'S INDEX IS NOT OURS TO TOUCH. git exports GIT_INDEX_FILE to pre-commit,
+#     prepare-commit-msg, commit-msg and post-commit, and under `git commit -a` it is an
+#     ABSOLUTE path to the project's index. The temp clone's `git add -A` then wrote the ledger
+#     into THAT index: measured before the guard covered it, the run reported success and
+#     stamped it while `git status` in the project failed with "unable to read <sha>", and as a
+#     real pre-commit hook it became "error: Error building trees", so the user's commit did
+#     not happen and the backup claimed it did. Destroying the caller's index is worse than
+#     not backing up, so this asserts the index is byte-identical AND that the backup still ran.
+b34="$(mkremote r34)"; p34="$(mkproject p34 "ledger_backup: git backup internal-files")"
+git -C "$p34" remote add backup "$b34" >/dev/null 2>&1
+( cd "$p34" && git add -A && git commit -qm base ) >/dev/null 2>&1
+idx_before="$(shasum "$p34/.git/index" 2>/dev/null | awk '{print $1}')"
+out="$(GIT_INDEX_FILE="$p34/.git/index" "$SCRIPT" "$p34" 2>&1)"; rc=$?
+idx_after="$(shasum "$p34/.git/index" 2>/dev/null | awk '{print $1}')"
+[ "$rc" = 0 ] && ok "a run with GIT_INDEX_FILE set still backs up (exit 0)" \
+  || bad "GIT_INDEX_FILE run -> exit $rc: $out"
+[ "$idx_before" = "$idx_after" ] && ok "and the caller's index is byte-identical afterwards" \
+  || bad "the run rewrote the project's git index"
+git -C "$p34" status --short >/dev/null 2>&1 \
+  && ok "and the project's git status still works" || bad "the project's index was corrupted"
+#     The same family, one level up: GIT_DIR pointed elsewhere must not decide which repository
+#     this program reads. Asserted by outcome, the ledger of the project ARGUMENT is what lands.
+b34b="$(mkremote r34b)"; p34b="$(mkproject p34b "ledger_backup: git backup internal-files")"
+git -C "$p34b" remote add backup "$b34b" >/dev/null 2>&1
+printf 'the argument project\n' > "$p34b/.claude/tasks/todo.md"
+out="$(GIT_DIR="$p34/.git" GIT_WORK_TREE="$p34" "$SCRIPT" "$p34b" 2>&1)"; rc=$?
+[ "$rc" = 0 ] && ok "an inherited GIT_DIR does not redirect the run (exit 0)" \
+  || bad "GIT_DIR run -> exit $rc: $out"
+landed="$(git -C "$b34b" show internal-files:internal-not-in-git/todo.md 2>/dev/null)"
+[ "$landed" = "the argument project" ] \
+  && ok "and the ledger backed up is the one the argument names" \
+  || bad "the inherited environment chose the project (got: ${landed:-<nothing>})"
+
+# 35. THE CONTAINMENT INVARIANT ON THE `git` ARM. It was written inside the `dir` arm, so this
+#     shape was never asked about: a bare repository INSIDE the project's work tree, used as
+#     the backup remote. Measured before the hoist: exit 0, stamped, and the pushed objects sat
+#     in the work tree untracked and unignored, where `git add -A` stages the ledger verbatim.
+#     Same harm as the `dir` arm's headline case, one arm over.
+p35="$(mkproject p35 "ledger_backup: git backup internal-files")"
+git init -q --bare "$p35/inside-bare.git" >/dev/null 2>&1
+git -C "$p35" remote add backup "$p35/inside-bare.git" >/dev/null 2>&1
+out="$(run "$p35")"; rc=$?
+[ "$rc" = 2 ] && ok "a bare repo inside the work tree as backup remote -> exit 2" \
+  || bad "in-tree bare remote -> exit $rc (want 2): $out"
+has_stamp "$p35" && bad "and it stamped a backup that landed in the project" \
+  || ok "and no stamp was written"
+git -C "$p35/inside-bare.git" rev-parse --verify internal-files >/dev/null 2>&1 \
+  && bad "and the ledger branch was created inside the work tree" \
+  || ok "and no ledger branch exists inside the work tree"
+#     The refusal must NOT cost the ordinary case: a bare repo outside every work tree is the
+#     documented way to configure this, and asking about the remote itself rather than its
+#     parent would refuse all of them (a bare repo IS a repository). Cases 2, 9 and 16 rely on
+#     it; this asserts the distinction directly, next to the refusal it must not break.
+b35="$(mkremote r35)"; p35b="$(mkproject p35b "ledger_backup: git backup internal-files")"
+git -C "$p35b" remote add backup "$b35" >/dev/null 2>&1
+out="$(run "$p35b")"; rc=$?
+[ "$rc" = 0 ] && ok "and a bare repo OUTSIDE any work tree is still accepted (exit 0)" \
+  || bad "the parent-walk refused a legitimate bare remote: exit $rc ($out)"
+
+# 36. The refusal names the REPOSITORY, not only the target. With the decision made on disk the
+#     marker can be several levels above the path the user wrote (a dotfiles $HOME refuses
+#     ~/Dropbox/..., this file's own example), and a message naming only the target sends the
+#     reader to the wrong directory.
+deep="$TMP/deep-repo"; mkdir -p "$deep/a/b"; ( cd "$deep" && git init -q . ) >/dev/null 2>&1
+p36="$(mkproject p36 "ledger_backup: dir $deep/a/b/ledger")"
+out="$(run "$p36")"; rc=$?
+[ "$rc" = 2 ] && ok "a target three levels inside a repository -> exit 2" \
+  || bad "deep in-repo target -> exit $rc (want 2)"
+case "$out" in *"$deep/.git"*) ok "and the message names the repository that contains it" ;;
+  *) bad "the refusal names only the target, not the repository (got: $out)" ;; esac
+
 echo ""
 if [ "$fail" -eq 0 ]; then echo "ledger-backup: all $pass assertions passed."; else echo "ledger-backup: $fail FAILURE(S) above."; fi
 exit "$fail"

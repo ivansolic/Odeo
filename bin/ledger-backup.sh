@@ -37,17 +37,36 @@
 #      is PUBLIC. It refuses the project's publish remote by name and by normalised URL, which
 #      catches the obvious mistake; an ssh spelling of the same host, a mirror or a fork are
 #      invisible here, and choosing a private target stays the human's call.
-#   3  no ledger_backup: line recorded (not a failure: nothing was promised)
-#   4  target unreachable (no such remote, clone/fetch failed, directory missing)
+#   3  nothing was promised: no ledger_backup: line recorded, OR the line still holds the
+#      template's <placeholder> (the message says which). Not a failure.
+#   4  the target could not be used: no remote of that name, an unreachable or unreadable
+#      remote, a clone that failed, a missing directory, or a copy that failed. A failed COPY
+#      places nothing (the files are staged first); a failure during the final MOVES can leave
+#      an incomplete set, and the message distinguishes the two.
 #   5  the copy was made but PUSH WAS REFUSED, so nothing was backed up
 #   6  nothing to back up (neither ledger file exists)
 set -uo pipefail
+# THE WHOLE GIT ENVIRONMENT IS DROPPED, not the two variables that name a repository.
+#
 # Every git call below is meant to be about the PROJECT DIRECTORY passed in. Inherited GIT_DIR
-# or GIT_WORK_TREE silently redirect all of them at the repository the caller's environment
-# names instead, which is routine when this runs from a git hook, and would make the program
-# read one repository's ledger and stamp another's. Dropped once, here, rather than guarded at
-# each call site.
-unset GIT_DIR GIT_WORK_TREE
+# or GIT_WORK_TREE silently redirect all of them at whatever repository the caller's environment
+# names, which is routine when this runs from a git hook.
+#
+# GIT_INDEX_FILE is the one that does real damage, and it is why this list is not shorter. git
+# exports it to pre-commit, prepare-commit-msg, commit-msg and post-commit, and under
+# `git commit -a` it is an ABSOLUTE path to the project's own index. Measured before this line
+# covered it: the temp clone's `git add -A` wrote the ledger into the PROJECT's index, the run
+# reported success and stamped it, `git status` then failed with "unable to read <sha>", and a
+# real pre-commit hook turned it into "error: Error building trees", so the user's commit did
+# not happen while the backup claimed it did. Destroying the caller's index is a worse outcome
+# than not backing up.
+#
+# The rest are the remaining members of the same family (object storage, common dir, namespace,
+# quarantine), dropped together rather than one per incident: they are what git hands a hook,
+# and a program that takes a project directory as an argument must answer about that directory
+# and nothing the environment quietly points at.
+unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_OBJECT_DIRECTORY \
+      GIT_ALTERNATE_OBJECT_DIRECTORIES GIT_COMMON_DIR GIT_NAMESPACE GIT_QUARANTINE_PATH
 
 CHECK=0
 PROJECT_DIR=""
@@ -174,6 +193,71 @@ present="${present# }"
 
 stamp_now() { date '+%Y-%m-%d %H:%M:%S %z' > "$STAMP"; printf 'target: %s\n' "$CONFIG" >> "$STAMP"; }
 
+# --- THE CONTAINMENT INVARIANT ------------------------------------------------------------
+# A backup may not land inside a git repository. Defined HERE, above the kinds, because it was
+# written inside the `dir` arm and therefore never asked on the `git` one: a `backup` remote
+# that is a bare repository sitting INSIDE the work tree passed at exit 0, stamped, and left
+# the ledger's objects in the project where the next `git add -A` stages them. The rule is a
+# property of backups, not of one spelling of a target, so it lives where both arms see it.
+#
+# This replaced three rounds of asking the narrower question, "is it inside THIS project",
+# which had an endless supply of disguises. Each round closed the spelling the previous one
+# demonstrated and opened another: a raw prefix compare missed a symlink, a `..` and a case
+# difference; asking git about the destination's PARENT closed those and reopened a nested
+# repo, a sibling worktree and a destination that is itself a symlink. Trading one failure
+# shape for another is the signature of guarding instances instead of removing the class.
+#
+# So the question changed instead of the answer, twice. First from "inside this project" to
+# "inside any repository", which one question settles for every disguise at once and is the
+# stronger rule anyway: a backup inside a repo shares the disk it protects against.
+#
+# Then from asking GIT to reading the DISK. The previous version called git and matched its
+# stderr, and git prints the same "not a git repository" sentence for two opposite situations:
+# there is none here, and there is one it cannot follow (a linked worktree whose administrative
+# directory is unreadable, a `.git` file pointing at a gitdir that is gone). Measured on the
+# shipped script: the second landed the ledger in the LIVE work tree at exit 0 with the stamp
+# written, so `--check` then called it current. A path is now inside a repository if any
+# ancestor carries a repository MARKER. Markers do not move with git's locale, version or
+# phrasing, and an unreadable one is still VISIBLE, which turns "guess no" into "see it".
+#
+# Both marker shapes are checked, because the old exit-status version accepted both and losing
+# either would be a silent regression (pinned by case 32):
+#   - a `.git` entry, whether directory, file (linked worktree, submodule) or dangling link;
+#   - a git directory itself, i.e. HEAD + objects/ + refs/, which is what a BARE repository and
+#     a `.git` directory look like from outside, and neither has a `.git` child.
+# Only traversal is required, never read permission, so a repository locked down to 000 is
+# detected rather than walked into.
+#
+# KNOWN RESIDUALS, stated rather than discovered later: a synced folder that happens to sit
+# inside an unrelated repository is refused too; and a directory that merely CONTAINS a file
+# named `.git`, or the three names of a git directory, without being a repository, is refused
+# as well. Both are fail-closed, and the cost is a confusing refusal against a leak that
+# reports success.
+IN_REPO_MARKER=""
+in_work_tree() {
+  local p="$1"
+  IN_REPO_MARKER=""
+  while :; do
+    if [ -e "$p/.git" ] || [ -L "$p/.git" ]; then IN_REPO_MARKER="$p/.git"; return 0; fi
+    if [ -e "$p/HEAD" ] && [ -d "$p/objects" ] && [ -d "$p/refs" ]; then IN_REPO_MARKER="$p"; return 0; fi
+    [ "$p" = "/" ] && break
+    p="$(dirname "$p")"
+  done
+  return 1
+}
+refuse_in_repo() {
+  echo "ledger-backup: the target is inside a git repository ($1)" >&2
+  # The MARKER is named, not just the target. With the decision made on disk, the repository
+  # that refuses a path can be several levels above it (a dotfiles $HOME refuses ~/Dropbox/...,
+  # which is this file's own documented example), and a message naming only the target sends
+  # the reader looking in the wrong directory.
+  [ -n "$IN_REPO_MARKER" ] && echo "  The repository that contains it: $IN_REPO_MARKER" >&2
+  echo "  A backup in a repo is not a backup: it shares the disk it protects against, and" >&2
+  echo "  the next 'git add -A' commits the ledger you are keeping out of git." >&2
+  echo "  Point it at a directory outside every repository." >&2
+  exit 2
+}
+
 case "$KIND" in
   dir)
     dest="$(printf '%s' "$CONFIG" | sed -E 's/^dir[[:space:]]+//')"
@@ -194,72 +278,8 @@ case "$KIND" in
     parent="$(dirname "$dest")"
     [ -d "$parent" ] || { echo "ledger-backup: no such directory: $parent" >&2; exit 4; }
 
-    # THE INVARIANT: a backup target may not live inside ANY git work tree.
-    #
-    # This replaced three rounds of asking the narrower question, "is it inside THIS project",
-    # which turned out to have an endless supply of disguises. Each round closed the spelling
-    # the previous one demonstrated and opened another: the raw prefix compare missed a
-    # symlink, a `..` and a case difference; asking git about the destination's PARENT closed
-    # those and reopened a nested repo the prefix compare had caught, plus a sibling worktree
-    # and a destination that is itself a symlink. Trading one failure shape for another is the
-    # signature of guarding instances instead of removing the class.
-    #
-    # So the question changed instead of the answer. "Not in any repository" is decided by git
-    # in one call, for every disguise at once, because a resolved directory either sits in a
-    # work tree or does not. It is also the stronger rule, and the honest one: a backup inside
-    # a repo shares the disk it protects against, and any `git add -A` can publish it.
-    #
-    # The KNOWN RESIDUAL, written down rather than discovered later: a synced folder that
-    # happens to live inside some unrelated repository is refused too. That is a real cost and
-    # a deliberate one.
-    # THREE answers, not two. git exiting non-zero means "not a repository" only when it says
-    # so; it also fails when it cannot READ the repository (dubious ownership on a shared
-    # mount, an unreadable .git/config), and treating that ignorance as "no repository here"
-    # put the ledger inside that repository at exit 0. One line above, this same program
-    # refuses an unreadable ledger because reporting nothing would be a lie; the two had
-    # opposite policies for the same ignorance.
-    # DECIDED ON DISK, NEVER FROM A MESSAGE. This guard asked git and then read the ANSWER OUT
-    # OF ITS STDERR, and git prints the same "not a git repository" sentence for two opposite
-    # situations: there is no repository here, and there is one it cannot follow (a linked
-    # worktree whose administrative directory is unreadable, a `.git` file pointing at a gitdir
-    # that is gone). Measured on the shipped script: the second landed the ledger in the LIVE
-    # work tree at exit 0, with the stamp written, so `--check` then reported "up to date"
-    # about a copy inside the repository it exists to survive.
-    #
-    # That was the third round in which this same guard failed open on a decision keyed to text,
-    # so the wording is not patched again. The question is answered without asking git at all:
-    # a path is inside a repository if any ancestor carries a repository MARKER. Markers do not
-    # move with git's locale, version or error phrasing, and an unreadable one is still visible,
-    # which turns the whole failure mode from "guess no" into "see it".
-    #
-    # Both marker shapes are checked, because the old exit-status version accepted both and
-    # losing either would be a silent regression (pinned by case 32):
-    #   - a `.git` entry, whether directory, file (linked worktree, submodule) or dangling link;
-    #   - a git directory itself, i.e. HEAD + objects/ + refs/, which is what a BARE repository
-    #     and a `.git` directory look like from outside, and neither has a `.git` child.
-    # Only traversal is required, never read permission, so a repository locked down to 000 is
-    # detected rather than walked into.
-    #
-    # KNOWN RESIDUAL, unchanged and stated rather than discovered: a directory that merely
-    # CONTAINS a file named `.git` without being a repository is refused too. Fail-closed, and
-    # the cost is one confusing refusal against a leak that reports success.
-    in_work_tree() {
-      local p="$1"
-      while :; do
-        if [ -e "$p/.git" ] || [ -L "$p/.git" ]; then return 0; fi
-        if [ -e "$p/HEAD" ] && [ -d "$p/objects" ] && [ -d "$p/refs" ]; then return 0; fi
-        [ "$p" = "/" ] && break
-        p="$(dirname "$p")"
-      done
-      return 1
-    }
-    refuse_in_repo() {
-      echo "ledger-backup: the target is inside a git repository ($1)" >&2
-      echo "  A backup in a repo is not a backup: it shares the disk it protects against, and" >&2
-      echo "  the next 'git add -A' commits the ledger you are keeping out of git." >&2
-      echo "  Point it at a directory outside every repository." >&2
-      exit 2
-    }
+    # The containment invariant and both helpers are defined above the `case`, so this arm and
+    # the `git` one ask the same question.
     parent_real="$(cd "$parent" 2>/dev/null && pwd -P)" \
       || { echo "ledger-backup: cannot resolve $parent" >&2; exit 4; }
     # Asked BEFORE creating anything, so an obvious mistake costs no directory...
@@ -345,6 +365,26 @@ case "$KIND" in
       echo "  public repository would publish the task state and every recorded correction." >&2
       echo "  Use a separate private remote for the backup." >&2
       exit 2
+    fi
+
+    # THE CONTAINMENT INVARIANT, on this arm too. A LOCAL remote is a directory like any other
+    # backup target, and a bare repository sitting inside the project's work tree was accepted
+    # here at exit 0: the push wrote the ledger's objects into the project, untracked and not
+    # ignored, where the next `git add -A` stages them. The `dir` arm refuses that shape by
+    # name; this one never asked, because the check lived in the other arm.
+    #
+    # Asked of the remote's PARENT, not of the remote itself, and that is the whole difference
+    # between the two arms: a bare repository IS a repository, so asking about it would refuse
+    # every legitimate local backup remote. Its parent answers the question that matters, "is
+    # this thing sitting inside somebody's work tree". Non-local URLs (ssh, https, git://) are
+    # not paths and cannot be walked; the publish-remote refusal above is what covers them,
+    # with the residual already stated in the header.
+    if [ -d "$url" ]; then
+      url_real="$(cd "$url" 2>/dev/null && pwd -P)" \
+        || { echo "ledger-backup: cannot resolve the remote path $url" >&2; exit 4; }
+      if in_work_tree "$(dirname "$url_real")"; then
+        refuse_in_repo "$url_real"
+      fi
     fi
 
     tmp="$(mktemp -d)" || { echo "ledger-backup: no temp dir" >&2; exit 4; }

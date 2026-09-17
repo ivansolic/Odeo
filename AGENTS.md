@@ -282,9 +282,13 @@ baseline above) does not exist.
   reviewer (code, design, pm, skill) returns findings below the max score:
   apply the actionable fixes, re-dispatch the SAME reviewer to verify and
   regenerate the record, and repeat, WITHOUT the human having to ask twice.
-  Stop conditions (a loop needs a stop): max score reached, or the reviewer
-  says no actionable fixes remain (e.g. what's left needs behavioral testing,
-  out of a form review's reach), or 3 cycles. A loop that stops short of max
+  The stop condition is declared ONCE, in `docs/eval-framework.md`, and is the
+  one named a few lines above in this file; it is not restated here. A second
+  copy said "max score reached, or no actionable fixes remain, or 3 cycles",
+  which DISAGREED with the source at every verdict between the threshold and
+  the max: at an APPROVE of 10/12 the framework stops and that copy continued.
+  Two stop conditions for one loop is not redundancy, it is a coin flip.
+  A loop that stops short of max
   ends with three things, always: WHY max is not reachable (the specific
   blocker, named), the residual findings AS THEY ARE (an unreached max is
   reported, never rounded up), and the open decision handed to the human
