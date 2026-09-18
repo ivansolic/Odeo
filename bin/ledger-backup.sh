@@ -65,8 +65,16 @@ set -uo pipefail
 # quarantine), dropped together rather than one per incident: they are what git hands a hook,
 # and a program that takes a project directory as an argument must answer about that directory
 # and nothing the environment quietly points at.
+#
+# TWO KINDS of variable matter here, and the first list covered only one. Those above NAME a
+# repository. The GIT_CONFIG_* family REWRITES one: git exports GIT_CONFIG_PARAMETERS to hooks,
+# and a `url.<other>.insteadOf` pair sends the push somewhere else entirely. Measured before
+# this line existed: the configured remote stayed empty and the ledger arrived at the injected
+# one, at exit 0 with the stamp written. Dropping GIT_CONFIG_COUNT is what neutralises every
+# GIT_CONFIG_KEY_n, because git reads the numbered keys only through that count.
 unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_OBJECT_DIRECTORY \
-      GIT_ALTERNATE_OBJECT_DIRECTORIES GIT_COMMON_DIR GIT_NAMESPACE GIT_QUARANTINE_PATH
+      GIT_ALTERNATE_OBJECT_DIRECTORIES GIT_COMMON_DIR GIT_NAMESPACE GIT_QUARANTINE_PATH \
+      GIT_CONFIG_COUNT GIT_CONFIG_PARAMETERS GIT_CONFIG GIT_CONFIG_GLOBAL GIT_CONFIG_SYSTEM
 
 CHECK=0
 PROJECT_DIR=""
@@ -85,8 +93,13 @@ PROJECT_DIR="${PROJECT_DIR:-$PWD}"
 # stops this program from writing the ledger into the work tree it is meant to keep it out of.
 PROJECT_DIR="$(cd "$PROJECT_DIR" && pwd)" || exit 2
 
-GIT_DIR="$(git -C "$PROJECT_DIR" rev-parse --absolute-git-dir 2>/dev/null)" || GIT_DIR=""
-[ -n "$GIT_DIR" ] || { echo "ledger-backup: $PROJECT_DIR is not a git work tree" >&2; exit 2; }
+# NOT named GIT_DIR. Under `set -a` (SHELLOPTS=allexport, which bash reads from the environment)
+# every assignment this script makes becomes an EXPORTED variable, so a local called GIT_DIR
+# turns back into the git variable the unset above exists to remove, and the index corruption
+# closed one commit earlier returns with no change to this file. A script that unsets a name
+# must not then reuse it.
+PROJECT_GIT_DIR="$(git -C "$PROJECT_DIR" rev-parse --absolute-git-dir 2>/dev/null)" || PROJECT_GIT_DIR=""
+[ -n "$PROJECT_GIT_DIR" ] || { echo "ledger-backup: $PROJECT_DIR is not a git work tree" >&2; exit 2; }
 
 LEDGER_DIR="$PROJECT_DIR/.claude/tasks"
 FILES="todo.md lessons.md"
@@ -103,7 +116,7 @@ fi
 # The stamp lives inside the GIT DIR, never in the work tree. Nothing under .git is ever
 # tracked, in any project, so this needs no .gitignore entry anywhere and cannot be committed
 # by accident. It is also per-worktree, which is correct: it describes this clone's copy.
-STAMP="$GIT_DIR/odeo-ledger-backup-stamp"
+STAMP="$PROJECT_GIT_DIR/odeo-ledger-backup-stamp"
 
 # --- configuration -----------------------------------------------------------------------
 # CLAUDE.local.md first (gitignored, the right home for a private target), then CLAUDE.md.
@@ -367,21 +380,63 @@ case "$KIND" in
       exit 2
     fi
 
-    # THE CONTAINMENT INVARIANT, on this arm too. A LOCAL remote is a directory like any other
-    # backup target, and a bare repository sitting inside the project's work tree was accepted
-    # here at exit 0: the push wrote the ledger's objects into the project, untracked and not
-    # ignored, where the next `git add -A` stages them. The `dir` arm refuses that shape by
-    # name; this one never asked, because the check lived in the other arm.
+    # THE CONTAINMENT INVARIANT ON A LOCAL REMOTE, asked as TWO QUESTIONS ABOUT IDENTITY AND
+    # LOCATION, never about how the URL was written.
     #
-    # Asked of the remote's PARENT, not of the remote itself, and that is the whole difference
-    # between the two arms: a bare repository IS a repository, so asking about it would refuse
-    # every legitimate local backup remote. Its parent answers the question that matters, "is
-    # this thing sitting inside somebody's work tree". Non-local URLs (ssh, https, git://) are
-    # not paths and cannot be walked; the publish-remote refusal above is what covers them,
-    # with the residual already stated in the header.
-    if [ -d "$url" ]; then
-      url_real="$(cd "$url" 2>/dev/null && pwd -P)" \
-        || { echo "ledger-backup: cannot resolve the remote path $url" >&2; exit 4; }
+    # The previous version tested `[ -d "$url" ]` and walked the parent. That recognised exactly
+    # one spelling. Three others were measured landing the ledger inside the project's own
+    # repository at exit 0 with the stamp written: `file://` (the test is simply false for it),
+    # a sibling linked WORKTREE of the project, and the project directory ITSELF. The last two
+    # are the worse shape, because the ledger becomes a committed ref in the project's object
+    # store rather than loose objects waiting for someone's `git add -A`.
+    #
+    # Enumerating spellings is what three earlier rounds of this same guard did on the other
+    # arm, each closing the one that had been demonstrated. So the question changed again:
+    #
+    #   1. IS IT THIS REPOSITORY? Compared by git COMMON DIR, which is the identity of a
+    #      repository rather than of a path. A linked worktree and its main checkout report the
+    #      same common dir, which is exactly why a worktree is refused here: it shares the
+    #      object store, so a push into it is a push into the project. This answers for every
+    #      way of naming the same repository at once, including ones nobody listed.
+    #   2. IS IT INSIDE ONE? The ancestor walk already used by the `dir` arm, applied to the
+    #      remote's PARENT. A bare repository IS a repository, so asking about the target itself
+    #      would refuse every legitimate local remote; its parent answers "is this sitting in
+    #      somebody's work tree".
+    #
+    # Together these keep the legitimate case that a shape-based rule would have killed: an
+    # ordinary CLONE elsewhere on disk, pushed to a branch it does not have checked out, is a
+    # real configuration and stays allowed (case 38). It is refused only if it is this
+    # repository or lives inside one.
+    #
+    # `file://` is stripped and a relative URL is rooted at the PROJECT, matching what git
+    # itself does with them, so both reach the two questions as paths instead of slipping past
+    # a directory test. What still cannot be resolved to a local path (ssh, https, git://) is
+    # genuinely remote; the publish-remote refusal above is what covers it, with the residual
+    # stated in the header.
+    local_path=""
+    case "$url" in
+      file://*) local_path="${url#file://}" ;;
+      *://*|*@*:*) : ;;                      # a transport with a host: not a path
+      /*) local_path="$url" ;;
+      *) local_path="$PROJECT_DIR/$url" ;;   # git roots a relative remote at the repository
+    esac
+    if [ -n "$local_path" ] && [ -d "$local_path" ]; then
+      url_real="$(cd "$local_path" 2>/dev/null && pwd -P)" \
+        || { echo "ledger-backup: cannot resolve the remote path $local_path" >&2; exit 4; }
+      # The common dir can be reported relative to the repository, so it is resolved from
+      # inside it. A path that is not a repository at all simply yields nothing and falls
+      # through to question 2, which is correct: git would fail the clone later with exit 4.
+      remote_common="$(cd "$url_real" 2>/dev/null \
+        && d="$(git rev-parse --git-common-dir 2>/dev/null)" && cd "$d" 2>/dev/null && pwd -P)" || remote_common=""
+      project_common="$(cd "$PROJECT_DIR" 2>/dev/null \
+        && d="$(git rev-parse --git-common-dir 2>/dev/null)" && cd "$d" 2>/dev/null && pwd -P)" || project_common=""
+      if [ -n "$remote_common" ] && [ "$remote_common" = "$project_common" ]; then
+        echo "ledger-backup: '$remote' IS this project's own repository ($url_real)." >&2
+        echo "  It shares the object store, so the backup would be a branch inside the very" >&2
+        echo "  repository the ledger is kept out of, readable by anyone who clones it." >&2
+        echo "  Point the backup at a separate private repository." >&2
+        exit 2
+      fi
       if in_work_tree "$(dirname "$url_real")"; then
         refuse_in_repo "$url_real"
       fi

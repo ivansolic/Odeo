@@ -166,10 +166,11 @@ Odeo/
 ├── global/
 │   └── CLAUDE.md             ← user-global baseline laid into ~/.claude by install.sh
 ├── tests/
-│   └── *.test.sh             ← 33 suites, 1027 assertions. 24 of the 24 programs have their
+│   └── *.test.sh             ← 33 suites, 1053 assertions. 24 of the 24 programs have their
 │                               own suite; the remaining suites are cross-cutting rather than
-│                               per-program. A machine without PowerShell counts fewer:
-│                               install-ps1.test.sh skips what it cannot run, and says so
+│                               per-program. Some machines count fewer, and the suites say so
+│                               rather than pass quietly: no PowerShell (install-ps1), running
+│                               as root, or a shell that refuses what a case needs
 └── docs/
     ├── system-map.md         ← the catalog: every command/agent/loop by phase
     ├── eval-framework.md     ← rubrics, scorers, eval records, regression

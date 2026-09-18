@@ -716,6 +716,139 @@ out="$(run "$p36")"; rc=$?
 case "$out" in *"$deep/.git"*) ok "and the message names the repository that contains it" ;;
   *) bad "the refusal names only the target, not the repository (got: $out)" ;; esac
 
+# 37. EVERY SPELLING OF A LOCAL REMOTE, ASSERTED BY OUTCOME. The `git` arm's containment guard
+#     recognised ONE spelling, a bare directory path, and three others were measured landing the
+#     ledger inside the project's own repository at exit 0 with the stamp written. That is the
+#     same class as the `dir` arm's three rounds: a guard that recognises one way of writing its
+#     target while its comment claims the class.
+#
+#     So this case does not test spellings against a rule. It asserts THE HARM, once, for every
+#     spelling at once: after the run, no ledger content may be reachable from the project's
+#     repository, by ref or by object, and none may sit in its work tree. A spelling nobody
+#     thought of fails this the same way as the four below, because the assertion is about the
+#     leak, not about the syntax.
+#
+#     Each row is a fresh project, since a leak in one would otherwise be attributed to the next.
+i=0
+for spelling in self worktree file-url bare-inside; do
+  i=$((i + 1))
+  pp="$(mkproject "p37-$i" )"
+  pp_real="$(cd "$pp" && pwd -P)"
+  ( cd "$pp" && git add -A && git commit -qm base ) >/dev/null 2>&1
+  # The canary is written AFTER the base commit, and is unique per row. mkproject's ledger is
+  # committed by that base commit (nothing here gitignores it), so searching the project's
+  # objects for the ledger's ORIGINAL content finds a blob that is not a leak, and the
+  # assertion would fail for every spelling including the ones that refuse correctly. Measured
+  # while writing this case: all four rows reported the same object, which is the giveaway.
+  canary="CANARY-37-$i-$$"
+  printf '%s\n' "$canary" > "$pp/.claude/tasks/todo.md"
+  case "$spelling" in
+    self)        target="$pp_real" ;;                        # the project itself
+    worktree)    git -C "$pp" worktree add -q "$TMP/sib-$i" -b "wt-$i" >/dev/null 2>&1
+                 target="$TMP/sib-$i" ;;                     # a linked worktree: same object store
+    file-url)    git init -q --bare "$pp/inside37.git" >/dev/null 2>&1
+                 target="file://$pp_real/inside37.git" ;;    # a scheme the [ -d ] test cannot see
+    bare-inside) git init -q --bare "$pp/plain37.git" >/dev/null 2>&1
+                 target="$pp_real/plain37.git" ;;            # the one spelling that was caught
+  esac
+  git -C "$pp" remote add backup "$target" >/dev/null 2>&1
+  printf 'ledger_backup: git backup internal-files\n' > "$pp/CLAUDE.local.md"
+  out="$(run "$pp")"; rc=$?
+  [ "$rc" = 2 ] && ok "a local remote inside the project is refused ($spelling: exit 2)" \
+    || bad "$spelling reached exit $rc: $out"
+  has_stamp "$pp" && bad "and it stamped success ($spelling)" || ok "and no stamp was written ($spelling)"
+  # THE HARM, asked of the project's own repository rather than of the target we wrote. A ref
+  # named anywhere in it, or a blob whose content is the ledger, means the backup went into the
+  # thing it exists to survive. `cat-file --batch-all-objects` reaches loose and packed objects
+  # both, which is what distinguishes "pushed a branch" from "left objects behind".
+  git -C "$pp" rev-parse --verify --quiet internal-files >/dev/null 2>&1 \
+    && bad "and the project's repo now carries the backup ref ($spelling)" \
+    || ok "and no backup ref exists in the project's repo ($spelling)"
+  leaked_obj="$(git -C "$pp" cat-file --batch-all-objects --batch-check='%(objectname) %(objecttype)' 2>/dev/null \
+                | awk '$2=="blob"{print $1}' \
+                | while read -r o; do
+                    git -C "$pp" cat-file blob "$o" 2>/dev/null | grep -q "^$canary\$" && echo "$o"
+                  done | head -1)"
+  [ -n "$leaked_obj" ] && bad "and the ledger's content is an object in the project's repo ($spelling: $leaked_obj)" \
+    || ok "and the ledger's content is in no object of the project's repo ($spelling)"
+  leaked_wt="$(find "$pp" -name 'todo.md' -not -path "$pp/.claude/tasks/*" 2>/dev/null | head -1)"
+  [ -n "$leaked_wt" ] && bad "and a copy sits in the work tree ($spelling: $leaked_wt)" \
+    || ok "and no copy sits in the work tree ($spelling)"
+done
+
+# 38. THE REFUSAL MUST NOT COST THE LEGITIMATE CASE, and this is the line the rule walks. A
+#     backup remote that is an ordinary CLONE somewhere else on disk (a checkout on an external
+#     drive, pushed to a branch it does not have checked out) is a real configuration, and a
+#     rule phrased as "refuse any remote that is a work tree" would silently kill it. The rule
+#     is identity and location, not shape: refuse a remote that IS this repository (shared
+#     object store, which is what a linked worktree is) or that sits inside one.
+outside="$TMP/outside-clone"
+git init -q "$outside" >/dev/null 2>&1
+printf 'x\n' > "$outside/f"; git -C "$outside" add -A >/dev/null 2>&1
+git -C "$outside" commit -qm base >/dev/null 2>&1
+p38="$(mkproject p38 "ledger_backup: git backup internal-files")"
+git -C "$p38" remote add backup "$outside" >/dev/null 2>&1
+out="$(run "$p38")"; rc=$?
+[ "$rc" = 0 ] && ok "an unrelated clone outside every repo is still a valid remote (exit 0)" \
+  || bad "a legitimate non-bare remote was refused: exit $rc ($out)"
+git -C "$outside" show internal-files:internal-not-in-git/todo.md >/dev/null 2>&1 \
+  && ok "and the ledger reached it" || bad "the backup reported success but nothing landed"
+
+# 39. CONFIG INJECTION. `unset` covered the variables that NAME a repository and missed the ones
+#     that REWRITE one. git exports GIT_CONFIG_PARAMETERS to hooks, and GIT_CONFIG_COUNT with a
+#     `url.<evil>.insteadOf` pair redirects the push: measured before this line, the intended
+#     remote stayed empty and the ledger arrived at the attacker's. Dropping GIT_CONFIG_COUNT
+#     alone neutralises every GIT_CONFIG_KEY_n, since git reads the keys only through the count.
+b39="$(mkremote r39)"; evil39="$(mkremote evil39)"
+p39="$(mkproject p39 "ledger_backup: git backup internal-files")"
+git -C "$p39" remote add backup "$b39" >/dev/null 2>&1
+out="$(GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0="url.$evil39.insteadOf" GIT_CONFIG_VALUE_0="$b39" \
+       "$SCRIPT" "$p39" 2>&1)"; rc=$?
+[ "$rc" = 0 ] && ok "a run under an insteadOf rewrite still backs up (exit 0)" \
+  || bad "GIT_CONFIG_COUNT run -> exit $rc: $out"
+git -C "$evil39" rev-parse --verify internal-files >/dev/null 2>&1 \
+  && bad "and the ledger was redirected to the injected remote" \
+  || ok "and the injected remote received nothing"
+git -C "$b39" show internal-files:internal-not-in-git/todo.md >/dev/null 2>&1 \
+  && ok "and the configured remote is the one that got it" \
+  || bad "the configured remote received nothing"
+
+# 40. A NAME THIS SCRIPT UNSETS MUST NEVER BE A NAME IT ASSIGNS. The script used a local called
+#     GIT_DIR, three lines under the `unset GIT_DIR`. Under `set -a` (bash reads SHELLOPTS from
+#     the environment where that is permitted) every assignment becomes an exported one, so that
+#     local turns back into the git variable the unset exists to remove, and the index
+#     corruption closed one commit earlier returns with no change to this file.
+#
+#     Asserted STATICALLY, on purpose. The outcome version of this test cannot fail on every
+#     machine: measured here, bash 3.2 makes SHELLOPTS readonly, so the injection is refused by
+#     the shell and the assertion passes whether or not the defect is present. A test that
+#     cannot fail is not a guard, it is decoration that reads like one. The source rule holds
+#     everywhere and is checkable everywhere, so that is what is checked.
+unset_names="$(grep -A4 '^unset GIT_DIR' "$SCRIPT" | tr ' \\\n' '\n\n\n' | grep -E '^GIT_[A-Z_]+$' | sort -u)"
+[ -n "$unset_names" ] || bad "instrument broken: could not read the unset list out of the script"
+clash=""
+for n in $unset_names; do
+  grep -qE "^[[:space:]]*$n=" "$SCRIPT" && clash="$clash $n"
+done
+[ -z "$clash" ] && ok "no variable the script unsets is later assigned by it" \
+  || bad "the script assigns to name(s) it unsets:$clash (exported under set -a)"
+#     And the outcome, where the shell allows it to be exercised at all. Reported as a skip
+#     rather than a pass when it cannot be, so a green line never stands for an unrun check.
+if ( SHELLOPTS=allexport bash -c 'shopt -qo allexport' ) 2>/dev/null; then
+  b40="$(mkremote r40)"; p40="$(mkproject p40 "ledger_backup: git backup internal-files")"
+  git -C "$p40" remote add backup "$b40" >/dev/null 2>&1
+  ( cd "$p40" && git add -A && git commit -qm base ) >/dev/null 2>&1
+  idx40_before="$(shasum "$p40/.git/index" 2>/dev/null | awk '{print $1}')"
+  out="$(SHELLOPTS=allexport "$SCRIPT" "$p40" 2>&1)"; rc=$?
+  idx40_after="$(shasum "$p40/.git/index" 2>/dev/null | awk '{print $1}')"
+  [ "$idx40_before" = "$idx40_after" ] \
+    && ok "under allexport the caller's index is still byte-identical" \
+    || bad "allexport re-exported a script variable and the index was rewritten"
+  [ "$rc" = 0 ] && ok "and the backup still ran (exit 0)" || bad "allexport run -> exit $rc: $out"
+else
+  echo "SKIP - this shell refuses SHELLOPTS from the environment, so allexport cannot be exercised"
+fi
+
 echo ""
 if [ "$fail" -eq 0 ]; then echo "ledger-backup: all $pass assertions passed."; else echo "ledger-backup: $fail FAILURE(S) above."; fi
 exit "$fail"

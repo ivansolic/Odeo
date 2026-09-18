@@ -83,14 +83,21 @@ if [[ "$WITH_ASSERTIONS" -eq 1 ]]; then
     total=$((total+n))
     n_skipped=$((n_skipped+s))
   done
-  # A suite may SKIP checks when an optional tool is absent (pwsh, for install.ps1), so this
-  # total is environment-dependent in a way the other claims are not. Saying so turns a
-  # confusing "the README drifted" into "this machine ran fewer assertions", which are
-  # opposite problems: one needs the document fixed, the other needs a tool installed.
+  # A suite may SKIP checks, so this total is environment-dependent in a way the other claims
+  # are not. Saying so turns a confusing "the README drifted" into "this machine ran fewer
+  # assertions", which are opposite problems: one needs the document fixed, the other needs a
+  # different machine or shell.
+  # The note names CAUSES, plural, because it used to name one. Measured reasons a suite skips
+  # here: an optional tool is absent (pwsh, for install.ps1); the case cannot run as the current
+  # user (six root guards in ledger-backup.test.sh, where an unreadable file is readable anyway);
+  # or the shell refuses what the case needs (bash 3.2 makes SHELLOPTS readonly). Naming only
+  # the first made the note FALSE on an ordinary run of this repo, which is worse than no note:
+  # it sends the reader to install a tool that was never missing.
   # Counted in SKIP LINES, not assertions: a suite reports one line per skipped case, so this
   # says how much went unverified, never how much the total is short by.
   if [[ "$n_skipped" -gt 0 ]]; then
-    echo "note: $n_skipped check(s) were SKIPPED here (an optional tool is missing), so the"
+    echo "note: $n_skipped check(s) were SKIPPED here (an optional tool is missing, the case"
+    echo "      cannot run as this user, or this shell refuses what it needs), so the"
     echo "      count below can read LOW on this machine without the README being wrong."
   fi
   claim "assertions" "$total" '[0-9]+ assertions'
