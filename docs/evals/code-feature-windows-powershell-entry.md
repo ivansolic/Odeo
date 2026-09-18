@@ -2,9 +2,9 @@
 artifact: install.ps1 + tests/install-ps1.test.sh + tests/publish-guard.test.sh real-tree case + install.sh arg-parse markers + docs-claims-check skip reporting + community-refresh canary content + language-allowlist sixth copy + .gitattributes/.ps1 + README/INSTALL Windows claims
 type: code
 branch: feature/windows-powershell-entry
-reviewed_commit: 994ede8
-artifact_version: 5
-date: 2026-09-17
+reviewed_commit: 0125901
+artifact_version: 6
+date: 2026-09-18
 scorer: code-reviewer
 model: claude-opus-5[1m]
 model_tier: strongest
@@ -12,76 +12,81 @@ effort: high
 scores: { correctness: 2, security: 2, performance: 2, readability: 2, testing: 2, conventions: 2 }
 total: 12/12
 verdict: APPROVE
-previous_total: 11/12
+previous_total: 12/12
 ---
 
 ## Artifact
 
-Round 5, at `994ede8`. Same artifact scope as rounds 1 to 4. Exactly two things inside that
-scope moved since `2e7c740`: a 14-line HOME warm-up in `tests/install-ps1.test.sh` (the fix
-round 4 asked for) and one README number (`1007` -> `1016` assertions). Everything else in
-`2e7c740..994ede8` belongs to the ledger-backup program, scored separately in
-`docs/evals/code-ledger-backup.md`; it is not re-scored here but it was checked for collateral
-damage to this artifact (see Verification and n5). `install.ps1` is still byte-identical to
-`cebc0a0`, confirmed: `git diff --stat cebc0a0..HEAD -- install.ps1` is empty, and so is the
-same diff for `install.sh`, `.gitattributes`, `INSTALL.md`, the language-allowlist suite, the
-community-refresh suite, the publish-guard suite and `bin/docs-claims-check.sh`. No plan exists
-in `docs/plans/` for this branch, so there is no contract to compare against.
+Round 6, at `0125901`. Same artifact scope as rounds 1 to 5. This round exists for a gate
+reason, not a code reason: the merge gate requires every record on the branch to cover the
+commit being merged, and the sibling ledger-backup program moved again in `0125901`.
 
-## The round-4 Important: closed, by measurement
+Exactly ONE thing inside this artifact's scope moved since `994ede8`, and it is a number:
+`README.md:169`, `1016` -> `1027` assertions. `git diff --stat 994ede8..HEAD` over the scope
+lists only `README.md`; `tests/install-ps1.test.sh` is byte-identical to `994ede8`, and
+`install.ps1`, `install.sh`, `.gitattributes`, `INSTALL.md`, the language-allowlist suite, the
+community-refresh suite, the publish-guard suite and `bin/docs-claims-check.sh` are all
+byte-identical to `cebc0a0`, the last commit that touched them. So rounds 1 to 5's findings on
+those files carry forward unchanged and were not re-litigated; what this round actually does is
+verify the one moved number against the tree and re-measure the two nitpicks the sibling could
+have moved. Everything else in `994ede8..0125901` (`bin/ledger-backup.sh`,
+`tests/ledger-backup.test.sh`, `AGENTS.md`, `docs/plan-format.md`, `docs/system-map.md`,
+`skills/retro/SKILL.md`) belongs to the ledger-backup program, scored separately in
+`docs/evals/code-ledger-backup.md`. It is not re-scored here, but it was checked for collateral
+damage to this artifact. No plan exists in `docs/plans/` for this branch, so there is no
+contract to compare against.
 
-Round 4's finding was that case 9b's byte-identity guarantee held only because cases 7 and 8
-launch pwsh under the same HOME before the `before` snapshot is taken, which nothing stated, so
-a reordering or a future pwsh directory would produce a false FAIL blamed on `install.ps1`.
-`tests/install-ps1.test.sh:339-351` now warms the redirected HOME once, immediately after
-`PWSH` is resolved and before any snapshot exists.
+## The two carried nitpicks, re-measured at this head
 
-I did not verify this by reading it. I lifted `mkrepo`, `fakebin`, `snapshot` and `run_ps1`
-VERBATIM out of the suite (awk-extracted function bodies, no paraphrase) into a scratch probe
-that runs the case 9 / 9b comparison as the FIRST pwsh launch under a fresh HOME, i.e. the
-worst case round 4 described, and ran it both ways:
+**n1, the warm-up still asserts nothing. Still true, still a nitpick.**
+`tests/install-ps1.test.sh:350-351` is unchanged: `env -i HOME=... "$PWSH" -NoProfile -Command
+exit >/dev/null 2>&1`, exit status discarded, no `ok`/`bad` line. The suite still reports 38
+assertions, the same count as round 5, which is the arithmetic proof that nothing was added
+here. The reason it stays a nitpick rather than an Important is unchanged and was re-derived,
+not inherited: the warm-up is not a guard whose green is trusted, it is a precondition whose
+failure mode is a LOUD red in case 9b, just a red with the wrong name on it. The risk is
+misattribution, not a silent pass. The fix (one `ok`/`bad` pair, moving the suite to 39 and the
+README to 1028) is still the right shape and still optional.
 
-| Probe | Result |
-|---|---|
-| with the shipped warm-up | `RESULT: IDENTICAL`, the anti-port comparison passes as the first pwsh launch |
-| warm-up removed (negative control) | `RESULT: DIFFERENT`, and the diff is exactly the six entries round 4 recorded: `D .`, `D ./.cache`, `D ./.local`, `D ./.local/share`, `D ./.local/share/powershell`, `D ./.local/share/powershell/Modules` |
-
-So the ordering dependency is gone, the fix is load bearing rather than decorative, and the
-probe that says so is proven able to give both answers (`lessons.md:15`, `:19`).
-
-Did the warm-up introduce anything new? No. Its output under HOME is
-`.cache/powershell/{StartupProfileData-NonInteractive,telemetry.uuid}` plus
-`.local/share/powershell/Modules` and the parent directories, all created BEFORE the first
-`before` snapshot at `:404`, so no later case can attribute any of it to `install.ps1`. The
-repo side is covered too, and that is the part reading alone would miss: `mkrepo` builds a
-FRESH sandbox per case, so a first-launch artefact written into the CWD would be invisible to a
-HOME warm-up. My probe used a fresh repo directory and the repo half of the snapshot came back
-identical as well.
-
-The prune kept alongside the warm-up is still justified, re-measured rather than inherited:
-two consecutive launches under an ALREADY WARM HOME still differ on
-`.cache/powershell/StartupProfileData-NonInteractive` (hash `ad0d910...` -> `edb0cf4...`). The
-comment's reason for keeping it is true at HEAD.
+**n3, the root-run skip note. Assessment stands, and the specific worry this round raised did
+not materialise.** The brief asked whether `0125901`'s new ledger-backup cases (34, 34b, 35, 36)
+added skip lines that would worsen the accounting. They did not. Measured both ends rather than
+reasoned about: `git show 994ede8:tests/ledger-backup.test.sh | grep -cE 'SKIP'` is 6, and the
+same grep at HEAD is 6; `grep -nE 'id -u' tests/ledger-backup.test.sh` returns the same six
+guards at `:404`, `:479`, `:498`, `:539`, `:564`, `:591`. The four new cases are not root-gated.
+So the finding is exactly as large as round 5 recorded it, no larger: on a root run,
+`bin/docs-claims-check.sh:86-90` prints a note whose single stated cause ("an optional tool is
+missing") is false for six of the skips, and `README.md:171-172` says the same thing with the
+same single cause. Still sibling-induced, still flagged and not scored here, still low
+probability (no CI config in the tree, no documented container workflow).
 
 ## Verification (by measurement, on this machine)
 
-- `bash tests/install-ps1.test.sh` -> `all 38 assertions passed`, pwsh 7.6.6, 9.5s wall.
-  Unchanged count: the warm-up asserts nothing, which is n1 below.
-- `bash bin/docs-claims-check.sh --assertions` -> `ok: bin executables = 24`,
-  `ok: test suites = 33`, `ok: programs with their own suite = 24`, `ok: assertions = 1016`,
-  `every countable claim matches the tree`. The README's new number is verified against the
-  tree, not against the commit body.
-- `bash tests/publish-guard.test.sh` -> `ALL PASS`, `the real tree feeds 240 tracked paths into
-  the guard`, zero unclassified, planted-path canary green. This is the collateral check on the
-  sibling: the ledger-backup work did not break this artifact's real-tree case.
-- Order-independence probe and its negative control, as tabled above.
-- Prune-necessity probe, snapshot with the prune removed, two warm launches.
-- Em/en dash scan over the in-scope diff (`README.md`, `tests/install-ps1.test.sh`): clean.
-- Scope files untouched since the 12/12 round: `git diff --stat cebc0a0..HEAD` over
-  `install.ps1`, `install.sh`, `.gitattributes`, `INSTALL.md`, `tests/language-allowlist-
-  agreement.test.sh`, `tests/community-refresh.test.sh`, `tests/publish-guard.test.sh`,
-  `bin/docs-claims-check.sh` is empty, so rounds 1 to 3's findings on them carry forward
-  unchanged and were not re-litigated.
+- `bash tests/install-ps1.test.sh` -> `all 38 assertions passed`, pwsh 7.6.6, 9.6s wall. This
+  is the collateral check the brief asked for: the sibling's changes did not break this suite.
+- `bash tests/publish-guard.test.sh` -> `ALL PASS`, including `the real tree feeds 240 tracked
+  paths into the guard`, `every tracked path in the real tree is classified public or internal`,
+  and the planted-path canary. The count is still 240 because `0125901` added and removed no
+  files, only content; had the sibling added an unclassified path, this case is the one that
+  would have caught it, and it is green.
+- `bash bin/docs-claims-check.sh --assertions` -> `ok: bin executables = 24`, `ok: test suites =
+  33`, `ok: programs with their own suite = 24`, `ok: assertions = 1027`, `every countable claim
+  matches the tree`, exit 0. The README's new number is verified against the TREE, not against
+  the commit body. Note that no `note: N check(s) were SKIPPED here` line was printed, which is
+  the independent confirmation that this run skipped nothing and 1027 is a full count rather
+  than a low one that happened to match.
+- Scope immobility: `git diff --stat 994ede8..HEAD` over the scope lists `README.md` only, and
+  `git diff --stat cebc0a0..HEAD` over `install.ps1`, `install.sh`, `.gitattributes`,
+  `INSTALL.md`, `tests/language-allowlist-agreement.test.sh`, `tests/community-refresh.test.sh`,
+  `tests/publish-guard.test.sh`, `bin/docs-claims-check.sh` is empty.
+- Root-skip census at both commits, as tabled above.
+- Em/en dash scan over the in-scope diff (`994ede8..HEAD` on `README.md` and
+  `tests/install-ps1.test.sh`): clean.
+- Round 5's measurements (the order-independence probe with its negative control, and the
+  prune-necessity probe) were NOT re-run. They are measurements of
+  `tests/install-ps1.test.sh:339-351`, which is byte-identical to the commit they were taken
+  at, so re-running them would be redundant work on unchanged text. Their results are carried
+  forward and the immobility that licenses that is stated above.
 
 ## Findings
 
@@ -91,21 +96,24 @@ None.
 
 ### Important
 
-None. The single round-4 Important is closed by mechanism and independently re-measured above.
+None. The round-4 Important was closed at `994ede8` by mechanism and independently re-measured
+there; the code that closed it has not moved since.
 
 ### Nitpicks
 
+All seven carry forward from round 5. None weakens a claim, none is new this round.
+
 - `tests/install-ps1.test.sh:349-351`. The warm-up is the one mechanism in this file that can
-  fail without saying so. Its exit status is discarded (`>/dev/null 2>&1`, no check) and it
-  produces no assertion, while every other instrument here refuses loudly (`instrument broken`)
-  or carries a canary (case 2 for case 1, case 6 for case 5, the four planted shapes for 9b).
-  If it ever no-ops, case 9b reverts to the round-4 behaviour and the red it prints says
-  `install.ps1 modified the filesystem itself; it is becoming a second implementation`, which is
-  the misattribution the warm-up exists to prevent. One line fixes it:
-  `if env -i HOME=... "$PWSH" -NoProfile -Command exit >/dev/null 2>&1; then ok "the sandbox
-  HOME is warmed before any snapshot (case 9b does not depend on case order)"; else bad "the
-  HOME warm-up did not run; a filesystem diff below would be pwsh's first launch, not
-  install.ps1"; fi`. Note this moves the suite to 39 and the README to 1017.
+  fail without saying so. Its exit status is discarded and it produces no assertion, while every
+  other instrument here refuses loudly (`instrument broken`) or carries a canary (case 2 for
+  case 1, case 6 for case 5, the four planted shapes for 9b). If it ever no-ops, case 9b reverts
+  to the round-4 behaviour and the red it prints says `install.ps1 modified the filesystem
+  itself; it is becoming a second implementation`, which is the misattribution the warm-up
+  exists to prevent. One line fixes it: `if env -i HOME=... "$PWSH" -NoProfile -Command exit
+  >/dev/null 2>&1; then ok "the sandbox HOME is warmed before any snapshot (case 9b does not
+  depend on case order)"; else bad "the HOME warm-up did not run; a filesystem diff below would
+  be pwsh's first launch, not install.ps1"; fi`. Note this moves the suite to 39 and the README
+  to 1028.
 - `tests/install-ps1.test.sh:350` vs `:313-316`. The warm-up spells `HOME="$TMP/home"` and
   `PATH="$TMP/empty-bin:/usr/bin:/bin"` a second time, duplicating `run_ps1`'s sandbox
   construction. An edit that repoints `run_ps1`'s HOME warms the wrong directory and silently
@@ -114,18 +122,16 @@ None. The single round-4 Important is closed by mechanism and independently re-m
   snapshot. That also closes the residual in the comment's claim ("every directory at once,
   present and future"): the warm-up launches `-Command exit` while every case launches
   `-File install.ps1`, so a future pwsh that creates a directory only on script execution would
-  not be warmed. Measured as NOT a live gap on 7.6.6 (the `-File` run after a `-Command` warm-up
-  leaves HOME identical), which is why this is a nitpick and not a finding against the claim.
-- `bin/docs-claims-check.sh:92-94` and `README.md:171-172`, SIBLING-INDUCED, flagged not
+  not be warmed. Measured at round 5 as NOT a live gap on 7.6.6, which is why this is a nitpick
+  and not a finding against the claim.
+- `bin/docs-claims-check.sh:86-90` and `README.md:171-172`, SIBLING-INDUCED, flagged not
   re-scored. Both name ONE cause for an environment-dependent assertion count: "an optional tool
-  is missing" / "A machine without PowerShell counts fewer". `tests/ledger-backup.test.sh` now
-  emits six `SKIP - running as root, ...` lines (five predate this commit, case 30 adds the
-  sixth), and they match `grep -cE '^SKIP'` exactly like the pwsh ones. A root run therefore
-  prints `DRIFTED: assertions` plus a note whose stated cause is false, sending the reader after
-  a tool that is not missing. Low probability here (no CI config in the tree, no documented
-  container workflow), which is the only reason this is not Important. Fix: widen both sentences
-  to the mechanism's actual scope, "a check that could not run here (an optional tool, or a case
-  that cannot run as root)".
+  is missing" / "A machine without PowerShell counts fewer". `tests/ledger-backup.test.sh` emits
+  six `SKIP - running as root, ...` lines (six at `994ede8`, six at HEAD, re-counted this round),
+  and they match `grep -cE '^SKIP'` exactly like the pwsh ones. A root run therefore prints
+  `DRIFTED: assertions` plus a note whose stated cause is false, sending the reader after a tool
+  that is not missing. Fix: widen both sentences to the mechanism's actual scope, "a check that
+  could not run here (an optional tool, or a case that cannot run as root)".
 - `tests/install-ps1.test.sh:288`. Carried from round 4, not taken. "Links are recorded by
   TARGET, directories by name, files by hash" still omits the mode column that `:303` records.
   Add the word.
@@ -140,39 +146,35 @@ None. The single round-4 Important is closed by mechanism and independently re-m
 
 ## Scores
 
-correctness 2/2 - `install.ps1` has not moved since `cebc0a0`. The one behavioural change in
-the harness does what its comment says, proven in both directions: the anti-port comparison now
-passes as the first pwsh launch under a fresh HOME, and fails without the warm-up. The warm-up
-writes only inside `$TMP` and only before the first snapshot, so it cannot be mistaken for
-install work later. The prune it keeps is still necessary at HEAD (re-measured churn).
+correctness 2/2 - `install.ps1` has not moved since `cebc0a0` and the harness has not moved
+since `994ede8`, where the one behavioural change was proven in both directions (anti-port
+comparison passes as the first pwsh launch under a fresh HOME, fails without the warm-up on
+exactly the six entries round 4 recorded). The only correctness question this round could raise
+is whether the sibling broke something, and the two suites that would notice are green.
 
 security 2/2 - unchanged and clean. Every element pasted into a bash command line goes through
-`ConvertTo-BashSingleQuoted`; the harness stays sealed, and the warm-up keeps that seal exactly
-(`env -i`, redirected HOME, replaced PATH, no repo, no network). It adds no new writable path
-outside `$TMP`, and it cannot execute anything from the developer's PATH.
+`ConvertTo-BashSingleQuoted`; the harness stays sealed (`env -i`, redirected HOME, replaced
+PATH, no repo, no network), and nothing in `994ede8..0125901` touches any of it. The publish
+path is still whole: all 240 tracked paths classify, so the sibling's new content did not open
+a leak through this artifact's guard.
 
-performance 2/2 - one extra pwsh startup, ~0.5s, and the full suite runs in 9.5s. The
-alternative (enumerating pwsh's directories) would cost nothing at runtime and everything in
-maintenance, so this is the right trade.
+performance 2/2 - full suite 9.6s, unchanged. No new work was added anywhere in scope.
 
-readability 2/2 - the comment names the old behaviour, the hazard, why enumeration was rejected
-and why the prune survives the fix, which is the standard this file set for itself. The one
-sentence that reaches slightly past its mechanism ("every directory at once, present and
-future" over a `-Command exit` launch) is measured as true today and filed as a nitpick with
-the fix that would make it structurally true.
+readability 2/2 - nothing in scope was reworded. The one sentence that reaches slightly past its
+mechanism ("every directory at once, present and future" over a `-Command exit` launch) remains
+measured as true today and filed as a nitpick with the fix that would make it structurally true.
 
-testing 2/2 - restored from 1. The reason for the drop was a flagship guarantee whose green
-depended on an undeclared case ORDER; that precondition is now both declared and ENFORCED, and I
-verified the enforcement with a probe built from the suite's own functions plus a negative
-control, rather than from the suite's normal ordering, which cannot distinguish the two. No
-claim in this file is currently wider than its mechanism, and no case can go green for the wrong
-reason that I could construct: the four canaries still prove 9b can fail, and the snapshot's
-only blind spot (`.cache/powershell`) is written down.
+testing 2/2 - held. The flagship guarantee (case 9b) no longer depends on case ORDER, the
+precondition is declared and enforced, and the four canaries still prove 9b can fail. This round
+adds one piece of evidence the earlier rounds could not have: the suite ran green against a tree
+whose sibling program changed substantially, which is the collateral question the artifact was
+re-reviewed for. The suite's only blind spot (`.cache/powershell`) is still written down.
 
-conventions 2/2 - countable claims re-derived from the tree (1016 verified, 240 publish paths
-intact), no em or en dashes, comments English, record regenerated at the new head rather than
-re-dated (`lessons.md`, 2026-08-19), and the fix chose the class-eliminating shape over naming a
-second directory, which is `CLAUDE.md`'s core principle and `lessons.md:28`.
+conventions 2/2 - the countable claim moved in the same commit as the assertions that caused it
+and was re-derived from the tree (1027 verified, exit 0, no skips), no em or en dashes, comments
+English, output English per `CLAUDE.md:21`, and the record was REGENERATED at the new head
+rather than re-dated, which is `lessons.md:25` exactly: a sibling moved the tree, so the
+reviewer re-runs instead of the human editing a date.
 
 total 12/12 (threshold >= 9, no zero) -> APPROVE.
 
@@ -186,18 +188,16 @@ CLAIMS, and the claims are narrowed to match.
 
 ## What's good
 
-- The fix removes the defect CLASS instead of the instance that was demonstrated. Round 3's
-  suggested fix (exclude one more directory) and round 4's demonstration (six directories) both
-  invited an enumeration; the warm-up makes the question "what does pwsh create" irrelevant to
-  the guarantee, which is the shape `CLAUDE.md` asks for and the shape four earlier rounds on
-  this file kept missing.
-- The prune was NOT removed as redundant once the warm-up landed. It would have looked
-  redundant; it is not, and the commit says which measurement proves it. I re-measured and the
-  measurement holds.
-- The comment names what the old shape depended on ("earlier cases happen to launch pwsh
-  first"), so the next reader inherits the reasoning instead of a rule.
-- Four rounds of countable-claim discipline held again: the README moved to 1016 in the same
-  commit as the assertions that caused it, and `docs-claims-check` confirms it against the tree.
+- The countable-claim discipline survived a sixth commit and a sibling program's churn. `1016`
+  -> `1027` landed in the same commit as the assertions that caused it, and `docs-claims-check`
+  confirms it against the tree with zero skips, so the number is a full count and not a
+  coincidence on a partial run.
+- The artifact is genuinely inert under the sibling's changes, and that is checkable rather than
+  asserted: two `git diff --stat` runs reduce this round's real work to one number and two
+  re-counts, which is what a well-separated program should cost when its neighbour moves.
+- The real-tree publish-guard case keeps earning its place. It is the one assertion in this
+  artifact that a sibling CAN break by adding a file, and it is the one that proves the sibling
+  did not.
 
 ## History
 
@@ -238,3 +238,14 @@ CLAIMS, and the claims are narrowed to match.
   true. Seven nitpicks stand, four carried from earlier rounds, none weakening a claim; the new
   ones are a drift hazard (the warm-up duplicates `run_ps1`'s sandbox literals and asserts
   nothing) and one sibling-induced wording gap in the skip note, flagged not scored.
+- 2026-09-18 (`0125901`, claude-opus-5[1m], effort high): round 6, a gate re-anchor after the
+  ledger-backup program moved again. APPROVE, 12/12. **Same, 0**: all six criteria held at 2.
+  Nothing regressed. One in-scope change, `README.md` `1016` -> `1027`, verified against the
+  tree by `docs-claims-check --assertions` (exit 0, and no `note:` line, so the count was full
+  rather than skipped-low). Collateral checks green: `install-ps1.test.sh` 38/38 and
+  `publish-guard.test.sh` ALL PASS with the real tree still at 240 classified paths. Both
+  re-checked nitpicks stand unchanged: the warm-up still asserts nothing (a misattribution risk,
+  not a silent-pass risk, so still a nitpick), and the root-skip accounting gap did NOT grow,
+  `tests/ledger-backup.test.sh` carries six `id -u` guards at `994ede8` and six at HEAD, so the
+  four new cases (34, 34b, 35, 36) are not root-gated. Round 5's warm-up probes were not re-run
+  because the code they measure is byte-identical; the immobility is recorded instead.
