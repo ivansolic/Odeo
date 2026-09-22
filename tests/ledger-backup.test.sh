@@ -933,6 +933,85 @@ for arrangement in branch-exists branch-missing; do
     || bad "the refusal does not tell the caller what to change ($arrangement): $out"
 done
 
+# 43. THE GUARD MAY NOT BE SKIPPED JUST BECAUSE THIS PROGRAM CANNOT SEE THE TARGET. Three rounds
+#     closed three ways of MODELLING what git does with a url, and each time git knew one more
+#     thing than the model: first the spelling list, then the file-url authority, then percent
+#     decoding (`%2e%2e` and `%20`, which git decodes and this program did not). Every one had
+#     the same shape: the converted path was not a directory, so the containment block was
+#     SKIPPED, and a skipped guard reads exactly like a passed one.
+#
+#     The rule under test is therefore not about urls at all: IF THE TARGET CANNOT BE SEEN FROM
+#     HERE, THE RUN REFUSES. That is decidable without knowing git's grammar, which is why it
+#     ends the class instead of adding a fourth model. A future encoding nobody has thought of
+#     fails these rows the same way, because the assertion is on the harm and the refusal.
+#
+#     Rows 1 and 2 are the worst outcome (the ledger on the PUBLISH remote), rows 3 and 4 put it
+#     in the project's own repository. Row 4 uses a project whose directory legitimately contains
+#     a space, so `%20` is ordinary encoding rather than an attack.
+#     The publish remote is FRESH PER ROW for the same reason the project is: sharing one would
+#     let row 1's leak fail row 3's assertion, and a test that blames the wrong row is worse than
+#     no test, because the fix then goes to the wrong place.
+i=0
+for row in pub-dotdot pub-space self-dotdot space-inside; do
+  i=$((i + 1))
+  pub43="$(mkremote "pub43-$i")"; pub43_real="$(cd "$pub43" && pwd -P)"
+  case "$row" in
+    space-inside) pp="$(mkproject "p43 with space $i")" ;;
+    *)            pp="$(mkproject "p43-$i")" ;;
+  esac
+  pp_real="$(cd "$pp" && pwd -P)"
+  ( cd "$pp" && git add -A && git commit -qm base ) >/dev/null 2>&1
+  canary="CANARY-43-$i-$$"
+  printf '%s\n' "$canary" > "$pp/.claude/tasks/todo.md"
+  git -C "$pp" remote add origin "$pub43_real" >/dev/null 2>&1
+  case "$row" in
+    pub-dotdot)   mkdir -p "$pp/sub" >/dev/null 2>&1
+                  target="file://localhost$pub43_real/../$(basename "$pub43_real")"
+                  target="file://localhost$(dirname "$pub43_real")/sub43/%2e%2e/$(basename "$pub43_real")"
+                  mkdir -p "$(dirname "$pub43_real")/sub43" >/dev/null 2>&1 ;;
+    pub-space)    mkdir -p "$TMP/My Backups $i" >/dev/null 2>&1
+                  git init -q --bare "$TMP/My Backups $i/b43.git" >/dev/null 2>&1
+                  git -C "$pp" remote set-url origin "$TMP/My Backups $i/b43.git" >/dev/null 2>&1
+                  spaced43="$TMP/My Backups $i/b43.git"
+                  target="file://localhost$TMP/My%20Backups%20$i/b43.git" ;;
+    self-dotdot)  target="file://localhost$pp_real/.claude/%2e%2e/%2e%2e/$(basename "$pp_real")" ;;
+    space-inside) git init -q --bare "$pp/in43.git" >/dev/null 2>&1
+                  enc="$(printf '%s' "$pp_real" | sed 's/ /%20/g')"
+                  target="file://localhost$enc/in43.git" ;;
+  esac
+  git -C "$pp" remote add backup "$target" >/dev/null 2>&1
+  printf 'ledger_backup: git backup internal-files\n' > "$pp/CLAUDE.local.md"
+  out="$(run "$pp")"; rc=$?
+  [ "$rc" != 0 ] && ok "an unseeable target is refused rather than waved through ($row: exit $rc)" \
+    || bad "$row reached exit 0: $out"
+  has_stamp "$pp" && bad "and it stamped success ($row)" || ok "and no stamp was written ($row)"
+  git -C "$pp" rev-parse --verify --quiet internal-files >/dev/null 2>&1 \
+    && bad "and the project's repo now carries the backup ref ($row)" \
+    || ok "and no backup ref exists in the project's repo ($row)"
+  git -C "$pub43" rev-parse --verify --quiet internal-files >/dev/null 2>&1 \
+    && bad "and the ledger is now on the publish remote ($row)" \
+    || ok "and the publish remote received nothing ($row)"
+  if [ "$row" = pub-space ]; then
+    git -C "$spaced43" rev-parse --verify --quiet internal-files >/dev/null 2>&1 \
+      && bad "and the ledger is on the publish remote spelled with a space ($row)" \
+      || ok "and the space-spelled publish remote received nothing ($row)"
+  fi
+done
+
+# 44. AND THE REFUSAL MUST NOT EAT A REAL CONFIGURATION. `~/backup.git` is a plausible line for a
+#     human to write, git expands it, and the `dir` arm has always expanded it too. A fail-closed
+#     rule that cannot see `~` would refuse it with a reason that is false for it, so the two arms
+#     would disagree about the one character most likely to appear in a hand-written path.
+home44="$(mktemp -d "$TMP/home44.XXXXXX")"
+git init -q --bare "$home44/tilde44.git" >/dev/null 2>&1
+p44="$(mkproject p44 "ledger_backup: git backup internal-files")"
+git -C "$p44" remote add backup "~/tilde44.git" >/dev/null 2>&1
+out="$(HOME="$home44" "$SCRIPT" "$p44" 2>&1)"; rc=$?
+[ "$rc" = 0 ] && ok "a ~ remote is expanded and still backs up (exit 0)" \
+  || bad "the fail-closed rule refused a legitimate ~ remote: exit $rc ($out)"
+git -C "$home44/tilde44.git" show internal-files:internal-not-in-git/todo.md >/dev/null 2>&1 \
+  && ok "and the ledger reached it" || bad "the ~ remote reported success but nothing landed"
+
 echo ""
 if [ "$fail" -eq 0 ]; then echo "ledger-backup: all $pass assertions passed."; else echo "ledger-backup: $fail FAILURE(S) above."; fi
 exit "$fail"

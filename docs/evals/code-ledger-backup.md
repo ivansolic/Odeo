@@ -2,8 +2,8 @@
 artifact: bin/ledger-backup.sh + tests/ledger-backup.test.sh (+ bin/docs-claims-check.sh, README counts)
 type: code
 branch: feature/windows-powershell-entry
-reviewed_commit: b3b66f7
-artifact_version: 8
+reviewed_commit: ad00988
+artifact_version: 9
 date: 2026-09-22
 scorer: code-reviewer
 model: claude-opus-5[1m]
@@ -17,377 +17,366 @@ previous_total: 6/12
 
 ## Artifact
 
-Commit `b3b66f7` on `feature/windows-powershell-entry`, clean tree. One commit since round 7,
-which replaced the `git`-arm spelling test with two questions about identity and location.
+Commit `ad00988` on `feature/windows-powershell-entry`, clean tree. Two commits since round 8.
+`5972c27` is the one under review (one shared URL-to-path conversion, a refusal for relative
+URLs, the frozen residuals, three new rows in case 37, cases 41 and 42). `ad00988` touches
+`bin/docs-claims-check.sh`, `tests/docs-claims-check.test.sh` and one README line only.
 
-Measured here, not accepted from the commit body:
+**`bin/ledger-backup.sh` and `tests/ledger-backup.test.sh` are BYTE-IDENTICAL across
+`5972c27..ad00988`** (`git diff --quiet` on both paths). So every measurement below, taken
+against the working tree, describes `ad00988` exactly. **I agree `ad00988` is out of scope for
+this record**: it cannot affect this artifact, and the claims check it fixes is scored in
+`code-feature-windows-powershell-entry.md`, not here. One observation in passing, not a finding
+against this artifact: its `--assertions` run is green here and the README's `1090 assertions` is
+measured correct on this machine.
 
-- **All 33 suites green**, 2m17s total. `tests/ledger-backup.test.sh`: **140 assertions, 21s**,
-  one SKIP (SHELLOPTS readonly on bash 3.2, as stated).
-- **The canary claim is exact.** The HEAD suite run against `0125901`'s script produces **13
-  failures**, including `the script assigns to name(s) it unsets: GIT_DIR`. The new cases can
-  fail, so their green means something.
-- **`docs-claims-check.sh --assertions` green** (24 executables, 33 suites, 24 programs with
-  their own suite, 1053 assertions, matching README). **`skills-lint` green.** No em or en
-  dashes in any changed file.
-- **Case 27 does NOT flip, as claimed.** The non-bare remote outside every repository reaches
-  the push and returns exit 5; case 38 pins the legitimate clone at exit 0. The commit body's
-  central design claim ("refuse by identity and location, not by shape") holds for every target
-  the guard is actually given as a path.
-- **The `dir` arm is untouched by the diff** and its cases (10 to 33, 35b, 36) are green.
+## THE ROUND-8 CRITICAL IS CLOSED, MEASURED BY RUNNING IT
 
-**The two questions themselves are sound.** I attacked them from seven directions and got back
-in from none: a symlink outside the project pointing at an in-tree bare repo (exit 2), a symlink
-pointing at the project itself (exit 2, named as the project's own repository), a `..` path back
-into the project (exit 2), a submodule of the project (exit 2), a sibling linked worktree (exit
-2, correct: same common dir), a sibling worktree whose admin dir is unreadable (exit 4, the
-refusal that blinds the identity question also stops the push), and a remote that borrows the
-project's object store through `objects/info/alternates` (exit 0, and measured NOT a leak: the
-push writes nothing into the project, and the backup still reads after the alternate is removed).
+Not read off the diff. I replayed all five leaks from round 8's C1 and I1 against the shipped
+script, from a clean project each time, with the previous commit as a POSITIVE CONTROL so a
+"refused" line means something (`lessons.md` 2026-08-06: a negative result needs an instrument
+proven to give a positive).
 
-What fails is one step earlier, and it is where every leak this round lives.
+| round-8 leak | at `b3b66f7` (control) | at `ad00988` |
+|---|---|---|
+| (a) `file://localhost$PROJECT` | exit 0, stamped, ref in the project's own repo | **exit 2**, no stamp, no ref: "IS this project's own repository" |
+| (b) `file://localhost$PROJECT/inside.git` | exit 0, stamped, ledger readable in the in-tree bare repo | **exit 2**, no stamp, nothing written |
+| (c) `file://localhost<publish remote>` | exit 0, stamped, **ledger ON THE PUBLISH REMOTE** | **exit 2**, no stamp, publish remote empty |
+| (c-control) the same repo spelled plainly | exit 2 | exit 2 |
+| (d) `$PROJECT/a@b:c/t.git` | exit 0, stamped, ledger in the in-tree bare repo | **exit 2**, no stamp, nothing written |
+| (e) relative `b.git`, cwd inside unrelated repo R | exit 0, stamped, ledger landed in R | **exit 2**, no stamp, nothing in R |
+
+The shared `local_url_path` is the right shape and it did what it was built to do: the publish
+comparison and the containment guard can no longer give two answers, and the four spelling leaks
+are gone. The relative refusal is the honest close of (e). **The commit body's canary claim is
+exact**: the HEAD suite against `b3b66f7`'s script produces **17 failures**, the number claimed.
+Suite at HEAD: **169 assertions, 26s, one SKIP** (SHELLOPTS readonly on bash 3.2, reported). Case
+38 (the legitimate outside clone) passes at exit 0; the `dir` arm is untouched by the diff and its
+cases are green.
+
+**And the class is back one transformation over, at the same harm.**
 
 ## Findings
 
 ### Critical
 
-**C1. The guard now asks the right questions about the wrong object. The URL is turned into a
-path by matching spellings, that conversion is not total, and three measured spellings reach
-exit 0 with the stamp written: two put the ledger inside the project's own repository, and one
-PUSHES IT TO THE PUBLISH REMOTE.** `bin/ledger-backup.sh:416-423` (and `:363-369`, which has a
-second, different conversion of its own).
+**C1. The conversion still MODELS what git does with a URL instead of failing closed when it
+cannot answer, and it does not know that git PERCENT-DECODES a file URL's path. Four measured
+paths reach exit 0 with the stamp written, one of them onto the publish remote, and one of them
+needs nothing more exotic than a directory name with a SPACE.** `bin/ledger-backup.sh:384-402`
+(`local_url_path`), consumed at `:505-506` and, through `canon_url`, at `:426`.
 
-Measured on the shipped script at HEAD, each from a clean project:
+Measured on the shipped script, each from a clean project:
 
 ```
-(a) remote = file://localhost/$PROJECT                  -> exit 0, "refreshed", stamp WRITTEN
-      git -C $PROJECT rev-parse internal-files          -> a REF in the project's own repo
-      the ledger blob is an OBJECT in the project's own repo
-(b) remote = file://localhost/$PROJECT/inside.git       -> exit 0, stamp WRITTEN
-      git -C $PROJECT status --porcelain                -> ?? inside.git/     (NOT IGNORED)
-      git -C $PROJECT add -A -n                         -> add 'inside.git/HEAD' ...
-      git --git-dir=$PROJECT/inside.git show internal-files:internal-not-in-git/todo.md
-                                                        -> SECRET-LEDGER
-(c) origin = /tmp/pub.git (the publish remote),
-    backup = file://localhost/tmp/pub.git               -> exit 0, stamp WRITTEN
-      the ledger is ON the publish remote. The same repository spelled as a plain path is
-      correctly refused ("is this project's publish remote"), which is the control.
-(d) remote = $PROJECT/a@b:c/t.git                       -> exit 0, stamp WRITTEN
-      an absolute local path containing @ and a later : matches the `*@*:*` arm and is
-      classed as a host transport, so the guard never runs. git uses it as a local path.
-(e) remote = "b.git" (relative), run with cwd inside an UNRELATED repository R
-                                                        -> exit 0, stamp WRITTEN
-      the guard checked $PROJECT/b.git (absent, so it skipped); `git clone` resolved the
-      same string against the CALLER's cwd and pushed into R/b.git, a bare repo inside R's
-      work tree. SECRET-LEDGER readable there.
+(1) origin = /tmp/.../pub.git  (the publish remote),
+    backup = file://localhost/tmp/.../sub/%2e%2e/pub.git
+      -> exit 0, "refreshed", stamp WRITTEN, SECRET-LEDGER readable ON THE PUBLISH REMOTE
+(2) origin = "/tmp/.../My Backups/pub2.git",
+    backup = file://localhost/tmp/.../My%20Backups/pub2.git
+      -> exit 0, stamp WRITTEN, SECRET-LEDGER ON THE PUBLISH REMOTE.
+         %20 is not an attack. It is how a URL for a path with a space is spelled.
+(3) backup = file://localhost$PROJECT/sub/%2e%2e     (the project itself)
+      -> exit 0, stamp WRITTEN, the ledger is a REF in the project's own repository
+(4) project at "/tmp/.../My Project", backup = file://localhost/tmp/.../My%20Project/in.git
+      -> exit 0, stamp WRITTEN, the ledger sits in a bare repo INSIDE the work tree,
+         untracked and unignored ("?? in.git/" in `git status --porcelain`)
+(5) CONTROL: the same %2e%2e in a PLAIN path (no file:// scheme)
+      -> exit 4. git does not decode a plain path, and neither does this program. They AGREE.
+         So the defect is confined to the file:// arm, which is where the modelling is.
 ```
 
-Root cause, one sentence: **`file://` is stripped as a fixed prefix, but git ignores the URL's
-AUTHORITY, not just an empty one.** Measured directly against git 2.50.1: `file://localhost/p`,
-`file://LOCALHOST/p`, `file://notahost/p` and `file://$(hostname)/p` all push to the local path
-`/p`. The script's `${url#file://}` leaves `localhost/p`, which is relative, so `[ -d ]` is false
-and the entire containment block is skipped. `file://localhost/...` is not an exotic construction;
-it is the RFC 8089 spelling of a file URL and git honours it.
+Root cause, one sentence: **`local_url_path` hands back the URL's path bytes verbatim, git
+percent-decodes them, and when the two differ the program's path is not a directory, so the
+entire containment block at `:506` is SKIPPED rather than refused.** The mechanism is identical
+to round 8's: an unmodelled git behaviour turns a guard into a no-op, silently, at exit 0 with
+the stamp, after which `--check` answers "up to date" and the user stops looking.
 
-Two aggravating details make this the same class the loop has been about rather than a new one:
+**This is the same class returning, and I say that plainly because the human has a standing rule
+about it** (`CLAUDE.md`, Core Principles: stop patching a recurring class, eliminate it or
+escalate). Round 7: the guard recognised one spelling. Round 8: two conversions disagreed. Round
+9: one conversion, no disagreement, and it still models git's URL grammar by hand. The commit's
+own comment at `:370-371` says "A shared function is what makes that class impossible: there is
+no second answer to differ from." That sentence is TRUE about the class it names and the code
+delivers it. It is not the class that bit: the remaining one is **a single conversion that is
+still not total, and whose failure mode is to pass.**
 
-- The guard's own comment at `:399-400` claims it "answers for every way of naming the same
-  repository at once, including ones nobody listed". Measured false. It answers only for the
-  URLs the `case` at `:417-422` converts to a path.
-- Case 37's table contains a `file-url` row and its header says "a spelling nobody thought of
-  fails it the same way". The sibling spelling of that very scheme leaks. This is `lessons.md`
-  2026-09-16 ("a guard's comment may name only what it verifies") landing on the mechanism that
-  was added to end the class.
+**It is NOT a new defect** and it is NOT new scope: round 8's C1 already named the requirement
+("that conversion is not total"), and round 8's own patch sketch would not have closed it either.
+I am scoring the same finding against the fix that claimed to make the conversion total.
 
-**Why this cannot be a documented residual.** A residual describes what the mechanism CANNOT
-decide (a non-local URL is not a path; whether a remote is public). This one it decides wrongly
-while reporting success: exit 0, stamp written, and `--check` then answers "up to date", so the
-user stops looking. (c) is round 4's Critical (the ledger on the publish remote) reachable again
-through a different spelling; (a) is round 7's C1 harm verbatim. Writing "sometimes it commits
-the ledger into your repository and reports success" into the header is not a limitation, it is
-the defect the program's first 17 lines say it exists to prevent. And the close costs nothing,
-which I measured rather than assumed.
-
-**Fix, measured here, costing ZERO existing cases (140 assertions green, all seven refusals above
-still refuse, case 27 still 5, case 38 still 0).** One derivation, defined once above the kinds,
-used by BOTH guards, because two derivations disagreeing is what let (c) through:
+**The structural close, measured here at ZERO cost, and it does not require knowing what git
+does.** The coordinator was right that the *skip* costs nothing for a missing path or a file
+path (git refuses those itself, exit 4, no leak). I measured the sharper arrangement, and it is
+not dead: the skip is dangerous exactly where **the program's path does not exist while git's
+does**, which is what decoding produces. So make an unanswerable question refuse instead of pass:
 
 ```sh
-# ONE derivation of "what local directory does this url name", used by BOTH guards below.
-local_url_path() {
-  local u="$1" p=""
-  case "$u" in
-    file://*) p="${u#file://}"
-              # file://<authority><path>: git IGNORES the authority (measured: localhost, an
-              # unknown name and this host's own name all reach the same local path), so the
-              # authority is DROPPED rather than matched against a list of spellings.
-              case "$p" in /*) ;; *) p="/${p#*/}" ;; esac ;;
-    /*) p="$u" ;;                   # an absolute path is a path, whatever punctuation it holds
-    *://*|*@*:*) p="" ;;            # a transport with a host: not a path
-    *) p="$PROJECT_DIR/$u" ;;       # a relative remote, rooted at the project
-  esac
-  printf '%s' "$p"
-}
+    local_path="$(local_url_path "$url")"
+    if [ -n "$local_path" ] && [ ! -d "$local_path" ]; then
+      # FAIL CLOSED. The url converted to a local path and that path is not a directory, so the
+      # two questions below cannot be asked at all. git may still reach something (it decodes
+      # %XX in a file url; this program does not), and an unaskable question must not read as a
+      # passed one. Exit 4, the code this configuration already returned from the clone.
+      echo "ledger-backup: '$remote' names a local path that is not a directory here ($local_path)." >&2
+      echo "  The containment questions can only be asked of a directory that exists, so this" >&2
+      echo "  program will not act on it. Write the target as a plain absolute path." >&2
+      exit 4
+    fi
+    if [ -n "$local_path" ]; then
 ```
-then `local_path="$(local_url_path "$url")"` at `:416-422`, and in `canon_url` replace
-`[ -d "$u" ]` with `lp="$(local_url_path "$u")"; [ -n "$lp" ] && [ -d "$lp" ]`. Note the arm
-order: `/*` moves ABOVE `*@*:*`, which is git's own rule (a local path is one with no colon
-before the first slash) rather than another punctuation guess, and it closes (d) completely.
 
-That patch closes (a) (b) (c) (d). **(e) is not closed by it** and needs one decision, see I1.
+Measured: **169 assertions green, unchanged**; all four leaks above become exit 4 with no stamp
+and nothing written; all five round-8 leaks stay refused. Exit 4 is deliberate, and it is what
+made the cost zero: a local path that is not a directory ALREADY ended at exit 4 from the clone,
+so the code the caller sees does not change for any configuration that exists today. (I first
+tried exit 2 and it broke exactly one case, "unreachable remote -> exit 4". That case was right
+and the patch was wrong.)
 
-Pin it by adding two rows to case 37's existing table, which is the right mechanism and already
-built: `file://localhost$pp_real` and `$pp_real/a@b:c/t.git`. Both fail at HEAD and pass on the
-patch, measured.
+Why this is the structural version and not a sixth phrasing: it eliminates the class rather than
+the instance. **Any future git transformation this program does not model produces a path that is
+not a directory, and therefore a refusal, not a silent pass.** Percent-decoding would then be a
+CONVENIENCE to add if you want `%20` paths to keep working, never a guard, and it must not be
+shipped as the fix on its own: decoding alone is precisely the fifth phrasing the human's rule
+warns about, and it would leave the next unmodelled transformation passing at exit 0.
+
+Pin it with two rows in case 37's existing table (`file://localhost$pp_real/sub/%2e%2e/<bare>`
+and a project path containing a space spelled with `%20`) and one row in case 41 (the publish
+remote via `%20`). All three fail at HEAD and pass on the patch, measured. **And see I1: as case
+37 is written today, two of those rows would pass while leaking.**
 
 ### Important
 
-**I1. The relative-URL comment describes git, not this program, and the gap between them is
-measured leak (e).** `:411-412`, `:421`. The claim "a relative URL is rooted at the PROJECT,
-matching what git itself does with them" is half true, and I checked the half: git DOES resolve a
-configured remote's relative URL against the repository root (verified from a subdirectory and
-through `git -C` from outside). But this program never uses the URL through the project
-repository. It hands the raw string to `git ls-remote` and `git clone` from wherever the caller
-started it (`:451`, `:460`), and to `git -C "$work" remote add origin` (`:457`), whose pushes
-resolve against the TEMP CLONE. So the directory the guard checks and the directory the run
-writes are two different places whenever cwd is not the project.
+**I1. Case 37's three "THE HARM" assertions are blind to the very harm shape the new leak
+produces, and the suite proves it against itself.** `tests/ledger-backup.test.sh:780-796`.
+Carried from round 8 (I3), not applied, and now demonstrated twice:
 
-Measured both ways: a relative remote works through the clone path (branch already exists) and
-fails at exit 5 through the orphan path, so this is not dead configuration; and with cwd inside
-an unrelated repository the run lands the ledger in that repository at exit 0 with a stamp.
+- I ran the case's three checks verbatim against leak (4) above. Ground truth: the ledger WAS in
+  a bare repo inside the work tree. The case's checks: ref-in-project `passes`, ledger-object-in-
+  project `passes`, copy-in-work-tree `passes`. **All three BLIND.** Added as a row, that leak
+  would be caught only by the exit-code and stamp assertions, which are rule and bookkeeping
+  checks, not the outcome the case's own header claims to assert.
+- The canary run says the same thing without me: at `b3b66f7` the rows `file-url-host` and
+  `at-colon-path` leaked into an in-tree bare repo, and of their five assertions only exit code
+  and stamp went red. The three harm lines stayed green through a real leak.
 
-**One decision, and I recommend the first:** refuse a relative remote URL the way the `dir` arm
-already refuses a relative path, for the reason the `dir` arm already gives at `:279-282`. Patch
-measured, 140 assertions green, leak (e) becomes exit 2 with nothing written and no stamp:
-
-```sh
-    *:*) : ;;    # a transport, an scp-style host, or a remote helper
-    *)  echo "ledger-backup: '$remote' is a relative path ('$url'), which this program will" >&2
-        echo "  not act on: a relative remote resolves against whatever directory the caller" >&2
-        echo "  happens to be in, so the target that is checked is not the target that is" >&2
-        echo "  written. Use an absolute path or a real remote url." >&2
-        exit 2 ;;
-```
-The alternative is to keep it and write the residual below into the header. Do not keep it AND
-keep the current comment: the comment is the part that is false.
-
-**I2. Case 40 asserts a class with a regex that covers one of four assignment spellings, and the
-other three are exported under `set -a` exactly like the one it catches.** `tests/ledger-backup.test.sh:827-834`.
-The rule is right ("no name this script unsets may be a name it assigns"); the mechanism is
-`grep -E "^[[:space:]]*$n="`. Measured in bash 3.2 under `set -a`: `export GIT_DIR=x`,
-`local GIT_DIR=x` inside a function, and `declare GIT_DIR=x` each produce an EXPORTED `GIT_DIR`
-(count=1 each), and the grep matches none of them. So the guard written to stop round-7's defect
-returning in another spelling is itself one spelling wide, which is this loop's own class
-relocated into the instrument. Fix, one line:
-`grep -qE "^[[:space:]]*(export|declare|typeset|local|readonly)[[:space:]]+$n=|^[[:space:]]*$n=" "$SCRIPT"`.
-
-**I3. Case 37's three "THE HARM" assertions cannot see the harm in the shape round 6 named.**
-`tests/ledger-backup.test.sh:762-777`. Measured with the case's own three checks copied verbatim
-against leak (b): ref-in-project `no`, ledger-object-in-project `no`, copy-in-worktree `no`, while
-the ledger was sitting in `$PROJECT/inside.git`, untracked and unignored. A bare repo nested in
-the work tree holds compressed objects that neither `cat-file --batch-all-objects` on the project
-nor `find -name todo.md` reaches. What catches that row today is the exit code and the stamp,
-which are rule and bookkeeping assertions, so the case's claim to assert the harm rather than the
-rule is wider than its mechanism. Add one outcome assertion that covers it:
+A bare repo nested in the work tree holds compressed objects that neither `cat-file
+--batch-all-objects` on the project nor `find -name todo.md` reaches. Fix, one assertion,
+measured catching it (` M .claude/tasks/todo.md ?? CLAUDE.local.md ?? inside.git/`):
 `git -C "$pp" status --porcelain` must show nothing beyond the ledger's own paths.
 
-**I4. The exit-4 header row is in its FOURTH consecutive round of describing fewer states than
-the code returns.** `:42-45` and `skills/retro/SKILL.md:53`. 16 `exit 4` sites; the row names 5.
-Still undescribed: an unwritable destination, an unresolvable landing dir, an unresolvable remote
-path, no temp dir, `git init` failed, an unwritable clone directory, a failed commit. Round 6 and
-round 7 both asked for a mechanism rather than a fourth wording. Minimum honest close, one clause
-on both rows: "or the program could not write or resolve something it needed". The mechanism that
-would end it is case 33 comparing clause counts per code between the header and `/retro`, not just
-row presence.
+**I2. `url_is_relative` and `local_url_path` DO disagree, and the comment added this round to
+prevent exactly that says they cannot.** `:404` ("RELATIVE, asked the same way, so the refusal
+below and the conversion above cannot drift"), `:396-399` against `:408`.
 
-**I5. Two headline comments still claim more than they verify, and one doc now describes the
-previous design.** `:49` still says THE WHOLE GIT ENVIRONMENT IS DROPPED while `GIT_SSH_COMMAND`,
-`GIT_EXEC_PATH`, `GIT_TEMPLATE_DIR` and `GIT_AUTHOR_*` remain, some deliberately; round 7 asked
-for the sentence to be made true or narrowed, and only the list grew (correctly: the
-`GIT_CONFIG_*` addition is right and case 39 proves it). Narrow it to "the repository-location
-and config-injection families" and name what is kept and why. And `docs/system-map.md:145` still
-says the `git` arm asks "of a local remote's parent", which this commit replaced with two
-questions; that line drifted in the commit that changed the design.
+Differential over 26 URL shapes, run against both functions extracted verbatim. Two inputs
+disagree: for `a/b:c.git` and `./a:b/c.git` (a slash before the colon), `url_is_relative` returns
+RELATIVE while `local_url_path` returns a path, and a RELATIVE one at that. Observable end to
+end, because `canon_url` consumes the conversion BEFORE the relative refusal runs, and then does
+`[ -d ]` from the caller's cwd:
+
+```
+backup = a/b:c.git, origin = the same repo, cwd = the project  -> exit 2 "is a relative URL"
+backup = a/b:c.git, origin = the same repo, cwd = where it resolves
+                                                               -> exit 2 "is this project's publish remote"
+```
+
+**Important, not Critical: both are exit 2, nothing is written, no stamp.** The refusal contains
+it. But the two functions answer different questions on the same input, which is round 8's defect
+class one layer further out, and I said I would name it plainly if I found it: *this is that
+shape, caught before it can cost anything.* Fix: give `url_is_relative` one body, `[ -z "$(local_url_path "$1")" ]`
+restricted to the non-scheme cases, or simplest, have the `*:*`/`*/*` arm of `local_url_path`
+return nothing like every other relative input already does. Then the sentence at `:404` becomes
+true instead of aspirational.
+
+**I3. The relative refusal costs one legitimate configuration, and states a reason that is false
+for it.** `:434-448`. Measured: `git remote add backup '~/tilde.git'` is resolved BY GIT to a
+local path (verified by pushing to it), and this program now refuses it at exit 2 saying "Where
+it points depends on the directory this program is run from". It does not: `~` resolves against
+`$HOME`, which is exactly as stable as an absolute path. The `dir` arm expands `~` deliberately
+(`:278`, `dest="${dest/#\~/$HOME}"`), so the commit's claim at `:442` that "both arms now answer
+alike" is measurably false for the one punctuation the `dir` arm goes out of its way to support.
+Fix, one line, mirroring the arm it claims to match: expand a leading `~` before asking
+`url_is_relative`. Everything else about the refusal is right: ssh, https, `git://` and
+`git@host:path` all pass it untouched (measured, four spellings), and case 42 pins both
+arrangements.
+
+**I4. The exit-4 header row is in its FIFTH consecutive round of describing fewer states than the
+code returns.** `:43-46` and `skills/retro/SKILL.md:53`. **16** `exit 4` sites in code (18
+including comments); the row names 5. Still undescribed: an unwritable destination, an
+unresolvable landing dir, an unresolvable remote path, no temp dir, `git init` failed, an
+unwritable clone directory, a failed commit. Rounds 6, 7 and 8 each asked for a mechanism rather
+than another wording. Minimum honest close, one clause on both rows: "or the program could not
+write or resolve something it needed". The mechanism that would end it is case 33 comparing
+clause counts per code between the header and `/retro`, not just row presence. Note C1's patch
+adds a 17th site, so this row gets further from true if the patch ships without it.
+
+**I5. `:50` still claims THE WHOLE GIT ENVIRONMENT IS DROPPED, and this round I have a measured
+consequence rather than a list.** `GIT_SSH_COMMAND`, `GIT_EXEC_PATH`, `GIT_TEMPLATE_DIR` and
+`GIT_AUTHOR_*` survive the `unset` at `:76-78`. I used `GIT_SSH_COMMAND` from the caller's
+environment to redirect git's ssh transport, and the backup followed it and landed at exit 0 with
+the stamp. So an inherited variable the comment says is dropped still decides where the ledger
+goes. Round 7 and round 8 both asked for the sentence to be made true or narrowed; only the list
+grew. Narrow it to "the repository-location and config-injection families", and name what is kept
+and why (`GIT_AUTHOR_*` is kept deliberately, `:566-567` relies on it).
 
 ### Nitpicks
 
-- `bin/ledger-backup.sh:256`. The ancestor walk still terminates on the literal `[ "$p" = "/" ]`.
-  `dirname //` returns `/` here so it terminates; the fixpoint version costs the same and assumes
-  nothing. Carried from rounds 5, 6, 7.
-- `tests/ledger-backup.test.sh:633-647`. Case 33 still greps `exit [0-9]+` over the whole file,
-  comments included (`:428` is a comment and counts). Its honest "what it cannot catch" paragraph
-  still does not mention that trade. Carried.
-- `tests/ledger-backup.test.sh:468-487`. Case 25c's comment still frames itself as "a git that
-  CANNOT ANSWER is not a git that said no repository", an axis the `dir` arm's mechanism no longer
-  has. It is, however, exactly the axis the NEW identity question has (`remote_common=""` falls
-  through), so the sentence is now worth re-pointing rather than deleting. Carried, changed
-  meaning.
-- `canon_url` at `:363-369` is dead weight after C1's fix if the shared helper lands: `pwd -P`
-  plus a suffix strip in two places is what let (c) through. Carried from rounds 5 to 7, now with
-  a measured consequence rather than a style objection.
-- `tests/ledger-backup.test.sh:537`, `:561`. Cases 28 and 29 still restore permissions inline with
-  no trap, so an abort between `chmod` and restore leaves a `chmod 000` directory the suite's own
-  cleanup cannot remove. Carried.
+- `tests/ledger-backup.test.sh:844-849`. Case 40 still asserts its class with `grep -E "^[[:space:]]*$n="`,
+  one of four assignment spellings that `set -a` exports. Carried from round 8 (I2), unapplied.
+  One line: `grep -qE "^[[:space:]]*(export|declare|typeset|local|readonly)[[:space:]]+$n=|^[[:space:]]*$n=" "$SCRIPT"`.
+- `bin/ledger-backup.sh:254-259`. The ancestor walk still terminates on the literal `[ "$p" = "/" ]`.
+  Measured here: `dirname //a` is `/` on this platform so it terminates, but POSIX leaves `//`
+  implementation-defined. The fixpoint version costs the same and assumes nothing. Carried from
+  rounds 5 to 8.
+- `tests/ledger-backup.test.sh:640-642`. Case 33 still greps `exit [0-9]+` over the whole file,
+  comments included (`:74`, `:213`, `:232` are comments and contribute exit 0). Its honest "what
+  it cannot catch" paragraph still does not mention that trade. Carried.
+- `tests/ledger-backup.test.sh:488-492`. Case 25c's comment still frames itself as "a git that
+  CANNOT ANSWER is not a git that said no repository". Still worth re-pointing at the identity
+  question (`remote_common=""` falls through), which is where that axis now lives. Carried.
+- `tests/ledger-backup.test.sh:494/497`, `:587/590`. The `chmod 000` cases still restore inline
+  with no trap, so an abort between `chmod` and restore leaves a directory the suite's own cleanup
+  cannot remove. Carried.
 - `AGENTS.md:285-291` still quotes the deleted stop-condition rule verbatim inside a normative
   rules file. Carried.
-- The refusal message at `:434` says "IS this project's own repository" for a plain directory
-  inside the project too, because `git rev-parse --git-common-dir` from any subdirectory answers
-  with the project's. Correct refusal, slightly wrong sentence.
-- `bin/docs-claims-check.sh:97-100`: the note now names three causes and still does not say which
-  one fired. Better than one false cause, weaker than counting them.
+- `:517`. The refusal says "IS this project's own repository" for a plain directory inside the
+  project too. Correct refusal, slightly wrong sentence. Carried.
+- `canon_url`'s dead weight from rounds 5 to 8 is **CLOSED**: it now shares the one conversion,
+  which is what the round-8 nit asked for.
 
-## Residuals to freeze into the header
+## Residual wording: what changed at this HEAD
 
-If the human takes the freeze after fixing C1, these are the exact words to add. The first block
-extends the existing `KNOWN RESIDUALS` comment at `:244`; the rest belong beside the two-question
-guard at `:415`. Every one of them was measured in this round, none is assumed.
+All six frozen residuals were re-checked against the new conversion. **Five are still true as
+written. One needs a sentence, and one more is missing entirely.**
 
-```
-# KNOWN RESIDUALS OF THE CONTAINMENT INVARIANT ON THE `git` ARM, stated so a green run is not
-# read as more than it is. Each was measured, not assumed.
-#   - A NON-LOCAL URL CANNOT BE CONTAINED. ssh, https and git:// targets are not paths, so
-#     neither question can be asked of them. The publish-remote refusal is all that covers
-#     them, and it knows one repository, not the class of public ones.
-#   - WHETHER A REMOTE IS PUBLIC IS NOT DECIDABLE HERE. An ssh spelling of the publish remote,
-#     a mirror, a fork: all invisible. Choosing a private target stays the human's call.
-#   - IDENTITY IS ASKED OF GIT, AND GIT CAN REFUSE TO ANSWER. A repository git will not open
-#     (an unreadable worktree admin directory, dubious ownership on a shared mount) yields no
-#     common dir, and the run falls back to the location question alone. Measured on the
-#     unreadable case: the same refusal also stops the push, so it ends at exit 4, not in a
-#     leak. That is an observation about git, not a guarantee this program enforces.
-#   - A REMOTE THAT BORROWS THE PROJECT'S OBJECT STORE (objects/info/alternates) IS ACCEPTED.
-#     Measured: the push writes nothing into the project, and the backup still reads after the
-#     alternate is removed, so containment does not fail here. It is simply not asked about.
-#   - A WINDOWS DRIVE-LETTER TARGET (C:/backup.git) IS NOT RECOGNISED AS A LOCAL PATH. The
-#     `git` arm treats it as a remote url and does not walk it; the `dir` arm refuses it as
-#     non-absolute. Stated rather than claimed: not tested on Windows.
-#   - EXIT 0 AGAINST A REAL NETWORK REMOTE IS NOT PROVEN BY THE SUITE. Every remote under test
-#     is a local repository. Exits 4 and 5 are proven against git's own refusals; a green run
-#     against a live remote is owner attestation.
-```
-
-And, only if the human chooses to KEEP relative remote URLs instead of refusing them (I1):
-
-```
-#   - A RELATIVE REMOTE URL IS CHECKED AGAINST THE PROJECT AND USED AGAINST THE CALLER'S
-#     DIRECTORY. git roots a configured remote at the repository root, but this program hands
-#     the raw url to `git clone` and `git ls-remote` from wherever it was started, so when the
-#     two differ the directory that was checked is not the directory that is written. Measured:
-#     with the caller's cwd inside an unrelated repository, the ledger landed in that
-#     repository at exit 0. Use an absolute url or a real remote url.
-```
-
-I do not recommend freezing that last one. It documents a live exit-0 leak, and the refusal that
-removes it is four lines already measured green.
+- **Non-local URL cannot be contained: TRUE, and I verified it is reachable rather than
+  theoretical.** With a `GIT_SSH_COMMAND` that lands locally, `git@localhost:$PROJECT/mirror.git`
+  put the ledger in a bare repo inside the work tree at exit 0 with the stamp. The program and
+  git AGREE on the classification (both call it non-local); the harm comes from the transport,
+  which no on-disk walk can see. The residual is honest and correctly scoped. Leave it.
+- **Windows drive letter: TRUE, re-checked against the new `*:*` arm.** `C:/backup.git` takes
+  `${u%%:*}` = `C`, no slash, so it is read as `host:path` and yields no local path (measured:
+  exit 4, not walked); `C:\backup.git` the same; the `dir` arm still refuses both as non-absolute.
+  The wording needs no change.
+- Public-remote undecidability, git refusing to answer identity, the alternates-borrowing remote,
+  and "exit 0 against a real network remote is owner attestation": unchanged code paths, all still
+  true.
+- **The relative-URL residual is correctly ABSENT**, since relative URLs are refused. Right call.
+- **MISSING, and it is the Critical:** there is no residual saying the conversion is a MODEL of
+  git's URL handling. Do not add one. A residual describes what the mechanism cannot decide; this
+  one decides wrongly and reports success, which is the thing the first 17 lines of the file say
+  it exists to prevent. Fix it with the fail-closed patch, after which the honest sentence is:
+  "A URL whose local path this program cannot resolve is REFUSED rather than acted on, even
+  though git may be able to reach it (it decodes `%XX`; this does not)."
 
 ## Scores
 
-correctness 1/2, the two questions are correct and I could not get back in through any of seven
-routes that previous rounds needed individual patches for, the rename is right, the unset is
-right, and both claims in the commit body that I could check (case 27 does not flip; 13 canary
-failures) are exact. Docked hard for the conversion step in front of the questions: three
-spellings of a local URL reach exit 0 with the stamp, and a fourth (relative) writes somewhere
-other than the place that was checked.
+correctness 1/2, the round-8 Critical is closed and I proved it by running all five leaks with a
+positive control; one shared conversion for both guards is the right structure, the relative
+refusal is the right call, the canary is exact at 17, case 38 and the `dir` arm are untouched and
+green at 169. Docked for a measured exit-0-with-stamp leak in the same conversion (C1) and for two
+helper functions that answer differently on the same input (I2).
 
-security 0/2, a Critical lands here, and this round it reaches further than the last: besides
-committing the ledger into the project's own repository (round 7's harm, through a new spelling),
-one spelling pushes it to the PUBLISH REMOTE, which is the harm round 4 scored Critical and the
-one the whole file exists to prevent. Exit 0, stamp written, `--check` then reports up to date.
-Hygiene elsewhere is good and improved: the config-injection family is now dropped and case 39
-proves it, quoting is sound throughout, no `eval`, no ledger content on stdout, the stamp stays
-under the git dir.
+security 0/2, a Critical lands here, and its worst arrangement is the one the whole file exists
+to prevent: the ledger on the PUBLISH REMOTE at exit 0 with the stamp written, reachable through a
+directory name containing a space. Hygiene elsewhere is good and unchanged: quoting is sound, no
+`eval`, no ledger content on stdout, the stamp stays under the git dir, the config-injection
+family is dropped and case 39 proves it.
 
-performance 2/2, unchanged and verified. The two questions add at most two `cd`+`pwd -P` and two
-`git rev-parse` calls per run; the suite is 21s, still dominated by three deliberate `sleep 1`s.
+performance 2/2, unchanged and verified. The conversion is pure shell pattern matching, no
+subprocess; the suite is 26s, still dominated by three deliberate `sleep 1`s.
 
-readability 1/2, the guard's rationale is the clearest it has been (it states the question, why,
-and what it deliberately keeps), the refusal messages name the right thing, and the commit body
-is again the best on this branch. Docked for three sentences that are measurably wider than their
-mechanism in the most load-bearing places (`:399-400`, `:411`, `:49`) and for `docs/system-map.md`
-now describing the previous design.
+readability 1/2, the rationale above the conversion is the best version of this comment yet: it
+says what the old code got wrong, why a shared function is the fix, and what it deliberately
+refuses to guess. `docs/system-map.md` and `skills/retro/SKILL.md` were both brought back in line
+with the design, which round 8 asked for. Docked because the sentence added THIS round to prevent
+drift (`:404`) is measurably false (I2), `:50` is still false and now measurably so (I5), and
+`:442` claims both arms answer alike where they do not (I3).
 
-testing 1/2, the structural ask from round 7 was delivered: case 37 is a table over spellings with
-outcome assertions, case 38 pins what the refusal must not cost, and the canary is real and
-reproduces exactly. Docked because the table missed the sibling spelling of its own `file-url`
-row, its three harm assertions are blind to the nested-bare-repo shape (I3), and case 40 asserts a
-class with a one-spelling regex (I2). 140 green, re-run here, plus all 33 suites.
+testing 1/2, cases 41 and 42 are well built: 41 carries its own control and 42 pins both
+arrangements with the reason written down, the canary reproduces exactly at 17, and 169 assertions
+are green here. Docked because the table's harm assertions are blind to the nested-bare-repo shape
+(I1, now demonstrated against the suite's own canary run) and case 40 still asserts a class with a
+one-spelling regex. Those two are why a green suite did not catch C1.
 
 conventions 1/2, verified: conventional commit, feature branch, English comments, no em or en
-dashes, README counts matching, `docs-claims-check --assertions` and `skills-lint` green, no
-secrets. Docked one for the documented convention in `lessons.md` 2026-09-16, "to claim a class
-the mechanism must assert an OUTCOME, because text checks are evaded by the next spelling", which
-is the exact shape of C1, I2 and I3.
+dashes in the changed files, README counts measured correct (1090), `docs-claims-check --assertions`
+green, no secrets. Docked one for `lessons.md` 2026-09-16, "a guard's comment may name only what
+it verifies", landing on `:404`, `:442` and `:50`, and for the recurring-class rule the Critical
+falls under.
 
 total 6/12 (threshold >= 9, no zero) -> REQUEST CHANGES.
 
-**Same total, materially better artifact, and the defect moved one step earlier.** The decision
-logic is no longer the weak part: it is structural and it held against every shape I could build.
-What leaks is the input to it. Round 7's C1 was "the guard asks the wrong question"; round 8's C1
-is "the guard asks the right question about the wrong object". That is progress in design and no
-progress in outcome, which is why the number does not move.
+**Same total for the third round running, and this time the flat number is the finding.** Round 8
+said the decision is structural and the parsing in front of it is not. That is still the exact
+sentence. Five leaks closed, twenty-nine assertions added, the residuals frozen, and the harm is
+unchanged because the conversion is still a model of git rather than a refusal to guess. The
+difference from rounds 7 and 8 is that the eliminating fix is now four lines, measured, and costs
+nothing.
 
 ## Ceiling
 
-**11/12 is the honest ceiling for a round 9, not 12.** C1 has a fix proven here at zero cost to
-existing cases, I1 has a decision plus a proven patch, I2, I3, I4 and I5 are one line each, so
-correctness, security, readability and conventions can all reach 2. Testing caps at 1 until the
-spelling table and the static check both assert their class rather than an instance, and even
+**11/12 is the honest ceiling for a round 10, not 12.** C1 has a fix measured here at zero cost,
+I2 and I3 are one line each, I1 is one assertion, I4 and I5 are wording, so correctness, security,
+readability and conventions can all reach 2. Testing caps at 1 until case 37's harm assertions can
+see a bare repo in the work tree and case 40 asserts its class rather than one spelling, and even
 then one residual is permanent and belongs in the header rather than in a score: a non-local URL
-cannot be contained by any on-disk walk, and exit 0 against a live network remote is owner
-attestation the suite cannot reproduce.
+cannot be contained by any on-disk walk (verified reachable this round through `GIT_SSH_COMMAND`),
+and exit 0 against a live network remote is owner attestation the suite cannot reproduce.
 
 ## Loop position
 
-**This is round 8, dispatched as the last one, and I am not handing back a list.** The single
-blocking item is C1, with a patch measured in this review; I1 is one decision with a patch also
-measured; I2 to I5 are one line each and could ship in the same commit without further review.
-Everything else I found is written above as residual wording ready to paste.
+**Stop condition 3 fires for the fifth time, and the phrase has narrowed again.** Rounds 3 to 7:
+a containment guard that recognises one spelling. Round 8: two conversions that disagree. Round 9:
+**one conversion, no disagreement, still a model of git whose failure mode is to pass.**
 
-**Stop condition 3 fires once more, and the phrase has narrowed, which matters.** Rounds 3 to 7
-were "a containment guard that recognises one spelling of its target". Round 8 is strictly
-smaller: *the decision is structural, the parsing in front of it is not.* The remaining class is
-confined to one function's worth of code, it has one fix that serves both guards, and unlike the
-previous rounds the fix costs no existing case and requires no contract change.
+The human's standing rule applies and I am not proposing a sixth heuristic. The recommended close
+is the one that makes the class impossible rather than the instance: **an unanswerable question
+must refuse, not pass.** `[ -n "$local_path" ] && [ ! -d "$local_path" ] -> exit 4`. Four lines,
+169 assertions unchanged, every leak from rounds 8 and 9 refused, and it is correct without
+knowing anything about git's URL grammar, which is precisely why the next transformation cannot
+reopen it. Percent-decoding is optional convenience on top, never the guard.
 
 **Recommendation, in order:**
-1. Apply C1's shared `local_url_path` helper to both guards (measured: 140 green, every attack
-   in this round refused, case 27 and case 38 unchanged).
-2. Take the I1 decision. Refuse relative remote URLs, which is what the `dir` arm already does
-   for the same reason.
-3. Add the two rows to case 37's table, the `status --porcelain` assertion (I3), the four-spelling
-   regex in case 40 (I2), the exit-4 clause (I4), and the two comment narrowings plus the
-   `system-map.md` line (I5).
-4. Paste the residual block above into the header and FREEZE the contract.
-5. If a round 9 is run at all, it is a re-anchor of this record at the new head, not a new
-   review. If it finds another instance of URL parsing, the product answer is the narrow one
-   already named in round 7: accept only an absolute path to a bare repository outside every
-   work tree, or a non-local URL, and refuse every other spelling by default.
+1. Apply C1's fail-closed check (measured: 169 green, all nine leaks from rounds 8 and 9 refused).
+   Do NOT ship percent-decoding as the fix on its own.
+2. Fix I2 so the two functions cannot answer differently, and I3 so `~` is expanded rather than
+   refused with a false reason.
+3. Add I1's `status --porcelain` assertion, the three new table rows, and case 40's four-spelling
+   regex. These three are why the suite was green through C1.
+4. I4 and I5 are wording, one clause each.
+5. If a round 10 finds another instance of URL parsing, the parsing is the wrong layer and the
+   product answer is the narrow one round 7 already named: accept a local target only as a plain
+   absolute path to a repository outside every work tree, refuse `file://` outright, and say so
+   in the header.
 
 ## Does this cover HEAD for the merge gate?
 
-The record describes `b3b66f7` exactly, clean tree, everything re-measured today. It does NOT
-clear the gate: REQUEST CHANGES on C1. Do not re-date this record; regenerate it at the new head
-after the fixes.
+The record describes `ad00988` exactly, clean tree, with `bin/ledger-backup.sh` and
+`tests/ledger-backup.test.sh` byte-identical to the reviewed `5972c27` change. It does NOT clear
+the gate: REQUEST CHANGES on C1. Do not re-date this record; regenerate it at the new head after
+the fixes.
 
 ## What's good
 
-- **The design change is the right one and it works.** Comparing git COMMON DIR is an identity
-  test, not a path test, and it answered correctly for a sibling worktree, a symlinked project, a
-  submodule, a `..` path and a self-reference without a line of code per shape. Four rounds of
-  spelling patches on the `dir` arm are what that replaces.
-- **Case 38 exists.** Alongside the case that pins the new refusal sits the case that pins what
-  the refusal must not cost, and the commit body states the legitimate configuration it protects.
-  That pair is why I could measure my own proposed patch as costing zero cases instead of
-  guessing.
-- **The canary is honest and reproducible.** 13 failures against the previous commit, exactly as
-  claimed, including the static name check. Very few commit bodies on any branch survive that
-  check unchanged.
-- **Case 40's comment says why the outcome test cannot be the assertion on this machine, and the
-  SKIP is reported rather than passed off as green.** Then it followed the consequence one file
-  further and fixed the false "an optional tool is missing" note in `docs-claims-check.sh`. That
-  is the discipline `lessons.md` asks for, applied without being asked.
-- **The `GIT_CONFIG_*` fix went for the family, not the reported variable**, and case 39 asserts
-  the outcome on both remotes (the intended one received it, the injected one did not).
+- **The round-8 Critical is genuinely closed, and closed structurally.** One conversion for both
+  guards was the right call and it holds: the publish comparison and the containment guard cannot
+  disagree any more, which was the mechanism behind three of the four spelling leaks. Five leaks
+  refused, measured against a control that still leaks.
+- **The relative URL was refused rather than documented.** That was the harder of the two options
+  offered, it is the one that removes a live exit-0 leak, and it mirrors what the `dir` arm
+  already does for the same reason. Case 42 pins both arrangements and writes down the rejected
+  alternative and why.
+- **The canary is exact for the second round running.** 17 failures at `b3b66f7`, precisely as the
+  commit body claims. Very few commit bodies survive that check unchanged.
+- **The residuals were frozen honestly, and they hold.** I re-checked all six against the new
+  conversion, including the Windows one against the new `*:*` arm, and attacked the non-local one
+  until it leaked exactly where the residual says it would. A residual that survives being attacked
+  is worth more than a guard that has not been.
+- **The comment above the conversion explains the defect it fixes, not just the code.** It names
+  the two things a spelling list got wrong and why a shared function makes that class impossible.
+  Both statements are true; the Critical is about a class the sentence does not claim.
 
 ## History
 
@@ -470,3 +459,25 @@ after the fixes.
   cost to the 140 existing assertions, and the relative case has a four-line refusal mirroring the
   `dir` arm. The class phrase narrows to: the decision is structural, the parsing in front of it is
   not. Residual wording for the freeze is written into this record, ready to paste.
+- **Round 9** (`ad00988`, artifact unchanged since `5972c27`, 2026-09-22): REQUEST CHANGES, 6/12.
+  Regression note: **the round-8 Critical is CLOSED and verified by running it, and the same class
+  returns one transformation over, at the same harm.** All five round-8 leaks were replayed with
+  `b3b66f7` as a positive control that still leaks all five: `file://localhost` to the project, to
+  an in-tree bare repo and to the publish remote, the `@`-and-`:` absolute path, and the relative
+  URL all now exit 2 with no stamp and nothing written. One shared conversion for both guards was
+  the right structure and it delivered what it claimed; relative URLs were refused rather than
+  documented, which was the harder and better of the two options; the canary is exact at 17
+  failures; case 38 and the `dir` arm are untouched and the suite is green at 169. What blocks the
+  merge is that the conversion still MODELS git's URL handling and does not know git
+  percent-decodes a file URL's path, so the program's path is not a directory, the containment
+  block is SKIPPED rather than refused, and four arrangements reach exit 0 with the stamp: the
+  ledger onto the PUBLISH REMOTE via `%2e%2e` and via `%20`, into the project's own repository, and
+  into an in-tree bare repo when the project directory merely contains a SPACE. A plain path with
+  the same `%2e%2e` exits 4, so the program and git agree everywhere except where the modelling is.
+  Two helper functions added this round to agree do disagree on `a/b:c` (contained at exit 2, so
+  Important), and case 37's harm assertions are blind to the nested-bare-repo shape, demonstrated
+  against the suite's own canary run, which is why 169 green did not see the Critical. The
+  eliminating fix is four lines and measured at zero cost: refuse when the converted path is not a
+  directory (exit 4, the code that configuration already returned), so every future unmodelled git
+  transformation becomes a refusal instead of a silent pass. Class phrase for round 10: one
+  conversion, no disagreement, still a model of git whose failure mode is to pass.

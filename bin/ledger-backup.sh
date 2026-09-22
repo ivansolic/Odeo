@@ -41,7 +41,9 @@
 #   3  nothing was promised: no ledger_backup: line recorded, OR the line still holds the
 #      template's <placeholder> (the message says which). Not a failure.
 #   4  the target could not be used: no remote of that name, an unreachable or unreadable
-#      remote, a clone that failed, a missing directory, or a copy that failed. A failed COPY
+#      remote, a local remote url this program CANNOT SEE (it reads as a path, nothing is there,
+#      so containment cannot be asked and the run stops rather than guess), a clone that failed,
+#      a missing directory, or a copy that failed. A failed COPY
 #      places nothing (the files are staged first); a failure during the final MOVES can leave
 #      an incomplete set, and the message distinguishes the two.
 #   5  the copy was made but PUSH WAS REFUSED, so nothing was backed up
@@ -380,9 +382,15 @@ case "$KIND" in
     #     host transport and waved it past.
     # A RELATIVE url yields nothing here on purpose: this program cannot root it, because it
     # would have to agree with a `git clone` run from the CALLER's directory. It is refused
-    # above rather than guessed at.
+    # above rather than guessed at. A LEADING `~` is expanded, which is not a relative path and
+    # not modelling: git expands it, the `dir` arm at `:278` has always expanded it with this
+    # same idiom, and `~/backup.git` is the line a human is most likely to write by hand.
     local_url_path() {                 # <url> -> the local path it names, or nothing
       local u="$1" p=""
+      # The `~` is QUOTED in the pattern. Unquoted, bash tilde-expands the pattern itself, so it
+      # would compare the url against $HOME and never match the literal character. Measured: the
+      # expansion silently did nothing and `~/backup.git` was still refused as relative.
+      case "$u" in '~'|'~'/*) u="${u/#\~/$HOME}" ;; esac
       case "$u" in
         file://*)
           p="${u#file://}"
@@ -401,10 +409,14 @@ case "$KIND" in
       printf '%s' "$p"
     }
 
-    # RELATIVE, asked the same way, so the refusal below and the conversion above cannot drift.
+    # RELATIVE, asked separately from the conversion above. KNOWN, MEASURED DISAGREEMENT between
+    # the two, left open rather than papered over: `a/b:c` and `./a:b/c` are relative here and a
+    # path there, so the same line is refused with one reason or another depending on the
+    # caller's directory. Both outcomes are refusals at exit 2, so nothing leaks through the gap;
+    # it is the MESSAGE that can be the wrong one.
     url_is_relative() {
       case "$1" in
-        *://*|/*) return 1 ;;
+        *://*|/*|'~'|'~'/*) return 1 ;;   # quoted `~`: an unquoted one is expanded, see above
         *:*) case "${1%%:*}" in */*) return 0 ;; *) return 1 ;; esac ;;
         *) return 0 ;;
       esac
@@ -502,7 +514,30 @@ case "$KIND" in
     #   - EXIT 0 AGAINST A REAL NETWORK REMOTE IS NOT PROVEN BY THE SUITE. Every remote under test
     #     is a local repository. Exits 4 and 5 are proven against git's own refusals; a green run
     #     against a live remote is owner attestation.
+    # THE GUARD IS NEVER SKIPPED. This block used to run only when the converted path was a
+    # directory, and every round of this defect has come back through that door: a url this
+    # program reads as "not a path I can see" is not a url git cannot use. git decodes `%2e%2e`
+    # and `%20`; measured, that put the ledger on the PUBLISH REMOTE and into the project's own
+    # repository at exit 0 with the stamp, with the containment questions never asked.
+    #
+    # Percent-decoding here would be the FOURTH model of git's url grammar, and the previous
+    # three were each correct about what was known at the time. So the question is not "what else
+    # does git decode" but "may this program act on a target it cannot see". It may not. If the
+    # conversion yields a path and that path is not a directory HERE, the run stops at exit 4,
+    # the code this configuration already returns for a target that cannot be used. An encoding
+    # nobody has thought of now fails closed instead of failing open.
+    #
+    # What this deliberately does NOT do: refuse when the conversion yields NOTHING. ssh, https
+    # and git:// are not paths at all, and refusing them would kill every real remote backup.
+    # They are covered by the publish refusal and named in the residuals above.
     local_path="$(local_url_path "$url")"
+    if [ -n "$local_path" ] && [ ! -d "$local_path" ]; then
+      echo "ledger-backup: cannot see the target of '$remote' ($url) from here." >&2
+      echo "  It reads as a local path, but no directory is there, so this program cannot ask" >&2
+      echo "  whether it sits inside this repository. git may still resolve it (it decodes" >&2
+      echo "  percent escapes, for one), and a target that cannot be checked is not backed up." >&2
+      exit 4
+    fi
     if [ -n "$local_path" ] && [ -d "$local_path" ]; then
       url_real="$(cd "$local_path" 2>/dev/null && pwd -P)" \
         || { echo "ledger-backup: cannot resolve the remote path $local_path" >&2; exit 4; }
