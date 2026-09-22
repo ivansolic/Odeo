@@ -59,6 +59,32 @@ run() { # run <project> [args...] -> prints output, RETURNS the exit code
 stamp_of() { git -C "$1" rev-parse --absolute-git-dir 2>/dev/null; }
 has_stamp() { [ -f "$(stamp_of "$1")/odeo-ledger-backup-stamp" ]; }
 
+# leak_in_tree <project> <canary> -> the first repository INSIDE the work tree that carries the
+# ledger's content, or nothing.
+#
+# WHY THIS EXISTS, and it is a finding against the tests rather than the program: the harm
+# assertions said "no ref in the project's repo, no object in the project's repo, no todo.md
+# loose in the work tree", and a bare repository sitting inside the work tree satisfies all
+# three while holding the ledger. Measured twice: a suite of 188 assertions ran green across a
+# live leak, in the exact shape the case above was written to catch. A test that cannot see the
+# harm it names is worse than no test, because it is counted as coverage.
+leak_in_tree() {
+  local pp="$1" c="$2" r o
+  while IFS= read -r r; do
+    [ -n "$r" ] || continue
+    while IFS= read -r o; do
+      [ -n "$o" ] || continue
+      if git -C "$r" cat-file blob "$o" 2>/dev/null | grep -q "^$c\$"; then echo "$r"; return 0; fi
+    done <<EOF
+$(git -C "$r" cat-file --batch-all-objects --batch-check='%(objectname) %(objecttype)' 2>/dev/null \
+  | awk '$2=="blob"{print $1}')
+EOF
+  done <<EOF
+$(find "$pp" -type d \( -name '*.git' -o -name '.git' \) 2>/dev/null)
+EOF
+  return 1
+}
+
 # 1. Not configured: exit 3, and the message says WHERE to put the line. This is not an
 #    error state, it is "nothing was promised", and a caller must be able to tell it apart
 #    from a failed backup so it can stay quiet instead of nagging.
@@ -790,6 +816,10 @@ for spelling in self worktree file-url bare-inside file-url-host file-url-host-s
   leaked_wt="$(find "$pp" -name 'todo.md' -not -path "$pp/.claude/tasks/*" 2>/dev/null | head -1)"
   [ -n "$leaked_wt" ] && bad "and a copy sits in the work tree ($spelling: $leaked_wt)" \
     || ok "and no copy sits in the work tree ($spelling)"
+  # AND the shape the three assertions above are blind to: a repository INSIDE the work tree.
+  inside="$(leak_in_tree "$pp" "$canary")"
+  [ -n "$inside" ] && bad "and a repo inside the work tree carries the ledger ($spelling: $inside)" \
+    || ok "and no repo inside the work tree carries the ledger ($spelling)"
 done
 
 # 38. THE REFUSAL MUST NOT COST THE LEGITIMATE CASE, and this is the line the rule walks. A
@@ -991,6 +1021,9 @@ for row in pub-dotdot pub-space self-dotdot space-inside; do
   git -C "$pub43" rev-parse --verify --quiet internal-files >/dev/null 2>&1 \
     && bad "and the ledger is now on the publish remote ($row)" \
     || ok "and the publish remote received nothing ($row)"
+  inside="$(leak_in_tree "$pp" "$canary")"
+  [ -n "$inside" ] && bad "and a repo inside the work tree carries the ledger ($row: $inside)" \
+    || ok "and no repo inside the work tree carries the ledger ($row)"
   if [ "$row" = pub-space ]; then
     git -C "$spaced43" rev-parse --verify --quiet internal-files >/dev/null 2>&1 \
       && bad "and the ledger is on the publish remote spelled with a space ($row)" \
@@ -1011,6 +1044,39 @@ out="$(HOME="$home44" "$SCRIPT" "$p44" 2>&1)"; rc=$?
   || bad "the fail-closed rule refused a legitimate ~ remote: exit $rc ($out)"
 git -C "$home44/tilde44.git" show internal-files:internal-not-in-git/todo.md >/dev/null 2>&1 \
   && ok "and the ledger reached it" || bad "the ~ remote reported success but nothing landed"
+
+# 45. IDENTITY ASKS WHETHER IT IS THE SAME FILE, NOT WHETHER IT IS SPELLED THE SAME. The two
+#     common dirs were compared as STRINGS from `pwd -P`, which preserves the case you typed. On
+#     a case-insensitive filesystem (the macOS default, where this is developed) `$PROJECT` and
+#     `$PROJECTUPPERCASED` are one directory with two spellings, so the identity question
+#     answered "different repository" about the project itself: exit 0, stamped, the ledger a ref
+#     in the very repo it is kept out of. No attacker, just a capitalisation typo in a config
+#     line a human writes by hand.
+#
+#     This hazard is not new to the project: the suite already pins it for the `dir` arm at
+#     case 20. It was simply never carried across to the `git` arm, which is the more expensive
+#     half of the same lesson.
+#
+#     SKIPPED, loudly, where the filesystem is case-sensitive: there the two spellings really are
+#     two directories and the case would pass while testing nothing.
+p45="$(mkproject P45Mixed "ledger_backup: git backup internal-files")"
+p45_upper="$TMP/P45MIXED"
+if [ -d "$p45_upper" ]; then
+  ( cd "$p45" && git add -A && git commit -qm base ) >/dev/null 2>&1
+  canary45="CANARY-45-$$"
+  printf '%s\n' "$canary45" > "$p45/.claude/tasks/todo.md"
+  git -C "$p45" remote add backup "$p45_upper" >/dev/null 2>&1
+  out="$(run "$p45")"; rc=$?
+  [ "$rc" = 2 ] && ok "the project spelled in another case is still the project (exit 2)" \
+    || bad "a case variant of the project's own path reached exit $rc: $out"
+  has_stamp "$p45" && bad "and it stamped success (case variant)" \
+    || ok "and no stamp was written (case variant)"
+  git -C "$p45" rev-parse --verify --quiet internal-files >/dev/null 2>&1 \
+    && bad "and the ledger is a ref in the project's own repository (case variant)" \
+    || ok "and no backup ref exists in the project's repo (case variant)"
+else
+  echo "SKIP - this filesystem is case-sensitive, so two spellings are two directories"
+fi
 
 echo ""
 if [ "$fail" -eq 0 ]; then echo "ledger-backup: all $pass assertions passed."; else echo "ledger-backup: $fail FAILURE(S) above."; fi

@@ -548,7 +548,16 @@ case "$KIND" in
         && d="$(git rev-parse --git-common-dir 2>/dev/null)" && cd "$d" 2>/dev/null && pwd -P)" || remote_common=""
       project_common="$(cd "$PROJECT_DIR" 2>/dev/null \
         && d="$(git rev-parse --git-common-dir 2>/dev/null)" && cd "$d" 2>/dev/null && pwd -P)" || project_common=""
-      if [ -n "$remote_common" ] && [ "$remote_common" = "$project_common" ]; then
+      # `-ef`, NOT a string compare. `pwd -P` resolves symlinks but preserves the CASE you typed,
+      # and this is developed on a case-insensitive filesystem, so `$PROJECT` and `$PROJECTUPPER`
+      # are one directory under two spellings. Measured: the identity question answered "a
+      # different repository" about the project itself, and the ledger became a ref in the repo it
+      # exists to stay out of, at exit 0 with the stamp. A capitalisation typo, not an attack.
+      # `-ef` asks the filesystem whether the two names are the same file (device and inode),
+      # which is the question this line always meant to ask. The `dir` arm's own hazard note
+      # (case 20) is the same lesson, never carried across to this arm until now.
+      if [ -n "$remote_common" ] && [ -n "$project_common" ] \
+         && [ "$remote_common" -ef "$project_common" ]; then
         echo "ledger-backup: '$remote' IS this project's own repository ($url_real)." >&2
         echo "  It shares the object store, so the backup would be a branch inside the very" >&2
         echo "  repository the ledger is kept out of, readable by anyone who clones it." >&2
