@@ -40,6 +40,33 @@ if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   if [[ -n "$root" && -s "$root/.claude/focus-zone" ]]; then
     say "a /focus edit fence is still active on $(head -n1 "$root/.claude/focus-zone"); run /focus off to lift it."
   fi
+
+  # 5. The ledger backup has fallen behind the ledger.
+  #    This is the only check here that speaks about something git cannot recover: todo.md and
+  #    lessons.md are gitignored, so nothing else in this repo would notice them going stale
+  #    or the backup silently failing.
+  #    It asks ledger-backup.sh --check, which is OFFLINE (it reads a local stamp) and writes
+  #    nothing, so a Stop hook can afford it. Exit 3 means no backup location is recorded, and
+  #    that stays SILENT on purpose: a user who never asked for a backup should not be told
+  #    about one every session. The warning exists for the user who HAS one and believes it
+  #    is working.
+  #    Exit 1 (behind) AND exit 2 (the check could not decide) both count as speech. Reacting
+  #    to 1 alone moved the silence rather than removing it: with an unreadable mtime the
+  #    program refuses, correctly, saying silence would be a lie, and then this hook discarded
+  #    stderr and printed nothing, so the user's seat looked exactly like "all fine". Exit 3
+  #    stays silent, because nobody asked for a backup.
+  lb="$(dirname "$0")/ledger-backup.sh"
+  if [[ -n "$root" && -x "$lb" ]]; then
+    lb_out="$("$lb" --check "$root" 2>&1)"; lb_rc=$?
+    if [[ "$lb_rc" -eq 1 || "$lb_rc" -eq 2 ]]; then
+      say "$(printf '%s' "$lb_out" | head -n1 | sed 's/^ledger-backup: //')"
+      if [[ "$lb_rc" -eq 2 ]]; then
+        say "  (the backup check could not run, so whether the ledger is safe is UNKNOWN)"
+      else
+        say "  (todo.md and lessons.md are gitignored, so git is not carrying them: run /retro, or ledger-backup.sh)"
+      fi
+    fi
+  fi
 fi
 
 exit 0

@@ -81,6 +81,20 @@ _Your house rules. Be concrete, these shape every change Claude makes._
 Output language for generated user-facing prose (PRDs, stories, plans, reviews); one of en|de|hr|fr; set by /setup-project. Code, comments, filenames, and all machine-read fields stay English regardless.
 output_language: en
 
+Where `.claude/tasks/todo.md` and `lessons.md` are backed up. They are gitignored so the build
+ledger never reaches a published snapshot, which also means git does not carry them: this line
+is the only thing that does. `/retro` and `ledger-backup.sh` (installed in `~/bin`) read it, and the end-of-session
+check warns when the copy falls behind. Leave it out and nothing will nag you about it. Put it
+in `CLAUDE.local.md` instead (gitignored, read first) when the target is private.
+Uncomment ONE and fill it in. The `#` matters: an example left live is read as real
+configuration, and then every session ends with a warning about a backup nobody set up.
+#  ledger_backup: git <remote-name> <branch>     e.g. git backup ledger-files
+#  ledger_backup: dir <absolute-path>            e.g. dir /Users/me/Dropbox/project-ledger
+Refused on purpose, each with its reason on screen: a directory inside ANY git repository (a
+copy in a repo shares the disk it protects against and one `git add -A` publishes it), and this
+project's own publish remote. What the program cannot judge is whether some OTHER remote is
+public; pick a target nobody else reads.
+
 ### Frontend
 - [e.g. component model, state patterns, control-flow syntax, file organization]
 

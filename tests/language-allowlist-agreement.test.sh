@@ -2,13 +2,15 @@
 # Invariant: every copy of the output-language allowlist agrees.
 #
 # The code set `en de hr fr` is a literal in bin/{resolve-language,set-global-language,
-# set-project-language,language-status}.sh and a `case` arm in bin/init-project.sh. This
-# test is the ONLY mechanical defense against those five copies drifting. The failure it
-# prevents is quiet, not loud: a writer that accepts a code the resolver then degrades away
-# tells the user "set to es" and keeps producing English documents.
+# set-project-language,language-status}.sh, a `case` arm in bin/init-project.sh, and a
+# ValidateSet in install.ps1. This test is the ONLY mechanical defense against those six
+# copies drifting. The failure it prevents is quiet, not loud: a writer that accepts a code
+# the resolver then degrades away tells the user "set to es" and keeps producing English
+# documents.
 #
-# The four scripts are driven behaviorally; init-project.sh (do-not-touch here) is checked
-# textually, because invoking the scaffolder would create a whole project tree.
+# The four scripts are driven behaviorally; init-project.sh (do-not-touch here) and
+# install.ps1 are checked textually, because invoking the scaffolder would create a whole
+# project tree, and PowerShell is not present on most machines that run this suite.
 #
 # This guard has been OBSERVED FAILING (mutation RED, recorded in the commit body): adding
 # `es` to VALID in set-project-language.sh alone fails cases 2 and 3, and adding it to
@@ -105,6 +107,22 @@ assert_true "init-project.sh message still lists the set" "grep -q '(allowed: $E
 #    The default arm must still REFUSE (exit 1): keeping its message while dropping the
 #    exit would make the scaffolder accept every code with only a warning.
 assert_true "init-project.sh default arm still exits 1" "printf '%s\\n' \"\$case_body\" | grep -qE '^[[:space:]]*\\*\\).*exit 1'"
+
+# 5) THE SIXTH COPY: install.ps1's ValidateSet is the Windows door's copy of the same list.
+#    It is the copy most likely to be forgotten, because the machine that adds a language is
+#    not the machine that runs it. Drift in either direction is a real failure: a code
+#    missing here is rejected before the installer is ever reached, and an extra code is
+#    accepted at the door and then degraded to English by the resolver.
+#    The whole set is compared, not grepped for, so an ADDED entry is caught too.
+#    Exactly ONE ValidateSet is expected. Taking the first of several would let a second
+#    parameter carry a different list while this case kept reporting on the first, so the
+#    count is asserted before the contents.
+ps1_sets="$(grep -oE "\[ValidateSet\([^)]*\)\]" "$ROOT/install.ps1")"
+n_sets=$(printf '%s\n' "$ps1_sets" | grep -c .)
+assert_eq "install.ps1 declares exactly one ValidateSet" 1 "$n_sets"
+ps1_set="$(printf '%s\n' "$ps1_sets" | grep -oE "'[a-zA-Z-]+'" | tr -d "'" | tr '\n' ' ')"
+ps1_set="${ps1_set% }"
+assert_eq "install.ps1 accepts exactly the expected set" "$EXPECTED" "$ps1_set"
 
 echo
 if [ "$fail" = 0 ]; then echo "ALL PASS"; else echo "SOME FAILED"; fi

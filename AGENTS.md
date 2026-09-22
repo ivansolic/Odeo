@@ -39,8 +39,9 @@ rules are also embedded in their bodies so they hold even when this file is abse
   The REVIEW loop's own stop condition is declared in `docs/eval-framework.md`: approve, or
   three rounds on one artifact, or two consecutive rounds of the same defect class,
   whichever comes first, with a Critical always overriding the cap. It is written down
-  because this very rule went unapplied to the system's own review loop until one branch
-  had cost five rounds, each ended by a human asking whether to stop.
+  because this very rule went unapplied to the system's own review loop until one branch ran
+  to five rounds, each ended by a human asking whether to stop. Five is what the missing cap
+  cost on that branch, not a second limit: the limit is the three above.
 
 ## Model policy (judgment inherits, execution defaults to sonnet)
 - Judgment (architect, all reviewers, PM work) runs on the SESSION model, run
@@ -144,6 +145,11 @@ rules are also embedded in their bodies so they hold even when this file is abse
 - **Integrate with rebase, not merge commits.** Rebase onto latest `origin/main`,
   resolve conflicts by intent + tests (never weaken a test), then merge. Rebase only
   your own unshared branch. `/merge` automates this.
+  **First confirm that remote IS your upstream:** `git merge-base --is-ancestor` each way.
+  If neither is an ancestor of the other AND the project publishes through a separate step
+  (a pre-push hook refusing that remote, a snapshot script, an internal-path denylist), the
+  remote is a PUBLICATION, not an upstream: integrate into local `main`, and never rebase,
+  push or pull against it. The size of the gap decides nothing. See `/merge` step 1b.
 - Never commit secrets, `.env`, credentials, or large binaries.
 
 ## Knowledge (local + community)
@@ -281,9 +287,13 @@ baseline above) does not exist.
   reviewer (code, design, pm, skill) returns findings below the max score:
   apply the actionable fixes, re-dispatch the SAME reviewer to verify and
   regenerate the record, and repeat, WITHOUT the human having to ask twice.
-  Stop conditions (a loop needs a stop): max score reached, or the reviewer
-  says no actionable fixes remain (e.g. what's left needs behavioral testing,
-  out of a form review's reach), or 3 cycles. A loop that stops short of max
+  The stop condition is declared ONCE, in `docs/eval-framework.md`, and is the
+  one named a few lines above in this file; it is not restated here. A second
+  copy said "max score reached, or no actionable fixes remain, or 3 cycles",
+  which DISAGREED with the source at every verdict between the threshold and
+  the max: at an APPROVE of 10/12 the framework stops and that copy continued.
+  Two stop conditions for one loop is not redundancy, it is a coin flip.
+  A loop that stops short of max
   ends with three things, always: WHY max is not reachable (the specific
   blocker, named), the residual findings AS THEY ARE (an unreached max is
   reported, never rounded up), and the open decision handed to the human

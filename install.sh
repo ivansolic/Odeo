@@ -19,6 +19,10 @@ set -euo pipefail
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LINK=false
 INSTALL_LANG="${ODEO_INSTALL_LANG:-}"   # optional non-interactive global-language default (en|de|hr|fr)
+# BEGIN arg-parse   (tests/install-ps1.test.sh extracts exactly this block and runs it, so
+#                    the flags install.ps1 emits are checked against the REAL parser rather
+#                    than against a copy of it; keep both markers, the test fails LOUD if
+#                    either one moves)
 while [[ "$#" -gt 0 ]]; do
   case "$1" in
     --link) LINK=true; shift ;;
@@ -27,6 +31,7 @@ while [[ "$#" -gt 0 ]]; do
     *) echo "install: unknown option: $1 (use --link and/or --lang <code>)" >&2; exit 1 ;;
   esac
 done
+# END arg-parse
 
 place() { # place <src> <dest>
   local src="$1" dest="$2"

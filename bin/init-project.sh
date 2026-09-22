@@ -235,6 +235,13 @@ CLAUDE.local.md
 .claude/local/
 .claude/focus-zone
 
+# The build ledger. Deliberately NOT committed: todo.md carries session state and lessons.md
+# every correction this project has learned, and both would otherwise ride along into any
+# published snapshot. Git therefore does not back them up either, which is what
+# `ledger-backup.sh` and the `ledger_backup:` line in CLAUDE.md exist for.
+.claude/tasks/todo.md
+.claude/tasks/lessons.md
+
 # OS
 .DS_Store
 Thumbs.db

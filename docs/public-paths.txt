@@ -26,6 +26,7 @@ README.md
 ROADMAP.md
 INSTALL.md
 install.sh
+install.ps1
 LICENSE
 CONTRIBUTING.md
 CODE_OF_CONDUCT.md
