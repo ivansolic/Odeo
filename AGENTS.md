@@ -145,6 +145,11 @@ rules are also embedded in their bodies so they hold even when this file is abse
 - **Integrate with rebase, not merge commits.** Rebase onto latest `origin/main`,
   resolve conflicts by intent + tests (never weaken a test), then merge. Rebase only
   your own unshared branch. `/merge` automates this.
+  **First confirm that remote IS your upstream:** `git merge-base --is-ancestor` each way.
+  If neither is an ancestor of the other AND the project publishes through a separate step
+  (a pre-push hook refusing that remote, a snapshot script, an internal-path denylist), the
+  remote is a PUBLICATION, not an upstream: integrate into local `main`, and never rebase,
+  push or pull against it. The size of the gap decides nothing. See `/merge` step 1b.
 - Never commit secrets, `.env`, credentials, or large binaries.
 
 ## Knowledge (local + community)

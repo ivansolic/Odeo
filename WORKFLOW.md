@@ -598,7 +598,10 @@ When the story is reviewed and you approve it, run:
 ```
 
 It does the git mechanics for you, on a clean linear history:
-1. Fetches the latest `origin/main`
+1. Fetches the latest `origin/main`, and checks by ancestry that it really is your
+   upstream. When neither side is an ancestor of the other and the project publishes
+   through a separate step, that remote is a publication, not an upstream: it integrates
+   into your local `main` instead and tells you so, rather than rebasing onto it
 2. Rebases your branch on top of it (resolving conflicts by intent + tests, asking
    you if genuinely ambiguous; it never weakens a test to resolve)
 3. Runs tests + typecheck, must be green

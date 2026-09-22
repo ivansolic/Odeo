@@ -58,7 +58,7 @@ The first-person voice ("I want…") is intentional, when you adopt this file,
 - Before pushing: run tests and typecheck locally
 - Never commit secrets, `.env` files, credentials, API keys, or large binaries
 - Never `git push --force` to shared branches; use `--force-with-lease` only on branches I haven't shared yet
-- **Integrate with rebase, not merge commits.** Before merging a story branch, rebase it onto the latest `origin/main` so history stays linear; resolve conflicts by understanding intent + tests (never weaken a test), then merge. Rebase only your own unshared branch, never one someone else is working on. This is what `/merge` automates.
+- **Integrate with rebase, not merge commits.** Before merging a story branch, rebase it onto the latest `origin/main` so history stays linear; resolve conflicts by understanding intent + tests (never weaken a test), then merge. Rebase only your own unshared branch, never one someone else is working on. This is what `/merge` automates. **But first confirm that remote is actually your upstream** (`git merge-base --is-ancestor` each way): if neither side is an ancestor of the other and the project publishes through a separate step (a pre-push hook that refuses the remote, a snapshot script, an internal-path denylist), it is a PUBLICATION rather than an upstream, so integrate into local `main` and never rebase, push or pull against it. How big the gap is decides nothing.
 - If I ask you to work on main directly, remind me to create a branch first
 
 ## Code Style
