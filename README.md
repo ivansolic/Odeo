@@ -166,11 +166,15 @@ Odeo/
 ├── global/
 │   └── CLAUDE.md             ← user-global baseline laid into ~/.claude by install.sh
 ├── tests/
-│   └── *.test.sh             ← 33 suites, 1053 assertions. 24 of the 24 programs have their
+│   └── *.test.sh             ← 33 suites, 1090 assertions. 24 of the 24 programs have their
 │                               own suite; the remaining suites are cross-cutting rather than
-│                               per-program. Some machines count fewer, and the suites say so
-│                               rather than pass quietly: no PowerShell (install-ps1), running
-│                               as root, or a shell that refuses what a case needs
+│                               per-program. The number counts the `ok` lines one full run
+│                               reports, so it moves with the machine: a skipped case takes its
+│                               assertions with it (no PowerShell for install-ps1, running as
+│                               root, a shell that refuses what a case needs), and a machine that
+│                               runs a case this one skips counts MORE. The suites name what they
+│                               skipped rather than pass quietly, and the claims check reports the
+│                               count as UNVERIFIED there instead of calling it drift
 └── docs/
     ├── system-map.md         ← the catalog: every command/agent/loop by phase
     ├── eval-framework.md     ← rubrics, scorers, eval records, regression

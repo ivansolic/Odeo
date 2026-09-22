@@ -2,91 +2,63 @@
 artifact: install.ps1 + tests/install-ps1.test.sh + tests/publish-guard.test.sh real-tree case + install.sh arg-parse markers + docs-claims-check skip reporting + community-refresh canary content + language-allowlist sixth copy + .gitattributes/.ps1 + README/INSTALL Windows claims
 type: code
 branch: feature/windows-powershell-entry
-reviewed_commit: 0125901
-artifact_version: 6
-date: 2026-09-18
+reviewed_commit: b3b66f7
+artifact_version: 7
+date: 2026-09-22
 scorer: code-reviewer
 model: claude-opus-5[1m]
 model_tier: strongest
 effort: high
-scores: { correctness: 2, security: 2, performance: 2, readability: 2, testing: 2, conventions: 2 }
-total: 12/12
-verdict: APPROVE
+scores: { correctness: 1, security: 2, performance: 2, readability: 2, testing: 2, conventions: 1 }
+total: 10/12
+verdict: APPROVE WITH COMMENTS
 previous_total: 12/12
 ---
 
 ## Artifact
 
-Round 6, at `0125901`. Same artifact scope as rounds 1 to 5. This round exists for a gate
-reason, not a code reason: the merge gate requires every record on the branch to cover the
-commit being merged, and the sibling ledger-backup program moved again in `0125901`.
+Round 7, at `b3b66f7`. Same artifact scope as rounds 1 to 6. Like round 6 this exists for a gate
+reason (every record on the branch must cover the commit being merged), but unlike round 6 the
+commit moved something REAL inside this artifact: `b3b66f7` touched `bin/docs-claims-check.sh`
+and `README.md`, both of which this record owns, and the change it made is the one rounds 5 and
+6 asked for.
 
-Exactly ONE thing inside this artifact's scope moved since `994ede8`, and it is a number:
-`README.md:169`, `1016` -> `1027` assertions. `git diff --stat 994ede8..HEAD` over the scope
-lists only `README.md`; `tests/install-ps1.test.sh` is byte-identical to `994ede8`, and
-`install.ps1`, `install.sh`, `.gitattributes`, `INSTALL.md`, the language-allowlist suite, the
-community-refresh suite, the publish-guard suite and `bin/docs-claims-check.sh` are all
-byte-identical to `cebc0a0`, the last commit that touched them. So rounds 1 to 5's findings on
-those files carry forward unchanged and were not re-litigated; what this round actually does is
-verify the one moved number against the tree and re-measure the two nitpicks the sibling could
-have moved. Everything else in `994ede8..0125901` (`bin/ledger-backup.sh`,
-`tests/ledger-backup.test.sh`, `AGENTS.md`, `docs/plan-format.md`, `docs/system-map.md`,
-`skills/retro/SKILL.md`) belongs to the ledger-backup program, scored separately in
-`docs/evals/code-ledger-backup.md`. It is not re-scored here, but it was checked for collateral
-damage to this artifact. No plan exists in `docs/plans/` for this branch, so there is no
-contract to compare against.
+`git diff --stat 0125901..HEAD` over the scope lists exactly those two files. `install.ps1`,
+`install.sh`, `.gitattributes`, `INSTALL.md`, the language-allowlist suite, the
+community-refresh suite and the publish-guard suite are byte-identical to `cebc0a0`;
+`install.ps1` itself has not moved since `4416477` (sha `594ed21c...`). `tests/install-ps1.test.sh`
+is byte-identical to `994ede8`. So rounds 1 to 6's findings on those files carry forward
+unchanged and were not re-litigated. The rest of `b3b66f7` (`bin/ledger-backup.sh`,
+`tests/ledger-backup.test.sh`) is the sibling ledger-backup program, scored in
+`docs/evals/code-ledger-backup.md`, which is still sitting at `0125901` with REQUEST CHANGES
+6/12 and needs its own round before this branch can merge. It is not re-scored here; it was
+read only where it feeds this artifact's skip accounting. No plan exists in `docs/plans/` for
+this branch, so there is no contract to compare against.
 
-## The two carried nitpicks, re-measured at this head
+## The change, verified against the tree
 
-**n1, the warm-up still asserts nothing. Still true, still a nitpick.**
-`tests/install-ps1.test.sh:350-351` is unchanged: `env -i HOME=... "$PWSH" -NoProfile -Command
-exit >/dev/null 2>&1`, exit status discarded, no `ok`/`bad` line. The suite still reports 38
-assertions, the same count as round 5, which is the arithmetic proof that nothing was added
-here. The reason it stays a nitpick rather than an Important is unchanged and was re-derived,
-not inherited: the warm-up is not a guard whose green is trusted, it is a precondition whose
-failure mode is a LOUD red in case 9b, just a red with the wrong name on it. The risk is
-misattribution, not a silent pass. The fix (one `ok`/`bad` pair, moving the suite to 39 and the
-README to 1028) is still the right shape and still optional.
+**The note.** `bin/docs-claims-check.sh:98-101` used to print one cause, "an optional tool is
+missing". It now prints three: an optional tool is missing, the case cannot run as this user, or
+this shell refuses what it needs. All three are real and were counted, not taken from the commit
+body: `grep -nE '^\s*(echo|printf).*SKIP' tests/*.test.sh` returns nine emitters, and every one
+of them falls into one of the three (one pwsh gate in `install-ps1.test.sh:40`, six `running as
+root` guards in `ledger-backup.test.sh:405,480,499,540,565,592`, one SHELLOPTS refusal at
+`:849`; the tenth hit, `docs-claims-check.test.sh:65`, is a fixture). There is no fourth cause
+in the tree that the note fails to name.
 
-**n3, the root-run skip note. Assessment stands, and the specific worry this round raised did
-not materialise.** The brief asked whether `0125901`'s new ledger-backup cases (34, 34b, 35, 36)
-added skip lines that would worsen the accounting. They did not. Measured both ends rather than
-reasoned about: `git show 994ede8:tests/ledger-backup.test.sh | grep -cE 'SKIP'` is 6, and the
-same grep at HEAD is 6; `grep -nE 'id -u' tests/ledger-backup.test.sh` returns the same six
-guards at `:404`, `:479`, `:498`, `:539`, `:564`, `:591`. The four new cases are not root-gated.
-So the finding is exactly as large as round 5 recorded it, no larger: on a root run,
-`bin/docs-claims-check.sh:86-90` prints a note whose single stated cause ("an optional tool is
-missing") is false for six of the skips, and `README.md:171-172` says the same thing with the
-same single cause. Still sibling-induced, still flagged and not scored here, still low
-probability (no CI config in the tree, no documented container workflow).
+**It went live, exactly as rounds 5 and 6 predicted.** This is no longer theoretical about root
+containers. Measured here: `bash --version` is 3.2.57, `SHELLOPTS=allexport bash -c 'echo
+$SHELLOPTS'` prints `braceexpand:hashall:interactive-comments` and the error `SHELLOPTS:
+readonly variable`, so `ledger-backup.test.sh:837`'s guard is false on this machine and the case
+skips. `bash bin/docs-claims-check.sh --assertions` therefore prints `note: 1 check(s) were
+SKIPPED here` on an ordinary run of this repo. Under the old wording that note would have read
+"an optional tool is missing", which is false: nothing is missing, the shell refused. The
+builder fixed a live falsehood, not a hypothetical one.
 
-## Verification (by measurement, on this machine)
-
-- `bash tests/install-ps1.test.sh` -> `all 38 assertions passed`, pwsh 7.6.6, 9.6s wall. This
-  is the collateral check the brief asked for: the sibling's changes did not break this suite.
-- `bash tests/publish-guard.test.sh` -> `ALL PASS`, including `the real tree feeds 240 tracked
-  paths into the guard`, `every tracked path in the real tree is classified public or internal`,
-  and the planted-path canary. The count is still 240 because `0125901` added and removed no
-  files, only content; had the sibling added an unclassified path, this case is the one that
-  would have caught it, and it is green.
-- `bash bin/docs-claims-check.sh --assertions` -> `ok: bin executables = 24`, `ok: test suites =
-  33`, `ok: programs with their own suite = 24`, `ok: assertions = 1027`, `every countable claim
-  matches the tree`, exit 0. The README's new number is verified against the TREE, not against
-  the commit body. Note that no `note: N check(s) were SKIPPED here` line was printed, which is
-  the independent confirmation that this run skipped nothing and 1027 is a full count rather
-  than a low one that happened to match.
-- Scope immobility: `git diff --stat 994ede8..HEAD` over the scope lists `README.md` only, and
-  `git diff --stat cebc0a0..HEAD` over `install.ps1`, `install.sh`, `.gitattributes`,
-  `INSTALL.md`, `tests/language-allowlist-agreement.test.sh`, `tests/community-refresh.test.sh`,
-  `tests/publish-guard.test.sh`, `bin/docs-claims-check.sh` is empty.
-- Root-skip census at both commits, as tabled above.
-- Em/en dash scan over the in-scope diff (`994ede8..HEAD` on `README.md` and
-  `tests/install-ps1.test.sh`): clean.
-- Round 5's measurements (the order-independence probe with its negative control, and the
-  prune-necessity probe) were NOT re-run. They are measurements of
-  `tests/install-ps1.test.sh:339-351`, which is byte-identical to the commit they were taken
-  at, so re-running them would be redundant work on unchanged text. Their results are carried
-  forward and the immobility that licenses that is stated above.
+**The README.** `README.md:169-173` moved `1027` -> `1053` and rewrote the sentence to match the
+note. Verified against the TREE: `--assertions` returns `ok: assertions = 1053`, plus `ok: bin
+executables = 24`, `ok: test suites = 33`, `ok: programs with their own suite = 24`, exit 0,
+`every countable claim matches the tree`.
 
 ## Findings
 
@@ -96,108 +68,203 @@ None.
 
 ### Important
 
-None. The round-4 Important was closed at `994ede8` by mechanism and independently re-measured
-there; the code that closed it has not moved since.
+**`README.md:169`+`README.md:171-173` and `bin/docs-claims-check.sh:98-101`. The documented
+number is now taken from a run that SKIPPED, and both the note and the README bound the error in
+one direction only.** Round 6 verified `1027` the strong way: no `note:` line printed, therefore
+nothing was skipped, therefore `1027` was a FULL count and every other machine could only read
+LOW, which is precisely what the note excuses. That property is gone. At this head the note DOES
+print on the reference machine, so `1053` is the count of a run with one case unrun.
+`tests/ledger-backup.test.sh` reports `all 140 assertions passed` with the SKIP line, and the
+guarded branch at `:837-848` contains two `ok` calls (`under allexport the caller's index is
+still byte-identical`, `and the backup still ran (exit 0)`). So the number is 1053 here and 1055
+wherever that branch runs, and `1053` is neither a maximum nor a minimum, it is one machine's
+reading.
+
+The consequence is a false verdict with actively wrong remediation. A machine whose shell
+imports SHELLOPTS gets `DRIFTED: assertions , README says 1053, the tree has 1055`, exit 1, and
+then `bin/docs-claims-check.sh:117`: "Fix the NUMBER in the document, never this check". The
+note above it says only that the count "can read LOW on this machine without the README being
+wrong", which does not cover reading HIGH, so the reader follows the instruction, edits the
+README to 1055, and breaks it on the author's machine. That is the exact confusion the note
+exists to prevent, one direction over.
+
+Honesty about the instrument, per `lessons.md:15` and `:19`: the macOS side is MEASURED (skip
+fires, note prints, 1053, 140). The other side is NOT, because this machine has no bash >= 4 and
+no container runtime, so I could not run the branch. The finding does not rest on that
+measurement, because it forks and both arms land in the same place: either some shell runs the
+branch, in which case `1053` is wrong there and the note misdirects, or NO shell anywhere runs
+it, in which case `ledger-backup.test.sh:837-848` is unreachable everywhere and the repo carries
+a permanent SKIP note plus two assertions that can never execute, which is the builder's own
+stated objection ("a test that cannot fail is decoration that reads like a guard") one level out.
+
+Fix, and it is one change, not two: when `n_skipped > 0`, the assertions claim must stop being a
+pass/fail comparison, because the checker KNOWS its own number is partial and says so two lines
+earlier. Report it as `UNVERIFIED: assertions , README says N, this machine ran M (K check(s)
+skipped)` and do not set `fail` for that claim; leave the three deterministic claims fatal as
+they are. Then say in `README.md:171-173` what the number is a count OF (a machine where nothing
+skipped), so the documented value has one defined meaning instead of one per machine. Do not fix
+this by making the skipped case emit its two `ok` lines unconditionally; that is the decoration
+the builder correctly refused.
 
 ### Nitpicks
 
-All seven carry forward from round 5. None weakens a claim, none is new this round.
+Seven carried from round 6, plus two from this commit. None weakens a claim.
 
-- `tests/install-ps1.test.sh:349-351`. The warm-up is the one mechanism in this file that can
-  fail without saying so. Its exit status is discarded and it produces no assertion, while every
-  other instrument here refuses loudly (`instrument broken`) or carries a canary (case 2 for
-  case 1, case 6 for case 5, the four planted shapes for 9b). If it ever no-ops, case 9b reverts
-  to the round-4 behaviour and the red it prints says `install.ps1 modified the filesystem
-  itself; it is becoming a second implementation`, which is the misattribution the warm-up
-  exists to prevent. One line fixes it: `if env -i HOME=... "$PWSH" -NoProfile -Command exit
-  >/dev/null 2>&1; then ok "the sandbox HOME is warmed before any snapshot (case 9b does not
-  depend on case order)"; else bad "the HOME warm-up did not run; a filesystem diff below would
-  be pwsh's first launch, not install.ps1"; fi`. Note this moves the suite to 39 and the README
-  to 1028.
-- `tests/install-ps1.test.sh:350` vs `:313-316`. The warm-up spells `HOME="$TMP/home"` and
-  `PATH="$TMP/empty-bin:/usr/bin:/bin"` a second time, duplicating `run_ps1`'s sandbox
-  construction. An edit that repoints `run_ps1`'s HOME warms the wrong directory and silently
-  restores the ordering dependency. Both nitpicks die in one move: warm up THROUGH the same
-  helper, e.g. `warm="$(mkrepo repo-warm)"; run_ps1 "$warm" - "$TMP/cap-warm"` before the first
-  snapshot. That also closes the residual in the comment's claim ("every directory at once,
-  present and future"): the warm-up launches `-Command exit` while every case launches
-  `-File install.ps1`, so a future pwsh that creates a directory only on script execution would
-  not be warmed. Measured at round 5 as NOT a live gap on 7.6.6, which is why this is a nitpick
-  and not a finding against the claim.
-- `bin/docs-claims-check.sh:86-90` and `README.md:171-172`, SIBLING-INDUCED, flagged not
-  re-scored. Both name ONE cause for an environment-dependent assertion count: "an optional tool
-  is missing" / "A machine without PowerShell counts fewer". `tests/ledger-backup.test.sh` emits
-  six `SKIP - running as root, ...` lines (six at `994ede8`, six at HEAD, re-counted this round),
-  and they match `grep -cE '^SKIP'` exactly like the pwsh ones. A root run therefore prints
-  `DRIFTED: assertions` plus a note whose stated cause is false, sending the reader after a tool
-  that is not missing. Fix: widen both sentences to the mechanism's actual scope, "a check that
-  could not run here (an optional tool, or a case that cannot run as root)".
-- `tests/install-ps1.test.sh:288`. Carried from round 4, not taken. "Links are recorded by
-  TARGET, directories by name, files by hash" still omits the mode column that `:303` records.
-  Add the word.
-- `tests/install-ps1.test.sh:297`. Carried from round 3, not taken. `find -print` into
-  `while IFS= read -r p` splits a path containing a newline. `-print0` plus `read -r -d ''`
-  costs one line.
-- `tests/install-ps1.test.sh:106-107`. Carried from round 3, not taken. When the `;;` count
-  disagrees because an arm BODY contains `;;` inside a string, the message sends the reader
-  after a missing arm that does not exist. Name both causes.
+- **NEW. `tests/docs-claims-check.test.sh:55-58`.** The old single-cause premise survives in a
+  third copy: "a machine missing an optional tool reads as a drifted README, which sends the
+  reader to fix a document that is correct." `grep -rn "optional tool"` over the tracked tree
+  returns exactly three non-evals hits, and this commit updated two of them. This is
+  `lessons.md:17` verbatim ("grep the ENTIRE repository for the old premise, not the file I was
+  pointed at"). Fix: widen the header comment to the same three causes the note now names, or
+  point it at the note rather than restating it.
+- **NEW. Nothing pins the note's causes.** `tests/docs-claims-check.test.sh:73-80` asserts that
+  the note FIRES when something skipped and stays QUIET when nothing did, which is the right
+  behavioural pair and it is green. But no assertion touches what the note SAYS, so the wording
+  can narrow again silently, and it just demonstrated that it can: the third copy above drifted
+  in the same commit that widened the other two. `CLAUDE.md`'s own rule for this
+  ("When a written lesson repeats") says a nitpick that recurs needs a MECHANISM at the point of
+  use, not a third phrasing, and this round received a third phrasing. A cheap mechanism exists:
+  assert that the note names more than one cause (e.g. that it contains both `tool` and
+  `shell`), which is far less brittle than pinning the sentence and would have caught the stale
+  copy.
+- `tests/install-ps1.test.sh:349-351`. Carried. The warm-up is the one mechanism in this file
+  that can fail without saying so: its exit status is discarded and it produces no assertion,
+  while every other instrument refuses loudly or carries a canary. If it ever no-ops, case 9b
+  reverts to round-4 behaviour and prints `install.ps1 modified the filesystem itself`, which is
+  the misattribution the warm-up exists to prevent. Still a nitpick and not an Important because
+  the failure mode is a LOUD red with the wrong name on it, not a silent pass. One `ok`/`bad`
+  pair fixes it (and moves the suite to 39, the README to 1054).
+- `tests/install-ps1.test.sh:350` vs `:313-316`. Carried. The warm-up respells `HOME` and `PATH`
+  instead of going through `run_ps1`, so an edit that repoints `run_ps1`'s HOME warms the wrong
+  directory and silently restores the ordering dependency. Warming THROUGH the helper kills this
+  and the previous nitpick together, and also closes the residual in the comment's "every
+  directory at once, present and future" (the warm-up launches `-Command exit`, every case
+  launches `-File install.ps1`).
+- `tests/install-ps1.test.sh:288`. Carried from round 4. "Links are recorded by TARGET,
+  directories by name, files by hash" still omits the mode column `:303` records. Add the word.
+- `tests/install-ps1.test.sh:297`. Carried from round 3. `find -print` into `while IFS= read -r
+  p` splits a path containing a newline. `-print0` plus `read -r -d ''` costs one line.
+- `tests/install-ps1.test.sh:106-107`. Carried from round 3. When the `;;` count disagrees
+  because an arm BODY contains `;;` inside a string, the message sends the reader after a
+  missing arm that does not exist. Name both causes.
 - `tests/install-ps1.test.sh:455`. Carried from round 4. `chmod 644 "$TMP/home/mode-probe"` runs
-  on all four iterations though only one dirties it. Harmless and arguably the safer shape.
+  on all four iterations though only one dirties it. Harmless, arguably the safer shape.
+
+## Verification (by measurement, on this machine)
+
+- `bash bin/docs-claims-check.sh --assertions` -> 24 / 33 / 24 / `assertions = 1053`, exit 0,
+  `every countable claim matches the tree`, 2m22s, with `note: 1 check(s) were SKIPPED here`
+  printed. The note's presence is what the Important above rests on.
+- `bash tests/docs-claims-check.test.sh` -> `all 7 assertions passed`, including `--assertions
+  totals the suites' ok lines (exit 0)`, `and it reports that 1 check was skipped`, `and it stays
+  quiet when nothing was skipped`. The note's fire/quiet behaviour is still covered at this head;
+  its causes and its direction are not.
+- `bash tests/install-ps1.test.sh` -> `all 38 assertions passed`, 9.0s. Collateral check asked
+  for by the brief: the sibling's larger change did not break this suite, and the count is
+  unchanged from rounds 5 and 6, which is the arithmetic proof that nothing was added or lost.
+- `bash tests/publish-guard.test.sh` -> `ALL PASS`, including `the real tree feeds 240 tracked
+  paths into the guard`, `every tracked path in the real tree is classified public or internal`,
+  and the planted-path canary. Still 240: `b3b66f7` added and removed no files, only content.
+- `install.ps1` unchanged: `git diff cebc0a0..HEAD -- install.ps1` empty, last touching commit
+  `4416477`, `shasum` `594ed21c9287a7708a953f5b50d53289f408253b`.
+- `bash tests/ledger-backup.test.sh` -> `all 140 assertions passed` with one SKIP line, 24s. Run
+  not to re-score the sibling but to establish that 140 (and therefore 1053) is a skipped-low
+  count.
+- Shell probe: `bash --version` 3.2.57, `SHELLOPTS=allexport bash -c` refused with `SHELLOPTS:
+  readonly variable` and allexport not applied. `command -v docker podman colima nix` and
+  `/opt/homebrew/bin/bash`, `/usr/local/bin/bash` all absent, which is why the other arm of the
+  Important is reasoned rather than measured, and is labelled as such.
+- SKIP census across all suites, and `grep -rn "optional tool"` over the tracked tree, as tabled
+  above.
+- Em/en dash scan over the in-scope diff (`0125901..HEAD` on `README.md` and
+  `bin/docs-claims-check.sh`): clean.
+- Round 5's warm-up probes and round 6's order-independence measurements were NOT re-run:
+  `tests/install-ps1.test.sh` is byte-identical to `994ede8`, so re-running them would be
+  redundant work on unchanged text. Their results carry forward and the immobility that licenses
+  that is stated above.
+
+## Is the round-5/6 note nitpick closed?
+
+**Partly.** The part that mattered is closed and was closed properly: the note is no longer
+FALSE. It named one cause, the tree has three, and it now names three, verified against a census
+of every SKIP emitter rather than against the commit message. A reader who sees the note on this
+repo is no longer sent to install a tool that was never missing.
+
+Three residuals keep it from being fully closed. The old premise survives verbatim in
+`tests/docs-claims-check.test.sh:55-58`, the third of three copies. Nothing asserts the causes,
+so the widening has no mechanism and can narrow again, which is `CLAUDE.md`'s "a lesson that
+recurs has a PLACEMENT problem" applied to a note that has now been discussed in three
+consecutive reviews. And fixing the wording surfaced the larger instance of the same class: the
+note still names ONE DIRECTION ("can read LOW") for a mismatch that is now possible in both, and
+that one is an Important rather than a nitpick because the reference number itself moved onto
+the skipped side of the line.
 
 ## Scores
 
-correctness 2/2 - `install.ps1` has not moved since `cebc0a0` and the harness has not moved
-since `994ede8`, where the one behavioural change was proven in both directions (anti-port
-comparison passes as the first pwsh launch under a fresh HOME, fails without the warm-up on
-exactly the six entries round 4 recorded). The only correctness question this round could raise
-is whether the sibling broke something, and the two suites that would notice are green.
+correctness 1/2 - `install.ps1` has not moved since `4416477` and the harness not since
+`994ede8`, and both collateral suites are green, so nothing in the Windows entry path regressed.
+The drop is the claims mechanism this artifact owns: it produces `DRIFTED` plus exit 1 plus
+remediation that makes things worse on any machine whose shell runs a case this one skips, and
+the number it is compared against is a partial count. That is a wrong verdict from a gate whose
+entire purpose is being right about numbers.
 
-security 2/2 - unchanged and clean. Every element pasted into a bash command line goes through
-`ConvertTo-BashSingleQuoted`; the harness stays sealed (`env -i`, redirected HOME, replaced
-PATH, no repo, no network), and nothing in `994ede8..0125901` touches any of it. The publish
-path is still whole: all 240 tracked paths classify, so the sibling's new content did not open
-a leak through this artifact's guard.
+security 2/2 - unchanged and clean. Nothing in `0125901..HEAD` touches `install.ps1`, the
+quoting path (`ConvertTo-BashSingleQuoted`), or the sealed harness (`env -i`, redirected HOME,
+replaced PATH, no repo, no network). The publish path is whole: 240 of 240 tracked paths
+classify and the planted-path canary fires, so the sibling's new content opened no leak through
+this artifact's guard.
 
-performance 2/2 - full suite 9.6s, unchanged. No new work was added anywhere in scope.
+performance 2/2 - install-ps1 9.0s, publish-guard instant, docs-claims-check 2m22s for 33 suites,
+all in line with prior rounds. The two-line note costs nothing.
 
-readability 2/2 - nothing in scope was reworded. The one sentence that reaches slightly past its
-mechanism ("every directory at once, present and future" over a `-Command exit` launch) remains
-measured as true today and filed as a nitpick with the fix that would make it structurally true.
+readability 2/2 - the note and the README sentence are both clearer than what they replaced, and
+the code comment at `:90-95` does the thing this repo is good at: it records WHY the wording is
+plural ("because it used to name one") so the next editor cannot innocently re-narrow it. The
+stale third copy is a comment in a test header, nitpick weight, not enough to pull this to 1.
 
-testing 2/2 - held. The flagship guarantee (case 9b) no longer depends on case ORDER, the
-precondition is declared and enforced, and the four canaries still prove 9b can fail. This round
-adds one piece of evidence the earlier rounds could not have: the suite ran green against a tree
-whose sibling program changed substantially, which is the collateral question the artifact was
-re-reviewed for. The suite's only blind spot (`.cache/powershell`) is still written down.
+testing 2/2 - held. The suite that owns this behaviour is green and tests behaviour rather than
+text (fires when something skipped, silent when nothing did), install-ps1 is 38/38 with the
+flagship case 9b still order-independent and still canaried, publish-guard still pins the
+real tree. The untested gap (nothing pins the note's causes or its direction) is scored once,
+under conventions and the Important, rather than three times.
 
-conventions 2/2 - the countable claim moved in the same commit as the assertions that caused it
-and was re-derived from the tree (1027 verified, exit 0, no skips), no em or en dashes, comments
-English, output English per `CLAUDE.md:21`, and the record was REGENERATED at the new head
-rather than re-dated, which is `lessons.md:25` exactly: a sibling moved the tree, so the
-reviewer re-runs instead of the human editing a date.
+conventions 1/2 - two documented rules were broken by this commit, and they are the two this
+exact nitpick has been circling. `lessons.md:17` says grep the ENTIRE repository for the old
+premise before calling a wording fix done; two of three copies were updated. `CLAUDE.md`'s rule
+for a recurring written lesson says give it a MECHANISM at the point of use rather than another
+phrasing; this round produced another phrasing, and the stale third copy is that rule's
+prediction coming true inside the same commit. Everything else is right: the countable claim
+moved in the same commit as the assertions that caused it, English throughout, no em or en
+dashes, and this record was REGENERATED at the new head rather than re-dated.
 
-total 12/12 (threshold >= 9, no zero) -> APPROVE.
+total 10/12 (threshold >= 9, no zero) -> APPROVE WITH COMMENTS.
 
 ## Ceiling
 
-12/12, reached. Nothing about this change structurally caps a criterion. The
-Windows-unverifiable half (PowerShell 5.1, UTF-16 `wsl -l -q`, real `wslpath`, native symlink
-permission) stays a stated residual in the suite header and in INSTALL.md, which is how this
-repo accepts an unrunnable platform, so it does not cap the score; it bounds what the suite
-CLAIMS, and the claims are narrowed to match.
+12/12 is reachable; this round did not reach it. Nothing about the change structurally caps a
+criterion. The Windows-unverifiable half (PowerShell 5.1, UTF-16 `wsl -l -q`, real `wslpath`,
+native symlink permission) stays a stated residual in the suite header and in `INSTALL.md`,
+which is how this repo accepts an unrunnable platform: it bounds what the suite CLAIMS, and the
+claims are narrowed to match, so it does not cap the score. The one thing genuinely outside
+reach on this machine is the second arm of the Important (no bash >= 4, no container runtime);
+that limits my EVIDENCE, not the score, and the finding is framed so it holds either way.
 
 ## What's good
 
-- The countable-claim discipline survived a sixth commit and a sibling program's churn. `1016`
-  -> `1027` landed in the same commit as the assertions that caused it, and `docs-claims-check`
-  confirms it against the tree with zero skips, so the number is a full count and not a
-  coincidence on a partial run.
-- The artifact is genuinely inert under the sibling's changes, and that is checkable rather than
-  asserted: two `git diff --stat` runs reduce this round's real work to one number and two
-  re-counts, which is what a well-separated program should cost when its neighbour moves.
-- The real-tree publish-guard case keeps earning its place. It is the one assertion in this
-  artifact that a sibling CAN break by adding a file, and it is the one that proves the sibling
-  did not.
+- The fix went at the right thing. Two rounds running, this record said the note's single stated
+  cause was false; the builder did not narrow the note or delete it, it went and counted the
+  actual causes and named all three, and wrote into the comment why the list is plural so the
+  next editor cannot innocently undo it.
+- The SKIP for the SHELLOPTS case is the right call and the commit says why in one sentence: the
+  outcome assertion cannot fail on bash 3.2, so it is reported unrun rather than passed. Choosing
+  a visible skip over a green line that stands for nothing is the same discipline `lessons.md:14`
+  and `:28` were written from, applied without being asked.
+- The artifact stayed inert under a substantial sibling change, and that is checkable rather than
+  asserted: `install.ps1` byte-identical across three commits, the harness across two, and the
+  one assertion a sibling CAN break by touching the tree (240 classified paths) is green.
+- Both surviving in-scope defects are the SAME defect at two sizes (a note that describes less
+  than its mechanism does), which means one fix shape closes both. That is a much better place
+  to be than two unrelated findings.
 
 ## History
 
@@ -249,3 +316,24 @@ CLAIMS, and the claims are narrowed to match.
   `tests/ledger-backup.test.sh` carries six `id -u` guards at `994ede8` and six at HEAD, so the
   four new cases (34, 34b, 35, 36) are not root-gated. Round 5's warm-up probes were not re-run
   because the code they measure is byte-identical; the immobility is recorded instead.
+- 2026-09-22 (`b3b66f7`, claude-opus-5[1m], effort high): round 7, the first round since round 3
+  in which this artifact's own files actually changed. APPROVE WITH COMMENTS, 10/12. **Worse,
+  -2**: correctness 2 -> 1, conventions 2 -> 1; security, performance, readability and testing
+  held at 2. The round-5/6 skip-note nitpick is PARTLY closed: the note now names all three
+  causes present in the tree (censused, not taken from the commit body) and is no longer false
+  on an ordinary run, which matters because the case went live here (bash 3.2 refuses SHELLOPTS,
+  so `ledger-backup.test.sh:837` skips and the note prints). What it cost: `1053` is now the
+  count of a run that SKIPPED, where round 6 could prove `1027` was a full count, and both the
+  note and `README.md:171-173` bound the error only downward ("can read LOW"), so a machine that
+  runs the skipped branch reads 1055, gets `DRIFTED` + exit 1, and is told by `:117` to edit a
+  correct README. Filed as one Important with a single fix (make the assertions claim UNVERIFIED
+  rather than fatal whenever `n_skipped > 0`, and say what the documented number counts). Two
+  new nitpicks, both the same class one size down: the old single-cause premise survives in the
+  third of three copies (`tests/docs-claims-check.test.sh:55-58`, `lessons.md:17`), and nothing
+  asserts the note's causes, so the widening is a third phrasing where `CLAUDE.md` asks for a
+  mechanism. Collateral green and measured: `install-ps1.test.sh` 38/38 in 9.0s,
+  `publish-guard.test.sh` ALL PASS at 240 classified paths, `docs-claims-check.test.sh` 7/7,
+  `install.ps1` byte-identical since `4416477`. The second arm of the Important is reasoned, not
+  measured: no bash >= 4 and no container runtime on this machine, stated rather than glossed.
+</content>
+</invoke>

@@ -729,8 +729,15 @@ case "$out" in *"$deep/.git"*) ok "and the message names the repository that con
 #     leak, not about the syntax.
 #
 #     Each row is a fresh project, since a leak in one would otherwise be attributed to the next.
+#     Rows 5 to 7 were added a round later, after the guard was rewritten to ask about identity
+#     and location. The two questions held under attack; the STEP THAT FEEDS THEM did not. The
+#     URL was turned into a path by matching spellings, so a file URL carrying an AUTHORITY
+#     (`file://localhost/...`, which git resolves to the local path exactly as it resolves the
+#     empty one) and an absolute path containing `@` and `:` (read as a host transport by the
+#     `*@*:*` arm) both walked past the questions at exit 0. Same class, one layer down, which
+#     is why they are rows here rather than a case of their own: the harm is identical.
 i=0
-for spelling in self worktree file-url bare-inside; do
+for spelling in self worktree file-url bare-inside file-url-host file-url-host-self at-colon-path; do
   i=$((i + 1))
   pp="$(mkproject "p37-$i" )"
   pp_real="$(cd "$pp" && pwd -P)"
@@ -750,6 +757,15 @@ for spelling in self worktree file-url bare-inside; do
                  target="file://$pp_real/inside37.git" ;;    # a scheme the [ -d ] test cannot see
     bare-inside) git init -q --bare "$pp/plain37.git" >/dev/null 2>&1
                  target="$pp_real/plain37.git" ;;            # the one spelling that was caught
+    file-url-host)
+                 git init -q --bare "$pp/inside37h.git" >/dev/null 2>&1
+                 target="file://localhost$pp_real/inside37h.git" ;;  # git ignores the authority
+    file-url-host-self)
+                 target="file://localhost$pp_real" ;;        # the project itself, via an authority
+    at-colon-path)
+                 mkdir -p "$pp/a@b:c" >/dev/null 2>&1
+                 git init -q --bare "$pp/a@b:c/t37.git" >/dev/null 2>&1
+                 target="$pp_real/a@b:c/t37.git" ;;          # an absolute path that looks like scp
   esac
   git -C "$pp" remote add backup "$target" >/dev/null 2>&1
   printf 'ledger_backup: git backup internal-files\n' > "$pp/CLAUDE.local.md"
@@ -848,6 +864,74 @@ if ( SHELLOPTS=allexport bash -c 'shopt -qo allexport' ) 2>/dev/null; then
 else
   echo "SKIP - this shell refuses SHELLOPTS from the environment, so allexport cannot be exercised"
 fi
+
+# 41. THE PUBLISH REFUSAL READS THE SAME URL, so it must read it the same WAY. The containment
+#     guard and the publish-remote comparison each had their own conversion from URL to path,
+#     and they disagreed: `canon_url` recognised a path only when `[ -d ]` was true of the raw
+#     string, so `file://localhost/...` fell through to the trailing-`.git` trim and compared
+#     unequal to the very same repository spelled plainly. Measured before this line: the ledger
+#     was pushed TO THE PUBLISH REMOTE at exit 0.
+#
+#     The plain spelling is the control. If the control ever fails, this case is testing nothing.
+pub41="$(mkremote pub41)"
+pub41_real="$(cd "$pub41" && pwd -P)"
+for spelling in plain file-url-host; do
+  p41="$(mkproject "p41-$spelling" "ledger_backup: git backup internal-files")"
+  git -C "$p41" remote add origin "$pub41_real" >/dev/null 2>&1
+  case "$spelling" in
+    plain)         target="$pub41_real" ;;
+    file-url-host) target="file://localhost$pub41_real" ;;
+  esac
+  git -C "$p41" remote add backup "$target" >/dev/null 2>&1
+  out="$(run "$p41")"; rc=$?
+  [ "$rc" = 2 ] && ok "the publish remote is refused however it is spelled ($spelling: exit 2)" \
+    || bad "$spelling reached exit $rc: $out"
+  has_stamp "$p41" && bad "and it stamped success ($spelling)" || ok "and no stamp was written ($spelling)"
+  git -C "$pub41" rev-parse --verify --quiet internal-files >/dev/null 2>&1 \
+    && bad "and the ledger is now on the publish remote ($spelling)" \
+    || ok "and the publish remote received nothing ($spelling)"
+done
+
+# 42. A RELATIVE URL IS REFUSED, because the guard and git resolve it from DIFFERENT directories.
+#     The guard rooted it at PROJECT_DIR, which is what git does with a remote it has CONFIGURED;
+#     but this script hands the raw string to `ls-remote` and `clone` from the CALLER'S cwd. So
+#     the path that is checked is not the path that is used.
+#
+#     Both arrangements are rows, because the damage is not the same and neither is acceptable.
+#     Measured on the previous commit, from inside an unrelated repository R:
+#       - branch-exists  -> the `clone` path is taken, exit 0, and THE LEDGER LANDS IN R;
+#       - branch-missing -> the orphan path is taken and the push fails from the temp dir, so it
+#                           exits 5 blaming "expired credentials, branch protection", none of
+#                           which is what went wrong.
+#
+#     Two directories can be made to agree, and that is the fix this case rejects: the agreement
+#     would have to hold for every future call site too. The `dir` arm already refuses a relative
+#     target for exactly this reason, so the two arms now answer alike.
+for arrangement in branch-exists branch-missing; do
+  r42="$(mktemp -d "$TMP/r42-$arrangement.XXXXXX")"
+  git init -q "$r42" >/dev/null 2>&1
+  git init -q --bare "$r42/rel42.git" >/dev/null 2>&1
+  if [ "$arrangement" = branch-exists ]; then
+    seed42="$(mktemp -d "$TMP/seed42.XXXXXX")"
+    git init -q "$seed42" >/dev/null 2>&1
+    printf 'seed\n' > "$seed42/s"
+    ( cd "$seed42" && git add -A && git commit -qm seed && git branch -m internal-files \
+      && git push -q "$r42/rel42.git" internal-files ) >/dev/null 2>&1
+  fi
+  p42="$(mkproject "p42-$arrangement" "ledger_backup: git backup internal-files")"
+  git -C "$p42" remote add backup "rel42.git" >/dev/null 2>&1
+  out="$( cd "$r42" && "$SCRIPT" "$p42" 2>&1 )"; rc=$?
+  [ "$rc" = 2 ] && ok "a relative remote URL is refused ($arrangement: exit 2)" \
+    || bad "a relative URL reached exit $rc ($arrangement): $out"
+  has_stamp "$p42" && bad "and it stamped success ($arrangement)" \
+    || ok "and no stamp was written ($arrangement)"
+  git -C "$r42/rel42.git" show internal-files:internal-not-in-git/todo.md >/dev/null 2>&1 \
+    && bad "and the ledger landed where the caller happened to stand ($arrangement)" \
+    || ok "and nothing landed where the caller happened to stand ($arrangement)"
+  printf '%s' "$out" | grep -q 'relative' \
+    && ok "and the refusal names the relative URL as the reason ($arrangement)" \
+    || bad "the refusal does not tell the caller what to change ($arrangement): $out"
+done
 
 echo ""
 if [ "$fail" -eq 0 ]; then echo "ledger-backup: all $pass assertions passed."; else echo "ledger-backup: $fail FAILURE(S) above."; fi

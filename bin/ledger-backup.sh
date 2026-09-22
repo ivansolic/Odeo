@@ -31,7 +31,8 @@
 #   0  backed up, or already current  (--check: the backup is up to date)
 #   1  --check only: the backup is BEHIND the ledger
 #   2  refused or undecidable: usage, a ledger_backup: line this program will not act on (a
-#      relative dir, an unknown kind, a target inside ANY git repository, the project's own
+#      relative dir OR a relative remote URL, an unknown kind, a target inside ANY git
+#      repository, a remote that IS this repository however it is spelled, the project's own
 #      publish remote), an unreadable ledger, or the caller is not inside a git work tree
 #      What this program CANNOT decide, so nobody reads more into a green run: whether a remote
 #      is PUBLIC. It refuses the project's publish remote by name and by normalised URL, which
@@ -360,10 +361,60 @@ case "$KIND" in
     # PUBLIC. ssh and https spellings of the same host, a mirror under another name, a fork:
     # all invisible here. Choosing a backup target that is not published stays the human's
     # call, and /retro's exit-2 row says so.
+    # ONE CONVERSION FROM URL TO PATH, FOR BOTH GUARDS BELOW. The publish check and the
+    # containment check each used to carry their own, and two conversions are two answers: the
+    # same repository spelled `file://localhost/srv/pub.git` was a path to one of them and an
+    # opaque string to the other, so the containment guard refused the plain spelling while the
+    # publish guard let the file-URL spelling through and THE LEDGER WAS PUSHED TO THE PUBLISH
+    # REMOTE at exit 0. Four leaks were measured across the two, all of them disagreements
+    # rather than missing rules. A shared function is what makes that class impossible: there is
+    # no second answer to differ from.
+    #
+    # Two things it gets right that a spelling list did not:
+    #   - A file URL's AUTHORITY is IGNORED BY GIT, not merely permitted when empty. Measured:
+    #     `localhost`, `LOCALHOST`, `notahost` and this machine's own name all resolve to the
+    #     local path. Stripping the literal `file://` alone left the authority glued to the
+    #     front, so the result was never a directory and the guard simply did not fire.
+    #   - scp syntax is `[user@]host:path`, and git reads it that way ONLY when no `/` precedes
+    #     the colon. `/srv/a@b:c/t.git` is an absolute PATH; the old `*@*:*` arm called it a
+    #     host transport and waved it past.
+    # A RELATIVE url yields nothing here on purpose: this program cannot root it, because it
+    # would have to agree with a `git clone` run from the CALLER's directory. It is refused
+    # above rather than guessed at.
+    local_url_path() {                 # <url> -> the local path it names, or nothing
+      local u="$1" p=""
+      case "$u" in
+        file://*)
+          p="${u#file://}"
+          case "$p" in
+            /*)  : ;;                  # file:///path, the empty authority
+            */*) p="/${p#*/}" ;;       # file://host/path, the authority git ignores
+            *)   p="" ;;               # an authority and no path at all
+          esac ;;
+        *://*) : ;;                    # any other scheme: genuinely remote
+        /*)    p="$u" ;;               # an absolute path, colons and @ included
+        *:*)   case "${u%%:*}" in
+                 */*) p="$u" ;;        # a slash before the colon: a relative path, not a host
+                 *)   : ;;             # host:path
+               esac ;;
+      esac
+      printf '%s' "$p"
+    }
+
+    # RELATIVE, asked the same way, so the refusal below and the conversion above cannot drift.
+    url_is_relative() {
+      case "$1" in
+        *://*|/*) return 1 ;;
+        *:*) case "${1%%:*}" in */*) return 0 ;; *) return 1 ;; esac ;;
+        *) return 0 ;;
+      esac
+    }
+
     canon_url() {
-      local u="$1"
+      local u="$1" p
       [ -n "$u" ] || return 0
-      if [ -d "$u" ]; then ( cd "$u" 2>/dev/null && pwd -P ) && return 0; fi
+      p="$(local_url_path "$u")"
+      if [ -n "$p" ] && [ -d "$p" ]; then ( cd "$p" 2>/dev/null && pwd -P ) && return 0; fi
       u="${u%/}"; u="${u%.git}"
       printf '%s' "$u"
     }
@@ -377,6 +428,22 @@ case "$KIND" in
       echo "  The ledger is gitignored precisely so it never reaches there; pushing it to the" >&2
       echo "  public repository would publish the task state and every recorded correction." >&2
       echo "  Use a separate private remote for the backup." >&2
+      exit 2
+    fi
+
+    # A RELATIVE URL IS REFUSED, because the path this program CHECKS would not be the path git
+    # USES. git roots a relative remote at the repository that configured it; this program hands
+    # the raw string to `ls-remote` and `clone`, which run from the CALLER's directory. Measured
+    # on the previous commit, running from inside an unrelated repository R: with the branch
+    # already present the clone path was taken and THE LEDGER LANDED IN R at exit 0, and with the
+    # branch absent the push failed from the temp directory and blamed credentials.
+    # Making the two agree was the alternative, and it was rejected: the agreement would have to
+    # hold at every future call site, which is the assumption that failed here. The `dir` arm
+    # already refuses a relative target, so both arms now answer alike.
+    if url_is_relative "$url"; then
+      echo "ledger-backup: '$remote' is a relative URL ($url)." >&2
+      echo "  Where it points depends on the directory this program is run from, so the target" >&2
+      echo "  checked here would not be the one git writes to. Give an absolute path or a URL." >&2
       exit 2
     fi
 
@@ -408,18 +475,34 @@ case "$KIND" in
     # real configuration and stays allowed (case 38). It is refused only if it is this
     # repository or lives inside one.
     #
-    # `file://` is stripped and a relative URL is rooted at the PROJECT, matching what git
-    # itself does with them, so both reach the two questions as paths instead of slipping past
-    # a directory test. What still cannot be resolved to a local path (ssh, https, git://) is
-    # genuinely remote; the publish-remote refusal above is what covers it, with the residual
+    # The URL reaches these two questions as a PATH, through the one conversion the publish
+    # refusal above also uses, so no spelling can be a path to one guard and opaque to the other.
+    # A relative URL never arrives here at all: it is refused above, because this program cannot
+    # know the directory git would resolve it from. What does not convert (ssh, https, git://)
+    # is genuinely remote; the publish-remote refusal is what covers it, with the residual
     # stated in the header.
-    local_path=""
-    case "$url" in
-      file://*) local_path="${url#file://}" ;;
-      *://*|*@*:*) : ;;                      # a transport with a host: not a path
-      /*) local_path="$url" ;;
-      *) local_path="$PROJECT_DIR/$url" ;;   # git roots a relative remote at the repository
-    esac
+    # KNOWN RESIDUALS OF THE CONTAINMENT INVARIANT ON THE `git` ARM, stated so a green run is not
+    # read as more than it is. Each was measured, not assumed.
+    #   - A NON-LOCAL URL CANNOT BE CONTAINED. ssh, https and git:// targets are not paths, so
+    #     neither question can be asked of them. The publish-remote refusal is all that covers
+    #     them, and it knows one repository, not the class of public ones.
+    #   - WHETHER A REMOTE IS PUBLIC IS NOT DECIDABLE HERE. An ssh spelling of the publish remote,
+    #     a mirror, a fork: all invisible. Choosing a private target stays the human's call.
+    #   - IDENTITY IS ASKED OF GIT, AND GIT CAN REFUSE TO ANSWER. A repository git will not open
+    #     (an unreadable worktree admin directory, dubious ownership on a shared mount) yields no
+    #     common dir, and the run falls back to the location question alone. Measured on the
+    #     unreadable case: the same refusal also stops the push, so it ends at exit 4, not in a
+    #     leak. That is an observation about git, not a guarantee this program enforces.
+    #   - A REMOTE THAT BORROWS THE PROJECT'S OBJECT STORE (objects/info/alternates) IS ACCEPTED.
+    #     Measured: the push writes nothing into the project, and the backup still reads after the
+    #     alternate is removed, so containment does not fail here. It is simply not asked about.
+    #   - A WINDOWS DRIVE-LETTER TARGET (C:/backup.git) IS NOT RECOGNISED AS A LOCAL PATH. The
+    #     `git` arm treats it as a remote url and does not walk it; the `dir` arm refuses it as
+    #     non-absolute. Stated rather than claimed: not tested on Windows.
+    #   - EXIT 0 AGAINST A REAL NETWORK REMOTE IS NOT PROVEN BY THE SUITE. Every remote under test
+    #     is a local repository. Exits 4 and 5 are proven against git's own refusals; a green run
+    #     against a live remote is owner attestation.
+    local_path="$(local_url_path "$url")"
     if [ -n "$local_path" ] && [ -d "$local_path" ]; then
       url_real="$(cd "$local_path" 2>/dev/null && pwd -P)" \
         || { echo "ledger-backup: cannot resolve the remote path $local_path" >&2; exit 4; }

@@ -2,199 +2,205 @@
 artifact: skills/retro/SKILL.md
 type: skill
 branch: feature/windows-powershell-entry
-reviewed_commit: 0125901d9fbbb3bc62fd6629783e5ad69049f4c9
-artifact_version: 5
-date: 2026-09-18
+reviewed_commit: b3b66f71606cedb13701b1875e1b2419ca572be3
+artifact_version: 6
+date: 2026-09-22
 scorer: skill-reviewer
 model: claude-opus-5[1m]
 model_tier: strongest
 effort: high
-scores: { trigger_clarity: 2, structure: 2, worked_example: 2, precision: 2, safety_integration: 2 }
-total: 10/10
+scores: { trigger_clarity: 2, structure: 2, worked_example: 2, precision: 1, safety_integration: 2 }
+total: 9/10
 verdict: PASS
-previous_total: 9/10
+previous_total: 10/10
 ---
 
-Scope: the whole `skills/retro/SKILL.md` (102 lines) at HEAD `0125901`, read against
-`docs/skill-authoring-standard.md` and its rubric. The skill file changed in this commit (the
-exit 2 and exit 4 rows were rewritten) and so did the program under it, so this round is again a
-row-by-row truth check of step 5's exit-code table against `bin/ledger-backup.sh` as it is at
-HEAD (all 448 lines, every `exit N` site), plus `tests/ledger-backup.test.sh` (cases 21, 24, 26,
-30-36), `WORKFLOW.md:648-674`, `BEGINNERS-GUIDE.md:241,325-332,377-379`,
-`docs/system-map.md:102,145`, `project-templates/CLAUDE.md:86`. Form only, no runtime behavior
-tested. Output language `en`, supplied at dispatch.
+Scope: the whole `skills/retro/SKILL.md` (102 lines) at HEAD `b3b66f7`, read against
+`docs/skill-authoring-standard.md` and its rubric. The skill file is byte-identical to round 5;
+`b3b66f7` changed the program under it, so this round is again a row-by-row truth check of step
+5's exit-code table against `bin/ledger-backup.sh` as it is at HEAD (all 503 lines, every
+`exit N` site), plus `tests/ledger-backup.test.sh` (cases 21, 33, 34, 35-38),
+`WORKFLOW.md:648-674`, `BEGINNERS-GUIDE.md:241,325-332,377-379`, `docs/system-map.md:102,145`.
+Form only, no runtime behavior tested. Output language `en`, supplied at dispatch.
 
 ## Skill: retro  (explicit command)
 
 ## Scores
-- trigger clarity **2**. Unchanged. `:2` still states what the user gets, both halves, and that
-  the second half writes outside the repo: "routes each lesson to the right place ... then backs
-  up the gitignored build ledger (todo.md, lessons.md) to wherever the project records, which
-  writes OUTSIDE the repo", closing with when to run it ("Run before wrapping up a working
-  session"). That is the standard's explicit-command form. `disable-model-invocation: true` is
-  set, so lint C1 does not apply.
-- structure **2**. Unchanged shape at 102 lines against the 500 limit: essence (`:6-7`), numbered
-  process (`:9-71`), worked example (`:73-96`), safety rules (`:98-101`). No supporting files, so
-  the one-level rule is trivially satisfied. The two rewritten rows added roughly 40 words and no
-  new section; the backup keeps its own numbered step between `## 4. Apply` and `## 6. Close out`.
-  Residual, not scoring: still no explicit "when NOT to", only the degenerate case at `:14`.
+- trigger clarity **2**. Unchanged and unaffected by the program change. `:2` states what the
+  user gets, both halves, and that the second half writes outside the repo: "routes each lesson
+  to the right place ... then backs up the gitignored build ledger (todo.md, lessons.md) to
+  wherever the project records, which writes OUTSIDE the repo", closing with when to run it ("Run
+  before wrapping up a working session"). That is the standard's explicit-command form.
+  `disable-model-invocation: true` is set, so lint C1 does not apply.
+- structure **2**. Unchanged: 102 lines against the 500 limit, essence (`:6-7`), numbered process
+  (`:9-71`), worked example (`:73-96`), safety rules (`:98-101`). No supporting files, so the
+  one-level rule is trivially satisfied. Residual, not scoring: still no explicit "when NOT to",
+  only the degenerate case at `:14`.
 - worked example **2**. Re-verified against the program at THIS HEAD, not carried over. `:86`
   "ledger-backup: refreshed (todo.md lessons.md -> backup/internal-files:internal-not-in-git/)"
-  is `bin/ledger-backup.sh:440` rendered with `present="todo.md lessons.md" remote=backup
+  is `bin/ledger-backup.sh:495` rendered with `present="todo.md lessons.md" remote=backup
   branch=internal-files`, character for character; `:92` "PUSH REFUSED to backup/internal-files,
-  so NOTHING was backed up." is `:435` verbatim. Both branches shown, and the failing one shows
+  so NOTHING was backed up." is `:490` verbatim. Both branches shown, and the failing one shows
   the hard part, what the agent SAYS afterwards (`:94-95`).
-- precision **2**. Restored from 1. All three round-4 findings are closed, and no row makes a
-  claim the program at HEAD does not keep. Checked site by site:
-  - **Exit 2, the dead state is gone and the new behaviour is in.** `:51` no longer files "a
-    repository git cannot read" under undecidable; it now lists "a target inside **any** git
-    repository (a directory, or a local backup remote sitting in someone's work tree)", which is
-    exactly the two call sites of the marker-walking guard: `in_work_tree`/`refuse_in_repo`
-    (`bin/ledger-backup.sh:236-259`) called on the `dir` arm's parent and landing directory
-    (`:286`, `:297`) and, new in this commit, on a local remote's PARENT on the `git` arm
-    (`:382-388`, pinned by test case 35). The skill covers the new arm without inventing a new
-    exit code for it, which is right: `refuse_in_repo` exits 2 on both arms.
-  - **Exit 2, the framing no longer asserts a broken line where there is none.** The row now
-    reads "Usually the `ledger_backup:` line: ... Also an unreadable ledger ... and a caller
-    outside a git work tree, where no line is at fault. Show the message; offer to fix the line
-    when the message names one." That matches `:98-102` (unreadable ledger directory, refused
-    rather than reported empty) and `:89` (not a git work tree). The remaining exit 2 sites are
-    the usage paths (`:76`, `:77`, `:82`) and `--check`'s unreadable mtime (`:170`), none of them
-    reachable from the invocation this skill documents (`:43`, no arguments, run from the project
-    root) or from a plain run at all. Omitting them is scope, not drift.
-  - **Exit 4 no longer hides the configuration error.** `:53` now opens "**no remote of that
-    name** (a line to fix, not a target to retry: the message says which)", which is
-    `bin/ledger-backup.sh:330`, the round-3 finding that survived two rounds.
-  - **Exit 4 no longer overclaims.** `:53` "A failed COPY places nothing, since the files are
-    staged first; a failure during the final MOVES can leave an incomplete set, and the message
-    distinguishes the two" is precisely the pair `:314` ("copy failed for $f, NOTHING was backed
-    up", after `rm -rf "$staging"`, with the staging directory created at `:308`) and `:318`
-    ("could not place $f, the copy is incomplete"). On the `git` arm the analogous copy failure
-    (`:418`) writes only into a temp clone destroyed by the trap at `:391`, so "places nothing"
-    holds there too. "no stamp is written" matches `stamp_now` being called only at `:321`,
-    `:424` and `:439`, never on an exit 4 or 5 path.
-  - Rows unchanged and still true: exit 0 (`:322`, `:440`), exit 3 both causes (`:127` and
-    `:145`, and "the message says which" matches both texts), exit 5 (`:435`), exit 6 (`:192`),
-    and `:57`'s "Exit 1 belongs to `--check` only" matches exit 1 appearing only at `:172` and
-    `:185`.
-  - The public-remote residual at `:59-62` still matches the program: name-and-normalised-URL
-    refusal at `:350-368`, with the same limits stated in the script header (`:36-39`) and the
-    script pointing back at this row by name (`:349`).
+- precision **1**. Dropped from 2, for one finding: **the exit 2 row no longer covers every
+  refusal the program can print.** `b3b66f7` rewrote the `git` arm's containment guard from one
+  question into two (`:383-443`), and the first of them is a state the table does not describe.
+  - **The gap.** `:433-439` refuses when the remote's resolved path and the project report the
+    SAME git common dir, printing "ledger-backup: '$remote' IS this project's own repository
+    ($url_real)." The skill's `:51` lists, for exit 2: a malformed line, a relative path, "a
+    target inside **any** git repository (a directory, or a local backup remote sitting in
+    someone's work tree)", the project's own publish remote, an unreadable ledger, and a caller
+    outside a work tree. The new state is none of these. It is not containment: the case that
+    makes the guard worth having is a SIBLING LINKED WORKTREE (`tests/ledger-backup.test.sh:747`,
+    `$TMP/sib-$i`), which sits inside no repository by markers, so the parent walk at `:440` never
+    fires and the row's "sitting in someone's work tree" does not describe it. It is not the
+    publish remote either: that refusal is a different site (`:374-380`) with a different message,
+    and a local remote named `backup` pointing at the project's own directory matches neither the
+    publish name nor the publish URL. So an agent that hits this refusal must explain, from the
+    table, a message the table does not contain. That is the same defect shape scored in round 4,
+    one arm over: the program grew a state and the row did not.
+  - **What the rewrite got right and the row does still cover.** `file://` and relative spellings
+    are now resolved to paths (`:416-422`) instead of slipping past a directory test, and a bare
+    repository sitting inside the work tree still lands on `in_work_tree`/`refuse_in_repo`
+    (`:440-442`, `:250-272`), which is exactly the row's "a local backup remote sitting in
+    someone's work tree" (pinned by cases 35 and 37/`bare-inside`). The legitimate case a
+    shape-based rule would have killed, an ordinary clone elsewhere on disk, is still allowed
+    (`:409`, case 38), so nothing in the row over-refuses.
+  - **The other two changes named at dispatch carry no disclosure duty, and their absence is not
+    part of this finding.** The `GIT_CONFIG_*` additions (`:69-77`) produce no exit code, no
+    message and no changed outcome for any state the table describes; they remove a measured
+    push redirection (`:70-74`). The local rename `GIT_DIR` -> `PROJECT_GIT_DIR` (`:96-101`) is
+    invisible to any caller. Both belong where they are, in the script header and the catalog row.
+  - **New exit 4 site, non-blocking.** `:425` "cannot resolve the remote path $local_path" is
+    reachable when the path exists but cannot be entered. The row's "an unreachable or unreadable
+    remote" covers it well enough to be honest; no fix required.
+  - Rows re-verified and still true at this HEAD: exit 0 (`:335`, `:495`), exit 2's remaining
+    listed states (`:102` caller outside a work tree, `:111-115` unreadable ledger directory,
+    `:278`/`:285` malformed and relative, `:341` missing branch, `:374-380` publish remote,
+    `:499` unknown kind), exit 3 both causes (`:140`, `:158`), exit 4's staging claim (`:327` vs
+    `:331`, and on the `git` arm `:470`/`:473` writing only into a temp clone destroyed by the
+    trap at `:446`), exit 5 (`:490`), exit 6 (`:205`), "no stamp is written" (`stamp_now` only at
+    `:334`, `:479`, `:494`), and `:57`'s "Exit 1 belongs to `--check` only" (exit 1 only at `:186`
+    and `:198`). The public-remote residual at `:59-62` still matches `:359-362`.
 - safety integration **2**. Unchanged and still accurate. The honesty rule sits at the point of
-  use in the step's own voice (`:64` "Never report a backup you did not see exit 0"; `:54` "do
-  not close the session claiming a backup"), consent discipline is preserved (`:30` "Do not write
-  anything until they approve", `:52` "Take a no and do not raise it again this session"), and
-  the private-target clause names `CLAUDE.local.md` and why. No guardrail is restated or
-  weakened. The `git` arm still pushes from a fresh temp clone (`:390-407`) carrying none of this
-  repo's hooks, so no collision with `bin/install-git-guards.sh`; and the environment drop at
-  `:48-69` removes, rather than documents, the hook-context hazard.
+  use in the step's own voice (`:64` "Never report a backup you did not see exit 0"; `:54` "do not
+  close the session claiming a backup"), consent discipline is preserved (`:30` "Do not write
+  anything until they approve", `:52` "Take a no and do not raise it again this session"), and the
+  private-target clause names `CLAUDE.local.md` and why. No guardrail is restated or weakened. The
+  `git` arm still pushes from a fresh temp clone (`:445-462`) carrying none of this repo's hooks,
+  so no collision with `bin/install-git-guards.sh`, and the environment drop at `:75-77` now
+  removes the push-redirection hazard as well as the index one, which strengthens rather than
+  disturbs this criterion.
 
-## Total: 10/10   ## Verdict: PASS (threshold 8/10, no zero)
+## Total: 9/10   ## Verdict: PASS (threshold 8/10, no zero)
 
 ## Ceiling
-10/10, reached. Nothing structurally caps a criterion: explicit command (trigger clarity can be
-2), real guardrails in range (safety integration can be 2).
+10/10. Nothing structurally caps a criterion: explicit command (trigger clarity can be 2), real
+guardrails in range (safety integration can be 2). The single point lost is a closable gap, one
+clause in one row.
 
-## The two new behaviours in `0125901`, judged for disclosure duty
-- **The git-arm containment refusal: disclosed, correctly.** It is user-visible (a target that
-  worked yesterday is refused today, at exit 2), so the skill owes the agent a sentence, and
-  `:51` gives it one in the right row: "a local backup remote sitting in someone's work tree".
-  Nothing further is owed; the message itself names the containing repository (`:254`).
-- **The environment drop (`unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE ...`, `:68-69`): no
-  disclosure owed, and its absence is not a gap.** It produces no exit code, no message and no
-  changed outcome for any state the table describes; it removes a corruption of the CALLER's
-  index that could occur when the program ran from a git hook (measured, `:54-62`, pinned by test
-  case 34). Putting it in the skill would be restating an implementation property the agent can
-  neither observe nor report. It belongs where it now is, in the script header and in the
-  catalog row `docs/system-map.md:145`, both of which carry it.
+## Is any row now incomplete?
+Yes, one: **exit 2**. It is incomplete, not wrong. Everything it lists is still a real exit 2
+state; it is missing the identity refusal added in `b3b66f7` (`:433-439`). Every other row in the
+table is complete and true at this HEAD.
 
 ## The surrounding documents, re-checked against the program at HEAD
-- `docs/system-map.md:145`. **Both round-4 findings closed.** The stale "It refuses rather than
-  guesses whenever git cannot answer" is gone; the row now says "Containment is decided by
-  repository MARKERS ON DISK, never by git's message", names both arms ("asked of the resolved
-  landing directory on the `dir` arm and of a local remote's parent on the `git` arm"), and
-  carries the environment drop. The exit list reads "4 the target could not be used", so the "4
-  unreachable" shorthand is gone too. Accurate at HEAD.
+- `docs/system-map.md:145`. **Two sentences are now stale**, both flagged at dispatch and both
+  confirmed:
+  1. "Two refusals carry the design: no target may sit inside **any** git repository (asked of
+     the resolved landing directory on the `dir` arm and of a local remote's parent on the `git`
+     arm ...), and a git target may not be the project's publish remote". There are now THREE, and
+     the missing one is the one that refuses a linked worktree and the project itself.
+  2. "Containment is decided by repository MARKERS ON DISK, never by git's message". Half true
+     at this HEAD: the location question is still decided by markers (`:250-260`), but the new
+     identity question is decided by asking git for the common dir (`:429-432`). That is not
+     message parsing, which is what the sentence was written to rule out, but the sentence as
+     written now claims more than the program does.
+  3. The environment-drop clause ("The whole git environment (`GIT_DIR`, `GIT_INDEX_FILE` and
+     family) is dropped at startup, so a run from a hook answers about the project it was given
+     and cannot corrupt the caller's index") is literally true but names only the first of the two
+     kinds the program now distinguishes (`:69-74`): variables that NAME a repository, and the
+     `GIT_CONFIG_*` family that REWRITES one. The measured redirection (the ledger arriving at an
+     injected remote at exit 0 with the stamp written) is not in the row's consequence clause.
 - `docs/system-map.md:102`. Accurate and unaffected: names the backup, the two files, the
   `ledger_backup:` target, outside the repo, and reporting by exit code.
-- `WORKFLOW.md:648-674`. Still true, nothing in `0125901` disturbs it. `CLAUDE.local.md` first
-  (`bin/ledger-backup.sh:112`); "in both cases **outside this repository**" now holds on both
-  arms rather than only on `dir`, so this sentence became MORE true this commit; "the 'last
-  backup' stamp is written only after a verified success" matches the three `stamp_now` sites;
-  `:673`'s warning agrees with `disable-model-invocation: true`. Quotes no exit codes, so it has
-  nothing to drift.
-- `BEGINNERS-GUIDE.md`, all three places. Still accurate, and correctly free of exit codes for a
-  beginner surface: step table row 11 (`:241`, "then the gitignored ledger backed up outside the
-  repo"), the lessons section (`:325-332`, "If you haven't set one, Claude tells you once and
-  offers to add the line", which is the exit 3 contract including the once), quick guide step 12
-  (`:377-379`).
-- `project-templates/CLAUDE.md:86`. Unchanged; still both the reason the exit 3 placeholder
-  clause exists and the source of the skill's "installed in `~/bin`" note at `:43`.
+- `WORKFLOW.md:648-674`. Still true and undisturbed. `CLAUDE.local.md` first
+  (`bin/ledger-backup.sh:125`); "in both cases **outside this repository**" holds on both arms and
+  is now enforced against more spellings; "the 'last backup' stamp is written only after a
+  verified success" matches the three `stamp_now` sites; `:673`'s warning agrees with
+  `disable-model-invocation: true`. Quotes no exit codes, so it has nothing to drift.
+- `BEGINNERS-GUIDE.md`, all three places. Still accurate and correctly free of exit codes for a
+  beginner surface: step table row 11 (`:241`), the lessons section (`:325-332`, "If you haven't
+  set one, Claude tells you once and offers to add the line", the exit 3 contract including the
+  once), quick guide step 12 (`:377-379`).
 
 ## Map duty
-Satisfied. No new command surface. `/retro` is at `docs/system-map.md:102` and
-`ledger-backup.sh` has its own row at `:145`, both accurate at this commit.
+Satisfied as a duty: no new command surface, `/retro` is at `docs/system-map.md:102` and
+`ledger-backup.sh` has its own row at `:145`. The row's accuracy findings above are separate and
+non-blocking for this skill's score.
 
 ## Lint
-Clean by inspection for the checks that apply: C5 (`bin/ledger-backup.sh` exists), C7 (no em or
-en dash in the skill or in the rewritten rows), C9 (non-empty description), C11 (no
-version-pinned model name). C1, C3, C10 and C13 do not apply.
+Clean by inspection for the checks that apply: C5 (`bin/ledger-backup.sh` exists), C7 (no em or en
+dash in the skill), C9 (non-empty description), C11 (no version-pinned model name). C1, C3, C10
+and C13 do not apply.
 
 ## Integrity
 No sign of text copied from another project. Voice, terminology and every reference are this
 system's own.
 
 ## Top fixes
-None blocking; the file passes at ceiling. Three optional polish items, in descending value:
-1. **Say the backup out loud in step 6** (open since round 3, still the most useful edit). `:70`
-   -> "Briefly confirm what was written and where, including the backup result from step 5 (its
-   exit code decides what you may claim)." Today the honesty rule lives only inside step 5, and
-   the close-out is where a session's summary is actually composed.
-2. **Name the exit 0 variant the row does not mention.** `:48`'s "where the copy went (the script
-   prints it)" covers `:322`/`:440`, but not `already current ($remote/$branch)` (`:425`), where
-   nothing was copied this run and the backup is nonetheless verified current. Suggested: "where
-   the copy went, or that it was already current (the script prints which)."
-3. **Tighten "an unreadable ledger" in the exit 2 row to the directory.** An unreadable ledger
-   FILE fails later, in the copy, at exit 4 (`:314`/`:418`, test case 24); it is the unreadable
-   DIRECTORY that is refused at exit 2 (`:98-102`). The row's "rather than report as empty"
-   already points at the directory case, and one word ("an unreadable ledger directory") removes
-   the ambiguity.
+1. **Add the identity refusal to the exit 2 row** (the finding; one clause). `:51`, after "a
+   target inside **any** git repository (a directory, or a local backup remote sitting in
+   someone's work tree)", insert: ", a remote that IS this project's own repository (the project
+   directory itself, or a linked worktree of it, which shares the object store however the URL is
+   spelled)". Nothing else in the row needs touching; the existing "Show the message" guidance
+   then lands on a state the reader recognises.
+2. **Fix `docs/system-map.md:145`**: say "Three refusals carry the design", add the identity one
+   ("a git target may not BE this repository, compared by git common dir, which is what refuses a
+   linked worktree"), soften the containment sentence to "Location is decided by repository
+   MARKERS ON DISK, never by git's message", and extend the environment clause with the second
+   kind ("... and the `GIT_CONFIG_*` family, which rewrites where a push goes").
+3. **Say the backup out loud in step 6** (open since round 3, still the most useful non-required
+   edit). `:70` -> "Briefly confirm what was written and where, including the backup result from
+   step 5 (its exit code decides what you may claim)."
+4. **Name the exit 0 variant the row does not mention.** `:48`'s "where the copy went (the script
+   prints it)" covers `:335`/`:495`, but not `already current ($remote/$branch)` (`:480`).
+   Suggested: "where the copy went, or that it was already current (the script prints which)."
+5. **Tighten "an unreadable ledger" in the exit 2 row to the directory.** An unreadable ledger
+   FILE fails later, in the copy, at exit 4 (`:327`/`:473`); it is the unreadable DIRECTORY that
+   is refused at exit 2 (`:111-115`).
 
-## The mechanism question, answered
-Round 4 raised single-sourcing /retro's rows from the script header as a design option. Having
-now watched a fourth cycle, my answer is: **not generation, and not required.** Two reasons and
-one cheaper alternative.
-- Generation makes the two texts AGREE; it does not make either TRUE. The evidence is in this
-  commit's own residual: both the header (`:42-45`) and the skill (`:53`) introduce exit 4 as
-  "the target could not be used", while three of its sites are local failures, not target
-  failures (`:390` no temp dir, `:401` git init failed, `:431` commit failed). A generator would
-  have propagated that framing to both files, and this review would have had nothing to compare
-  against. Two independently written texts are what made rounds 3 and 4 findable.
-- The two texts also have different jobs. The header is a CALLER CONTRACT; the skill's row is
-  what the agent SAYS to a human ("offer to fix the line when the message names one", "do not
-  close the session claiming a backup", "Take a no and do not raise it again this session").
-  Generating one from the other either drops that guidance or pushes user-facing coaching into a
-  program's comment block. Cost, if built anyway: a generator, a marked do-not-edit region inside
-  SKILL.md, and a CI check, against a skill file whose whole value is that a reviewer reads it as
-  prose.
-- The cheaper mechanism that fits the actual failure: extend `tests/ledger-backup.test.sh` case
-  21 from per-CODE to per-STATE. For each `exit N` site, require a distinguishing keyword from
-  that site's message (`no remote named`, `not a git work tree`, `inside a git repository`,
-  `cannot be read`, `copy is incomplete`) to appear in the row for N, in both the header and the
-  skill. That is a dozen lines, it fails loudly in the commit that changes a message, and it
-  would have caught round 4's regression. Stated residual, so a green run is not read as more: it
-  still cannot tell whether the guidance sentence around the keyword is good advice. Recorded as
-  a design option for the humans, not as a required fix.
+## The drift mechanism, second time of asking
+Round 5 proposed extending `tests/ledger-backup.test.sh` case 21 from per-CODE to per-STATE. It
+was not built, and this round is the evidence for it. **I still recommend it, and I now raise it
+from a design option to the highest-value item after fix 1.** Reasons, kept to what is measured
+here:
+- Case 21 (`:295-319`) checks that each reachable code has a `| N |` row, and case 33
+  (`:633-646`) does the same for the script header. Both pass unchanged through this regression,
+  for the second consecutive time, because a row's PRESENCE is mechanical and its TRUTH is not.
+  Case 33's own comment says so.
+- A per-state assertion would have failed this commit: the new message's distinguishing phrase
+  (`IS this project's own repository`) appears nowhere in `skills/retro/SKILL.md`. The shape is a
+  dozen lines: for each `exit N` site, require a keyword from that site's message (`no remote
+  named`, `not a git work tree`, `inside a git repository`, `own repository`, `cannot be read`,
+  `copy is incomplete`) to appear in row N, in both the header and the skill.
+- Stated residual, so a green run is not read as more: it still cannot tell whether the guidance
+  sentence around the keyword is good advice, and it will need a keyword list maintained next to
+  the messages. That is cheaper than a third reviewer round finding the same shape.
+- Still recommended AGAINST: generating the skill's rows from the script header. Generation makes
+  the two texts agree without making either true, and the two have different jobs (a caller
+  contract versus what an agent SAYS to a human). Two independently written texts are what made
+  rounds 3, 4 and 6 findable.
 
 ## Behavioral confirmation still owed
-Form only. What remains is behavioral and belongs to an `/improve` subagent test: (a) exit 5,
-does the close-out claim a backup; (b) exit 3 twice in one session, does the offer stay quiet the
+Form only. What remains is behavioral and belongs to an `/improve` subagent test: (a) exit 5, does
+the close-out claim a backup; (b) exit 3 twice in one session, does the offer stay quiet the
 second time; (c) the `:14` early stop, is the backup still attempted; (d) exit 2 from a
 placeholder-shaped typo, does the agent offer to fix the line instead of reading it as "not
-configured"; (e) exit 2 from a local backup remote inside a work tree (the new `git`-arm
-refusal), does the agent explain containment and propose a target outside every repository rather
-than retrying; (f) exit 2 from a target inside an unreadable repository, does the agent report
-containment now that the "could not decide" wording is gone.
+configured"; (e) exit 2 from a local backup remote inside a work tree, does the agent explain
+containment and propose a target outside every repository rather than retrying; (f) **new**: exit
+2 from a remote that is a linked worktree of this project, does the agent explain a shared object
+store or does it improvise, and does the answer change once fix 1 is applied.
 
 ## History
 - Round 1 (2026-09-16, Opus 5 [1M], strongest, `fab5c0d`, branch
@@ -250,3 +256,22 @@ containment now that the "could not decide" wording is gone.
   exit 0 variant, the unreadable-ledger-directory wording), none of them blocking. The
   single-sourcing option raised in round 4 is answered here: recommended AGAINST as generation,
   with a per-state keyword assertion in `tests/ledger-backup.test.sh` case 21 proposed instead.
+- Round 6 (2026-09-22, Opus 5 [1M], strongest, `b3b66f7`, same branch): 9/10 PASS. Scores
+  2/2/2/1/2. Regenerated because HEAD moved past round 5's commit, not re-dated. The skill file is
+  byte-identical to round 5; `b3b66f7` changed `bin/ledger-backup.sh` underneath it again. What
+  moved: precision 2 -> 1, for exactly one incomplete row. The `git` arm's containment guard
+  became two questions, identity (same git common dir) and location (the parent walk), and the
+  identity half prints a refusal the exit 2 row does not describe: "'<remote>' IS this project's
+  own repository". Its headline case, a sibling linked worktree, is inside no repository by
+  markers and is not the publish remote, so neither of the row's existing clauses reaches it. What
+  did not move: trigger clarity, structure, worked example and safety integration, all re-verified
+  against the program at this HEAD (the worked example's two lines are now verbatim
+  `bin/ledger-backup.sh:495` and `:490`). Judged and found to owe no disclosure: the `GIT_CONFIG_*`
+  additions to the environment drop (no exit code, no message, no changed state) and the
+  `GIT_DIR` -> `PROJECT_GIT_DIR` local rename. New findings outside the skill:
+  `docs/system-map.md:145`, rewritten last commit, is now stale in three places (it says "Two
+  refusals" where there are three, claims containment is decided by markers alone where identity
+  is decided by git's common dir, and its environment clause names only the naming family, not the
+  config-rewriting one). The round-5 drift proposal (case 21 per-state rather than per-code) was
+  not built, case 21 and case 33 both passed through this regression unchanged, and it is
+  re-recommended here at higher priority with the concrete keyword it would have caught.

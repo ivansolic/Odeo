@@ -52,10 +52,11 @@ out2="$( cd "$tmp2" && bash "$CHECK" 2>&1 )"; rc2=$?
   || bad "a README with no claims passed: the check would go green on a gutted document"
 rm -rf "$tmp2"
 
-# 4. --assertions counts what the suites report, and SAYS when some were skipped. A suite
-#    that skips assertions (install-ps1.test.sh without pwsh) makes the total
-#    environment-dependent; without the note, a machine missing an optional tool reads as a
-#    drifted README, which sends the reader to fix a document that is correct.
+# 4. --assertions counts what the suites report, and SAYS when some were skipped. A suite that
+#    skips assertions (install-ps1.test.sh without pwsh, a root guard, a shell that refuses
+#    SHELLOPTS) makes the total environment-dependent, and without the note a machine that ran
+#    a different amount of the suite reads as a drifted README, which sends the reader to fix a
+#    document that is correct.
 #    Run against a miniature tree rather than this repo: the real --assertions pass runs
 #    every suite and takes minutes, and a slow test gets skipped, which is how this whole
 #    class of check rots.
@@ -79,6 +80,54 @@ out5="$( cd "$mini" && bash "$CHECK" --assertions 2>&1 )"
 case "$out5" in *SKIPPED*) bad "the skip note printed when nothing was skipped";;
   *) ok "and it stays quiet when nothing was skipped";; esac
 rm -rf "$mini"
+
+# 5. AN INCOMPLETE MEASUREMENT IS NOT EVIDENCE, IN EITHER DIRECTION. The note told the reader
+#    the count could read LOW, and the check still FAILED on any mismatch. So a machine that
+#    ran MORE of the suite than the author's (one skip fewer) counted HIGHER, got `DRIFTED`,
+#    exit 1, and the instruction "Fix the NUMBER in the document, never this check": it was
+#    told to edit a correct README and break it for everyone else. That was live in this repo,
+#    where bash 3.2 skips a case bash 5 runs.
+#
+#    The rule under test: when anything was skipped, the assertion count reports UNVERIFIED and
+#    does NOT fail, while the claims this run CAN measure completely stay fatal. The assertion
+#    is on the OUTCOME (exit code and word), not on the note's prose, which is what let the
+#    previous version pass while the harm was live.
+mini5="$(mktemp -d)"; mkdir -p "$mini5/bin" "$mini5/tests"
+printf '#!/usr/bin/env bash\necho hi\n' > "$mini5/bin/foo.sh"; chmod +x "$mini5/bin/foo.sh"
+printf '#!/usr/bin/env bash\necho "ok   - a"\n' > "$mini5/tests/foo.test.sh"
+printf '#!/usr/bin/env bash\necho "SKIP - b"\necho "ok   - c"\n' > "$mini5/tests/skippy.test.sh"
+# The README claims 2. This run measures 2, so the count itself is honest; the rows below bend
+# the README instead of the tree, one in each direction.
+for direction in high low; do
+  case "$direction" in
+    high) documented=1 ;;   # a machine that ran MORE than the author's: measured > documented
+    low)  documented=3 ;;   # a machine that ran LESS: measured < documented
+  esac
+  cat > "$mini5/README.md" <<MINI5
+├── bin/   ← 1 executables
+│   └── *.test.sh   ← 2 suites, $documented assertions. 1 of the 1 programs have their own suite
+MINI5
+  out="$( cd "$mini5" && bash "$CHECK" --assertions 2>&1 )"; rc=$?
+  [[ "$rc" -eq 0 ]] \
+    && ok "a count that could not be fully measured does not fail the check ($direction reading)" \
+    || bad "an unmeasurable count exited $rc, telling the reader to edit a correct README ($direction): $out"
+  case "$out" in *UNVERIFIED*) ok "and it is reported as UNVERIFIED, not as drift ($direction)";;
+    *) bad "the mismatch was not marked unverified ($direction): ${out:-<empty>}";; esac
+  case "$out" in *DRIFTED*) bad "it still called an unmeasurable count drift ($direction)";;
+    *) ok "and the word DRIFTED is not used for it ($direction)";; esac
+done
+# The exemption is SCOPED. A claim this run measures completely is still fatal, skip or no skip,
+# because otherwise one skipped case would switch the whole document off.
+cat > "$mini5/README.md" <<'MINI5'
+├── bin/   ← 999 executables
+│   └── *.test.sh   ← 2 suites, 2 assertions. 1 of the 1 programs have their own suite
+MINI5
+out="$( cd "$mini5" && bash "$CHECK" --assertions 2>&1 )"; rc=$?
+[[ "$rc" -ne 0 ]] && ok "a claim that CAN be measured still fails while another is unverified" \
+  || bad "one skipped case switched off the claims this run could verify: $out"
+case "$out" in *DRIFTED*) ok "and that one is still reported as drift";;
+  *) bad "the measurable claim failed without naming drift: ${out:-<empty>}";; esac
+rm -rf "$mini5"
 
 echo ""
 if [[ "$fail" -eq 0 ]]; then echo "docs-claims-check: all $pass assertions passed."; else echo "docs-claims-check: $fail FAILURE(S) above."; fi
