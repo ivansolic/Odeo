@@ -15,7 +15,9 @@
 # Usage:   docs-claims-check.sh [--assertions]   (run from the repo root)
 #          --assertions also runs the full suite to verify the assertion count. It is
 #          off by default because it takes minutes, and a slow gate gets skipped.
-# Exit:    0 every claim matches · 1 a claim drifted, or an expected claim is missing · 2 usage
+# Exit:    0 every claim this run could measure matches (some may be reported UNVERIFIED: this
+#            machine could not run the whole suite, so its number is not evidence either way)
+#          1 a claim drifted, an expected claim is missing, or a suite failed · 2 usage
 set -uo pipefail
 LC_ALL=C; export LC_ALL
 
@@ -31,6 +33,7 @@ done
 
 fail=0
 found_any=0
+n_unverified=0
 
 # claim <label> <measured> <regex-with-one-capture> [unverifiable-reason]
 # Pulls the DOCUMENTED number out of README with the given pattern and compares it to the
@@ -61,6 +64,7 @@ claim() {
   if [[ "$documented" == "$measured" ]]; then
     echo "ok: $label = $measured"
   elif [[ -n "$unverifiable" ]]; then
+    n_unverified=$((n_unverified+1))
     echo "UNVERIFIED: $label , README says $documented, this run measured $measured"
     echo "            $unverifiable"
     echo "            Not a failure: this machine did not run the whole suite, so its number"
@@ -92,12 +96,23 @@ claim "programs with their own suite" "$n_have" '[0-9]+ of the [0-9]+ programs'
 if [[ "$WITH_ASSERTIONS" -eq 1 ]]; then
   total=0
   n_skipped=0
+  # THE SUITE'S EXIT CODE IS READ, not only its output. It used to be discarded, which was
+  # survivable only by accident: a broken suite reported a wrong total, the total mismatched,
+  # and the run went red for the wrong reason. The unverified outcome removed that accident and
+  # left the worst case green, measured: a suite that ERRORS reports fewer `ok` lines, the
+  # mismatch is excused as unverified, and a machine that skips anything (here, every machine)
+  # ends at exit 0 under the summary line. A broken instrument must never read as a clean bill,
+  # and it is not an environment difference, so no skip excuses it.
   for f in tests/*.test.sh; do
-    out=$(bash "$f" 2>&1)
+    out=$(bash "$f" 2>&1); rc=$?
     n=$(printf '%s\n' "$out" | grep -cE '^ok')
     s=$(printf '%s\n' "$out" | grep -cE '^SKIP')
     total=$((total+n))
     n_skipped=$((n_skipped+s))
+    if [[ "$rc" -ne 0 ]]; then
+      echo "SUITE FAILED: $f exited $rc, so the assertion count below is not a measurement."
+      fail=1
+    fi
   done
   # A suite may SKIP checks, so this total is environment-dependent in a way the other claims
   # are not. Saying so turns a confusing "the README drifted" into "this machine ran fewer
@@ -139,5 +154,12 @@ if [[ "$fail" -ne 0 ]]; then
   exit 1
 fi
 echo ""
-echo "docs-claims-check: every countable claim matches the tree."
+# THE SUMMARY MUST NOT OUTLIVE THE RUN IT SUMMARISES. "every countable claim matches the tree"
+# printed above an UNVERIFIED line is precisely the kind of stale claim this program exists to
+# catch, made by this program, at the place a reader looks when they stop reading.
+if [[ "$n_unverified" -gt 0 ]]; then
+  echo "docs-claims-check: every claim this run could measure matches; $n_unverified UNVERIFIED (see above)."
+else
+  echo "docs-claims-check: every countable claim matches the tree."
+fi
 exit 0

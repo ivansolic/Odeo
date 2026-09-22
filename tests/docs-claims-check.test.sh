@@ -129,6 +129,61 @@ case "$out" in *DRIFTED*) ok "and that one is still reported as drift";;
   *) bad "the measurable claim failed without naming drift: ${out:-<empty>}";; esac
 rm -rf "$mini5"
 
+# 6. A SUITE THAT FAILS IS NOT AN UNVERIFIED COUNT. The assertion total was read out of each
+#    suite's `ok` lines and the suite's EXIT CODE was thrown away, which did not matter while any
+#    mismatch failed: a broken suite produced a wrong total and the run went red anyway, for the
+#    wrong reason but loudly. Adding the unverified outcome removed that accident, and the case
+#    it removed it for is the worst one: a suite that ERRORS now reports fewer assertions, the
+#    mismatch is excused as unverified, and the run ends GREEN on every machine that skips
+#    anything, which here is every machine. A broken instrument must never read as a clean bill.
+mini6="$(mktemp -d)"; mkdir -p "$mini6/bin" "$mini6/tests"
+printf '#!/usr/bin/env bash\necho hi\n' > "$mini6/bin/foo.sh"; chmod +x "$mini6/bin/foo.sh"
+printf '#!/usr/bin/env bash\necho "ok   - a"\n' > "$mini6/tests/foo.test.sh"
+printf '#!/usr/bin/env bash\necho "SKIP - b"\necho "ok   - c"\n' > "$mini6/tests/skippy.test.sh"
+printf '#!/usr/bin/env bash\necho "FAIL - d"\nexit 1\n' > "$mini6/tests/broken.test.sh"
+cat > "$mini6/README.md" <<'MINI6'
+├── bin/   ← 1 executables
+│   └── *.test.sh   ← 3 suites, 2 assertions. 1 of the 1 programs have their own suite
+MINI6
+out6="$( cd "$mini6" && bash "$CHECK" --assertions 2>&1 )"; rc6=$?
+[[ "$rc6" -ne 0 ]] && ok "a suite that FAILS makes the run red even when another skipped (exit $rc6)" \
+  || bad "a broken suite passed as an unverified count: the instrument reads as a clean bill"
+case "$out6" in *broken.test.sh*) ok "and the failure names the suite that broke";;
+  *) bad "it failed without naming the broken suite: ${out6:-<empty>}";; esac
+rm -rf "$mini6"
+
+# 7. THE LAST LINE MUST NOT CONTRADICT THE RUN. With an unverified claim above it, the summary
+#    still read "every countable claim matches the tree", which is the exact shape of claim this
+#    program exists to catch, printed by the program itself. A reader who scrolls to the end,
+#    which is what a summary is for, gets the opposite of what happened.
+mini7="$(mktemp -d)"; mkdir -p "$mini7/bin" "$mini7/tests"
+printf '#!/usr/bin/env bash\necho hi\n' > "$mini7/bin/foo.sh"; chmod +x "$mini7/bin/foo.sh"
+printf '#!/usr/bin/env bash\necho "ok   - a"\n' > "$mini7/tests/foo.test.sh"
+printf '#!/usr/bin/env bash\necho "SKIP - b"\necho "ok   - c"\n' > "$mini7/tests/skippy.test.sh"
+cat > "$mini7/README.md" <<'MINI7'
+├── bin/   ← 1 executables
+│   └── *.test.sh   ← 2 suites, 7 assertions. 1 of the 1 programs have their own suite
+MINI7
+out7="$( cd "$mini7" && bash "$CHECK" --assertions 2>&1 )"; rc7=$?
+[[ "$rc7" -eq 0 ]] && ok "an unverified claim still exits 0" || bad "unverified run exited $rc7: $out7"
+last7="$(printf '%s\n' "$out7" | grep -v '^$' | tail -1)"
+case "$last7" in *"every countable claim matches"*)
+    bad "the summary claims everything matches while a claim went unverified: $last7";;
+  *UNVERIFIED*|*unverified*) ok "and the summary says how many claims went unverified";;
+  *) bad "the summary neither claims success nor names the unverified claim: $last7";; esac
+#    And the other direction: a fully verified run must still say so plainly, or the summary
+#    becomes noise that a reader learns to skip.
+printf '#!/usr/bin/env bash\necho "ok   - b"\necho "ok   - c"\n' > "$mini7/tests/skippy.test.sh"
+cat > "$mini7/README.md" <<'MINI7'
+├── bin/   ← 1 executables
+│   └── *.test.sh   ← 2 suites, 3 assertions. 1 of the 1 programs have their own suite
+MINI7
+out8="$( cd "$mini7" && bash "$CHECK" --assertions 2>&1 )"; rc8=$?
+[[ "$rc8" -eq 0 ]] && ok "a fully measured run still exits 0" || bad "clean run exited $rc8: $out8"
+case "$out8" in *"every countable claim matches"*) ok "and still says every claim matches";;
+  *) bad "a clean run no longer states the clean result: ${out8:-<empty>}";; esac
+rm -rf "$mini7"
+
 echo ""
 if [[ "$fail" -eq 0 ]]; then echo "docs-claims-check: all $pass assertions passed."; else echo "docs-claims-check: $fail FAILURE(S) above."; fi
 exit "$fail"

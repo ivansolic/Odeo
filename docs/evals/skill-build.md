@@ -2,8 +2,8 @@
 artifact: skills/build/SKILL.md
 type: skill
 branch: feature/windows-powershell-entry
-reviewed_commit: b3b66f71606cedb13701b1875e1b2419ca572be3
-artifact_version: 20
+reviewed_commit: 5972c27
+artifact_version: 21
 date: 2026-09-22
 scorer: skill-reviewer
 model: claude-opus-5[1m]
@@ -16,33 +16,40 @@ previous_total: 10/10
 ---
 
 Scope: the whole `skills/build/SKILL.md` (330 lines, no supporting files), read at branch
-HEAD `b3b66f7` against `docs/skill-authoring-standard.md`. This record REPLACES round 19's
-(`0125901`). `b3b66f7` touched `bin/ledger-backup.sh`, its test suite,
-`bin/docs-claims-check.sh` and `README.md`, none of which this skill points at, so this round
-is primarily a RE-ANCHOR: the merge gate compares `reviewed_commit:` against the code being
-merged, and a record anchored at `0125901` would refuse the merge even though nothing this
-skill depends on moved. The work beyond re-scoring: re-establishing that the artifact is
-unchanged, re-resolving every cross-reference the skill makes, and restating the four carried
-findings with their status at HEAD.
+HEAD `5972c27` against `docs/skill-authoring-standard.md`. This record REPLACES round 20's
+(`b3b66f7`). `5972c27` touched `bin/ledger-backup.sh`, `bin/docs-claims-check.sh`, their two
+test suites, `README.md`, `docs/system-map.md` and `skills/retro/SKILL.md`, none of which this
+skill points at, so this round is primarily a RE-ANCHOR: `merge-gate.sh` compares
+`reviewed_commit:` against the code being merged, and a record anchored at `b3b66f7` would
+refuse the merge even though nothing this skill depends on moved. The work beyond re-scoring:
+re-establishing that the artifact is unchanged, re-resolving every cross-reference the skill
+makes, checking whether `docs-claims-check.sh`'s new UNVERIFIED outcome creates a duty inside
+this skill's scope, and restating the five carried findings with their status at HEAD.
 
-## Did the artifact change since round 19? No.
+## Did the artifact change since round 20? No.
 
 Stated with its method, because I hold no shell and cannot run
-`git diff 0125901..HEAD -- skills/build/SKILL.md`. What I did instead: read the file in full
-and re-resolve every line anchor round 19 quoted, at both ends and in the middle. An insertion
-or deletion anywhere shifts every anchor below it, so anchors holding at the top, the middle
-and the bottom plus an unchanged length is a strong equivalence argument.
+`git diff b3b66f7..HEAD -- skills/build/SKILL.md`. What I did instead, the same method as
+rounds 17-20: read the file in full and re-resolve every line anchor round 20 quoted, at both
+ends and in the middle, plus the file's length. An insertion or deletion anywhere shifts every
+anchor below it, so anchors holding at the top, the middle and the bottom together with an
+unchanged length is a strong equivalence argument. Its limit, stated plainly: it proves the
+anchored lines and the length, not every character in between. A change that replaced text
+within a line I did not quote, or swapped two lines of equal count between anchors, would not
+be caught by anchors alone; it is bounded further by the fact that I read all 330 lines this
+round and re-derived the scores from that text rather than copying them.
 
-| Anchor quoted in round 19 | Text at that line at `b3b66f7` | Match |
+| Anchor quoted in round 20 | Text at that line at `5972c27` | Match |
 |---|---|---|
 | `:2` description | "Build one or more ready user stories. Two modes you choose..." | yes |
+| `:3` invocation mode | `disable-model-invocation: true` | yes |
 | `:12` spec gate | "`spec-gate.sh <story paths...>` (in `~/bin` or `bin/`) and STOP on" | yes |
 | `:37` model-plan block opens | "**Model plan, asked before any work, and the BUILD model is the user's choice too.**" | yes |
 | `:111` block closes | "a block: the choice is the user's." | yes, still exactly 75 lines |
 | `:215` B5.2 heading | "2. **Plan review LOOP (architecture-reviewer x architect, to clean, max 3)**:" | yes |
 | `:219-221` plan-loop stop condition | "(`docs/eval-framework.md`: / clean, 3 rounds, or two consecutive rounds of the same defect class, / whichever comes first; a Critical is always reported)" | yes |
 | `:224` recorded verdict format | "`arch_review: clean (v<N>, <date>)` plus a short findings-and-resolutions" | yes |
-| `:264-268` code-loop stop condition | "The review LOOPS until clean: fix -> / same reviewer re-verifies and regenerates the record -> repeat, under the / same stop condition as the plan loop (3 rounds, ...)" | yes, and see the correction below |
+| `:264-268` code-loop stop condition | "The review LOOPS until clean: fix -> / same reviewer re-verifies and regenerates the record -> repeat, under the / same stop condition as the plan loop (3 rounds, ...)" | yes |
 | `:271` `boundary-check.sh` | "Before presenting, run `boundary-check.sh` in the story's worktree (ENFORCED)" | yes |
 | `:278` B7 heading | "### B7. Gate + integrate (the merge is the user's move, full stop)" | yes |
 | `:290-312` worked example fence | "## Worked example" at `:290`, closing fence at `:312` | yes |
@@ -53,15 +60,6 @@ and the bottom plus an unchanged length is a strong equivalence argument.
 assumed. **This round therefore re-confirms an unchanged artifact at a new commit.** The scores
 below are re-derived from the current text, not copied.
 
-**One correction to round 19's own prose, not a change in the file.** Round 19's anchor table
-cited the code-loop block as `:264-268` (correct) but its finding 4 and Top fix 3 cited the
-"LOOPS until clean" wording at `:265`. The sentence begins at `:264`
-("pushback allowed, you arbitrate. The review LOOPS until clean: fix ->") and the citation to
-be changed sits at `:267` ("per the AGENTS.md review-loop rule"). This is an off-by-one
-inherited from round 17, not evidence of a shifted file: everything below (`:271`, `:278`,
-`:290`, `:321`, length 330) resolves unchanged, which an inserted line could not do. Finding 4
-below is re-anchored accordingly so the human edits the right lines.
-
 ## Skill: build  (explicit command)
 
 ## Scores
@@ -70,14 +68,14 @@ below is re-anchored accordingly so the human edits the right lines.
   stories. Two modes you choose..." `:2`), plus the non-obvious invocation spelled out
   ("Name several stories to build them in parallel, e.g. \"/build USR-001 USR-002 in
   parallel\""). No "Use when..." is wanted here; that form is for auto-invoked skills
-  (`docs/skill-authoring-standard.md:17-19`).
+  (`docs/skill-authoring-standard.md:12-19`).
 - structure **2**, and the trigger round 15 set still did not fire. That trigger: structure
   drops when the model-plan block passes 75 lines OR 25% of the file, or gains a subsection not
   tied to a named finding. Measured today: `:37-111` is exactly 75 lines of a 330-line file,
-  22.7%, identical to rounds 16-19. Body order follows the standard (essence `:6-7`, gates and
+  22.7%, identical to rounds 16-20. Body order follows the standard (essence `:6-7`, gates and
   mode choice, process per mode, worked example `:290-312`, output `:314`, safety rules
   `:321-329`). 330 of the 500-line limit, no supporting files, so the one-level-deep rule is
-  satisfied trivially. The block sits ON the edge, so Top fix 2 carries into a sixth round.
+  satisfied trivially. The block sits ON the edge, so Top fix 2 carries into a seventh round.
 - worked example **2**. `:291-312` runs one real invocation end to end with real values: a story
   id (`USR-012`), a real plan path (`docs/plans/2026-07-14-usr-012-timer.md`), real frontmatter
   keys (`approved: no` -> `approved: yes`, `model_plan:`, `builder_tier: sonnet`), a real
@@ -93,13 +91,13 @@ below is re-anchored accordingly so the human edits the right lines.
   feature/<slug>` `:135`, `code -r -g <file>` `:139`, `docs/plans/<date>-<slug>.md` `:208`,
   `arch_review: clean (v<N>, <date>)` `:224`, `builder_tier:` `:241`,
   `build_model_as_dispatched:` `:243`. Every named script exists in this tree
-  (`bin/spec-gate.sh`, `bin/boundary-check.sh`, `bin/resolve-language.sh`, verified by listing
-  `bin/*.sh`). Cross-references resolve in the direction they claim: `:236-237` says the
-  builder's precondition list is authoritative in `agents/builder.md`, and
+  (`bin/spec-gate.sh`, `bin/boundary-check.sh`, `bin/resolve-language.sh`, verified this round
+  by listing `bin/*.sh`). Cross-references resolve in the direction they claim: `:236-237` says
+  the builder's precondition list is authoritative in `agents/builder.md`, and
   `agents/builder.md:16` says exactly that of itself ("This list is AUTHORITATIVE for WHICH
-  preconditions exist"), with `:19-24` carrying `approved: yes`, `builder_tier:` and a
+  preconditions exist"), with `:19-26` carrying `approved: yes`, `builder_tier:` and a
   non-`pending` `arch_review:`. The "LOOPS until clean" wording at `:264` is finding 4 below; it
-  stays a seam and not a score move for the same reason as rounds 16-19 (the file is exact
+  stays a seam and not a score move for the same reason as rounds 16-20 (the file is exact
   everywhere a path, field or script is named, and the loose word is inherited plain language).
 - safety integration **2**. Guardrails are referenced, not restated or weakened, and each
   reference lands: `AGENTS.md` Guardrail 3 + lint C11 for the no-model-names-in-files rule
@@ -126,40 +124,54 @@ below is re-anchored accordingly so the human edits the right lines.
 clarity can reach 2 on the what-you-get form), real guardrails and enforced scripts exist to
 reference (safety integration can reach 2), and a concrete end-to-end example is present.
 
-## Cross-reference re-check at `b3b66f7`
+## Cross-reference re-check at `5972c27`
 
-All five targets still exist and still say what the skill claims. Verified by opening them, not
-by memory:
+All targets still exist and still say what the skill claims. Verified by opening them, not by
+memory:
 
 1. **`docs/eval-framework.md`, the stop condition** (`:175-236`). Still three exits in this
    order: APPROVE/PASS clearing the rubric's threshold with no criterion at 0 and no Critical
    (`:180-183`), three rounds (`:208-211`), two consecutive rounds of the same class
-   (`:212-222`), "whichever comes first" implied by "the FIRST of these" `:178`, with a Critical
-   always overriding the cap `:234-236`. The skill's `:219-221` reproduces it correctly.
+   (`:212-222`), "the FIRST of these" at `:178`, with a Critical always overriding the cap
+   `:234-236`. The skill's `:219-221` reproduces it correctly.
 2. **`docs/eval-framework.md`, the per-artifact threshold table** (`:189-196`). Unchanged since
-   round 19, including the plan row `:195` and the note at `:198-203`. Finding 1 below.
+   round 20, including the plan row `:195` and the note at `:198-203`. Finding 1 below.
 3. **`docs/plan-format.md`, the plan rubric** (`:199-235`). Still de-scored: the prose at
    `:200-206` ("It is a checklist here, not a published score... the plan loop stops on
    **clean**, not on a total") and the closing line inside the fence at `:230-234` ("No
    threshold, and no score is published... `Threshold:` is the token the SCORED rubrics use to
    declare a gate, so it is deliberately absent here"). No `Threshold:` line. The skill's
    `:222-226` (records `clean`, presents finding counts, never a score) is consistent.
-4. **`AGENTS.md` Guardrail 3** (`:267-319`). Carries what the skill cites at `:88`: lint C11 and
+4. **`AGENTS.md` Guardrail 3** (`:267-324`). Carries what the skill cites at `:88`: lint C11 and
    the tiers-never-versions ban, `:315-317`; and the plan-review loop "to clean, max 3" at
    `:307-309`, consistent with the skill's B5.2 heading.
-5. **`AGENTS.md` Guardrails 7** (`:395-431`). Carries what the skill cites three times: resolve
+5. **`AGENTS.md` Guardrails 7** (`:395-434`). Carries what the skill cites three times: resolve
    with `resolve-language.sh <project-dir>` or the handed value `:396-398`, the dispatcher duty
    on EVERY dispatch including re-dispatches in a review loop `:399-401`, and the fallback chain
-   (handed line, else the project's `CLAUDE.md`, else English and say so) `:401-402`.
-6. **Scripts exist:** `bin/spec-gate.sh`, `bin/boundary-check.sh`, `bin/resolve-language.sh`
-   are all present in `bin/`. `worktree-parallel-check` is catalogued as a command at
-   `docs/system-map.md:75`.
+   (handed line, else the target project's `CLAUDE.md`, else English and say so) `:401-402`.
+6. **Scripts exist:** `bin/spec-gate.sh`, `bin/boundary-check.sh`, `bin/resolve-language.sh` are
+   all present in `bin/` (listed this round). `worktree-parallel-check` is catalogued as a
+   command at `docs/system-map.md:75`.
+7. **`agents/code-reviewer.md:91`** still declares the code loop's numeric exit ("Threshold: no
+   dimension at 0, total >= 9/12"), which is what makes finding 4's "clean" wording a seam.
 
-Nothing in `b3b66f7` (ledger backup, its tests, the README claims checker, the README) is read
-by this skill. `bin/docs-claims-check.sh` verifies countable claims in `README.md` only
-(`:30`, `:40-56`); it does not read `skills/`, so it imposes no new duty here.
+## `docs-claims-check.sh`'s new UNVERIFIED outcome: no duty lands in this skill
 
-## Findings (the four carried from round 19, plus one)
+Checked rather than assumed, because a mismatch that no longer fails changes what "the check
+said no" means for anyone who acts on it. `bin/docs-claims-check.sh` now has three outcomes
+instead of two: `ok`, `DRIFTED` (exit 1), and `UNVERIFIED` (`:41-50`, `:63-67`) for a claim this
+run could not measure completely, which prints its reason and does NOT fail; `MISSING` stays
+fatal (`:54-59`). So a statement of the form "act when the claims check fails" would now be
+incomplete, since an UNVERIFIED claim mismatches without failing.
+
+Nothing in this skill's scope says any such thing. `skills/build/SKILL.md` is the entire scope
+(no supporting files), and a grep for `claims-check` / `docs-claims` / `UNVERIFIED` over it
+returns zero matches; the skill never invokes the checker, never reads `README.md`, and its
+enforced gates are `spec-gate.sh` `:12` and `boundary-check.sh` `:271`, neither touched by
+`5972c27`. In the other direction the checker reads `README.md` only (`:30`, `:74-124`) and
+never `skills/`, so it imposes no new duty here. Recorded as a negative result, not a finding.
+
+## Findings (the five carried from round 20; all STAND at this HEAD)
 
 **1. STANDS, low, outside the skill: `docs/eval-framework.md:195` still names the plan rubric
 under a column headed "Rubric that declares the threshold" (`:189`), while that rubric declares
@@ -185,22 +197,21 @@ means is `AGENTS.md:39-41` ("The REVIEW loop's own stop condition is declared in
 fix, same line: "...and is the one stated in the Agent-first workflow section near the top of
 this file".
 
-**4. STANDS, low, inside the skill, still unblocked, now correctly anchored:
+**4. STANDS, low, inside the skill, still unblocked:
 `skills/build/SKILL.md:264` says the code review loop "LOOPS until clean", and `:267` cites the
 rule second-hand.**
 "clean" is the word `docs/eval-framework.md:198-200` reserves for the plan loop, the one exit
 with no number; the code loop's exit is an APPROVE clearing the threshold declared in
-`agents/code-reviewer.md:91` ("no dimension at 0, total >= 9/12"). Round 18 correctly refused to
-fix this in the skill while `AGENTS.md` still said two things; `0125901` settled that, so the
-edit has been safe since. Two moves, both inside the skill, both one line, at the corrected
-anchors: word `:264` as "The review LOOPS until the reviewer APPROVES (its rubric's threshold,
-no criterion at 0)", and change `:267`'s citation from "per the AGENTS.md review-loop rule" to
-`docs/eval-framework.md`, so both of this file's citations of one rule point at the same
-canonical file instead of one direct and one second-hop.
+`agents/code-reviewer.md:91` ("no dimension at 0, total >= 9/12", re-read this round). Round 18
+correctly refused to fix this in the skill while `AGENTS.md` still said two things; `0125901`
+settled that, so the edit has been safe since. Two moves, both inside the skill, both one line,
+at the anchors corrected in round 20: word `:264` as "The review LOOPS until the reviewer
+APPROVES (its rubric's threshold, no criterion at 0)", and change `:267`'s citation from "per
+the AGENTS.md review-loop rule" to `docs/eval-framework.md`, so both of this file's citations of
+one rule point at the same canonical file instead of one direct and one second-hop.
 
 **5. STANDS, low, inside the skill, open since round 18: Guardrails 1's holder half is assigned
 to `/build`'s orchestrator and still has no step in this skill.**
-Listed here because it is still open, though it was not among the four the dispatcher named.
 `AGENTS.md:229-234`: "A plan approval covers only the plan as approved. When plans in a batch
 reference each other's contracts, that is legal only within ONE batch approved at the same gate;
 revising a declaring plan after approval invalidates its consumers' approval and they return to
@@ -215,7 +226,7 @@ approval and returns to this gate (`AGENTS.md` Guardrails 1); you hold that half
 `architecture-reviewer` cannot see it."
 
 ## Seams carried (none block, none move a score)
-- **Carried, sixth round: the model-plan block sits exactly on the 75-line structure trigger**
+- **Carried, seventh round: the model-plan block sits exactly on the 75-line structure trigger**
   (`:37-111`). The next inline addition costs the structure point, which is also the budget
   argument for putting finding 5's sentence in B5.3 and nowhere else.
 - **Carried: the two stop-condition copies inside the skill are not verbatim.** `:266-268` omits
@@ -229,7 +240,7 @@ approval and returns to this gate (`AGENTS.md` Guardrails 1); you hold that half
   score". `docs/eval-framework.md:208-211` asks for "what is still open, what moved between
   rounds, and what did not", and `:212-222` asks for the class in one phrase.
 - **Carried, low: the `arch_review: waived (human)` path has no step in this skill.**
-  `agents/builder.md:24` and `docs/plan-format.md` both allow a waiver for a human-supplied
+  `agents/builder.md:24-26` and `docs/plan-format.md` both allow a waiver for a human-supplied
   standalone plan; `:235-236` says only "an `arch_review:` line", compatible with the waiver but
   never naming it.
 - **Context, not a finding: historical plan records model the retired scored practice**
@@ -247,8 +258,9 @@ cited files, not by pattern.
 ## Map duty
 Satisfied, nothing to update: no command surface was added or altered this round. `/build` is
 catalogued at `docs/system-map.md:67` with both modes, its scripts at `:135-136`
-(`coverage-check.sh`, `spec-gate.sh`), the overlap check at `:75`, and the flows at `:12-13`.
-Not a finding.
+(`coverage-check.sh`, `spec-gate.sh`), the overlap check at `:75`, and the flows at `:12-14`.
+`5972c27` edited `docs/system-map.md` at row 145, below every row this skill occupies, and the
+rows above are unshifted (re-resolved this round by grep, not carried over). Not a finding.
 
 ## Top fixes
 1. **The three one-line neighbours outside the skill** (findings 1-3), decidable as a batch
@@ -259,10 +271,10 @@ Not a finding.
 2. **Structure, overdue since round 15**: lift `:37-111` into its own `## 3. Model plan`
    section, or move the resolution mechanics (model precedence, effort precedence, the
    source-tagging duty) into a supporting file one level deep. The block is exactly on the
-   75-line trigger, sixth round, and every other fix below wants to add a line.
-3. **Take the unblocked wording fix inside the skill** (finding 4, corrected anchors): `:264`
-   "LOOPS until the reviewer APPROVES (its rubric's threshold, no criterion at 0)" and `:267`
-   citing `docs/eval-framework.md` instead of "the AGENTS.md review-loop rule".
+   75-line trigger, seventh round, and every other fix below wants to add a line.
+3. **Take the unblocked wording fix inside the skill** (finding 4): `:264` "LOOPS until the
+   reviewer APPROVES (its rubric's threshold, no criterion at 0)" and `:267` citing
+   `docs/eval-framework.md` instead of "the AGENTS.md review-loop rule".
 4. **Add the batch sentence to B5.3** (finding 5), verbatim as quoted there.
 5. **Add the stop handoff to B5.4**: "On stop, present what is still open, what moved between
    rounds and what did not, and name the class in one phrase; the human arbitrates."
@@ -287,15 +299,17 @@ because the cap allows it. The second case stays runnable: a code review that AP
 score, where the loop must stop and hand over the residual per `AGENTS.md:291-295`.
 
 ## Vs previous version
-Round 19 (`0125901`) -> round 20 (`b3b66f7`), per criterion: trigger clarity 2 -> 2, structure
+Round 20 (`b3b66f7`) -> round 21 (`5972c27`), per criterion: trigger clarity 2 -> 2, structure
 2 -> 2, worked example 2 -> 2, precision 2 -> 2, safety integration 2 -> 2. Total 10 -> 10.
-Neither the artifact nor anything it cites moved: `b3b66f7` changed `bin/ledger-backup.sh`, its
-tests, `bin/docs-claims-check.sh` and `README.md`. The record moved because the commit did, and
-a stale `reviewed_commit:` would refuse the merge. All four carried findings still stand at HEAD
-(1, 2 and 3 outside the skill, 4 inside it and unblocked), plus round 18's Guardrails 1 finding,
-still open with its one-sentence fix. One correction to round 19's prose: the "LOOPS until
-clean" seam is at `:264`, not `:265`, and the citation to change is at `:267`. Round 15's
-structure fix carries a sixth time. Nothing blocks merge.
+Neither the artifact nor anything it cites moved: `5972c27` changed `bin/ledger-backup.sh`,
+`bin/docs-claims-check.sh`, their two test suites, `README.md`, `docs/system-map.md:145` and
+`skills/retro/SKILL.md:51`. The record moved because the commit did, and a stale
+`reviewed_commit:` would refuse the merge. New verification this round beyond the re-anchor:
+`docs-claims-check.sh`'s new UNVERIFIED outcome (a claim can now mismatch without failing) was
+checked against this skill's scope and creates no duty here, because the skill never mentions
+the checker and the checker never reads `skills/`. All five carried findings STAND at HEAD,
+unchanged in fix and cost (1-3 outside the skill, 4 and 5 inside it and both unblocked). Round
+15's structure fix carries a seventh time. Nothing blocks merge.
 
 ## History
 - Round 1 (2026-07-24, Opus 4.8, strongest): 9/10 PASS.
@@ -365,10 +379,10 @@ structure fix carries a sixth time. Nothing blocks merge.
   decide. The `:265` "LOOPS until clean" seam is now unblocked for an in-skill edit, since the
   upstream policy it was faithful to is settled. Round 15's structure fix carries a fifth time.
 - Round 20 (2026-09-22, Opus 5 [1M], strongest, b3b66f7, branch
-  feature/windows-powershell-entry): 10/10 PASS. This record REPLACES round 19's. Primarily a
+  feature/windows-powershell-entry): 10/10 PASS. This record REPLACED round 19's. Primarily a
   RE-ANCHOR: `b3b66f7` touched `bin/ledger-backup.sh` + its tests, `bin/docs-claims-check.sh`
   and `README.md`, none of which this skill reads, but a record anchored at `0125901` would
-  refuse the merge. The SKILL is still unchanged (established by reading it in full and
+  refuse the merge. The SKILL was still unchanged (established by reading it in full and
   re-resolving every round-19 anchor, the 75-line model-plan block, the 330-line length, and
   `Glob skills/build/**`; no shell, so no diff). Re-verified that every cross-reference still
   resolves and still says what the skill claims: the stop condition and the per-artifact table
@@ -380,3 +394,22 @@ structure fix carries a sixth time. Nothing blocks merge.
   correction to round 19's prose, not to the file: the "LOOPS until clean" seam is anchored at
   `:264` and the citation to change at `:267`, an off-by-one inherited from round 17. Round
   15's structure fix carries a sixth time. Nothing blocks merge.
+- Round 21 (2026-09-22, Opus 5 [1M], strongest, 5972c27, branch
+  feature/windows-powershell-entry): 10/10 PASS. This record REPLACES round 20's. Primarily a
+  RE-ANCHOR: `5972c27` touched `bin/ledger-backup.sh`, `bin/docs-claims-check.sh`, their two
+  test suites, `README.md`, `docs/system-map.md:145` and `skills/retro/SKILL.md:51`, none of
+  which this skill points at, but a record anchored at `b3b66f7` would refuse the merge. The
+  SKILL is still unchanged (established by reading all 330 lines and re-resolving every
+  round-20 anchor, the 75-line model-plan block at `:37-111`, the 330-line length, and
+  `Glob skills/build/**`; no shell, so no diff, and the method's limit is stated in the body).
+  Cross-references re-verified by opening them: the stop condition (`docs/eval-framework.md`
+  `:175-236`) and the per-artifact threshold table (`:189-196`), the de-scored plan rubric with
+  no `Threshold:` line (`docs/plan-format.md:199-235`), `AGENTS.md` Guardrail 3 (`:267-324`,
+  C11 at `:315-317`) and Guardrails 7 (`:395-434`), the existence of `bin/spec-gate.sh`,
+  `bin/boundary-check.sh` and `bin/resolve-language.sh`, and `agents/code-reviewer.md:91`'s
+  numeric code-loop exit. New this round: checked whether `docs-claims-check.sh`'s new
+  UNVERIFIED outcome (a claim can mismatch without failing, `:41-50`, `:63-67`) makes any
+  statement in this skill incomplete; nothing in scope mentions the checker (zero grep matches)
+  and the checker reads `README.md` only, so no duty lands here, recorded as a negative result.
+  All FIVE carried findings STAND at HEAD with their fixes unchanged. Round 15's structure fix
+  carries a seventh time. Nothing blocks merge.
