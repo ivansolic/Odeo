@@ -2,8 +2,8 @@
 artifact: install.ps1 + tests/install-ps1.test.sh + tests/publish-guard.test.sh real-tree case + install.sh arg-parse markers + docs-claims-check skip reporting + community-refresh canary content + language-allowlist sixth copy + .gitattributes/.ps1 + README/INSTALL Windows claims
 type: code
 branch: feature/windows-powershell-entry
-reviewed_commit: 5972c27
-artifact_version: 8
+reviewed_commit: 15b168f
+artifact_version: 9
 date: 2026-09-22
 scorer: code-reviewer
 model: claude-opus-5[1m]
@@ -12,91 +12,68 @@ effort: high
 scores: { correctness: 1, security: 2, performance: 2, readability: 2, testing: 2, conventions: 2 }
 total: 11/12
 verdict: APPROVE WITH COMMENTS
-previous_total: 10/12
+previous_total: 11/12
 ---
 
 ## Artifact
 
-Round 8, at `5972c27`. Same artifact scope as rounds 1 to 7. Inside this artifact the commit
-touched exactly three files, `bin/docs-claims-check.sh`, `tests/docs-claims-check.test.sh` and
-`README.md`, and it is the fix for round 7's single Important. The rest of `5972c27`
-(`bin/ledger-backup.sh`, `tests/ledger-backup.test.sh`, `docs/system-map.md`,
-`skills/retro/SKILL.md`) is the sibling ledger-backup program, scored in
-`docs/evals/code-ledger-backup.md`; it was read here only where it feeds this artifact's skip
-accounting, and is not re-scored.
+Round 9, the final anchor, at `15b168f`. Same artifact scope as rounds 1 to 8. Four commits
+landed since round 8; exactly one of them, `ad00988`, is inside this artifact, and it is the fix
+for both round-8 Importants. `git diff 5972c27..HEAD --stat` over the artifact's files lists
+`bin/docs-claims-check.sh` (+28), `tests/docs-claims-check.test.sh` (+55) and `README.md` (+1,
+the assertion count). The other three commits (`1b3c72d`, `853d03a`, `15b168f`) are the sibling
+ledger-backup program, scored in `docs/evals/code-ledger-backup.md`; they are not re-scored here
+and were read only where they feed this artifact's count and skip accounting.
 
 Immobility, measured rather than assumed: `git diff cebc0a0..HEAD -- install.ps1` is empty,
 `shasum install.ps1` is still `594ed21c9287a7708a953f5b50d53289f408253b`, last touching commit
 `4416477`. `git diff 994ede8..HEAD --stat` over `tests/install-ps1.test.sh`,
-`tests/publish-guard.test.sh`, `install.sh`, `.gitattributes` and `INSTALL.md` is empty, so all
-of those are byte-identical to the round-5 head and rounds 1 to 7's findings on them carry
-forward unchanged. No plan exists in `docs/plans/` for this branch, so there is no contract to
-compare against. Working tree at review time: only `docs/evals/skill-build.md` and
-`docs/evals/skill-retro.md` modified (sibling records being regenerated in parallel); every
-non-evals path is clean at `5972c27`.
+`tests/publish-guard.test.sh`, `install.sh`, `.gitattributes` and `INSTALL.md` is empty, so those
+are byte-identical to the round-5 head across nine commits and rounds 1 to 8's findings on them
+carry forward unchanged. No plan exists in `docs/plans/` for this branch, so there is no contract
+to compare against. Working tree clean at `15b168f` outside `docs/evals/`.
 
-## The round-7 Important: closed, and measured on both arms
+## The two round-8 Importants: both CLOSED, run rather than read
 
-Round 7 said the claims check bounded its own error in ONE direction: the note excused a count
-reading LOW, the comparison failed any mismatch, so a machine that ran MORE of the suite than
-the author's counted HIGH, got `DRIFTED`, exit 1, and the instruction "Fix the NUMBER in the
-document, never this check", i.e. it was told to edit a correct README.
+**1. A suite that fails is no longer excused, and the path cannot be swallowed.** The loop now
+reads `rc` (`:99-115`) and a non-zero exit prints `SUITE FAILED: <file> exited <rc>, so the
+assertion count below is not a measurement.` and sets `fail=1` outside the claim machinery
+entirely, so nothing about skips or unverifiability can reach it. Probed three ways, including
+the one the brief asked for specifically:
 
-**1. The UNVERIFIED path works, and it does not swallow a real drift.** Probed on a miniature
-tree with a positive control first (`lessons.md:15`): documented 2 == measured 2 with one skip
-prints `ok: assertions = 2`, exit 0, so the instrument reports a match as a match. Bend the
-document to 5 and the same run prints `UNVERIFIED: assertions , README says 5, this run measured
-2`, the reason, "Do not edit either one from this run", exit 0, and the word `DRIFTED` never
-appears. Remove the skip from that same tree and a mismatch goes straight back to `DRIFTED` +
-exit 1 (control D below), so the exemption is keyed on the skip and on nothing else.
+- **The swallow test, one suite that BOTH skips AND exits non-zero** (emits `SKIP - b`,
+  `ok - c`, then `exit 3`), with an honest README so the count claim reports `ok`: output is
+  `SUITE FAILED: tests/skippy.test.sh exited 3`, **exit 1**. The skip it emitted excused nothing.
+- **Same suite, count also mismatched** (documented 9 vs measured 2): the count claim reports
+  `UNVERIFIED` as designed AND the run still ends **exit 1** on the suite failure. The two
+  outcomes coexist and the fatal one wins, which is the ordering that matters.
+- **A suite that emits nothing at all and exits 1**, no skip anywhere: `SUITE FAILED` + exit 1.
 
-**2. The machine that counts HIGH, on the real tree, before and after.** Constructed the exact
-situation round 7 described, on a full copy of this repo at `5972c27` with the README bent to
-`1089` while the tree measures `1090` (documented < measured is arithmetically the same branch a
-bash-5 machine reaches by running the SHELLOPTS case this one skips; stated as the emulation it
-is, because this machine still has no bash >= 4 and no container runtime). Same fixture, two
-scripts:
+Round 8's measurement was the inverse of this (exit 0 + a green summary for the same broken
+suite), so the regression it named is gone at its own reproduction.
 
-- `b3b66f7` (pre-fix): `DRIFTED: assertions , README says 1089, the tree has 1090` /
-  `docs-claims-check: a documented claim no longer matches the tree.` / `Fix the NUMBER in the
-  document, never this check` / **exit 1**.
-- `5972c27` (HEAD): `UNVERIFIED: assertions , README says 1089, this run measured 1090` + the
-  reason + `Do not edit either one from this run.` / **exit 0**, no `DRIFTED`.
+**2. The summary no longer outlives the run, and the clean line kept its meaning.** Measured on
+four runs, both directions, because a line that is never wrong in one direction is how this class
+hides:
 
-The harm named in round 7 is gone at its own reproduction.
+- skip present, count mismatched -> `docs-claims-check: every claim this run could measure
+  matches; 1 UNVERIFIED (see above).`, exit 0.
+- no skip, everything measured and matching -> `docs-claims-check: every countable claim matches
+  the tree.`, exit 0. The unqualified sentence still exists and still means what it says, so it
+  has not degraded into a line readers learn to skip.
+- skip present but the count matched -> the plain clean line, exit 0 (see the carried nitpick).
+- the real repo at this head -> 24 / 33 / 24, `ok: assertions = 1129`, the `note:` block, no
+  `SUITE FAILED` line anywhere in 33 suites, and the plain clean summary, exit 0.
 
-**3. The exemption is correctly SCOPED, measured two ways.** Only the assertions claim is passed
-a fourth argument (`:124`); the three deterministic claims are called with three
-(`:80`, `:81`, `:90`), so `unverifiable` is empty for them and they take the `DRIFTED` branch.
-Built the case the suite does not build, one claim unverifiable AND another genuinely drifted at
-the same time (README `999 executables` + `3 assertions`, tree 1 and 2, one skip): output is
-`DRIFTED: bin executables` plus `UNVERIFIED: assertions`, **exit 1**. One skipped case does not
-switch off the claims this run can measure completely. `MISSING` also stays fatal by
-construction: the empty-`documented` branch at `:54-59` returns before `unverifiable` is ever
-consulted.
+The header's exit table at `:18-20` now names the third outcome and names the suite failure as a
+cause of exit 1, which was the documentation half of the same finding.
 
-**4. Can a real drift in the assertion count now go unnoticed forever?** Yes, on any machine
-that skips anything, and today that is every machine we know of. This one always skips
-(bash 3.2 refuses `SHELLOPTS`, so `ledger-backup.test.sh:865` skips on every run); a Linux box
-without pwsh skips the install-ps1 cases (`tests/install-ps1.test.sh:40` emits `SKIP` per case,
-so those DO increment the counter, checked); a root container skips six more. A zero-skip
-machine needs pwsh AND non-root AND bash >= 4 simultaneously, and nothing in this repo runs one:
-`.github/` carries only issue and PR templates, and no script, skill or agent invokes
-`docs-claims-check.sh` at all (`grep -rln` over `bin skills agents global project-templates
-.github .claude` returns only `.claude/tasks/todo.md`). So in practice `1090` is now an
-unenforced number everywhere.
-
-Is that acceptable? **Yes, as the lesser evil, and the tradeoff should be stated where the human
-can see it rather than only in a comment.** A false red corrupts the document for everyone: it
-instructs a reader to edit a correct README and hands the next machine a wrong number. A missed
-drift leaves a stale number that is still PRINTED, with both values side by side, on every run.
-What it costs: the claim that historically rotted in this repo (README once said 31 assertions
-when there were 818) no longer has a failing mechanism, only an advisory line, and the advisory
-is currently contradicted by the run's own last line (Important 1 below). Cheap ways to buy the
-coverage back, in ascending cost: fail on a suite that EXITS non-zero (Important 2, decidable
-and unrelated to skips); name the reference configuration the documented number was measured on,
-so a second machine can reproduce it exactly; or add `--require-complete`, which fails when
-`n_skipped > 0`, to be run on one fully capable machine whenever the number is updated.
+**Canary, run not trusted.** HEAD's suite against `5972c27`'s script in a copy of this tree ->
+exactly **3 FAILURES**, and they are the right three: `a broken suite passed as an unverified
+count`, `it failed without naming the broken suite`, and `the summary claims everything matches
+while a claim went unverified`. The fourth new assertion (a fully measured run still says every
+claim matches) passes on both versions, correctly, because it is a regression guard on behaviour
+the fix had to preserve rather than change. The builder's claimed canary reproduces exactly.
 
 ## Findings
 
@@ -106,211 +83,180 @@ None.
 
 ### Important
 
-**1. `bin/docs-claims-check.sh:142` and the exit contract at `:18`. After an UNVERIFIED claim the
-run still ends with "every countable claim matches the tree" and exit 0, which is false, and it
-is the only line a reader who scrolls to the bottom sees.** Measured, not reasoned: in probe B
-above the output is `UNVERIFIED: assertions , README says 5, this run measured 2` followed four
-lines later by `docs-claims-check: every countable claim matches the tree.` and `EXIT=0`. The
-same pair prints on the real tree in the round-7 reproduction. The file's own usage block still
-says `Exit: 0 every claim matches · 1 a claim drifted, or an expected claim is missing`, which
-has been a two-outcome contract since before this commit introduced a third outcome. This is
-`lessons.md`'s 2026-09-16 rule ("name above a guard only what the guard actually covers") one
-level out: the summary names a class the mechanism no longer delivers, and it does it in the one
-file whose entire subject is documents claiming more than the tree supports. Fix, small and
-local: count unverified claims alongside `fail`, end with `every claim this run could measure
-matches the tree; N claim(s) UNVERIFIED above` when that count is non-zero (exit stays 0, which
-is the right call), and add the third outcome to the `Exit:` line at `:18`.
+**`bin/docs-claims-check.sh:150-153`. The FATAL summary was not given the same treatment as the
+clean one, so a run that failed only because a suite broke still tells the reader "a documented
+claim no longer matches the tree" and "Fix the NUMBER in the document, never this check".**
+Measured, in the swallow probe above: the README was correct (the count claim printed `ok`), the
+only defect was a suite exiting 3, and the run's last two lines instruct the reader to edit a
+correct document. That is round 7's harm shape (a correct README plus an instruction to change
+it) reached through the branch this commit made reachable. In a repo operated by agents, the
+trailing instruction is the one that gets acted on.
 
-**2. `bin/docs-claims-check.sh:95-101`. A suite that ERRORS OUT is now excused as a skip on any
-machine that skips anything, where before this commit it was loud.** `out=$(bash "$f" 2>&1)`
-discards the suite's exit status, so a suite that dies after emitting no `ok` lines is
-indistinguishable from a shrunken count. Measured, with a control: mini tree, honest README at
-2, one skipped case, and `tests/foo.test.sh` replaced by `exit 1` gives `UNVERIFIED` + **exit 0**
-+ `every countable claim matches the tree`; the identical broken suite with the skip removed
-gives `DRIFTED` + **exit 1**. Pre-fix, the first case also exited 1 (mislabelled as drift, but
-red). So this commit converted a loud red into a green for the broken-instrument case, on
-exactly the machine the repo is developed on. A skip is a case declining to run; a non-zero exit
-is an instrument that broke, and the two are not the same evidence. Fix: capture `rc=$?` per
-suite in the loop, and on non-zero print `SUITE FAILED: $f (exit $rc)` and set `fail=1`
-regardless of `n_skipped`. That is decidable, needs no bash 5, and restores the red the
-exemption removed without re-opening the false-drift class.
+Calibrated honestly, because it is the bottom of this tier: the VERDICT is right (red is
+correct), and the true diagnosis is printed six lines above with the file name and the sentence
+"so the assertion count below is not a measurement", which is a real mitigation the round-7 and
+round-8 defects did not have. The footer is also partly pre-existing: it has always been generic
+and it reads correctly for the drift and MISSING causes. What is new is a cause for which its
+remediation is actively wrong. It is filed as Important rather than as a nitpick for consistency
+with round 8, where the mirror-image sentence on the green path was scored Important on the same
+reasoning, and because the fix is four lines: count suite failures alongside `fail`, and when
+that count is non-zero say `a suite failed to run; fix the suite, not the document` (keeping the
+drift remediation for the drift and MISSING causes). The comment the builder wrote at `:155-157`
+("THE SUMMARY MUST NOT OUTLIVE THE RUN IT SUMMARISES") is exactly the principle this branch is
+still missing; the finding is that the principle was applied to one of the two summaries.
 
 ### Nitpicks
 
-Two new from this commit, two carried from round 7 (one of them now half-closed), six carried
-from earlier rounds on files that have not moved since `994ede8`. None weakens a claim.
+One new observation, two carried from round 8, six carried from earlier rounds on files that have
+not moved since `994ede8`. None weakens a claim.
 
-- **NEW. `bin/docs-claims-check.sh:119` vs `:120-122`.** The cause sentence is now written
-  twice, two lines apart: once into `skip_reason` for the UNVERIFIED body, once into the `note:`
-  echo. They agree today. This is the same "one premise, N copies" shape that produced round 7's
-  stale third copy, created in the commit that fixed it. Fix: build the sentence once
-  (`skip_reason="..."`) and print the note from it, so there is one string and no way for the two
-  to disagree.
-- **NEW. `tests/docs-claims-check.test.sh:119-129`.** The scoping case is named "a claim that CAN
-  be measured still fails while another is unverified", but its fixture documents `2 assertions`
-  against a measured 2, so the assertions claim in that run reports `ok`, not `UNVERIFIED`. The
-  co-occurrence the name claims is never built. The behaviour is in fact correct, I measured it
-  above (`999 executables` + `3 assertions` -> `DRIFTED` + `UNVERIFIED` + exit 1), which makes
-  this a label wider than its fixture rather than a hole, i.e. `lessons.md` 2026-09-16 again.
-  One-character fix: document `3 assertions` in that fixture and the case name becomes true.
-- Carried, now HALF-closed. Nothing pins what the note SAYS. Case 5 pins the OUTCOME in both
-  directions, which was the important half and is the right shape (the previous version passed
-  while the harm was live precisely because only prose was covered). But the wording can still
-  re-narrow to a single cause silently, which is how round 6 and round 7 got here. Cheap
-  mechanism, unchanged from round 7: assert the note text contains both `tool` and `shell`.
-- Carried. Nothing asserts that `MISSING` stays fatal when a run is unverifiable, though the new
-  comment at `:48-50` claims it. It is true by code path, and one case buys the guarantee: a
-  README with no assertions claim, `--assertions`, one skip, expect exit 1.
+- **NEW, carried by design rather than by oversight. `UNVERIFIED` keys on MISMATCH, not on
+  measurability.** A partial run whose count happens to match prints the unqualified `every
+  countable claim matches the tree`, which is what this repo's own real run does today: 1129
+  matched with one case skipped. Strictly, a partial measurement that agrees is not verification
+  either. The tradeoff is real and points the other way: reporting it would print an advisory on
+  every run on every machine that skips anything, i.e. always, which is the noise the builder
+  deliberately protected against in case 7's second half. Recorded so the choice is visible and
+  deliberate, not as a change request.
+- Carried, still open. **R2 from round 7: nothing pins the note's CAUSES.** Checked at this head:
+  case 4 asserts only the substring `1 check(s) were SKIPPED`, and no assertion anywhere touches
+  the words `tool` or `shell`, so the note can silently re-narrow to the single cause that made
+  it false in rounds 6 and 7. The outcome half of R2 is closed and now doubly so (cases 5, 6 and
+  7 all assert exit codes and words the reader acts on). Cheap mechanism, unchanged across three
+  rounds: assert the note text contains both `tool` and `shell`.
+- Carried. `bin/docs-claims-check.sh:122` vs `:123-125`: the cause sentence is still written
+  twice, two lines apart, once into `skip_reason` and once into the `note:` echo. They agree
+  today. Build it once and print the note from it.
+- Carried. `tests/docs-claims-check.test.sh:119-129`: the scoping case is named "while another is
+  unverified" but its fixture documents a count that MATCHES, so that run reports `ok`, not
+  `UNVERIFIED`. The behaviour is correct (measured in round 8: `999 executables` + `3 assertions`
+  gives `DRIFTED` + `UNVERIFIED` + exit 1); the label is wider than the fixture. Documenting
+  `3 assertions` there makes the name true.
+- Carried. Nothing asserts that `MISSING` stays fatal when a run is unverifiable, though the
+  comment at `:48-50` claims it. True by code path; one case buys the guarantee.
 - `README.md:171-172`. "counts the `ok` lines one full run reports, so it moves with the machine"
-  pulls two ways in one sentence: "full run" reads as "nothing skipped", which is exactly what
-  this number is not. Say "a run of every suite on this machine".
-- `tests/install-ps1.test.sh:349-351`. Carried. The warm-up's exit status is discarded and it
-  produces no assertion; if it ever no-ops, case 9b reverts to round-4 behaviour and misattributes
-  pwsh's own bookkeeping to `install.ps1`. Loud red with the wrong name on it, not a silent pass.
-- `tests/install-ps1.test.sh:350` vs `:313-316`. Carried. The warm-up respells `HOME` and `PATH`
-  instead of going through `run_ps1`, so repointing `run_ps1`'s HOME warms the wrong directory.
-- `tests/install-ps1.test.sh:288`. Carried from round 4. The comment omits the mode column `:303`
-  records.
-- `tests/install-ps1.test.sh:297`. Carried from round 3. `find -print` into `read -r p` splits a
-  path containing a newline; `-print0` plus `read -r -d ''` costs one line.
-- `tests/install-ps1.test.sh:106-107`. Carried from round 3. A `;;` count disagreement caused by a
-  `;;` inside an arm body sends the reader after a missing arm that does not exist.
-- `tests/install-ps1.test.sh:455`. Carried from round 4. `chmod 644` runs on all four iterations
-  though only one dirties the probe. Harmless.
+  still pulls two ways; "a run of every suite on this machine" says it once.
+- `tests/install-ps1.test.sh:349-351`, `:350` vs `:313-316`, `:288`, `:297`, `:106-107`, `:455`.
+  All carried unchanged from rounds 3 and 4 on a file that is byte-identical to `994ede8`: the
+  warm-up asserts nothing and discards its exit status, it respells `HOME`/`PATH` instead of
+  going through `run_ps1`, the snapshot comment omits the mode column, `find -print` into
+  `read -r p` splits a path containing a newline, the `;;` mismatch message names one of two
+  causes, and `chmod 644` runs on all four iterations. None was re-measured this round and none
+  needed to be; the immobility is recorded above instead.
+
+## Q4 re-checked: can a real drift still go unnoticed forever?
+
+Narrower than in round 8, and now down to one case. A broken suite is no longer excused anywhere
+(measured above, including when it also skips), so the "green on a broken instrument" path is
+closed. What remains is exactly the accepted trade: on a machine that skips something and whose
+suites all pass, a genuine drift in the assertion count reports `UNVERIFIED` and exits 0. That is
+still every machine we know of (bash 3.2 always skips the SHELLOPTS case here; a pwsh-less box
+skips install-ps1; root skips six), and nothing in the repo runs a zero-skip configuration
+(`.github/` holds only templates; nothing in `bin/`, `skills/` or `agents/` invokes the check).
+
+The answer stands: acceptable, and better than the alternative. The failure mode is now a stale
+number that the run PRINTS with both values side by side, above a summary line that says how many
+claims went unverified, rather than a false red that instructs a reader to corrupt a correct
+document. The residual cost is that the count is advisory on every current machine, and the two
+cheap ways to buy it back are unchanged: name in the README the reference configuration the
+number was measured on, or add `--require-complete` (fail when `n_skipped > 0`) to be run on one
+fully capable machine whenever the number is updated.
 
 ## Verification (by measurement, on this machine)
 
-- `bash bin/docs-claims-check.sh --assertions` on the real tree -> `ok: bin executables = 24`,
-  `ok: test suites = 33`, `ok: programs with their own suite = 24`, the `note: 1 check(s) were
-  SKIPPED` block now reading "LOW or HIGH", `ok: assertions = 1090`, exit 0. The README's number
-  and its other three claims are verified against the tree at this head.
-- `bash tests/docs-claims-check.test.sh` -> `all 15 assertions passed`, 1.4s (was 7). The six new
-  ones are the two directions x (exit 0, UNVERIFIED present, DRIFTED absent), plus the two
-  scoping assertions.
-- Canary, run rather than trusted: HEAD's suite against `b3b66f7`'s script in a copy of this tree
-  -> exactly **6 FAILURES**, all six in case 5 (`an unmeasurable count exited 1, telling the
-  reader to edit a correct README (high)` and its low twin, etc.), the other nine green. The
-  builder's claimed canary reproduces exactly. Note what it also shows: the two scoping
-  assertions pass on BOTH versions, so they pin an invariant against a future over-broad
-  exemption rather than attributing this change, which is what their comment says they do.
-- Real-tree before/after on the HIGH-counting fixture (README `1089`, tree `1090`, one skip):
-  `b3b66f7` -> `DRIFTED` + exit 1 + "Fix the NUMBER in the document"; `5972c27` -> `UNVERIFIED` +
-  exit 0. Both arms run on the same copied tree, full `--assertions` pass each.
-- Scoping probe -> `DRIFTED: bin executables` and `UNVERIFIED: assertions` in one run, exit 1.
-- Broken-suite probe (C) and its no-skip control (D) -> exit 0 + green summary vs exit 1 +
-  `DRIFTED`. This is Important 2's evidence, and D is the positive control that proves the probe
-  can produce a red at all.
-- `bash tests/install-ps1.test.sh` -> `all 38 assertions passed`, 9.2s. Collateral, unchanged
-  count from rounds 5 to 7, which is the arithmetic proof that nothing was added or lost.
-- `bash tests/publish-guard.test.sh` -> `ALL PASS`, including `the real tree feeds 240 tracked
-  paths into the guard`, `every tracked path in the real tree is classified public or internal`,
-  and the planted-path canary. Still 240: this commit added and removed no files.
+- `bash bin/docs-claims-check.sh --assertions` on the real tree at `15b168f` -> `ok: bin
+  executables = 24`, `ok: test suites = 33`, `ok: programs with their own suite = 24`, the `note:`
+  block, `ok: assertions = 1129`, no `SUITE FAILED` line, `docs-claims-check: every countable
+  claim matches the tree.`, exit 0. The README's moved number and its other three claims are
+  verified against the tree at this head.
+- `bash tests/docs-claims-check.test.sh` -> `all 21 assertions passed` (was 15), including `a
+  suite that FAILS makes the run red even when another skipped (exit 1)`, `and the failure names
+  the suite that broke`, `and the summary says how many claims went unverified`, `a fully
+  measured run still exits 0`, `and still says every claim matches`.
+- Canary against `5972c27` in a copy of this tree -> exactly **3 FAILURES**, named above.
+- Swallow probe: one suite emitting `SKIP` and exiting 3, honest README -> `SUITE FAILED:
+  tests/skippy.test.sh exited 3` + exit 1. With the README also bent (documented 9) -> the same
+  red plus `UNVERIFIED` for the count. A silent failing suite (no output, exit 1) -> same red.
+- Summary probes, four runs: unqualified clean line on a fully measured matching run; `every
+  claim this run could measure matches; 1 UNVERIFIED (see above).` on a skip + mismatch; exit 0
+  in both.
+- `bash tests/install-ps1.test.sh` -> `all 38 assertions passed`. Unchanged count since round 5,
+  which is the arithmetic proof that nothing was added or lost across nine commits.
+- `bash tests/publish-guard.test.sh` -> `ALL PASS`, `the real tree feeds 240 tracked paths into
+  the guard`, every tracked path classified, planted-path canary fires. Still 240 at this head.
 - `install.ps1` unchanged: empty diff since `cebc0a0`, `shasum 594ed21c...`, last touched by
   `4416477`. `tests/install-ps1.test.sh`, `tests/publish-guard.test.sh`, `install.sh`,
   `.gitattributes`, `INSTALL.md` byte-identical to `994ede8`.
-- SKIP census re-run at this head: `tests/install-ps1.test.sh:40` (`skip()` helper, per case),
-  six root guards at `ledger-backup.test.sh:405,480,499,540,565,592`, and the SHELLOPTS refusal
-  at `:865`. Checked specifically that `install-ps1.test.sh:581`'s summary line ("install-ps1: N
-  check(s) SKIPPED") is NOT what the counter reads, because it does not start at column 0; the
-  per-case `SKIP - ` lines from `:40` are, so a pwsh-less machine does increment `n_skipped` and
-  is covered by the exemption. That was the one way this fix could have had a hole in its most
-  common configuration, and it does not.
-- Em/en dash scan over the added lines of the in-scope diff (`b3b66f7..HEAD` on `README.md`,
-  `bin/docs-claims-check.sh`, `tests/docs-claims-check.test.sh`): clean.
-- Round 5's warm-up probes and round 6's order-independence measurements were NOT re-run: the
-  files they measure are byte-identical to `994ede8`, and the immobility is recorded above
-  instead.
-
-## Round 7's residuals
-
-- **Residual 1, the stale premise at `tests/docs-claims-check.test.sh:55-58`: CLOSED.** The
-  header now names all three causes ("install-ps1.test.sh without pwsh, a root guard, a shell
-  that refuses SHELLOPTS") and describes the harm in the direction-neutral form ("a machine that
-  ran a different amount of the suite"). Grepped the tracked tree rather than the file I was
-  pointed at: no copy of the single-cause premise survives outside `docs/evals/`.
-- **Residual 2, nothing asserted the note's behaviour: mostly CLOSED.** Case 5 asserts the
-  OUTCOME (exit code, `UNVERIFIED` present, `DRIFTED` absent) in both directions plus the scoping
-  pair, and it is canary-proven to redden 6 times against the predecessor. What still stands is
-  the narrower half: nothing pins the note's CAUSES, so the wording can re-narrow silently. Kept
-  as a nitpick with the same one-line mechanism.
-- **Residual 3, the Important (one-directional bound): CLOSED**, verified on both arms at the
-  real tree, with the exemption scoped correctly. It is replaced, at lower severity, by the two
-  Importants above: the run's final sentence does not yet know about the third outcome it can
-  now produce, and the exemption currently also covers a case that is not a skip at all.
+- Note-cause check for R2: `grep` over `tests/docs-claims-check.test.sh` finds no assertion on
+  the words `tool` or `shell`; case 4 pins only `1 check(s) were SKIPPED`.
+- Em/en dash scan over the added lines of the in-scope diff (`5972c27..HEAD`): clean.
 
 ## Scores
 
-correctness 1/2 - the round-7 defect is genuinely fixed, at its own reproduction, in both
-directions, with the exemption scoped to the one claim that cannot be measured completely and
-`MISSING` still fatal. Held back by the two Importants, both measured with controls: after an
-UNVERIFIED claim the run's last line still says every countable claim matches the tree, and a
-suite that exits non-zero is now excused as if it had skipped, which is a red this commit
-converted into a green on the repo's own development machine. Neither is the old class returning;
-both are the new outcome not yet propagated to the edges of the program.
+correctness 1/2 - both round-8 Importants are genuinely closed and were verified by running, not
+by reading: a broken suite is red even when it skips in the same breath, and the summary now
+matches the run in both directions with the clean line intact. Held at 1 by the one Important
+above: the fatal summary still misdescribes a suite failure as document drift and hands the
+reader the remediation that round 7 identified as the actively harmful one. Lower severity than
+either predecessor (the verdict is correct and the true diagnosis prints above it), which is
+stated in the finding rather than hidden in the score.
 
-security 2/2 - unchanged and clean. Nothing in `b3b66f7..HEAD` touches `install.ps1`, the quoting
+security 2/2 - unchanged and clean. Nothing since `cebc0a0` touches `install.ps1`, the quoting
 path (`ConvertTo-BashSingleQuoted`) or the sealed harness (`env -i`, redirected HOME, replaced
-PATH, no repo, no network). The publish path is whole: 240 of 240 tracked paths classify and the
-planted-path canary fires. The new fourth argument is an internal string built from a counter,
-never from a document or an environment value, so widening `claim()`'s interface opened nothing.
+PATH, no repo, no network). The publish path is whole at 240 of 240 classified tracked paths with
+the planted-path canary firing. The new code reads an exit status and prints a filename from a
+glob of `tests/`, so it adds no input surface.
 
-performance 2/2 - `docs-claims-check.test.sh` 1.4s for 15 assertions (the new case reuses the
-miniature-tree pattern rather than the repo, which is why it doubled in size without costing
-time), `install-ps1.test.sh` 9.2s, publish-guard instant, the full `--assertions` pass in line
-with prior rounds. The exemption adds one string assignment.
+performance 2/2 - `docs-claims-check.test.sh` 21 assertions in ~1.5s (the new cases reuse the
+miniature-tree pattern, so the suite grew 40% without measurable cost), `install-ps1.test.sh`
+38/38 in ~9s, publish-guard instant, the full `--assertions` pass in line with prior rounds. One
+extra `rc` read per suite.
 
-readability 2/2 - the comment above `claim()` records WHY the fourth argument exists in terms of
-the harm it prevents, including what the old asymmetry did, which is the shape that stops the
-next editor from innocently "simplifying" it back. Case 5's header states the rule under test and
-why it is asserted on the outcome rather than the prose. The duplicated cause sentence and the
-README's "one full run" wobble are nitpicks, not enough to pull this to 1.
+readability 2/2 - both new comment blocks state the harm they prevent and name the measurement
+that proved it, which is the shape that survives the next editor. `SUITE FAILED: <file> exited
+<rc>, so the assertion count below is not a measurement` tells the reader what broke, where, and
+why the number under it means nothing, in one line. The duplicated cause sentence stays a nitpick.
 
-testing 2/2 - this is the round's strongest part. The suite went 7 -> 15, the new assertions are
-on OUTCOMES (exit code and the words the reader acts on), both directions are built, the
-scoping invariant is pinned separately, and the canary against the predecessor reproduces at
-exactly 6 failures when I ran it myself. `install-ps1.test.sh` is 38/38 with case 9b still
-order-independent and canaried, `publish-guard.test.sh` still pins the real tree at 240. The
-label-wider-than-fixture in the scoping case is a naming defect over correct behaviour, scored as
-a nitpick.
+testing 2/2 - case 6 builds the mixed tree (one failing suite, one skipping suite) and requires
+both the red and the broken suite's NAME, so the test cannot pass on a red for the wrong reason;
+case 7 pins BOTH summary lines, which is what stops the clean line from being quietly retired. The
+suite went 15 -> 21, its canary against the predecessor reproduces at exactly 3 when run
+independently, and the assertions are on outcomes rather than prose. The remaining gaps (the
+note's causes, the scoping case's label, MISSING under unverifiability) are nitpicks, scored once
+there.
 
-conventions 2/2 - recovered from round 7. Both violations that cost the point are addressed: the
-whole repository was grepped for the old premise this time (the third copy is fixed and no fourth
-survives), and the recurring lesson finally received a MECHANISM at the point of use rather than
-a fourth phrasing, which is exactly what `CLAUDE.md`'s "When a written lesson repeats" asks for.
-The countable claim moved in the same commit as the code that caused it, English throughout, no
-em or en dashes, and this record was REGENERATED at the new head rather than re-dated.
+conventions 2/2 - held. The reviewer's fix suggestions were applied as MECHANISMS with tests in
+the same commit rather than as another phrasing, the countable claim moved in the same commit as
+the code that moved it, English throughout, no em or en dashes, and this record was REGENERATED
+at the new head rather than re-dated.
 
-total 11/12 (threshold >= 9, no zero) -> APPROVE WITH COMMENTS.
+total 11/12 (threshold >= 9, no zero) -> APPROVE WITH COMMENTS. No Critical, no zero, so this
+record clears the merge gate; the one Important is a four-line follow-up, not a blocker.
 
 ## Ceiling
 
-12/12 is reachable and was missed by two Importants, neither of which is structural. Nothing
-about this change caps a criterion. The Windows-unverifiable half (PowerShell 5.1, UTF-16
-`wsl -l -q`, real `wslpath`, native symlink permission) stays a stated residual in the suite
-header and in `INSTALL.md`, which is how this repo accepts an unrunnable platform: it bounds what
-the suite CLAIMS, so it limits coverage, not the score. The one thing genuinely outside reach on
-this machine is a real bash >= 4 run (no bash >= 4, no container runtime), so the HIGH-counting
-machine was reproduced by bending the document instead of the shell; that limits the FORM of the
-evidence, not its conclusion, since both routes enter the same branch, and it is labelled as an
-emulation above rather than glossed.
+12/12 is reachable and was missed by one Important, which is not structural. The Windows
+half that cannot be executed here (PowerShell 5.1, UTF-16 `wsl -l -q`, real `wslpath`, native
+symlink permission) stays a stated residual in the suite header and in `INSTALL.md`: it bounds
+what the suite CLAIMS, so it limits coverage rather than the score. Unlike round 8, nothing this
+round needed emulating: every claim in the fixes was reachable on this machine with real runs,
+including the swallow case, so the evidence has no reasoned arm.
 
 ## What's good
 
-- The fix went at the decidable thing. The tempting fix was a cleverer heuristic (bound the
-  drift, guess the skipped case's assertion count, tolerate a delta). The builder instead
-  recognised that an incomplete measurement is not evidence in either direction and stopped
-  treating it as such, which eliminates the class rather than trading one failure shape for
-  another. That is `CLAUDE.md`'s "stop patching a recurring class" applied without being told.
-- The exemption is narrow by construction, not by care: it is an argument only the assertions
-  claim passes, so a future claim is fatal by default and has to opt out explicitly. Defaults
-  that fail closed are worth more than the test that checks them, and the test is there too.
-- Case 5 asserts what the READER experiences (exit code, the word UNVERIFIED, the absence of
-  DRIFTED) rather than the sentence the code prints, and its header says why that distinction
-  matters: the previous version passed a prose assertion while the harm was live. The canary
-  count in the commit body reproduced exactly when I ran it independently.
-- The README stopped claiming a property the number does not have. It now says what the number
-  counts, that it moves with the machine, in which direction, and what the checker does about it,
-  which turns a number that read as a constant into one that reads as a measurement.
+- Both fixes went at the mechanism, not at the message. The suite's exit status is now READ
+  rather than the count being second-guessed, which is the decidable question, and the summary is
+  DERIVED from a counter rather than being a constant string that happened to be true most of the
+  time.
+- The failing-suite check sits outside the claim machinery, so no future exemption argument can
+  reach it. That is the fail-closed shape: a new outcome would have to opt into being excused.
+- Case 7 pins the clean line as well as the qualified one. Most authors would have tested only
+  the new behaviour, and the line that then rots is the old one; testing both directions is why
+  "the summary became noise" cannot happen quietly here.
+- The commit comment records the harm in the past tense with its measurement ("a suite that
+  ERRORS reports fewer `ok` lines, the mismatch is excused as unverified, and the run ends GREEN
+  on every machine that skips anything, which here is every machine"), so the next editor who is
+  tempted to simplify the rc check away can see what it costs.
 
 ## History
 
@@ -403,4 +349,28 @@ emulation above rather than glossed.
   correct README, and the cheap ways to buy the coverage back are listed above. Collateral green
   and measured: `install-ps1.test.sh` 38/38 in 9.2s, `publish-guard.test.sh` ALL PASS at 240,
   README's other three claims 24 / 33 / 24, `install.ps1` byte-identical since `4416477`.
+- 2026-09-22 (`15b168f`, subject `ad00988`, claude-opus-5[1m], effort high): round 9, the final
+  anchor. APPROVE WITH COMMENTS, 11/12. **Same, 0**: all six criteria unchanged (correctness 1,
+  the other five 2), but the composition moved, both round-8 Importants closed and one new one
+  opened at lower severity. Verified by running, not by reading: a suite that BOTH skips and
+  exits 3 still produces `SUITE FAILED: tests/skippy.test.sh exited 3` and exit 1 (the swallow
+  case the brief asked for), the same red survives when the count claim is simultaneously
+  UNVERIFIED, a silent failing suite is red too, and the failing-suite check sits outside the
+  claim machinery so no exemption can reach it. Both summary lines pinned and measured: `every
+  claim this run could measure matches; 1 UNVERIFIED (see above).` on a skip + mismatch, and the
+  unqualified `every countable claim matches the tree.` still printed on a fully measured run, so
+  the clean line kept its meaning. Header exit table now names the third outcome. Suite 15 -> 21,
+  canary against `5972c27` reproduced at exactly 3 failures, and the 4th new assertion correctly
+  passes on both versions because it guards preserved behaviour. New Important, the unfinished
+  half of round 8's: the FATAL summary at `:150-153` still says "a documented claim no longer
+  matches the tree / Fix the NUMBER in the document" when the only failure is a broken suite, so
+  a correct README gets an instruction to change it; lower severity than its predecessors (the
+  verdict is right and `SUITE FAILED` prints the true diagnosis above it), four-line fix. R2
+  (nothing pins the note's CAUSES) STILL STANDS, checked at this head: no assertion touches the
+  words `tool` or `shell`. Q4 re-checked and narrowed: with broken suites no longer excused, the
+  only way a real drift goes unnoticed is a skipping machine whose suites all pass, which is
+  still every machine, still the right trade, and still printed with both numbers side by side.
+  Collateral green and measured across nine commits of sibling churn: `install-ps1.test.sh`
+  38/38, `publish-guard.test.sh` ALL PASS at 240 tracked paths, real tree 24 / 33 / 24 /
+  `assertions = 1129` with no `SUITE FAILED` line, `install.ps1` byte-identical since `4416477`.
 </content>
