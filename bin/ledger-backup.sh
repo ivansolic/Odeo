@@ -514,6 +514,18 @@ case "$KIND" in
     #   - EXIT 0 AGAINST A REAL NETWORK REMOTE IS NOT PROVEN BY THE SUITE. Every remote under test
     #     is a local repository. Exits 4 and 5 are proven against git's own refusals; a green run
     #     against a live remote is owner attestation.
+    #   - A LEADING `~` IS EXPANDED WITH THIS PROCESS'S $HOME, which is what makes `~/backup.git`
+    #     work. If the caller's $HOME differs from the one git would use (sudo without -H, a
+    #     daemon), the path checked here is not the path git resolves. Both then refuse or both
+    #     resolve the same directory in every arrangement measured, but the equality is $HOME's,
+    #     not this program's.
+    #   - A DIRECTORY THAT EXISTS HERE MAY STILL NOT BE GIT'S. Measured once, by planting a
+    #     directory literally named with `%2f`: the conversion sees a directory, the guard runs
+    #     and answers about it, and git decodes the name to a different path. Decoding here would
+    #     be a fourth model of git's grammar, which is the thing this design stopped doing.
+    #   - THE IDENTITY TEST HAS A TOCTOU WINDOW of microseconds: if a common dir is removed
+    #     between `pwd -P` and `-ef`, the answer flips from SAME to DIFFERENT. The same race the
+    #     guard has always had, stated rather than discovered later.
     # THE GUARD IS NEVER SKIPPED. This block used to run only when the converted path was a
     # directory, and every round of this defect has come back through that door: a url this
     # program reads as "not a path I can see" is not a url git cannot use. git decodes `%2e%2e`

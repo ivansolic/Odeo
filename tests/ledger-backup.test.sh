@@ -68,6 +68,11 @@ has_stamp() { [ -f "$(stamp_of "$1")/odeo-ledger-backup-stamp" ]; }
 # three while holding the ledger. Measured twice: a suite of 188 assertions ran green across a
 # live leak, in the exact shape the case above was written to catch. A test that cannot see the
 # harm it names is worse than no test, because it is counted as coverage.
+#
+# Repositories are found by MARKER, the same way the program itself decides, not by the `.git`
+# suffix in their name. The first version keyed on the name and was measured blind to a bare repo
+# called `mirror` and to a submodule, which is the same defect one level out: the check and the
+# thing it checks answering a differently-worded question.
 leak_in_tree() {
   local pp="$1" c="$2" r o
   while IFS= read -r r; do
@@ -80,7 +85,9 @@ $(git -C "$r" cat-file --batch-all-objects --batch-check='%(objectname) %(object
   | awk '$2=="blob"{print $1}')
 EOF
   done <<EOF
-$(find "$pp" -type d \( -name '*.git' -o -name '.git' \) 2>/dev/null)
+$(find "$pp" -type d 2>/dev/null | while IFS= read -r d; do
+    [ -e "$d/HEAD" ] && [ -d "$d/objects" ] && [ -d "$d/refs" ] && echo "$d"
+  done)
 EOF
   return 1
 }
@@ -1005,9 +1012,12 @@ for row in pub-dotdot pub-space self-dotdot space-inside; do
                   spaced43="$TMP/My Backups $i/b43.git"
                   target="file://localhost$TMP/My%20Backups%20$i/b43.git" ;;
     self-dotdot)  target="file://localhost$pp_real/.claude/%2e%2e/%2e%2e/$(basename "$pp_real")" ;;
-    space-inside) git init -q --bare "$pp/in43.git" >/dev/null 2>&1
+    space-inside) # Named `mirror`, with NO `.git` suffix, on purpose: leak_in_tree finds
+                  # repositories by marker, and a name-keyed version was measured blind to
+                  # exactly this shape. The row proves the finder as well as the program.
+                  git init -q --bare "$pp/mirror" >/dev/null 2>&1
                   enc="$(printf '%s' "$pp_real" | sed 's/ /%20/g')"
-                  target="file://localhost$enc/in43.git" ;;
+                  target="file://localhost$enc/mirror" ;;
   esac
   git -C "$pp" remote add backup "$target" >/dev/null 2>&1
   printf 'ledger_backup: git backup internal-files\n' > "$pp/CLAUDE.local.md"
@@ -1061,11 +1071,13 @@ git -C "$home44/tilde44.git" show internal-files:internal-not-in-git/todo.md >/d
 #     two directories and the case would pass while testing nothing.
 p45="$(mkproject P45Mixed "ledger_backup: git backup internal-files")"
 p45_upper="$TMP/P45MIXED"
+# The setup is SHARED by both branches on purpose: an `else` that forgot the remote would test
+# "no remote of that name" and pass for the wrong reason on every case-sensitive machine.
+( cd "$p45" && git add -A && git commit -qm base ) >/dev/null 2>&1
+canary45="CANARY-45-$$"
+printf '%s\n' "$canary45" > "$p45/.claude/tasks/todo.md"
+git -C "$p45" remote add backup "$p45_upper" >/dev/null 2>&1
 if [ -d "$p45_upper" ]; then
-  ( cd "$p45" && git add -A && git commit -qm base ) >/dev/null 2>&1
-  canary45="CANARY-45-$$"
-  printf '%s\n' "$canary45" > "$p45/.claude/tasks/todo.md"
-  git -C "$p45" remote add backup "$p45_upper" >/dev/null 2>&1
   out="$(run "$p45")"; rc=$?
   [ "$rc" = 2 ] && ok "the project spelled in another case is still the project (exit 2)" \
     || bad "a case variant of the project's own path reached exit $rc: $out"
@@ -1075,7 +1087,20 @@ if [ -d "$p45_upper" ]; then
     && bad "and the ledger is a ref in the project's own repository (case variant)" \
     || ok "and no backup ref exists in the project's repo (case variant)"
 else
-  echo "SKIP - this filesystem is case-sensitive, so two spellings are two directories"
+  # NOT a skip. Case 20 pins this same hazard for the `dir` arm without one, and the reasoning
+  # carries: where the filesystem IS case-sensitive the uppercase path does not exist, so the
+  # fail-closed rule refuses a target it cannot see. The SPECIFIC defect (two spellings, one
+  # directory) is unreproducible there, and there is no portable substitute, since `pwd -P`
+  # normalises symlinks, trailing slashes and `/./` alike. But the CONTRACT holds on both
+  # filesystems and is worth asserting on both: this line must never end at exit 0.
+  out="$(run "$p45")"; rc=$?
+  [ "$rc" != 0 ] && ok "a case variant of the project's path never reaches exit 0 (exit $rc)" \
+    || bad "a case variant reached exit 0 on a case-sensitive filesystem: $out"
+  has_stamp "$p45" && bad "and it stamped success (case variant)" \
+    || ok "and no stamp was written (case variant)"
+  git -C "$p45" rev-parse --verify --quiet internal-files >/dev/null 2>&1 \
+    && bad "and the ledger is a ref in the project's own repository (case variant)" \
+    || ok "and no backup ref exists in the project's repo (case variant)"
 fi
 
 echo ""
