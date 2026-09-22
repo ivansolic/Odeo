@@ -2,8 +2,8 @@
 artifact: skills/merge/SKILL.md
 type: skill
 branch: docs/merge-two-history-guard
-reviewed_commit: f8a0aa3
-artifact_version: 3
+reviewed_commit: 1cd2927
+artifact_version: 4
 date: 2026-09-22
 scorer: skill-reviewer
 model: claude-opus-5[1m]
@@ -15,14 +15,17 @@ verdict: PASS
 previous_total: 10/10
 ---
 
-Scope: the whole `skills/merge/SKILL.md` at commit `f8a0aa3` on `docs/merge-two-history-guard`,
-the sha supplied at dispatch. Round 3, and the LAST round: `docs/eval-framework.md` stop
-condition 2 (three rounds on one artifact) is reached, and condition 3 applies as well (see
-"Why this loop stops"). Re-read step 1b in full (`:19-57`), `bin/merge-gate.sh:1-95`,
-`bin/publish-snapshot.sh:19-33`, `bin/install-git-guards.sh`, and the class precedent at
+Scope: the whole `skills/merge/SKILL.md`, scored in round 3 at commit `f8a0aa3` and re-anchored
+here to `1cd2927`, the sha supplied at dispatch. The re-anchor is MECHANICAL: one two-word
+deletion closing the single residual round 3 named, verified below, no re-scoring and no new
+scope. Round 3 remains the last scoring round: `docs/eval-framework.md` stop condition 2 (three
+rounds on one artifact) is reached, and condition 3 applies as well (see "Why this loop stops").
+Round 3 read step 1b in full (`:19-57`), `bin/merge-gate.sh:1-95`, `bin/publish-snapshot.sh:19-33`,
+`bin/install-git-guards.sh`, and the class precedent at
 `docs/decisions/ADR-001-plans-carry-contracts-not-code.md:330-336` and
 `docs/evals/code-feature-windows-powershell-entry.md:270-276`. Form only, no runtime behavior
-tested. Output language `en`, supplied at dispatch.
+tested. Output language `en`, supplied at dispatch. Line citations below are unchanged by the
+re-anchor: the deletion shortened line 45 without moving any line.
 
 ## Skill: merge  (explicit command, `disable-model-invocation: true`, intentional: the merge is
 the human floor)
@@ -30,9 +33,10 @@ the human floor)
 ## Scores
 
 Unchanged at 10/10. Stated plainly so the record cannot be read as rewarding responsiveness:
-both items shipped in this commit were listed in round 2 as **non-score-bearing**, so they could
+both items shipped in `f8a0aa3` were listed in round 2 as **non-score-bearing**, so they could
 not move the total and did not. What they changed is the residual list, which is shorter and
-whose remaining entries are now smaller than the ones they replaced.
+whose remaining entries are now smaller than the ones they replaced. The `1cd2927` deletion is
+likewise non-score-bearing.
 
 - trigger clarity **2** (2, 2). `:2` unchanged, still names both outcomes.
 - structure **2** (2, 2). The shape holds and the file is still far under the limit. One warning
@@ -55,7 +59,7 @@ whose remaining entries are now smaller than the ones they replaced.
 
 ## Ceiling: 10/10, held for a second round
 
-## Verification of the two shipped items
+## Verification of the two shipped items (round 3, `f8a0aa3`)
 
 Both land as described.
 
@@ -70,39 +74,36 @@ Both land as described.
    and the consequence ("'ahead' invites steps 4, 5 and 6, which is the push this whole check
    exists to prevent"), and states the division of labour in one line: "Ancestry tells you the
    shape of the gap; only that question tells you what the remote IS." The refusal at `:45` is
-   keyed on the answer, "When the answer is 'a separate step', whatever the ancestry said", which
-   is the right dependency and fixes the muddy antecedent the insertion created.
+   keyed on the answer, which is the right dependency and fixes the muddy antecedent the
+   insertion created.
 
 ## Why this loop stops here
 
-`docs/eval-framework.md` stop condition 2 is reached mechanically: this is round three. Condition
-3 is the more useful one, and I am invoking it explicitly rather than letting a fourth round
-discover it.
+`docs/eval-framework.md` stop condition 2 is reached mechanically: round 3 was the third round.
+Condition 3 is the more useful one, and it was invoked explicitly rather than left for a fourth
+round to discover.
 
 **The class, in one phrase: another uncovered reading of the guard, closed by another clause.**
 Round 1 found the guard absent from four entry points and it was added to four entry points.
 Round 2 found it silent on one test and blind on one ancestry shape, and a sentence and a
-paragraph were added. This round I can name the next instance without trying hard:
+paragraph were added. Round 3 could name the next instance without trying hard:
 
-**The publication question is not asked on BEHIND.** `:45` promises the refusal applies "whatever
-the ancestry said", but the instruction to ASK appears only for diverged (`:35-40`) and AHEAD
-(`:41-44`). BEHIND falls through to step 2 unasked.
+**The publication question is not asked on BEHIND** (round 3 state). `:45` promised the refusal
+applied "whatever the ancestry said", but the instruction to ASK appeared only for diverged
+(`:35-40`) and AHEAD (`:41-44`). BEHIND fell through to step 2 unasked. **CLOSED at `1cd2927`**
+by deleting "whatever the ancestry said", so the claim now covers exactly the two shapes the
+step instructs on.
 
-I believe BEHIND is genuinely safe, and the argument is worth recording because it is the reason
-NOT to add a fourth clause: `bin/publish-snapshot.sh:32` builds the public tree with
-`git archive`, which copies content and no history, so published commits are never in your
-history and yours are never in theirs once the lines split. For local `main` to be an ancestor of
-a publication remote's base, that remote would have to literally contain your commits, which this
-publication mechanism cannot produce. BEHIND therefore implies one lineage. The gap is in the
-PROSE'S PROMISE ("whatever the ancestry said" claims three shapes, the instructions cover two),
-not in the safety of the omission, which makes it a claim slightly wider than its mechanism: the
-same small shape as the class ADR-001 is about, one size down.
-
-So: do not patch it with a fourth paragraph. Either delete two words from `:45` so the claim
-matches what is asked, or add six words to `:32` ("BEHIND means one lineage, no question needed,
-because a publication cannot contain your commits") and leave the structure alone. That is fix 1
-below, and it is the last prose fix I would accept on this block. Beyond it, further coverage
-belongs to a mechanism, which is what the human is being asked to decide.
+The argument for why BEHIND is safe to leave unasked is worth keeping on the record, because it
+is the reason the fix was a deletion and not a fourth clause: `bin/publish-snapshot.sh:32` builds
+the public tree with `git archive`, which copies content and no history, so published commits are
+never in your history and yours are never in theirs once the lines split. For local `main` to be
+an ancestor of a publication remote's base, that remote would have to literally contain your
+commits, which this publication mechanism cannot produce. BEHIND therefore implies one lineage.
+The gap was in the PROSE'S PROMISE (three shapes claimed, two instructed), not in the safety of
+the omission, which made it a claim slightly wider than its mechanism: the same small shape as
+the class ADR-001 is about, one size down. Narrowing the claim is the direction that closes it
+without growing step 1b, which was the stated reason for stopping.
 
 ## Recommendation on the `merge-gate.sh` mechanism (for the human's decision)
 
@@ -185,9 +186,11 @@ Three honest limits on that recommendation, so it is not adopted wider than it i
 
 ## Remaining fixes (none score-bearing)
 
-1. **Make `:45`'s promise match what is asked**, per "Why this loop stops": either drop "whatever
-   the ancestry said", or state at `:32` that BEHIND needs no question because a publication
-   cannot contain your commits. Six words, not a paragraph.
+1. ~~Make `:45`'s promise match what is asked.~~ **CLOSED at `1cd2927`**: "whatever the ancestry
+   said" deleted, so the answer-keyed refusal claims exactly the two shapes (diverged, AHEAD) the
+   step instructs on. AHEAD coverage is untouched, since `:41-44` still directs the question
+   there. The alternative (six words at `:32`) was correctly not taken: it would have grown the
+   block.
 2. **(carried from round 1, still open) Stop restating the gate's refusal list at `:21-24`.** The
    skill names one refusal reason; `bin/merge-gate.sh` also refuses on a non-approving record, a
    missing `model_tier`, a missing `reviewed_commit` after the cutoff, and an untracked
@@ -197,7 +200,8 @@ Three honest limits on that recommendation, so it is not adopted wider than it i
    1b covers `master` repos.
 4. **(carried) `1b.` breaks the ordered list in rendered markdown**; now cited by name from four
    files, so renumbering probably costs more than it saves.
-5. **(new, cosmetic) `:47` runs long** after the insertion, against the file's own ~95-column wrap.
+5. **(cosmetic) `:47` runs long** against the file's own ~95-column wrap, and `:45` now wraps
+   short; a single re-wrap of `:45-49` tidies both. Untouched by the deletion.
 6. **(carried) the `--ff-only` precondition and the record-name inconsistency** in the Two
    histories transcript (`:98`, `:95`).
 
@@ -225,15 +229,23 @@ at least one variant entering at step 2 and one on a repo whose `main` reads AHE
   the only discriminating version reintroduces the magnitude judgement just removed. Seven fixes
   left open, all non-score-bearing.
 - **Round 3, 2026-09-22, `f8a0aa3`, 10/10 PASS** (previous 10/10, held). The two items shipped
-  here were round 2's non-score-bearing fixes, so they could not and did not move the total; both
+  there were round 2's non-score-bearing fixes, so they could not and did not move the total; both
   land as described, including the downstream consistency edit at `:35` and the re-keying of the
   refusal onto the answer at `:45`. **Loop stopped** under `docs/eval-framework.md` conditions 2
   (three rounds) and 3 (recurring class: "another uncovered reading of the guard, closed by
-  another clause"; the next instance, the question not being asked on BEHIND, is named here with
-  the argument for why it should be closed by deleting two words rather than adding a fourth
-  paragraph). The mechanism question is answered on the record under
-  "Recommendation on the `merge-gate.sh` mechanism": assert a local fact not a conclusion, key it
-  on a declared `remote.<name>.role = publication` rather than on sniffing this project's
-  filenames, build it narrow and name it narrowly, and if only one thing is built make it a
-  `pre-rebase` hook rather than the gate, because the gate only protects the path that already
-  has the prose.
+  another clause"; the next instance, the question not being asked on BEHIND, was named with the
+  argument for closing it by deleting two words rather than adding a fourth paragraph). The
+  mechanism question is answered on the record under "Recommendation on the `merge-gate.sh`
+  mechanism": assert a local fact not a conclusion, key it on a declared
+  `remote.<name>.role = publication` rather than on sniffing this project's filenames, build it
+  narrow and name it narrowly, and if only one thing is built make it a `pre-rebase` hook rather
+  than the gate, because the gate only protects the path that already has the prose.
+- **Re-anchor, 2026-09-22, `1cd2927`. NOT a round: no re-scoring, no new scope, verdict and total
+  unchanged at PASS 10/10.** The loop remains stopped. The single residual round 3 named is
+  CLOSED, by the first of the two options offered and in the direction that does not grow step 1b:
+  "whatever the ancestry said" deleted from `:45`, which now reads **When the answer is "a
+  separate step":**. Verified at this sha, and verified that nothing else in `:26-57` moved. The
+  deletion introduces nothing: the antecedent is still the question stated at `:36-38` and
+  re-scoped at `:41`, AHEAD coverage still comes from `:41-44` rather than from the deleted
+  clause, and no line numbers shifted, so every citation in this record still resolves. Fixes 2-6
+  remain open and are unaffected.
