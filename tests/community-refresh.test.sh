@@ -102,18 +102,29 @@ run_with_canaries() {
 }
 
 # canaries_survive <home> -> 0 if BOTH canaries are still reachable somewhere under
-# ~/.claude, in place or in a moved-aside copy.
+# ~/.claude, in place or in a moved-aside copy, WITH THEIR CONTENT INTACT.
 #
 # This asserts an OUTCOME, and that is the whole point. The previous guard grepped the
 # source for `rm -rf`; review walked past it with `rm -fr`, then past the widened pattern
 # with `git -C "$DIR" clean -xfd`, which no scenario caught either because no fixture had
 # an untracked file. Two rounds of adding spellings to a denylist is the instance-patch
-# shape this repo's own lessons.md forbids. A command that destroys the user's files fails
-# this check whatever it is called, including one nobody has thought of.
+# shape this repo's own lessons.md forbids.
+#
+# The CONTENT is read back, not just the path, because destruction has two shapes and this
+# helper used to cover one. Testing `-f` alone, it claimed to catch destruction "whatever it
+# is called" while a command that emptied or overwrote the file IN PLACE (a truncating
+# redirect, `git checkout --force`) left the name behind and passed. Reading the content
+# closes that half, so the claim and the mechanism now describe the same thing.
+#
+# What it still cannot witness, stated rather than implied: the canaries are two files, one
+# tracked and one untracked, inside the mirror. Destruction of something else under
+# ~/.claude, or in a mirror state no scenario below builds, is outside their reach.
 canaries_survive() {
   local home="$1" t=0 u=0
-  while IFS= read -r f; do [[ -f "$f" ]] && t=1; done < <(find "$home/.claude" -name 'canary-tracked.md' 2>/dev/null)
-  while IFS= read -r f; do [[ -f "$f" ]] && u=1; done < <(find "$home/.claude" -name 'canary-untracked.md' 2>/dev/null)
+  while IFS= read -r f; do grep -qx 'canary-tracked' "$f" 2>/dev/null && t=1
+  done < <(find "$home/.claude" -name 'canary-tracked.md' 2>/dev/null)
+  while IFS= read -r f; do grep -qx 'canary-untracked' "$f" 2>/dev/null && u=1
+  done < <(find "$home/.claude" -name 'canary-untracked.md' 2>/dev/null)
   [[ "$t" -eq 1 && "$u" -eq 1 ]]
 }
 

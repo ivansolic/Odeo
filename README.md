@@ -46,9 +46,19 @@ So `spec-gate` and `merge-gate` never ask: a story cannot enter the build withou
 
 PMs and builders who want to ship real software with Claude Code and don't want to figure out the workflow, testing, and security discipline from scratch. No engineering background assumed, the included `BEGINNERS-GUIDE.md` explains every concept in plain language.
 
-**Runs on:** macOS and Linux (developed and tested there). Windows is expected to work
-under WSL or Git Bash but is not yet verified; the toolchain is bash, so PowerShell cannot
-run it. See INSTALL.md.
+**Runs on:**
+
+| Platform | Install with | Status |
+|---|---|---|
+| macOS, Linux | `./install.sh` | developed and tested here |
+| Windows, via WSL (recommended) | `.\install.ps1` from PowerShell | written, **not yet verified** end to end |
+| Windows, via Git Bash | `.\install.ps1 -UseGitBash` | same, plus a symlink caveat (INSTALL.md Step 6w) |
+
+On Windows, PowerShell is the **entry point**, not the runtime: `install.ps1` hands off to
+bash in WSL or Git Bash. The guards are 22 bash scripts, and porting them would mean two
+implementations of every gate, which drift. So you start in PowerShell and then work in
+WSL, because a session run from PowerShell would give you the workflow without the guards.
+See INSTALL.md.
 
 ## The workflow at a glance
 
@@ -118,7 +128,7 @@ Odeo/
 │   ├── skill-reviewer.md     ← scores skills against the authoring standard
 │   ├── agent-reviewer.md     ← scores agent definitions against the agent rubric
 │   └── agent-rubric.md       ← the rubric agent-reviewer scores against
-├── bin/                      ← 23 executables: deterministic guards + scaffolding
+├── bin/                      ← 24 executables: deterministic guards + scaffolding
 │   ├── init-project.sh       ← scaffolds the project-specific parts of a new project
 │   ├── install-git-guards.sh ← installs pre-push + pre-commit hooks into a repo
 │   ├── token-report.py       ← session token usage (the one non-bash tool here)
@@ -144,7 +154,8 @@ Odeo/
 │   ├── publish-guard.sh      ← fail-closed: nothing internal or unclassified ships
 │   ├── share-tunnel.sh       ← time-boxed public tunnel for a preview
 │   ├── second-opinion.sh     ← the sanctioned path for a paid cross-model review
-│   └── session-end-check.sh  ← advisory end-of-session sweep
+│   ├── ledger-backup.sh      ← backs up todo.md + lessons.md, which git deliberately ignores
+│   └── session-end-check.sh  ← advisory end-of-session sweep (incl. a stale ledger backup)
 ├── project-templates/        ← project-specific scaffolding only (not the tools)
 │   ├── CLAUDE.md             ← per-project config incl. a Security & Data section
 │   ├── knowledge/            ← README for the project knowledge base
@@ -155,9 +166,15 @@ Odeo/
 ├── global/
 │   └── CLAUDE.md             ← user-global baseline laid into ~/.claude by install.sh
 ├── tests/
-│   └── *.test.sh             ← 29 suites, 840 assertions. 22 of the 23 programs have their
-│                               own suite (session-end-check.sh has none yet); the remaining
-│                               suites are cross-cutting rather than per-program
+│   └── *.test.sh             ← 33 suites, 1129 assertions. 24 of the 24 programs have their
+│                               own suite; the remaining suites are cross-cutting rather than
+│                               per-program. The number counts the `ok` lines one full run
+│                               reports, so it moves with the machine: a skipped case takes its
+│                               assertions with it (no PowerShell for install-ps1, running as
+│                               root, a shell that refuses what a case needs), and a machine that
+│                               runs a case this one skips counts MORE. The suites name what they
+│                               skipped rather than pass quietly, and the claims check reports the
+│                               count as UNVERIFIED there instead of calling it drift
 └── docs/
     ├── system-map.md         ← the catalog: every command/agent/loop by phase
     ├── eval-framework.md     ← rubrics, scorers, eval records, regression

@@ -3,13 +3,10 @@
 Follow these steps **in order**. Total time: ~30-40 minutes if starting from zero.
 Each step ends with a ✓ CHECK, verify it before moving on.
 
-**Platforms: macOS and Linux are what this is developed and tested on.** The toolchain is
-bash and the gates are bash scripts, so PowerShell and `cmd` cannot run it. On Windows it is
-**expected to work under WSL or Git Bash but has not been verified end to end there**; WSL
-is the better bet, because `./install.sh --link` needs permission to create symlinks, which
-WSL has by default and native Windows does not without developer mode. Steps 0 to 4 below
+**Platforms: macOS and Linux are what this is developed and tested on.** Steps 0 to 4 below
 use Mac commands; on Linux and WSL substitute your package manager for Homebrew and the
-rest is identical.
+rest is identical. **On Windows, start at [Step 6w](#step-6w-windows-installing-from-powershell)
+instead.**
 
 **If the scripts fail with `set: pipefail: invalid option name` or `syntax error near
 unexpected token`, your checkout has CRLF line endings** (git's `core.autocrlf` does this on
@@ -164,6 +161,67 @@ source ~/.bash_profile     # or ~/.zshrc if you use zsh
 _The PM skills, the workflow commands, the agents, and the TDD skill are all
 installed by `install.sh` and available in every project. The TDD and ux-design
 skills auto-apply; the rest you invoke._
+
+---
+
+## Step 6w, Windows: installing from PowerShell
+
+**Status: NOT verified end to end on a Windows machine.** What the test suite does cover, on
+any machine with PowerShell installed, is the handoff itself: which shell is chosen, the
+flags that reach `install.sh`, the path translation, and the exit code coming back. What
+nobody has watched is a real Windows box: the real `wsl -l -q` output encoding, a real
+`C:\` path through `wslpath`, and whether symlink permission bites a `-Link` install. If it
+fails there, the failure is worth reporting rather than working around.
+
+In PowerShell:
+
+```powershell
+git clone https://github.com/ivansolic/Odeo.git
+cd Odeo
+.\install.ps1
+```
+
+`install.ps1` **does not install anything itself.** It finds a bash that Windows can reach,
+WSL first and Git Bash second, and runs the same `install.sh` through it. If it finds
+neither, it stops and prints the two commands that fix that (`wsl --install`, or
+`winget install --id Git.Git -e`).
+
+It accepts the same options as the bash installer:
+
+```powershell
+.\install.ps1 -Link            # symlink instead of copy
+.\install.ps1 -Lang de         # non-interactive document language
+.\install.ps1 -UseGitBash      # skip WSL even if it is present
+```
+
+### Why PowerShell is an entry point and not a port
+
+Odeo's guarantees are 22 bash scripts with exit codes: the merge gate, the secret scan, the
+publish guard. Reimplementing them in PowerShell would mean two implementations of every
+guard, and two implementations drift. That ends with a rule enforced on one platform and
+merely believed on the other, which is worse than a rule that is honestly unavailable.
+
+So the rule is one sentence: **start in PowerShell, then work in WSL.** After installing,
+run `claude` from WSL or Git Bash, not from PowerShell. A session started in PowerShell
+would give you the workflow without the guards, and the guards are the half that makes any
+of this trustworthy.
+
+### WSL is the recommended path, for a specific reason
+
+`install.sh --link` (`-Link` here) installs by **symlinking** into `~/.claude`, so a
+`git pull` updates your installation live. Native Windows only creates symlinks with
+developer mode enabled (Settings → For developers); WSL has the permission by default. On
+Git Bash without developer mode, install **without** `-Link` and re-run the installer after
+a `git pull` to update. That is the only thing you lose.
+
+### If scripts fail with `set: pipefail: invalid option name`
+
+Your checkout has CRLF line endings, which git's `core.autocrlf` does on Windows, and a CRLF
+bash script does not run at all. The remedy is at the top of this file, under Platforms;
+`bash tests/line-endings.test.sh` names any affected file.
+
+**✓ CHECK (Windows):** in WSL or Git Bash, `bash tests/line-endings.test.sh` passes. Then
+continue with the Step 6 checks above, run from that same shell.
 
 ---
 

@@ -177,8 +177,34 @@ is shared automatically.
 The review loop is an autonomous loop, so it needs a declared stop, not a human asking
 "should this be the last round?" each time. It stops on the FIRST of these:
 
-1. **APPROVE.** The verdict clears the threshold (>= 9 of 12, no criterion at 0) with no
-   Critical. The normal exit.
+1. **APPROVE**, or **PASS** where the reviewer uses that word. The verdict clears **the
+   threshold declared by the rubric for THAT artifact type**, with no criterion at 0 and
+   no Critical. The normal exit.
+
+   The number lives in the rubric and only there. It is not repeated in this file on
+   purpose: the totals differ by type (code and UI are scored out of 12, skills, agent
+   definitions and plans out of 10), and a second copy of a number is the exact shape of
+   drift this framework exists to prevent. Read it where it is declared:
+
+   | Artifact | Rubric that declares the threshold |
+   |---|---|
+   | Code | `agents/code-reviewer.md`, Scoring |
+   | UI / design | `agents/design-reviewer.md`, Scoring |
+   | Skill | `docs/skill-authoring-standard.md`, the rubric section |
+   | Agent definition | `agents/agent-rubric.md` |
+   | Implementation plan | `docs/plan-format.md`, the plan rubric (see the note below) |
+   | PM document | the rubric shipped with the producing skill (`agents/pm-reviewer.md` step 1) |
+
+   **The plan loop is the one exit without a number.** `architecture-reviewer` writes no
+   record and publishes no score, so its clearing verdict is **clean** (no real findings
+   left), recorded by the orchestrator as `arch_review: clean (v<N>, <date>)` in the plan's
+   frontmatter, per `skills/build/SKILL.md`, mode B5 step 2. Stop conditions 2 and 3 below apply to
+   it unchanged. The plan rubric still governs WHAT the reviewer checks; it just is not the
+   thing the loop reads to stop.
+
+   Worked example: a code review scoring 9/12 with `security: 0` does NOT stop the loop.
+   It clears the total in `agents/code-reviewer.md` and still fails the same rubric's
+   "no criterion at 0", so the loop continues to round two.
 2. **THREE ROUNDS on the same artifact**, whatever the score. Stop, do not dispatch a
    fourth, and hand the human: what is still open, what moved between rounds, and what did
    not. Three rounds that have not converged is evidence about the CHANGE, not a reason to
@@ -199,7 +225,9 @@ Why the cap is three and not higher, stated so nobody quietly raises it: measure
 USR-006 and community-knowledge branches, rounds 2, 3 and 4 each returned the same defect
 class, and each fix moved the failure rather than removing it. The loop was not converging,
 it was circling, and the human paid for four rounds to learn something round two already
-showed. A cap makes that visible on schedule instead of by someone's patience running out.
+showed. Four is what those branches cost before this cap existed, not a competing cap: the
+cap is three. A cap makes that visible on schedule instead of by someone's patience running
+out.
 
 **What STOP does not mean.** It is not "ship it". The branch stays blocked by the gate if
 the record does not approve; the loop simply stops spending rounds and gives the human the

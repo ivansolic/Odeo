@@ -216,8 +216,10 @@ once so a still editor is not mistaken for a stall. Live watching is with-me (Mo
    dispatch `architecture-reviewer` on each plan (read-only): does it fit the
    inherited architecture, respect boundaries, hide no risky ambiguity? Real
    findings go back to the `architect` for a revision, then the SAME reviewer
-   re-verifies, repeat until clean or 3 cycles (then stop: present the
-   disagreement, the human arbitrates). The reviewer cannot write files; YOU
+   re-verifies, repeat until the stop condition (`docs/eval-framework.md`:
+   clean, 3 rounds, or two consecutive rounds of the same defect class,
+   whichever comes first; a Critical is always reported). On stop: present the
+   disagreement, the human arbitrates. The reviewer cannot write files; YOU
    record the outcome in the plan's frontmatter as
    `arch_review: clean (v<N>, <date>)` plus a short findings-and-resolutions
    section in the plan body. Present the trajectory at the gate ("v1: 2
@@ -260,9 +262,10 @@ once so a still editor is not mistaken for a stall. Live watching is with-me (Mo
    any plan conflict. Then run `code-reviewer` (plus `design-reviewer` if UI) on
    each result; the builder verifies findings before fixing (evidence-based
    pushback allowed, you arbitrate). The review LOOPS until clean: fix ->
-   same reviewer re-verifies and regenerates the record -> repeat (max 3
-   cycles, per the AGENTS.md review-loop rule); the user sees first -> final
-   score, not two separate asks.
+   same reviewer re-verifies and regenerates the record -> repeat, under the
+   same stop condition as the plan loop (3 rounds, or two consecutive rounds of
+   the same defect class, per the AGENTS.md review-loop rule; a Critical is
+   always reported); the user sees first -> final score, not two separate asks.
 
 ### B6. Present per story
 Before presenting, run `boundary-check.sh` in the story's worktree (ENFORCED): if

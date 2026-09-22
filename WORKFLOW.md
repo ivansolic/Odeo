@@ -598,7 +598,10 @@ When the story is reviewed and you approve it, run:
 ```
 
 It does the git mechanics for you, on a clean linear history:
-1. Fetches the latest `origin/main`
+1. Fetches the latest `origin/main`, and checks by ancestry that it really is your
+   upstream. When neither side is an ancestor of the other and the project publishes
+   through a separate step, that remote is a publication, not an upstream: it integrates
+   into your local `main` instead and tells you so, rather than rebasing onto it
 2. Rebases your branch on top of it (resolving conflicts by intent + tests, asking
    you if genuinely ambiguous; it never weakens a test to resolve)
 3. Runs tests + typecheck, must be green
@@ -656,6 +659,19 @@ Before you close a working session, run:
 It looks back over the session, proposes the lessons worth keeping, and routes
 each (with your approval), project-specific → `.claude/tasks/lessons.md`; a rule
 that applies to all your work → a proposed global CLAUDE.md update.
+
+Then it backs up the build ledger, which is the part git deliberately cannot do.
+`.claude/tasks/todo.md` and `lessons.md` are gitignored so they never reach a
+published snapshot, which also means no commit carries them: lose the machine and
+you lose the task state and every correction the project has learned. `/retro`
+runs `ledger-backup.sh`, which copies both files to the target recorded as a
+`ledger_backup:` line in `CLAUDE.local.md` (read first, the right place for a
+private target) or `CLAUDE.md`, either a git remote and branch or a directory,
+and in both cases **outside this repository**. If no target is recorded it says
+once what is at stake and offers to add the line, then drops it for the session.
+Every failure has its own exit code and the "last backup" stamp is written only
+after a verified success, so a backup that silently stopped working reports as
+behind instead of passing as done.
 
 > ⚠️ `/retro` is something **you invoke** when wrapping up, Claude can't detect
 > that you're ending a session, so nothing fires it automatically.
