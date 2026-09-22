@@ -42,7 +42,7 @@ human floor.
    by a direct push reads as "you are ahead", and "ahead" invites steps 4, 5 and 6, which is
    the push this whole check exists to prevent. Ancestry tells you the shape of the gap; only
    that question tells you what the remote IS.
-   **When the answer is "a separate step", whatever the ancestry said:** do NOT rebase onto
+   **When the answer is "a separate step":** do NOT rebase onto
    that remote, do not push the branch there, do not `git pull` `main` from it. Integrate
    into your LOCAL `main`, publish through that step, and say so instead of improvising. Rebasing would replay your commits onto a lineage that
    never held their ancestors, and resolving those conflicts is exactly how content that
