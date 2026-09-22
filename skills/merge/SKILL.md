@@ -26,18 +26,25 @@ human floor.
 1. `git fetch origin` (get the latest main).
 1b. **Confirm `origin/main` is this branch's upstream BEFORE rebasing onto it.** Ask about
    LINEAGE, not about how big the gap is: a gap is normal, a separate lineage is not.
+   `--is-ancestor` answers with its EXIT STATUS and prints nothing, so make it speak, or you
+   will be reading silence and calling it inconclusive:
    ```
-   git merge-base --is-ancestor main origin/main   # yes -> you are behind; rebase is right
-   git merge-base --is-ancestor origin/main main   # yes -> you are ahead; nothing to rebase
+   git merge-base --is-ancestor main origin/main && echo "BEHIND: rebase applies"
+   git merge-base --is-ancestor origin/main main && echo "AHEAD: nothing to rebase"
    ```
-   If NEITHER is true the two have diverged, which is still ordinary when someone else
+   If NEITHER line prints, the two have diverged, which is still ordinary when someone else
    pushed while you worked. So ask the one question that separates the two cases: **do your
    commits ever reach that remote directly, or does this project publish through a separate
    step?** A pre-push hook that refuses the remote, a publish or snapshot script, a denylist
    of internal paths: any of those means the remote is a PUBLICATION, not your upstream, and
    its history is a different lineage that will never contain your commits.
-   Then do NOT rebase onto it. Integrate into your LOCAL `main`, publish through that step,
-   and say so instead of improvising. Rebasing would replay your commits onto a lineage that
+   **Ask it on AHEAD too, not only on diverged.** A publication remote that was once seeded
+   by a direct push reads as "you are ahead", and "ahead" invites steps 4, 5 and 6, which is
+   the push this whole check exists to prevent. Ancestry tells you the shape of the gap; only
+   that question tells you what the remote IS.
+   **When the answer is "a separate step", whatever the ancestry said:** do NOT rebase onto
+   that remote, do not push the branch there, do not `git pull` `main` from it. Integrate
+   into your LOCAL `main`, publish through that step, and say so instead of improvising. Rebasing would replay your commits onto a lineage that
    never held their ancestors, and resolving those conflicts is exactly how content that
    belongs to one history gets dragged into the other.
    Do not reach for a size rule: `git rev-list --left-right --count main...origin/main`
