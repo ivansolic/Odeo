@@ -44,7 +44,7 @@ the scaffold)? Ask plainly:
 **NEW path:** continue with step 2 (preset or interview) as usual.
 
 ## 2. Preset shortcut, only when one actually fits
-Check `ls ~/.claude-templates/presets/` QUIETLY. Mention a preset ONLY if it
+Check `ls ${CLAUDE_PLUGIN_ROOT}/project-templates/presets/` QUIETLY. Mention a preset ONLY if it
 matches the stack the user has described or implied (e.g. they said "Angular and
 NestJS" and `angular-nest-mysql` exists):
 > "There's a ready-made preset for that stack, want me to start from it and
@@ -54,7 +54,7 @@ presets, advertising an irrelevant preset only confuses, and go straight to the
 interview (step 3).
 
 If they take a preset:
-- Copy it over `CLAUDE.md`: `cp ~/.claude-templates/presets/<name>.md CLAUDE.md`
+- Copy it over `CLAUDE.md`: `cp ${CLAUDE_PLUGIN_ROOT}/project-templates/presets/<name>.md CLAUDE.md`
 - Jump to step 5 (confirm + per-project details).
 
 ## 3. Interview, ask in small groups, wait for each answer

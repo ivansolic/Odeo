@@ -4,17 +4,19 @@
 #
 # Scaffolds only the PROJECT-SPECIFIC parts (CLAUDE.md, docs/, tasks/, knowledge/,
 # design/). The commands, agents, and skills come from the installed
-# Odeo plugin (or `install.sh`), so they are available in every
-# project automatically, no per-project copies to drift.
+# Odeo plugin, so they are available in every project automatically,
+# no per-project copies to drift.
 #
 # Usage:
 #   init-project.sh <project-name> [--no-ui]
 #
-# Requires project templates in ~/.claude-templates/ (see INSTALL.md).
+# Templates come from the plugin's own project-templates/, next to this script's bin/
+# (the layout Claude Code copies into the plugin cache). CLAUDE_TEMPLATES_DIR overrides.
 
 set -euo pipefail
 
-TEMPLATES_DIR="${CLAUDE_TEMPLATES_DIR:-$HOME/.claude-templates}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+TEMPLATES_DIR="${CLAUDE_TEMPLATES_DIR:-$SCRIPT_DIR/../project-templates}"
 HAS_UI=""          # empty = ask; true/false = set explicitly by a flag
 PROJECT_NAME=""
 LANGUAGE=""        # empty = ask interactively or use the en default
@@ -48,7 +50,7 @@ fi
 
 if [[ ! -d "$TEMPLATES_DIR" ]]; then
   echo "Error: Templates directory not found at $TEMPLATES_DIR"
-  echo "Run the system install first (see INSTALL.md)."
+  echo "Reinstall the Odeo plugin (see README, Installation)."
   exit 1
 fi
 
@@ -147,10 +149,10 @@ git commit --allow-empty -m "chore: initial commit" -q
 git branch -M main
 
 echo "  → installing git guards (no direct push to main; secret scan on commit)"
-if command -v install-git-guards.sh >/dev/null 2>&1; then
+if [[ -x "$SCRIPT_DIR/install-git-guards.sh" ]]; then
+  "$SCRIPT_DIR/install-git-guards.sh" >/dev/null
+elif command -v install-git-guards.sh >/dev/null 2>&1; then
   install-git-guards.sh >/dev/null
-elif [[ -x "$HOME/bin/install-git-guards.sh" ]]; then
-  "$HOME/bin/install-git-guards.sh" >/dev/null
 else
   echo "    ! install-git-guards.sh not found, hooks skipped (run it later)"
 fi
