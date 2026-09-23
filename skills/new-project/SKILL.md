@@ -25,7 +25,9 @@ the plugin's `bin/` is on the PATH of Claude's shell.
    the full path it will get and ask whether that is right. A parent folder the user
    names is refused if it contains a `'`; otherwise it is used single-quoted. If the
    parent is inside a git repository (`git -C '<parent>' rev-parse --show-toplevel`
-   succeeds), say so before going on.
+   succeeds), say so before going on. If `<parent>/<name>` already exists
+   (`test -e '<parent>/<name>'`), say so and ask for another name; never run the script
+   over an existing folder.
 3. **UI or not.** Ask: "Will this project have a user interface?" Yes means `--ui`
    (adds the design layer), no means `--no-ui`.
 4. **Language.** `resolve-language.sh '<parent>'` prints the language to pass: the
@@ -39,8 +41,9 @@ the plugin's `bin/` is on the PATH of Claude's shell.
    - Exit 0: created. Relay two warnings if the output has them: `looks
      machine-generated` (the git email every commit will carry) and `hooks skipped` (the
      guards are NOT installed; do not claim they are).
-   - Any other exit: relay the output as it is and stop. If `<name>/` exists afterwards
-     it is incomplete; say so and do not delete it yourself.
+   - Any other exit: relay the output as it is and stop. If the output says `already
+     exists`, that folder is the user's own and was not touched. Otherwise, if `<name>/`
+     now exists, it is an incomplete scaffold: say so, and do not delete it yourself.
    - The script prints its own "Next steps", including `gh repo create ... --push`. Do
      not run them; step 7 is the only way to a remote.
 7. **Hand over.** Say what was created and the next two steps: open the folder in Claude
