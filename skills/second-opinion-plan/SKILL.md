@@ -8,7 +8,7 @@ disable-model-invocation: true
 Get an INDEPENDENT cross-model review of an implementation plan from an external
 vendor CLI, then weigh it against OUR `architecture-reviewer`. The vendor INFORMS;
 our review still governs. The shared mechanism and rules live in
-`docs/second-opinion-protocol.md` (read it; not restated here).
+`${CLAUDE_PLUGIN_ROOT}/docs/second-opinion-protocol.md` (read it; not restated here).
 
 ## When to use (and when not)
 - Use on a risky plan: a hard-to-reverse architectural choice, a large epic, or a
@@ -64,7 +64,7 @@ our review still governs. The shared mechanism and rules live in
   no gate `verdict:`, and it uses `related_branch:` (not `branch:`).
 
 ## Rules
-- Everything consequential is referenced from `docs/second-opinion-protocol.md`
+- Everything consequential is referenced from `${CLAUDE_PLUGIN_ROOT}/docs/second-opinion-protocol.md`
   and the guardrails, not restated: consent, the pre-send scan, never-simulate,
   provenance, authority (informs, never rules), model picker, cost bounds.
 - The vendor is an argument, never part of this skill's name or a command.

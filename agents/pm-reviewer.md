@@ -20,8 +20,7 @@ NOT yours: code (code-reviewer), UI (design-reviewer), architecture
 
 ## Process
 1. **Find the rubric.** It lives with the skill that produces the artifact
-   (e.g. `skills/prd/rubric.md`, `skills/stories/rubric.md`, or in
-   `~/.claude/skills/<name>/rubric.md` when running in a user project). If no
+   (e.g. `${CLAUDE_PLUGIN_ROOT}/skills/prd/rubric.md`, `${CLAUDE_PLUGIN_ROOT}/skills/stories/rubric.md`). If no
    rubric exists for this artifact type, say so and score against the skill's
    own Quality rules section, flagging that a rubric is missing.
 2. **Score every criterion 0-2**, quoting the exact line that earned or lost the
@@ -36,8 +35,7 @@ NOT yours: code (code-reviewer), UI (design-reviewer), architecture
 3. **Verdict** against the rubric's threshold: PASS or FAIL, plus the top fixes
    that would raise the score, concretely.
 4. **Write the eval record** to `docs/evals/<artifact-id>.md` (format in
-   `docs/eval-framework.md`, or `~/.claude/odeo-docs/eval-framework.md`
-   in a user project). If a previous record exists, state the regression check:
+   `${CLAUDE_PLUGIN_ROOT}/docs/eval-framework.md`). If a previous record exists, state the regression check:
    better, worse, or same, and on which criteria.
    The frontmatter carries exactly ONE `verdict:` line (value only, no trailing
    comments); on re-review REPLACE it, and put what changed in the body

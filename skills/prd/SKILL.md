@@ -42,8 +42,7 @@ editor is where a PM reviews a document. If the user says "stop opening files,"
 stop for the session.
 
 ## Quality gate (before moving on)
-Score the PRD with the **`pm-reviewer`** agent against `skills/prd/rubric.md`
-(installed copy: `~/.claude/skills/prd/rubric.md`). It writes the eval record to
+Score the PRD with the **`pm-reviewer`** agent against `${CLAUDE_PLUGIN_ROOT}/skills/prd/rubric.md`. It writes the eval record to
 `docs/evals/`. Below max score = fix the named gaps and re-dispatch pm-reviewer
 to verify, automatically, looping to the AGENTS.md review-loop rule (max 3
 cycles); show first -> final score. Then `/critique`, then `/stories`.

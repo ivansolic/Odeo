@@ -8,7 +8,7 @@ disable-model-invocation: true
 Get an INDEPENDENT cross-model review of a PM document from an external vendor
 CLI, then have OUR `pm-reviewer` compare the vendor's findings against ours. The
 vendor INFORMS; our reviewer keeps the verdict. The shared mechanism and rules
-live in `docs/second-opinion-protocol.md` (read it; not restated here).
+live in `${CLAUDE_PLUGIN_ROOT}/docs/second-opinion-protocol.md` (read it; not restated here).
 
 ## When to use (and when not)
 - Use on a BIG BET: a critique flagged a sink-it assumption; the scope spans many
@@ -58,7 +58,7 @@ live in `docs/second-opinion-protocol.md` (read it; not restated here).
   `related_branch:` (not `branch:`) so no gate ever picks it up.
 
 ## Rules
-- Everything consequential is referenced from `docs/second-opinion-protocol.md`
+- Everything consequential is referenced from `${CLAUDE_PLUGIN_ROOT}/docs/second-opinion-protocol.md`
   and the guardrails, not restated: consent, the pre-send scan, never-simulate,
   provenance, authority (informs, never rules), model picker, cost bounds.
 - The vendor is an argument, never part of this skill's name or a command.

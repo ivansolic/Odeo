@@ -8,7 +8,7 @@ disable-model-invocation: true
 Get an INDEPENDENT cross-model review of UI from an external MULTIMODAL vendor
 CLI, then have OUR `design-reviewer` compare the vendor's findings against ours.
 The vendor INFORMS; our reviewer keeps the verdict. The shared mechanism and
-rules live in `docs/second-opinion-protocol.md` (read it; not restated here).
+rules live in `${CLAUDE_PLUGIN_ROOT}/docs/second-opinion-protocol.md` (read it; not restated here).
 
 ## When to use (and when not)
 - Use on a high-stakes or contested UI: a flagship screen, a flow users abandon,
@@ -61,7 +61,7 @@ rules live in `docs/second-opinion-protocol.md` (read it; not restated here).
   uses `related_branch:` (not `branch:`) so no gate ever picks it up.
 
 ## Rules
-- Everything consequential is referenced from `docs/second-opinion-protocol.md`
+- Everything consequential is referenced from `${CLAUDE_PLUGIN_ROOT}/docs/second-opinion-protocol.md`
   and the guardrails, not restated: consent, the pre-send scan (fake data only in
   a shared screen), never-simulate, provenance, authority (informs, never rules),
   model picker, cost bounds.
