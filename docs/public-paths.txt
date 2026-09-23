@@ -20,6 +20,7 @@ project-templates/
 global/
 .github/
 .claude-plugin/
+hooks/
 
 # public root files
 README.md
