@@ -15,7 +15,7 @@
 #     boundary-check remains the hard guard.
 #   - Paths are physically resolved (pwd -P) so ".." cannot escape the zone.
 #
-# Wired by project-templates/claude-settings.json (PreToolUse, matcher
+# Wired by the plugin's hooks/hooks.json (PreToolUse, matcher
 # Edit|Write|MultiEdit|NotebookEdit). Deny = JSON permissionDecision on stdout +
 # exit 0; neutral = no output + exit 0. Enforced on Claude Code; advisory on hosts
 # without PreToolUse hooks (portability backlog).

@@ -19,9 +19,35 @@ git rev-parse --is-inside-work-tree >/dev/null 2>&1 || {
 
 hooks_dir="$(git rev-parse --git-path hooks)"
 mkdir -p "$hooks_dir"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-cat > "$hooks_dir/pre-push" <<'HOOK'
-#!/usr/bin/env bash
+# hook_preamble: the shebang plus odeo_tool, shared by both hooks. Git runs hooks from
+# the user's own terminal too, where a plugin's bin/ is NOT on PATH (Claude Code adds it to
+# the Bash tool only), and a copied plugin lives in a per-version cache directory that an
+# update replaces. So a tool is looked up: PATH, then the newest cached Odeo version, then
+# the directory these hooks were installed from (baked in here; stable for a plugin loaded
+# in place from a clone), then the repo's own bin/.
+hook_preamble() {
+  echo '#!/usr/bin/env bash'
+  printf 'ODEO_BIN_AT_INSTALL=%q\n' "$SCRIPT_DIR"
+  cat <<'PREAMBLE'
+odeo_tool() { # odeo_tool <name>: prints the path of an Odeo script, nothing if not found
+  local name="$1" c
+  c="$(command -v "$name" 2>/dev/null || true)"
+  [ -n "$c" ] && [ -x "$c" ] && { printf '%s' "$c"; return 0; }
+  # newest first: after an update the old version stays in the cache for a grace period
+  while IFS= read -r c; do
+    [ -x "$c/$name" ] && { printf '%s' "$c/$name"; return 0; }
+  done < <(ls -1td "$HOME"/.claude/plugins/cache/*/odeo/*/bin 2>/dev/null)
+  for c in "$ODEO_BIN_AT_INSTALL" "bin"; do
+    [ -x "$c/$name" ] && { printf '%s' "$c/$name"; return 0; }
+  done
+  return 0
+}
+PREAMBLE
+}
+
+{ hook_preamble; cat <<'HOOK'
 # Enforced guardrails:
 #   (1) no direct push to main/master (any remote)
 #   (2) PUSH CONTRACT A: the working repo is NEVER pushed to the PUBLIC remote;
@@ -34,10 +60,7 @@ set -uo pipefail
 remote_name="${1:-}"
 public_remote="${CLAUDE_PUBLIC_REMOTE:-origin}"
 
-guard=""
-for c in "$(command -v publish-guard.sh 2>/dev/null || true)" "$HOME/bin/publish-guard.sh" "bin/publish-guard.sh"; do
-  [ -n "$c" ] && [ -x "$c" ] && { guard="$c"; break; }
-done
+guard="$(odeo_tool publish-guard.sh)"
 
 while read -r _local_ref local_sha remote_ref _remote_sha; do
   case "$remote_ref" in
@@ -74,22 +97,21 @@ while read -r _local_ref local_sha remote_ref _remote_sha; do
 done
 exit 0
 HOOK
+} > "$hooks_dir/pre-push"
 chmod +x "$hooks_dir/pre-push"
 
-cat > "$hooks_dir/pre-commit" <<'HOOK'
-#!/usr/bin/env bash
+{ hook_preamble; cat <<'HOOK'
 # Enforced guardrail: staged secrets block the commit (secret-scan.sh).
-scan="$(command -v secret-scan.sh || true)"
-[ -z "$scan" ] && [ -x "$HOME/bin/secret-scan.sh" ] && scan="$HOME/bin/secret-scan.sh"
-[ -z "$scan" ] && [ -x "bin/secret-scan.sh" ] && scan="bin/secret-scan.sh"
+scan="$(odeo_tool secret-scan.sh)"
 if [ -n "$scan" ]; then
   "$scan" || exit 1
 else
   echo "pre-commit WARNING: secret-scan.sh not found, committing WITHOUT the secret gate." >&2
-  echo "Install it (Odeo install.sh) to restore the guardrail." >&2
+  echo "Reinstall the Odeo plugin to restore the guardrail." >&2
 fi
 exit 0
 HOOK
+} > "$hooks_dir/pre-commit"
 chmod +x "$hooks_dir/pre-commit"
 
 echo "install-git-guards: pre-push (no direct main + contract A public-remote guard) + pre-commit (secret scan) installed."

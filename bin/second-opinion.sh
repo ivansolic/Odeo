@@ -63,7 +63,7 @@ fi
 
 # --- pre-send gate: the payload is scanned BEFORE it can leave the machine ---
 SCAN=""
-for cand in "$HOME/bin/privacy-scan.sh" "$(dirname "$0")/privacy-scan.sh"; do
+for cand in "$(dirname "$0")/privacy-scan.sh"; do   # the sibling: same version as this script
   [[ -x "$cand" || -f "$cand" ]] && { SCAN="$cand"; break; }
 done
 [[ -n "$SCAN" ]] || { echo "second-opinion: privacy-scan.sh not found; refusing to send without the pre-send gate" >&2; exit 2; }
