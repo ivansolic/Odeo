@@ -58,4 +58,22 @@ out="$(cd "$run" && env -u CLAUDE_TEMPLATES_DIR HOME="$home" PATH="$CLEAN_PATH" 
 assert_exit "missing templates -> 1" 1 "$rc"
 assert_contains "names the plugin as the fix" "Odeo plugin" "$out"
 
+# 5) the project name is an allowlisted slug: /new-project passes user text straight in
+cp -R "$ROOT/project-templates" "$plugin/project-templates"
+run="$TMP/run5"; mkdir -p "$run/inner"
+for name in "../escape" "/tmp/abs-$$" "a/b" "." ".." "has space" '$(touch pwned)' ".hidden"; do
+  out="$(cd "$run/inner" && env -u CLAUDE_TEMPLATES_DIR HOME="$home" PATH="$CLEAN_PATH" \
+    bash "$plugin/bin/init-project.sh" "$name" --no-ui </dev/null 2>&1)"; rc=$?
+  assert_exit "rejects name '$name'" 1 "$rc"
+  assert_contains "says why for '$name'" "project name" "$out"
+done
+[ -z "$(ls -A "$run")" ] || [ "$(ls -A "$run")" = "inner" ] && [ -z "$(ls -A "$run/inner")" ] \
+  && ok "no directory created for any rejected name" || bad "a rejected name created something"
+[ ! -e "/tmp/abs-$$" ] && ok "absolute path not created" || { bad "absolute path created"; rm -rf "/tmp/abs-$$"; }
+for name in "my-app" "App_2" "api.v2"; do
+  ( cd "$run/inner" && env -u CLAUDE_TEMPLATES_DIR HOME="$home" PATH="$CLEAN_PATH" \
+    bash "$plugin/bin/init-project.sh" "$name" --no-ui </dev/null >/dev/null 2>&1 ); rc=$?
+  assert_exit "accepts name '$name'" 0 "$rc"
+done
+
 [ "$fail" -eq 0 ] && echo "ALL PASS" || { echo "SOME FAILED"; exit 1; }

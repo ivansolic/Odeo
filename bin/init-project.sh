@@ -43,6 +43,15 @@ if [[ -z "$PROJECT_NAME" ]]; then
   exit 1
 fi
 
+# The name becomes a directory here and a repo name later, and /new-project passes user
+# text straight in, so it is allowlisted: a letter or digit first, then letters, digits,
+# dot, underscore, hyphen. That rules out paths (/, ..), hidden dirs, spaces and shell text.
+if [[ ! "$PROJECT_NAME" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$ ]]; then
+  echo "Error: invalid project name '$PROJECT_NAME'."
+  echo "Use letters, digits, '.', '_' or '-', starting with a letter or digit (e.g. my-app)."
+  exit 1
+fi
+
 if [[ -e "$PROJECT_NAME" ]]; then
   echo "Error: '$PROJECT_NAME' already exists in this directory."
   exit 1
