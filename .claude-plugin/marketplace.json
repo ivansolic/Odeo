@@ -1,0 +1,15 @@
+{
+  "name": "odeo",
+  "description": "Odeo, one person the whole product team: the PM-to-Dev workflow for Claude Code.",
+  "owner": {
+    "name": "ivansolic",
+    "url": "https://github.com/ivansolic"
+  },
+  "plugins": [
+    {
+      "name": "odeo",
+      "source": "./",
+      "description": "Opinionated PM-to-Dev workflow for Claude Code: discovery, PRD, design, agent-first build, review, ship, measure, and compounding knowledge."
+    }
+  ]
+}

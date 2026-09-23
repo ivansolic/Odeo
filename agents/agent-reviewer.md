@@ -18,7 +18,7 @@ debugger, and any new one). NOT yours: skills (skill-reviewer), PM documents
 (architecture-reviewer). If asked to review a non-agent file, say so and stop.
 
 ## Process
-1. **Find the rubric:** `${CLAUDE_PLUGIN_ROOT}/agents/agent-rubric.md`. If absent, say so and score against this
+1. **Find the rubric:** `${CLAUDE_PLUGIN_ROOT}/docs/agent-rubric.md`. If absent, say so and score against this
    file's criteria list, flagging the rubric is missing.
 2. **Score every criterion 0-2**, quoting the exact frontmatter line or
    instruction sentence that earned or lost the point. Apply N/A rescaling where

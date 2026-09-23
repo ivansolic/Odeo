@@ -191,7 +191,7 @@ The review loop is an autonomous loop, so it needs a declared stop, not a human 
    | Code | `agents/code-reviewer.md`, Scoring |
    | UI / design | `agents/design-reviewer.md`, Scoring |
    | Skill | `docs/skill-authoring-standard.md`, the rubric section |
-   | Agent definition | `agents/agent-rubric.md` |
+   | Agent definition | `docs/agent-rubric.md` |
    | Implementation plan | `docs/plan-format.md`, the plan rubric (see the note below) |
    | PM document | the rubric shipped with the producing skill (`agents/pm-reviewer.md` step 1) |
 

@@ -126,8 +126,7 @@ Odeo/
 │   ├── design-reviewer.md    ← UI: heuristics, states, a11y, tokens
 │   ├── pm-reviewer.md        ← scores PM documents against rubrics
 │   ├── skill-reviewer.md     ← scores skills against the authoring standard
-│   ├── agent-reviewer.md     ← scores agent definitions against the agent rubric
-│   └── agent-rubric.md       ← the rubric agent-reviewer scores against
+│   └── agent-reviewer.md     ← scores agent definitions against the agent rubric (docs/agent-rubric.md)
 ├── bin/                      ← 25 executables: deterministic guards + scaffolding
 │   ├── init-project.sh       ← scaffolds the project-specific parts of a new project
 │   ├── community-sync.sh     ← clones or refreshes the community knowledge mirror
