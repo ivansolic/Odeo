@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Tests for install.sh's community-knowledge refresh.
+# Tests for bin/community-sync.sh, the community-knowledge refresh (/sync-community).
 #
 # WHY THIS EXISTS. This block was wrong in three states across two commits, each time as
 # the same shape: a diagnosis that can be wrong, paired with a remedy that destroys data.
@@ -13,7 +13,7 @@
 #      it is asserted separately from the classification so it holds even if 1 regresses.
 #
 # HOW TO MUTATION-PROVE THIS FILE. Use this recipe verbatim; escape `\$` on BOTH sides.
-#   perl -0pi -e 's/mv "\$COMMUNITY_DIR" "\$stale" 2>\/dev\/null/rm -rf "\$COMMUNITY_DIR" 2>\/dev\/null/g' install.sh
+#   perl -0pi -e 's/mv "\$COMMUNITY_DIR" "\$stale" 2>\/dev\/null/rm -rf "\$COMMUNITY_DIR" 2>\/dev\/null/g' bin/community-sync.sh
 # Expected: FOUR failures, the canary line among them. Leaving the replacement side
 # unescaped makes perl interpolate an undefined variable, producing `rm -rf ""`, which
 # deletes nothing and exits 0. That no-op mutant still reddens cases 3 and 4 (no
@@ -23,7 +23,7 @@
 # A mutation recipe that can silently become a no-op is the same vacuity class this suite
 # exists to catch, one level further out: in the instrument doing the checking.
 #
-# Run: bash tests/community-refresh.test.sh
+# Run: bash tests/community-sync.test.sh
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 pass=0; fail=0
@@ -33,12 +33,12 @@ export GIT_AUTHOR_NAME=t GIT_AUTHOR_EMAIL=t@example.com
 export GIT_COMMITTER_NAME=t GIT_COMMITTER_EMAIL=t@example.com
 export GIT_TERMINAL_PROMPT=0
 
-# The classifier under test, extracted from install.sh so this runs the REAL logic. The
+# The classifier under test, extracted from bin/community-sync.sh so this runs the REAL logic. The
 # markers are named; a drift must fail loud rather than silently verify a paraphrase.
-block="$(awk '/^# BEGIN community-refresh/,/^# END community-refresh$/' "$ROOT/install.sh")"
+block="$(awk '/^# BEGIN community-refresh/,/^# END community-refresh$/' "$ROOT/bin/community-sync.sh")"
 lines=$(printf '%s\n' "$block" | wc -l | tr -d ' ')
 if [[ -z "$block" || "$lines" -gt 95 ]] || ! printf '%s' "$block" | grep -q 'stale-'; then
-  echo "FAIL - instrument broken: extracted $lines lines; the markers in install.sh moved."
+  echo "FAIL - instrument broken: extracted $lines lines; the markers in bin/community-sync.sh moved."
   exit 1
 fi
 ok "instrument: extracted the refresh block ($lines lines)"

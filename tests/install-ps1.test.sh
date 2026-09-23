@@ -421,7 +421,7 @@ PS
 
   # 9b. THE ANTI-PORT GUARANTEE, by outcome. The denylist in case 4 knows five spellings and
   #     a sixth walks past it, which is the instance-patch shape this repo's lessons.md
-  #     forbids and which commit 2423381 removed from community-refresh.test.sh two commits
+  #     forbids and which commit 2423381 removed from community-sync.test.sh two commits
   #     ago. Here the class is decidable: install.ps1's whole job is to delegate, so it must
   #     leave the filesystem BYTE-IDENTICAL, whatever primitive a future edit reaches for.
   #     The run above did the work; this reads the same two trees back.
