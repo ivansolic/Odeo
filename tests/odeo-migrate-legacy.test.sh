@@ -1,0 +1,95 @@
+#!/usr/bin/env bash
+# Tests for bin/odeo-migrate-legacy.sh: moves the copies an install.sh install left in the
+# home directory out of the way of the plugin, so nothing loads twice.
+#
+# The guarantees are OUTCOMES, checked on a fake HOME: a dry run (the default) changes
+# nothing; --apply moves exactly the install.sh-placed items (Odeo's skill, agent and bin
+# names, odeo-docs, ~/.claude-templates) into one ~/.claude/odeo-legacy-<ts>/ folder;
+# everything else survives in place; and no file is ever deleted (the file count over
+# home is identical before and after).
+#
+# Observed failing (2026-09-23), each mutant checked to differ from the original:
+#   M1 apply by default                      -> 3 FAIL (case 1)
+#   M2 `rm -rf` instead of `mv`              -> 9 FAIL (case 2: every kept-in-legacy + count)
+#   M3 also move ~/.claude/CLAUDE.md          -> 1 FAIL (case 2, untouched)
+set -uo pipefail
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+SCRIPT="$ROOT/bin/odeo-migrate-legacy.sh"
+fail=0
+ok() { echo "ok: $1"; }
+bad() { echo "FAIL: $1"; fail=1; }
+assert_exit() { if [ "$2" = "$3" ]; then ok "$1"; else bad "$1 (expected exit $2, got $3)"; fi; }
+assert_contains() { case "$3" in *"$2"*) ok "$1";; *) bad "$1 (missing '$2')";; esac; }
+exists() { if [ -e "$2" ] || [ -L "$2" ]; then ok "$1"; else bad "$1 ($2 missing)"; fi; }
+gone() { if [ -e "$2" ] || [ -L "$2" ]; then bad "$1 ($2 still there)"; else ok "$1"; fi; }
+
+TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT
+count_files() { find "$1" \( -type f -o -type l \) | wc -l | tr -d ' '; }
+
+# make_home <dir>: an install.sh-style home plus the user's own things
+make_home() {
+  local h="$1"
+  mkdir -p "$h/.claude/skills" "$h/.claude/agents" "$h/.claude/odeo-docs" "$h/bin" \
+           "$h/.claude-templates/tasks" "$h/.claude/community-knowledge"
+  for s in build merge research; do mkdir -p "$h/.claude/skills/$s"; echo odeo > "$h/.claude/skills/$s/SKILL.md"; done
+  mkdir -p "$h/.claude/skills/my-own"; echo mine > "$h/.claude/skills/my-own/SKILL.md"
+  echo odeo > "$h/.claude/agents/builder.md"; echo mine > "$h/.claude/agents/my-agent.md"
+  echo odeo > "$h/.claude/odeo-docs/plan-format.md"
+  echo odeo > "$h/.claude-templates/CLAUDE.md"
+  printf '#!/bin/sh\n' > "$h/bin/merge-gate.sh"; printf '#!/bin/sh\n' > "$h/bin/my-tool.sh"
+  echo "# mine" > "$h/.claude/CLAUDE.md"; echo secret-terms > "$h/.claude/privacy-denylist.txt"
+  echo lesson > "$h/.claude/community-knowledge/a.md"
+}
+
+# 1) the default is a dry run: it lists what would move and changes nothing
+H="$TMP/h1"; make_home "$H"; before="$(find "$H" | sort)"
+out="$(HOME="$H" "$SCRIPT" 2>&1)"; rc=$?
+assert_exit "dry run -> 0" 0 "$rc"
+assert_contains "dry run lists a skill" ".claude/skills/build" "$out"
+assert_contains "dry run says how to apply" "--apply" "$out"
+[ "$(find "$H" | sort)" = "$before" ] && ok "dry run changed nothing" || bad "dry run changed the home"
+
+# 2) --apply moves exactly the install.sh items, keeps everything else, deletes nothing
+H="$TMP/h2"; make_home "$H"; n_before="$(count_files "$H")"
+out="$(HOME="$H" "$SCRIPT" --apply 2>&1)"; rc=$?
+assert_exit "apply -> 0" 0 "$rc"
+legacy="$(ls -d "$H"/.claude/odeo-legacy-* 2>/dev/null | head -1)"
+[ -n "$legacy" ] && ok "one legacy folder created" || bad "no legacy folder"
+for p in .claude/skills/build .claude/skills/merge .claude/skills/research .claude/agents/builder.md \
+         .claude/odeo-docs bin/merge-gate.sh .claude-templates; do
+  gone "moved: $p" "$H/$p"; exists "kept in legacy: $p" "$legacy/$p"
+done
+for p in .claude/skills/my-own .claude/agents/my-agent.md bin/my-tool.sh .claude/CLAUDE.md \
+         .claude/privacy-denylist.txt .claude/community-knowledge/a.md; do
+  exists "untouched: $p" "$H/$p"
+done
+[ "$(count_files "$H")" = "$n_before" ] && ok "no file deleted ($n_before before and after)" \
+  || bad "file count changed: $n_before -> $(count_files "$H")"
+assert_contains "names the legacy folder" "$legacy" "$out"
+
+# 3) a --link install (symlinks): the link moves, its target is untouched
+H="$TMP/h3"; mkdir -p "$H/.claude/skills" "$TMP/clone/skills/build"; echo odeo > "$TMP/clone/skills/build/SKILL.md"
+ln -s "$TMP/clone/skills/build" "$H/.claude/skills/build"
+HOME="$H" "$SCRIPT" --apply >/dev/null 2>&1
+legacy="$(ls -d "$H"/.claude/odeo-legacy-* 2>/dev/null | head -1)"
+[ -L "$legacy/.claude/skills/build" ] && ok "symlink moved as a link" || bad "symlink not moved as a link"
+exists "link target untouched" "$TMP/clone/skills/build/SKILL.md"
+
+# 4) nothing to migrate: says so, exit 0, creates no folder
+H="$TMP/h4"; mkdir -p "$H/.claude"
+out="$(HOME="$H" "$SCRIPT" --apply 2>&1)"; rc=$?
+assert_exit "clean home -> 0" 0 "$rc"
+assert_contains "clean home says nothing to do" "nothing to migrate" "$out"
+[ -z "$(ls -d "$H"/.claude/odeo-legacy-* 2>/dev/null)" ] && ok "no empty legacy folder" || bad "empty legacy folder created"
+
+# 5) re-running after an apply finds nothing
+H="$TMP/h2"; out="$(HOME="$H" "$SCRIPT" --apply 2>&1)"
+assert_contains "second apply is a no-op" "nothing to migrate" "$out"
+
+# 6) unknown flag -> usage, exit 2, nothing moved
+H="$TMP/h6"; make_home "$H"; before="$(find "$H" | sort)"
+HOME="$H" "$SCRIPT" --force >/dev/null 2>&1; rc=$?
+assert_exit "unknown flag -> 2" 2 "$rc"
+[ "$(find "$H" | sort)" = "$before" ] && ok "unknown flag moved nothing" || bad "unknown flag changed the home"
+
+[ "$fail" -eq 0 ] && echo "ALL PASS" || { echo "SOME FAILED"; exit 1; }

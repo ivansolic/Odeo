@@ -16,6 +16,10 @@
 #       Prints nothing when the user's own global carries the Security Baseline heading.
 #   odeo-context.sh language SessionStart
 #       While no GLOBAL output language is set, asks Claude to ask the user once.
+#   odeo-context.sh legacy SessionStart
+#       While an old install.sh install is still in the home directory (its markers:
+#       ~/.claude/odeo-docs, ~/.claude-templates, ~/bin/merge-gate.sh), points at
+#       odeo-migrate-legacy.sh, because those copies load every skill and agent twice.
 #
 # Output is the documented hookSpecificOutput JSON, or nothing. It never blocks a
 # session: every valid invocation exits 0, and a broken install is reported in the context
@@ -33,7 +37,7 @@ MARKER='## Security Baseline (non-negotiable'
 BUDGET=9200    # content chars per part; the header line keeps each part under 9,500
 
 usage() {
-  echo "usage: odeo-context.sh baseline <part> <SessionStart|SubagentStart> | language SessionStart" >&2
+  echo "usage: odeo-context.sh baseline <part> <SessionStart|SubagentStart> | language SessionStart | legacy SessionStart" >&2
   exit 2
 }
 
@@ -115,6 +119,18 @@ Odeo output language is not set yet. Once, at the start of your first reply in t
 EOF
 }
 
+legacy_nudge() {
+  cat <<'EOF'
+Odeo: an old install.sh installation is still in this home directory (~/.claude/odeo-docs, ~/.claude-templates or ~/bin/merge-gate.sh), so Odeo's skills and agents load twice, once from the plugin and once from those copies. Tell the user once, and offer to run `odeo-migrate-legacy.sh` (a dry run that lists what would move), then `odeo-migrate-legacy.sh --apply` only after they say yes. It moves the copies aside into ~/.claude/odeo-legacy-<timestamp>/ and deletes nothing.
+EOF
+}
+
+run_legacy() {
+  if [ -e "$HOME/.claude/odeo-docs" ] || [ -e "$HOME/.claude-templates" ] || [ -e "$HOME/bin/merge-gate.sh" ]; then
+    legacy_nudge | emit_json SessionStart
+  fi
+}
+
 run_baseline() { # run_baseline <part> <event>
   user_has_baseline && return 0
   if [ ! -f "$BASELINE" ]; then
@@ -144,6 +160,9 @@ case "${1:-}" in
   language)
     [ "$#" -eq 2 ] && [ "$2" = SessionStart ] || usage
     run_language ;;
+  legacy)
+    [ "$#" -eq 2 ] && [ "$2" = SessionStart ] || usage
+    run_legacy ;;
   *) usage ;;
 esac
 exit 0

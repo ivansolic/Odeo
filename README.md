@@ -127,9 +127,10 @@ Odeo/
 │   ├── pm-reviewer.md        ← scores PM documents against rubrics
 │   ├── skill-reviewer.md     ← scores skills against the authoring standard
 │   └── agent-reviewer.md     ← scores agent definitions against the agent rubric (docs/agent-rubric.md)
-├── bin/                      ← 25 executables: deterministic guards + scaffolding
+├── bin/                      ← 26 executables: deterministic guards + scaffolding
 │   ├── init-project.sh       ← scaffolds the project-specific parts of a new project
 │   ├── community-sync.sh     ← clones or refreshes the community knowledge mirror
+│   ├── odeo-migrate-legacy.sh ← moves an old install.sh install aside (never deletes)
 │   ├── install-git-guards.sh ← installs pre-push + pre-commit hooks into a repo
 │   ├── token-report.py       ← session token usage (the one non-bash tool here)
 │   │                           gates (exit codes, no judgment; each one blocks something):
@@ -166,7 +167,7 @@ Odeo/
 ├── global/
 │   └── CLAUDE.md             ← user-global baseline laid into ~/.claude by install.sh
 ├── tests/
-│   └── *.test.sh             ← 37 suites, 1195 assertions. 25 of the 25 programs have their
+│   └── *.test.sh             ← 38 suites, 1234 assertions. 26 of the 26 programs have their
 │                               own suite; the remaining suites are cross-cutting rather than
 │                               per-program. The number counts the `ok` lines one full run
 │                               reports, so it moves with the machine: a skipped case takes its

@@ -15,6 +15,7 @@
 #   M4 language nudge regardless of scope               -> 1 FAIL (case 4)
 #   M5 budget raised from 9500 to 20000                 -> 3 FAIL (cases 1, 6)
 #   M6 `exit 1` after the missing-baseline warning      -> 1 FAIL (case 5)
+#   M7 legacy check ignores ~/.claude/odeo-docs          -> 1 FAIL (case 4b)
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 HOOK="$ROOT/hooks/odeo-context.sh"
@@ -93,6 +94,14 @@ assert_contains "invalid language -> nudge" "$NUDGE" "$(ctx "$(CLAUDE_GLOBAL_CON
 cfg="$TMP/lang.md"; printf '# Mine\noutput_language: de\n' > "$cfg"
 assert_empty "language set -> silent" "$(CLAUDE_GLOBAL_CONFIG="$cfg" "$HOOK" language SessionStart)"
 
+# 4b) legacy install.sh copies: a one-time pointer to the migration, silent otherwise
+lh="$TMP/legacy-home"; mkdir -p "$lh/.claude/odeo-docs"
+assert_contains "legacy copies -> migration nudge" "odeo-migrate-legacy.sh" "$(ctx "$(HOME="$lh" "$HOOK" legacy SessionStart)")"
+lh="$TMP/legacy-bin"; mkdir -p "$lh/bin"; touch "$lh/bin/merge-gate.sh"
+assert_contains "legacy ~/bin script -> nudge" "odeo-migrate-legacy.sh" "$(ctx "$(HOME="$lh" "$HOOK" legacy SessionStart)")"
+ch="$TMP/clean-home"; mkdir -p "$ch/.claude"
+assert_empty "clean home -> silent" "$(HOME="$ch" "$HOOK" legacy SessionStart)"
+
 # 5) broken install (no global/CLAUDE.md, no language scripts): says so, still exit 0
 fake="$TMP/fake-plugin"; mkdir -p "$fake/hooks"; cp "$HOOK" "$fake/hooks/"
 out="$(CLAUDE_GLOBAL_CONFIG="$TMP/absent.md" "$fake/hooks/odeo-context.sh" baseline 1 SessionStart)"; rc=$?
@@ -127,7 +136,8 @@ for event in ("SessionStart", "SubagentStart"):
     assert set(range(1, need + 1)) <= parts, (event, parts)
     assert all("${CLAUDE_PLUGIN_ROOT}/hooks/odeo-context.sh" in c for c in cmds(event))
 assert any(c.endswith("language SessionStart") for c in cmds("SessionStart"))
-assert not any("language" in c for c in cmds("SubagentStart"))
+assert any(c.endswith("legacy SessionStart") for c in cmds("SessionStart"))
+assert not any("language" in c or "legacy" in c for c in cmds("SubagentStart"))
 EOF
 if [ -x "$HOOK" ]; then ok "hook is executable"; else bad "hook is not executable"; fi
 
