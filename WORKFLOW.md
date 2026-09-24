@@ -16,24 +16,23 @@ The PM thinking inside Phase 1 runs on our **first-party PM skills** (`/brainsto
 
 ## Returning to Work (day 2 and beyond)
 
-Your setup is installed once and stays, global `CLAUDE.md`, the skills and agents
-(including the PM skills), templates, and `init-project.sh` are all permanent. You
-do NOT reinstall any of that to start working again. You just open a project.
+Your setup is the Odeo plugin, installed once: the skills and agents (including the PM
+skills), the templates, the guard scripts and the global baseline all come from it and
+update with it. You do NOT reinstall anything to start working again. You just open a
+project.
 
 ### Start a brand-new project
-```bash
-cd ~/Desktop                 # or wherever you keep projects
-init-project.sh my-project   # scaffolds the full structure
-cd my-project
-gh repo create my-project --private --source=. --remote=origin --push
-claude
+In Claude, from the folder where you keep projects:
 ```
-Then, **first thing inside Claude**, configure the project for your stack:
+/new-project my-project      # scaffolds the full structure, git on main, guards installed
+```
+It offers a private GitHub repo (only on your yes). Open `my-project` in Claude, then,
+**first thing**, configure the project for your stack:
 ```
 /setup-project
 ```
 Claude interviews you (stack, commands, conventions) and fills in `CLAUDE.md`, 
-or you start from a preset in `~/.claude-templates/presets/`. Once per project.
+or you start from a preset it offers when one fits your stack. Once per project.
 Then begin Phase 1 (brainstorm → PRD → critique → stories) below.
 
 ### Come back to an existing project
@@ -48,12 +47,12 @@ fresh `claude` picks up where you left off.
 
 ### You do NOT need to redo
 - ❌ Copy CLAUDE.md / templates
-- ❌ Re-run `install.sh` (the skills/agents stay installed)
+- ❌ Reinstall the plugin (it stays installed, and updates via `/plugin`)
 - ❌ Touch `~/.bash_profile`
 
 ### If commands seem missing in a session
 ```
-# our skills/agents live in ~/.claude/skills and ~/.claude/agents; re-run install.sh if missing.
+/plugin                   # Installed: is odeo there and enabled?
 /reload-plugins           # if a plugin's commands stop responding
 ```
 
@@ -797,7 +796,7 @@ trusting auto-invocation.
 
 | I want to... | I do... |
 |---|---|
-| Start a new project | `init-project.sh <name>` → `gh repo create ...` → `claude` |
+| Start a new project | `/new-project <name>` → open it → `/setup-project` |
 | See where you are + what's next | `/start` (you-are-here + due loop reminders) |
 | Ask "how do I do X here?" | just ask, `/guide` auto-activates (routes goal -> commands) |
 | Try an idea by building it | `/prototype` (N disposable variants, live compare, keep the learnings) |

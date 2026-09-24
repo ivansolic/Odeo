@@ -4,7 +4,7 @@ _Last updated: [YYYY-MM-DD]_
 
 > 🚀 **First time in this project?** Run `/setup-project` and Claude will
 > interview you (stack, commands, conventions) and fill in the sections below.
-> Or, if your stack matches one, start from a preset in `~/.claude-templates/presets/`.
+> Or, if your stack matches one, start from a preset (`/setup-project` offers the ones that fit).
 > Until then, the `[...]` placeholders below are for you to replace.
 
 ## Purpose
@@ -83,7 +83,7 @@ output_language: en
 
 Where `.claude/tasks/todo.md` and `lessons.md` are backed up. They are gitignored so the build
 ledger never reaches a published snapshot, which also means git does not carry them: this line
-is the only thing that does. `/retro` and `ledger-backup.sh` (installed in `~/bin`) read it, and the end-of-session
+is the only thing that does. `/retro` and `ledger-backup.sh` (from the Odeo plugin) read it, and the end-of-session
 check warns when the copy falls behind. Leave it out and nothing will nag you about it. Put it
 in `CLAUDE.local.md` instead (gitignored, read first) when the target is private.
 Uncomment ONE and fill it in. The `#` matters: an example left live is read as real

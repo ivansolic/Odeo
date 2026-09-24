@@ -36,7 +36,7 @@ smarter.
    straight to a PR.
 2. **Fork** the repo and create a branch: `feature/...`, `fix/...`, `docs/...`.
 3. **Make the change.** Match the surrounding style. One logical change per PR.
-4. **Test it.** If you touched `init-project.sh` or `install.sh`, run a scaffold in
+4. **Test it.** If you touched `init-project.sh`, run a scaffold in
    a throwaway dir and confirm it works (both `--ui` and `--no-ui`).
 5. **Open a PR** using the template. Describe the what and the why.
 

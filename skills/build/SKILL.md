@@ -9,7 +9,7 @@ Invoke once. Replaces the old dev-handoff (its prep is the with-me mode here).
 ## 1. Identify the stories, then the spec gate (ENFORCED)
 Ask which stories to build (paths in `docs/stories/`), or use the ones named.
 For each, confirm it is ready: a description and testable acceptance criteria.
-Then run `spec-gate.sh <story paths...>` (in `~/bin` or `bin/`) and STOP on
+Then run `spec-gate.sh <story paths...>` (on PATH through the Odeo plugin) and STOP on
 non-zero: it refuses stories with no eval record, a non-passing verdict, or a
 record OLDER than the story (spec edited after review). The only way through
 is the review loop: fix -> pm-reviewer re-verifies -> fresh PASS. Never work

@@ -30,7 +30,7 @@ our review still governs. The shared mechanism and rules live in
    argument (default from the protocol's matrix); state the model and let the
    human confirm, pick another, or stop.
 4. **Run the wrapper**: `second-opinion.sh plan <payload-file> [--vendor NAME]
-   [--model ID]` (in `~/bin` or `bin/`). It runs `privacy-scan.sh` before sending
+   [--model ID]` (on PATH through the Odeo plugin). It runs `privacy-scan.sh` before sending
    and stops on exit 1; a missing vendor CLI is exit 3 (it never simulates).
 5. **Compare, THE WRINKLE for plans:** `architecture-reviewer` returns advice and
    writes NO record (its verdict lives in the plan's `arch_review:` line, written

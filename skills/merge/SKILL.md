@@ -18,7 +18,7 @@ human floor.
 
 ## Steps
 0. **The gate (ENFORCED, run it first and STOP on non-zero):** `merge-gate.sh`
-   (in `~/bin` or `bin/`). It refuses deterministically when: you're on main, the
+   (on PATH through the Odeo plugin). It refuses deterministically when: you're on main, the
    working tree is dirty, no review record exists in `docs/evals/` for this
    branch, or a DO-NOT-TOUCH boundary was violated (`boundary-check.sh`). Fix
    what it names (usually: run the reviewers so the record exists), re-run, only

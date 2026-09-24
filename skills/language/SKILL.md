@@ -23,7 +23,7 @@ the same line the resolver reads; this command shows it and changes it.
   Relay its refusal message unchanged, whatever it is; never pick a code for the user.
 
 ## Process
-The scripts live in `~/bin` (or `bin/` in this repo). The project is the repo root:
+The scripts are on PATH through the Odeo plugin. The project is the repo root:
 `root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"`.
 
 **Show, `/language` with no argument:**

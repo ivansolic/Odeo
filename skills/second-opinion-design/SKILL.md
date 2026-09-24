@@ -33,7 +33,7 @@ rules live in `${CLAUDE_PLUGIN_ROOT}/docs/second-opinion-protocol.md` (read it; 
    argument (multimodal default from the protocol's matrix); state the model and
    let the human confirm, pick another, or stop.
 4. **Run the wrapper**: `second-opinion.sh design <payload-file> [--vendor NAME]
-   [--model ID]` (in `~/bin` or `bin/`). It runs `privacy-scan.sh` before sending
+   [--model ID]` (on PATH through the Odeo plugin). It runs `privacy-scan.sh` before sending
    and stops on exit 1; a missing vendor CLI is exit 3 (it never simulates).
 5. **OUR design-reviewer authors the comparison**: hand it the vendor's structured
    findings; it writes the second-opinion record (overlap / only-ours /

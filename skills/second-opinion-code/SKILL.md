@@ -29,7 +29,7 @@ live in `${CLAUDE_PLUGIN_ROOT}/docs/second-opinion-protocol.md` (read it; not re
    argument (default from the protocol's matrix); state the model it will run on
    and let the human confirm, pick another, or stop.
 4. **Run the wrapper**: `second-opinion.sh code <payload-file> [--vendor NAME]
-   [--model ID] [--mode review|adversarial]` (in `~/bin` or `bin/`). It runs
+   [--model ID] [--mode review|adversarial]` (on PATH through the Odeo plugin). It runs
    `privacy-scan.sh` before sending and stops on exit 1; a missing vendor CLI is
    exit 3 (it never simulates). Use `--mode adversarial` for security-shaped reads.
 5. **OUR code-reviewer authors the comparison**: hand it the vendor's structured
