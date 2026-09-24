@@ -14,7 +14,7 @@ When given an architect's plan (docs/plans/), review THE PLAN against the
 inherited product architecture: module boundaries, data flow, failure modes,
 boundary (do-not-touch) respect, and ambiguity a builder would trip on. Return
 findings ranked blocking / important / note, or state "clean" explicitly.
-**Also check what only you can check**, per `docs/plan-format.md` rubric criterion 3
+**Also check what only you can check**, per `${CLAUDE_PLUGIN_ROOT}/docs/plan-format.md` rubric criterion 3
 (that file is canonical; if this list differs, it wins): the reference graph (every
 `Consumes:`/`Produces:` resolves to a named `Contracts` entry, every `Contracts` entry
 NAMES ITS PRODUCING TASK, within-plan `Consumed by:` sets match the tasks that cite

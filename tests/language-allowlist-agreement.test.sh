@@ -3,7 +3,8 @@
 #
 # The code set `en de hr fr` is a literal in bin/{resolve-language,set-global-language,
 # set-project-language,language-status}.sh, a `case` arm in bin/init-project.sh, and a
-# ValidateSet in install.ps1. This test is the ONLY mechanical defense against those six
+# ValidateSet in install.ps1, and the userConfig options in .claude-plugin/plugin.json. This
+# test is the ONLY mechanical defense against those seven
 # copies drifting. The failure it prevents is quiet, not loud: a writer that accepts a code
 # the resolver then degrades away tells the user "set to es" and keeps producing English
 # documents.
@@ -123,6 +124,15 @@ assert_eq "install.ps1 declares exactly one ValidateSet" 1 "$n_sets"
 ps1_set="$(printf '%s\n' "$ps1_sets" | grep -oE "'[a-zA-Z-]+'" | tr -d "'" | tr '\n' ' ')"
 ps1_set="${ps1_set% }"
 assert_eq "install.ps1 accepts exactly the expected set" "$EXPECTED" "$ps1_set"
+
+# 6) THE SEVENTH COPY: the plugin's userConfig `output_language` options are the list the
+#    enable-time dialog and the /config picker offer. The hook writes the chosen value with
+#    set-global-language.sh, so an option outside the set would be offered and then refused.
+#    Whole set compared in order, so an added, dropped or reordered entry is caught.
+plugin_set="$(python3 -c 'import json,sys; print(" ".join(json.load(open(sys.argv[1]))["userConfig"]["output_language"]["options"]))' "$ROOT/.claude-plugin/plugin.json" 2>/dev/null)"
+assert_eq "plugin.json userConfig offers exactly the expected set" "$EXPECTED" "$plugin_set"
+plugin_default="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["userConfig"]["output_language"]["default"])' "$ROOT/.claude-plugin/plugin.json" 2>/dev/null)"
+assert_eq "plugin.json userConfig defaults to en" "en" "$plugin_default"
 
 echo
 if [ "$fail" = 0 ]; then echo "ALL PASS"; else echo "SOME FAILED"; fi

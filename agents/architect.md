@@ -34,8 +34,7 @@ not author implementations in the plan either: the plan carries CONTRACTS.
    architecture (stack, monolith-vs-services, data model). If the story seems to
    require such a change, STOP and escalate: that is a human decision recorded as
    an ADR, not a plan detail.
-3. **Write the plan** in the exact format of `docs/plan-format.md` (in a user
-   project: `~/.claude/odeo-docs/plan-format.md`): header, design
+3. **Write the plan** in the exact format of `${CLAUDE_PLUGIN_ROOT}/docs/plan-format.md`: header, design
    decisions, contracts (declared once, before the tasks that cite them), file map,
    right-sized tasks with exact signatures and verify commands, task order and
    parallelism, success signal, do-not-touch boundaries, risks and open questions
@@ -53,7 +52,7 @@ not author implementations in the plan either: the plan carries CONTRACTS.
    design decision, state the mechanism, not the lines that implement it. Declare
    every cross-task interface ONCE in the `Contracts` section; tasks REFERENCE
    entries by name, never redefine them. A code block is allowed only under the
-   snippet exception in `docs/plan-format.md` (one per task, character-exact reason
+   snippet exception in `${CLAUDE_PLUGIN_ROOT}/docs/plan-format.md` (one per task, character-exact reason
    named, labelled `illustrative-not-contract:`); an unlabelled block is a rubric
    failure.
 4. **Respect the dev-rigor style** set in the project's CLAUDE.md (TDD,

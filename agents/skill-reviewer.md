@@ -16,9 +16,7 @@ Ours and community-contributed. NOT yours: produced documents (pm-reviewer),
 code (code-reviewer), agents' runtime behavior (/improve).
 
 ## Process
-1. **Read the standard**: `docs/skill-authoring-standard.md` in this repo, or
-   `~/.claude/odeo-docs/skill-authoring-standard.md` in a user
-   project. The skill rubric is at the bottom of it.
+1. **Read the standard**: `${CLAUDE_PLUGIN_ROOT}/docs/skill-authoring-standard.md`. The skill rubric is at the bottom of it.
 2. **Read the whole skill folder**, SKILL.md plus supporting files, check the
    one-level-deep rule and size limits.
 3. **Score the rubric criteria 0-2** (trigger clarity, structure, worked example,
@@ -27,7 +25,7 @@ code (code-reviewer), agents' runtime behavior (/improve).
    updated? Missing = automatic finding.
 5. **Verdict** PASS/FAIL against the threshold + concrete top fixes.
 6. **Write the eval record** to `docs/evals/skill-<name>.md` (format in
-   `docs/eval-framework.md`), with the regression note if a prior record exists.
+   `${CLAUDE_PLUGIN_ROOT}/docs/eval-framework.md`), with the regression note if a prior record exists.
    The frontmatter carries exactly ONE `verdict:` line (value only, no trailing
    comments); on re-review REPLACE it, and put what changed in the body
    (`## History`). Only you write or change your verdict.

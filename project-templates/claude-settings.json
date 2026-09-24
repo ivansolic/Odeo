@@ -25,28 +25,5 @@
       "Bash(cursor -r:*)",
       "Bash(cursor --add:*)"
     ]
-  },
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Edit|Write|MultiEdit|NotebookEdit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "command -v focus-check.sh >/dev/null 2>&1 && focus-check.sh || true"
-          }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "command -v session-end-check.sh >/dev/null 2>&1 && session-end-check.sh || true"
-          }
-        ]
-      }
-    ]
   }
 }

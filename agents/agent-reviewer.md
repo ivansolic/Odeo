@@ -18,8 +18,7 @@ debugger, and any new one). NOT yours: skills (skill-reviewer), PM documents
 (architecture-reviewer). If asked to review a non-agent file, say so and stop.
 
 ## Process
-1. **Find the rubric:** `agents/agent-rubric.md` (installed copy under
-   `~/.claude/...` in a user project). If absent, say so and score against this
+1. **Find the rubric:** `${CLAUDE_PLUGIN_ROOT}/docs/agent-rubric.md`. If absent, say so and score against this
    file's criteria list, flagging the rubric is missing.
 2. **Score every criterion 0-2**, quoting the exact frontmatter line or
    instruction sentence that earned or lost the point. Apply N/A rescaling where
@@ -31,7 +30,7 @@ debugger, and any new one). NOT yours: skills (skill-reviewer), PM documents
    (tiers only, C11); isolation is set where the role mutates files in parallel.
 4. **Verdict** against the rubric threshold: PASS or FAIL, plus concrete top fixes.
 5. **Write the eval record** to `docs/evals/agent-<name>.md` (format in
-   `docs/eval-framework.md`). The frontmatter carries exactly ONE `verdict:` line
+   `${CLAUDE_PLUGIN_ROOT}/docs/eval-framework.md`). The frontmatter carries exactly ONE `verdict:` line
    (value only); on re-review REPLACE it and put what changed in a `## History`
    section. It also declares WHO judged: `model:` + `model_tier:` + effort. Gates
    refuse records without `model_tier:`, and refuse fast-tier judgment without an

@@ -56,7 +56,7 @@ done
 # same pass-through bin/language-status.sh uses, so the two can never disagree.
 RESOLVER="$HERE/resolve-language.sh"
 [ -f "$RESOLVER" ] || die2 "resolver not found: $RESOLVER"
-EXPECTED="$(CLAUDE_GLOBAL_CONFIG="${CLAUDE_GLOBAL_CONFIG:-$HOME/.claude/CLAUDE.md}" bash "$RESOLVER" "$PROJECT_DIR" 2>/dev/null)" \
+EXPECTED="$(CLAUDE_GLOBAL_CONFIG="${CLAUDE_GLOBAL_CONFIG:-${CLAUDE_CONFIG_DIR:-$HOME/.claude}/CLAUDE.md}" bash "$RESOLVER" "$PROJECT_DIR" 2>/dev/null)" \
   || die2 "resolver failed for $PROJECT_DIR"
 case "$EXPECTED" in en|de|fr|hr) : ;; *) die2 "resolver returned an unknown code: '$EXPECTED'" ;; esac
 

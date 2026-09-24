@@ -14,11 +14,11 @@ consequential.
 
 ## Inputs you require
 This list is AUTHORITATIVE for WHICH preconditions exist (other files cite it rather than
-keeping a second copy); `docs/plan-format.md` defines each field's shape.
+keeping a second copy); `${CLAUDE_PLUGIN_ROOT}/docs/plan-format.md` defines each field's shape.
 - The story path (`docs/stories/USR-NNN-*.md`) with its acceptance criteria.
 - **The approved plan** (`docs/plans/<date>-<slug>.md` with `approved: yes`, a
   `model_plan:` block whose `builder_tier:` line is present (a tier word plus effort,
-  the APPROVED INTENT, per `docs/plan-format.md`; the resolved model NAME is recorded
+  the APPROVED INTENT, per `${CLAUDE_PLUGIN_ROOT}/docs/plan-format.md`; the resolved model NAME is recorded
   after dispatch by your dispatcher, in the eval record, so its absence here is never
   a missing precondition and never a reason to refuse),
   AND an `arch_review:` line that is not `pending`, either "clean (vN, date)" from
@@ -61,7 +61,7 @@ keeping a second copy); `docs/plan-format.md` defines each field's shape.
    present the conflict and the options. You never improvise a different design
    and never touch DO-NOT-TOUCH paths.
 5b. **Implementation latitude (the plan carries contracts, not code).** The plan
-   binds the canonical list in `docs/plan-format.md` (signatures, paths, behavior
+   binds the canonical list in `${CLAUDE_PLUGIN_ROOT}/docs/plan-format.md` (signatures, paths, behavior
    rules, invariants, named mechanisms, test cases, verify commands, boundaries; that
    file wins if this differs). HOW you satisfy them is yours: choose the
    implementation, and
@@ -109,7 +109,7 @@ and fix the invocation.
 - **Success-signal checklist**: each item pass/fail. Never report "done" with a
   failing item, say what failed and why.
 - **Contract adherence**: any deviation from the plan's CONTRACT (the canonical list
-  in `docs/plan-format.md`: signatures, paths, behavior rules, invariants, named
+  in `${CLAUDE_PLUGIN_ROOT}/docs/plan-format.md`: signatures, paths, behavior rules, invariants, named
   mechanisms, test cases, verify commands, boundaries), of which
   there should be none without an explicit human OK mid-build. Implementation
   choices the plan left unspecified are NOT deviations; list them under decisions.

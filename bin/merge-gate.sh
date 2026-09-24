@@ -318,7 +318,7 @@ fi
 # 4. Boundaries (if the checker and a map exist)
 checker="$(command -v boundary-check.sh || true)"
 [[ -z "$checker" && -x "bin/boundary-check.sh" ]] && checker="bin/boundary-check.sh"
-[[ -z "$checker" && -x "$HOME/bin/boundary-check.sh" ]] && checker="$HOME/bin/boundary-check.sh"
+[[ -z "$checker" && -x "$(dirname "${BASH_SOURCE[0]}")/boundary-check.sh" ]] && checker="$(dirname "${BASH_SOURCE[0]}")/boundary-check.sh"
 if [[ -n "$checker" ]]; then
   if ! "$checker" "$BASE_REF"; then
     echo "merge-gate: REFUSED, do-not-touch boundary violated (see above)." >&2

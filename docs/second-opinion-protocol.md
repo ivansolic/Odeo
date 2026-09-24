@@ -11,7 +11,7 @@ verdict, and the `merge-gate` reads only OUR reviewer's record. A second opinion
 can change what a human decides; it cannot change a gate.
 
 ## The mechanism: `bin/second-opinion.sh`
-The ONLY sanctioned path to a vendor (in `~/bin` or `bin/`). It runs the vendor
+The ONLY sanctioned path to a vendor (on PATH through the Odeo plugin). It runs the vendor
 CLI non-interactively and READ-ONLY over one payload file, and it:
 - refuses to send until `privacy-scan.sh` passes over the payload (fail-closed);
 - never simulates: a missing or broken vendor CLI stops the run (exit 3);

@@ -40,7 +40,7 @@ Run this **whether or not a lesson was written**: `todo.md` changes in almost ev
 and it is gitignored, so nothing else carries it.
 
 ```bash
-ledger-backup.sh              # installed in ~/bin, on PATH; repo fallback bin/ledger-backup.sh
+ledger-backup.sh              # on PATH through the Odeo plugin
 ```
 
 Report the result by its **exit code**, never by assumption:

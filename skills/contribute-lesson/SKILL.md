@@ -41,7 +41,7 @@ Only for **generalizable** content (universal patterns), never project-specific.
    - Result: a universal, reusable lesson with a generic example. Concrete, not vague.
 3. **Run the deterministic privacy scan (hard gate, do not skip):**
    - Write the sanitized draft to a temp file and run `privacy-scan.sh <file>`
-     (installed in `~/bin`; falls back to `~/.claude-templates/../bin` if needed).
+     (on PATH through the Odeo plugin's `bin/`).
    - **Exit 0:** clean, continue.
    - **Exit 1 (BLOCK):** it found emails, secrets/tokens, local paths, IPs, or the
      user's deny-list terms. Show the findings. For each, either **redact it** or
