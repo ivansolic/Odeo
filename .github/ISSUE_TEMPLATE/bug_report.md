@@ -22,7 +22,7 @@ labels: bug
 ## Where
 
 - [ ] A command/agent (`/build`, `/merge`, `/learn`, etc.):
-- [ ] `init-project.sh` / `install.sh`
+- [ ] `init-project.sh` / `/new-project` / plugin install
 - [ ] A skill (TDD, ux-design)
 - [ ] Docs (README, BEGINNERS-GUIDE, WORKFLOW)
 - [ ] Other:

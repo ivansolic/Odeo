@@ -135,7 +135,6 @@ Odeo/
 ├── WORKFLOW.md               ← the daily operating manual
 ├── AGENTS.md                 ← the operating baseline (security, TDD, git, agent-first); read before CLAUDE.md
 ├── CLAUDE.md                 ← shim: @AGENTS.md + "developing this repo" notes
-├── install.sh                ← legacy installer, being replaced by the plugin
 ├── .claude-plugin/
 │   ├── plugin.json           ← plugin manifest (version, language dialog)
 │   └── marketplace.json      ← makes this repo its own marketplace
@@ -215,12 +214,12 @@ Odeo/
 ├── global/
 │   └── CLAUDE.md             ← user-global baseline, delivered at session start by the plugin
 ├── tests/
-│   └── *.test.sh             ← 39 suites, 1278 assertions. 26 of the 26 programs have their
+│   └── *.test.sh             ← 37 suites, 1228 assertions. 26 of the 26 programs have their
 │                               own suite; the remaining suites are cross-cutting rather than
 │                               per-program. The number counts the `ok` lines one full run
 │                               reports, so it moves with the machine: a skipped case takes its
-│                               assertions with it (no PowerShell for install-ps1, running as
-│                               root, a shell that refuses what a case needs), and a machine that
+│                               assertions with it (running as root, a shell that refuses what
+│                               a case needs), and a machine that
 │                               runs a case this one skips counts MORE. The suites name what they
 │                               skipped rather than pass quietly, and the claims check reports the
 │                               count as UNVERIFIED there instead of calling it drift

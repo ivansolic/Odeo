@@ -119,7 +119,7 @@ if [[ "$WITH_ASSERTIONS" -eq 1 ]]; then
   # assertions", which are opposite problems: one needs the document fixed, the other needs a
   # different machine or shell.
   # The note names CAUSES, plural, because it used to name one. Measured reasons a suite skips
-  # here: an optional tool is absent (pwsh, for install.ps1); the case cannot run as the current
+  # here: the case cannot run as the current
   # user (six root guards in ledger-backup.test.sh, where an unreadable file is readable anyway);
   # or the shell refuses what the case needs (bash 3.2 makes SHELLOPTS readonly). Naming only
   # the first made the note FALSE on an ordinary run of this repo, which is worse than no note:

@@ -14,7 +14,7 @@
 - [ ] Workflow (a command or agent template in project-templates/)
 - [ ] Skill (test-driven-development, ux-design)
 - [ ] Preset (a filled stack others can start from)
-- [ ] Tooling (install.sh, init-project.sh)
+- [ ] Tooling (plugin manifests or hooks, init-project.sh)
 - [ ] Knowledge / lesson
 - [ ] Other:
 
@@ -24,7 +24,7 @@
 - [ ] **No em dashes or en dashes** in any text (house rule; use commas/colons/periods)
 - [ ] Conventional Commit messages (`type(scope): description`)
 - [ ] No secrets, `.env` files, PII, or proprietary content committed
-- [ ] If I touched `init-project.sh` or `install.sh`: I ran a scaffold in a throwaway dir (both `--ui` and `--no-ui`) and it works
+- [ ] If I touched `init-project.sh`: I ran a scaffold in a throwaway dir (both `--ui` and `--no-ui`) and it works
 - [ ] Docs updated if behavior or commands changed
 - [ ] I respected the licenses of any work this builds on (no copy-and-strip-attribution)
 

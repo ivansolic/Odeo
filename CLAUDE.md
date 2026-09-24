@@ -9,10 +9,8 @@
   seen failing is false confidence.
 - Develop with the plugin loaded from this clone: `claude --plugin-dir .` from the repo
   root. Edits under `skills/`, `agents/`, `bin/`, `hooks/` or `project-templates/` apply
-  at the next session or `/reload-plugins`, with no version bump. Do not re-run
-  `./install.sh`: its home-folder copies load everything a second time.
-- This repo still dogfoods through `.claude/{agents,skills}` (symlinks to the canonical
-  `agents/` and `skills/`); that pre-plugin path goes away together with `install.sh`.
+  at the next session or `/reload-plugins`, with no version bump. That is also how this
+  repo dogfoods its own tools: there are no project-level copies of the skills or agents.
 - Solved, reusable problems are banked in `knowledge/` via `/learn`, one file per
   fact with YAML frontmatter (module/tags/problem_type/provenance/reuse_count/created);
   search `knowledge/` before re-solving. It is internal (denylisted from publish);
