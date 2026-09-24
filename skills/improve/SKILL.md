@@ -54,7 +54,7 @@ it MEASURES whether a reviewer still catches what it claims to. It never edits t
 reviewer, it reports a catch rate. It is how you prove a gate still holds after a
 change that cheapened mechanics (per-task Scrutiny, the review budget).
 - **Invoke** by name, e.g. "calibrate the code-reviewer". Human-invoked.
-- **Run** the planted-defect scenarios in `docs/checklists/review-calibration.md`
+- **Run** the planted-defect scenarios in `${CLAUDE_PLUGIN_ROOT}/docs/checklists/review-calibration.md`
   whose `reviewer:` matches the target. For each, dispatch that reviewer on the
   seed (it reviews the seed as it would any artifact), 5 reps (calibration is
   discipline-critical; lower it only for a quick smoke check, never for a gate

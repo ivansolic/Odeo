@@ -18,6 +18,7 @@ Build-to-learn:       /prototype -> findings -> promote at the right phase (by s
 ## 1. Setup & onboarding
 | Command | What it does |
 |---|---|
+| `/new-project` | Create a new project folder from the plugin's templates (CLAUDE.md, docs, tasks, knowledge, design for UI), git on main, guards installed. Then open it and run /setup-project. |
 | `/setup-project` | Configure a project: new (interview/preset) or existing (maps the codebase); sets dev-rigor style and preferences. Once per project. |
 | `/setup-design` | Design system setup: tokens as the styling source of truth (UI projects). |
 | `/start` | You-are-here: reads project state, tells you the next step + pending loop reminders. |

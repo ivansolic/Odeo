@@ -72,7 +72,7 @@ enforced backstop for the map above.
 
 ## Quality gate (before handing to /build)
 Score the story set with the **`pm-reviewer`** agent against
-`skills/stories/rubric.md` (installed copy: `~/.claude/skills/stories/rubric.md`);
+`${CLAUDE_PLUGIN_ROOT}/skills/stories/rubric.md`;
 eval record goes to `docs/evals/`. Below max score = fix the named gaps and
 re-dispatch pm-reviewer to verify, looping automatically (AGENTS.md review-loop
 rule, max 3 cycles); show first -> final score.

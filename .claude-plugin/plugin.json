@@ -1,9 +1,25 @@
 {
   "name": "odeo",
   "description": "Opinionated PM-to-Dev workflow for Claude Code: discovery, PRD, design, agent-first build, review, ship, measure, and compounding knowledge. Built for PMs and builders.",
-  "version": "0.1.0",
-  "author": { "name": "ivansolic" },
+  "version": "0.2.0",
+  "author": {
+    "name": "ivansolic"
+  },
   "homepage": "https://github.com/ivansolic/Odeo",
   "repository": "https://github.com/ivansolic/Odeo",
-  "license": "MIT"
+  "license": "MIT",
+  "userConfig": {
+    "output_language": {
+      "type": "string",
+      "title": "Document language",
+      "description": "Language Odeo writes your documents in (PRDs, stories, plans, reviews). Code, filenames and commits stay English. en = English, de = Deutsch, hr = Hrvatski, fr = Français. Change it any time here or with /language.",
+      "options": [
+        "en",
+        "de",
+        "hr",
+        "fr"
+      ],
+      "default": "en"
+    }
+  }
 }

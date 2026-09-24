@@ -20,6 +20,7 @@ project-templates/
 global/
 .github/
 .claude-plugin/
+hooks/
 
 # public root files
 README.md
@@ -42,6 +43,7 @@ CLAUDE.md
 docs/examples/
 docs/checklists/review-calibration.md
 docs/eval-framework.md
+docs/agent-rubric.md
 docs/invariants.md
 docs/plan-format.md
 docs/system-map.md

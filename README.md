@@ -46,19 +46,63 @@ So `spec-gate` and `merge-gate` never ask: a story cannot enter the build withou
 
 PMs and builders who want to ship real software with Claude Code and don't want to figure out the workflow, testing, and security discipline from scratch. No engineering background assumed, the included `BEGINNERS-GUIDE.md` explains every concept in plain language.
 
-**Runs on:**
+## Install
 
-| Platform | Install with | Status |
-|---|---|---|
-| macOS, Linux | `./install.sh` | developed and tested here |
-| Windows, via WSL (recommended) | `.\install.ps1` from PowerShell | written, **not yet verified** end to end |
-| Windows, via Git Bash | `.\install.ps1 -UseGitBash` | same, plus a symlink caveat (INSTALL.md Step 6w) |
+Odeo is a Claude Code plugin. Nothing to clone, nothing to copy into your home folder.
 
-On Windows, PowerShell is the **entry point**, not the runtime: `install.ps1` hands off to
-bash in WSL or Git Bash. The guards are 22 bash scripts, and porting them would mean two
-implementations of every gate, which drift. So you start in PowerShell and then work in
-WSL, because a session run from PowerShell would give you the workflow without the guards.
-See INSTALL.md.
+**Claude Code (terminal) and the Claude desktop app (Code tab):**
+
+```
+/plugin marketplace add ivansolic/Odeo
+/plugin install odeo@odeo
+```
+
+When the plugin is enabled, Claude Code asks once which language Odeo writes your
+documents in (English, Deutsch, Hrvatski, Français). Code, filenames and commits always
+stay English. Change it any time in `/config` or with `/language`.
+
+Then start a project:
+- **New project:** `/new-project my-app`, then open that folder and run `/setup-project`.
+- **Existing codebase:** open it and run `/setup-project` (it maps the code instead of
+  scaffolding over it).
+
+Requires Claude Code 2.1.271 or later. The guards are bash scripts, so on Windows run Claude
+Code inside WSL or Git Bash; that path is **not yet verified** end to end.
+
+**Other agents** (Codex CLI and app, Antigravity, claude.ai): not yet. Each needs its own
+plugin manifest and a verified port of the hooks, and none ships until it is tested.
+
+**Coming from the old `install.sh` setup?** Its copies in your home folder would load
+every skill twice. After installing the plugin, ask Claude to run
+`odeo-migrate-legacy.sh` (a dry run that lists what would move), then
+`odeo-migrate-legacy.sh --apply`. It moves the copies aside into
+`~/.claude/odeo-legacy-<date>/` and deletes nothing. Odeo also reminds you once per
+session while they are still there.
+
+## Updating
+
+Third-party marketplaces do not auto-update by default. Turn it on once:
+`/plugin` → **Marketplaces** → **odeo** → **Enable auto-update**. Claude Code then checks
+after each start and tells you to run `/reload-plugins` when a new version arrived.
+
+Or update by hand:
+
+```
+/plugin marketplace update odeo
+/plugin update odeo@odeo
+```
+
+What updates: every skill, agent, guard script, and the global baseline (it is delivered
+by the plugin at session start, not copied into your files). What never changes on an
+update: your own `~/.claude/CLAUDE.md`, your projects, and your language setting.
+
+**For maintainers:** users receive a new version only when `version` in
+`.claude-plugin/plugin.json` goes up, so bump it with every release, then publish through
+`bin/publish-snapshot.sh` (the only sanctioned path to the public repo).
+
+**Working on Odeo itself:** clone the repo and run `claude --plugin-dir .` inside it. The
+plugin loads straight from your clone, so edits apply on the next session or
+`/reload-plugins`, with no version bump.
 
 ## The workflow at a glance
 
@@ -91,9 +135,13 @@ Odeo/
 ├── WORKFLOW.md               ← the daily operating manual
 ├── AGENTS.md                 ← the operating baseline (security, TDD, git, agent-first); read before CLAUDE.md
 ├── CLAUDE.md                 ← shim: @AGENTS.md + "developing this repo" notes
-├── install.sh                ← installs the system (GitHub path; lays the global baseline)
+├── install.sh                ← legacy installer, being replaced by the plugin
 ├── .claude-plugin/
-│   └── plugin.json           ← marketplace manifest
+│   ├── plugin.json           ← plugin manifest (version, language dialog)
+│   └── marketplace.json      ← makes this repo its own marketplace
+├── hooks/
+│   ├── hooks.json            ← session start (baseline, language), /focus fence, end-of-turn sweep
+│   └── odeo-context.sh       ← delivers the global baseline to the session and to subagents
 ├── skills/                   ← slash commands (you type /name); each is a SKILL.md
 │   ├── build/                ← /build stories: human-first, or architect->builder agents (you approve)
 │   ├── merge/                ← /merge rebase onto main, test, merge PR, cleanup
@@ -126,10 +174,11 @@ Odeo/
 │   ├── design-reviewer.md    ← UI: heuristics, states, a11y, tokens
 │   ├── pm-reviewer.md        ← scores PM documents against rubrics
 │   ├── skill-reviewer.md     ← scores skills against the authoring standard
-│   ├── agent-reviewer.md     ← scores agent definitions against the agent rubric
-│   └── agent-rubric.md       ← the rubric agent-reviewer scores against
-├── bin/                      ← 24 executables: deterministic guards + scaffolding
+│   └── agent-reviewer.md     ← scores agent definitions against the agent rubric (docs/agent-rubric.md)
+├── bin/                      ← 26 executables: deterministic guards + scaffolding
 │   ├── init-project.sh       ← scaffolds the project-specific parts of a new project
+│   ├── community-sync.sh     ← clones or refreshes the community knowledge mirror
+│   ├── odeo-migrate-legacy.sh ← moves an old install.sh install aside (never deletes)
 │   ├── install-git-guards.sh ← installs pre-push + pre-commit hooks into a repo
 │   ├── token-report.py       ← session token usage (the one non-bash tool here)
 │   │                           gates (exit codes, no judgment; each one blocks something):
@@ -164,9 +213,9 @@ Odeo/
 │   ├── docs/                 ← document templates: ADR-TEMPLATE.md
 │   └── presets/              ← example filled stacks (e.g. angular-nest-mysql.md)
 ├── global/
-│   └── CLAUDE.md             ← user-global baseline laid into ~/.claude by install.sh
+│   └── CLAUDE.md             ← user-global baseline, delivered at session start by the plugin
 ├── tests/
-│   └── *.test.sh             ← 33 suites, 1129 assertions. 24 of the 24 programs have their
+│   └── *.test.sh             ← 39 suites, 1278 assertions. 26 of the 26 programs have their
 │                               own suite; the remaining suites are cross-cutting rather than
 │                               per-program. The number counts the `ok` lines one full run
 │                               reports, so it moves with the machine: a skipped case takes its
@@ -188,8 +237,8 @@ Odeo/
     ├── checklists/           ← recorded audit results (alignment, Anthropic practices)
     └── examples/             ← worked examples of the artifacts this system produces
 
-# Commands, agents, and skills are provided by the installed plugin (or install.sh),
-# so they are available in EVERY project automatically, no per-project copies.
+# Commands, agents, and skills are provided by the installed plugin, so they are
+# available in EVERY project automatically, no per-project copies.
 # Security review uses Claude Code's built-in /security-review, driven by our baseline.
 ```
 
@@ -210,7 +259,7 @@ Odeo/
 | `/prototype` | 2-3 disposable variants running side by side, so you learn before you commit |
 | `ux-design`, `ux-writing`, `/setup-design` | usability heuristics, every UI state, WCAG AA, and design tokens as the source of truth. Auto-applies to UI, stays out of the way elsewhere |
 | `test-driven-development` | tests written before the logic they check. Auto-applies to backend rules, skips UI exploration |
-| `init-project.sh`, `/setup-project` | the project scaffold, then an interview that fills in your stack, commands and data model. Once per project |
+| `/new-project`, `/setup-project` | the project scaffold, then an interview that fills in your stack, commands and data model. Once per project |
 
 ### Keep it honest
 | | What it gives you |
@@ -238,24 +287,18 @@ Every skill implements a named, public method rather than improvised process: IN
 
 ## Quick start
 
-> Assumes a working dev machine (Node 22+, `git`, `gh`, Claude Code, VS Code; `pnpm` only if your project is JS/TS).
-> **New to this, or a fresh machine?** Follow `INSTALL.md` instead, it installs everything from zero with checks.
+> Assumes Claude Code, `git` and [`gh`](https://cli.github.com/) are installed.
+> **New to this, or a fresh machine?** Follow `INSTALL.md`, it sets everything up from zero with checks.
 
-```bash
-# 1. Clone and install the system
-git clone https://github.com/ivansolic/Odeo.git
-cd Odeo
-./install.sh                 # asks your doc language once (change it any time with /language); --link for live updates on `git pull`
-source ~/.bash_profile       # or ~/.zshrc
+Inside Claude Code:
 
-# 2. Scaffold and open a project
-init-project.sh my-app
-cd my-app
-gh repo create my-app --private --source=. --remote=origin --push
-claude
+```
+/plugin marketplace add ivansolic/Odeo
+/plugin install odeo@odeo
+/new-project my-app
 ```
 
-Then, **inside Claude**, configure the project for your stack:
+Open `my-app` in Claude, then configure it for your stack:
 
 ```
 /setup-project
@@ -265,7 +308,7 @@ That's it, start with `/brainstorm` (our first-party PM skill) or paste an exist
 
 ## What a project looks like
 
-After `init-project.sh my-app`:
+After `/new-project my-app`:
 
 ```
 my-app/
@@ -297,7 +340,7 @@ PRDs and user stories are generated by the PM skills (`/prd`, `/stories`) and sa
 
 ## Requirements
 
-- [Claude Code](https://claude.com/claude-code), includes the built-in `/security-review` command this workflow uses
+- [Claude Code](https://claude.com/claude-code) 2.1.271 or later, includes the built-in `/security-review` command this workflow uses
 - Node.js 22+, `git`, [`gh`](https://cli.github.com/), required (Claude Code itself runs on Node)
 - `pnpm`, **only for JS/TS projects**. Other stacks (Python, Go, …): install that language's tooling instead; you set the real commands via `/setup-project`.
 - VS Code (optional but recommended)

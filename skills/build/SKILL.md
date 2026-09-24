@@ -9,7 +9,7 @@ Invoke once. Replaces the old dev-handoff (its prep is the with-me mode here).
 ## 1. Identify the stories, then the spec gate (ENFORCED)
 Ask which stories to build (paths in `docs/stories/`), or use the ones named.
 For each, confirm it is ready: a description and testable acceptance criteria.
-Then run `spec-gate.sh <story paths...>` (in `~/bin` or `bin/`) and STOP on
+Then run `spec-gate.sh <story paths...>` (on PATH through the Odeo plugin) and STOP on
 non-zero: it refuses stories with no eval record, a non-passing verdict, or a
 record OLDER than the story (spec edited after review). The only way through
 is the review loop: fix -> pm-reviewer re-verifies -> fresh PASS. Never work
@@ -112,7 +112,7 @@ a block: the choice is the user's.
 
 **Plan-first is the default in BOTH modes, and in for-me it is enforced by the
 pipeline.** With me: you enter plan mode and approve before building. For me: the
-`architect` writes the plan document (`docs/plans/`, per `docs/plan-format.md`),
+`architect` writes the plan document (`docs/plans/`, per `${CLAUDE_PLUGIN_ROOT}/docs/plan-format.md`),
 you approve it, and only then is a `builder` dispatched, a builder without an
 approved plan does not build, by design. Skipping the plan is only sensible for a
 trivial fix (which skips `/build` entirely).
@@ -205,7 +205,7 @@ once so a still editor is not mistaken for a stall. Live watching is with-me (Mo
 ### B5. Plan (architect), review the plan, then gate, then dispatch (builders)
 1. **Dispatch the `architect`** with the chosen stories (+ the overlap-check
    findings from B1 as binding input). It returns one plan per story in the
-   `docs/plan-format.md` format; save each to `docs/plans/<date>-<slug>.md` with
+   `${CLAUDE_PLUGIN_ROOT}/docs/plan-format.md` format; save each to `docs/plans/<date>-<slug>.md` with
    `approved: no`. If the architect escalates (a story would change product-level
    architecture), stop and resolve that with the user first (ADR).
    **Hand it the language:** resolve the story's project with `resolve-language.sh
@@ -216,7 +216,7 @@ once so a still editor is not mistaken for a stall. Live watching is with-me (Mo
    dispatch `architecture-reviewer` on each plan (read-only): does it fit the
    inherited architecture, respect boundaries, hide no risky ambiguity? Real
    findings go back to the `architect` for a revision, then the SAME reviewer
-   re-verifies, repeat until the stop condition (`docs/eval-framework.md`:
+   re-verifies, repeat until the stop condition (`${CLAUDE_PLUGIN_ROOT}/docs/eval-framework.md`:
    clean, 3 rounds, or two consecutive rounds of the same defect class,
    whichever comes first; a Critical is always reported). On stop: present the
    disagreement, the human arbitrates. The reviewer cannot write files; YOU

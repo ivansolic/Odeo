@@ -8,7 +8,7 @@ disable-model-invocation: true
 Get an INDEPENDENT cross-model review of UI from an external MULTIMODAL vendor
 CLI, then have OUR `design-reviewer` compare the vendor's findings against ours.
 The vendor INFORMS; our reviewer keeps the verdict. The shared mechanism and
-rules live in `docs/second-opinion-protocol.md` (read it; not restated here).
+rules live in `${CLAUDE_PLUGIN_ROOT}/docs/second-opinion-protocol.md` (read it; not restated here).
 
 ## When to use (and when not)
 - Use on a high-stakes or contested UI: a flagship screen, a flow users abandon,
@@ -33,7 +33,7 @@ rules live in `docs/second-opinion-protocol.md` (read it; not restated here).
    argument (multimodal default from the protocol's matrix); state the model and
    let the human confirm, pick another, or stop.
 4. **Run the wrapper**: `second-opinion.sh design <payload-file> [--vendor NAME]
-   [--model ID]` (in `~/bin` or `bin/`). It runs `privacy-scan.sh` before sending
+   [--model ID]` (on PATH through the Odeo plugin). It runs `privacy-scan.sh` before sending
    and stops on exit 1; a missing vendor CLI is exit 3 (it never simulates).
 5. **OUR design-reviewer authors the comparison**: hand it the vendor's structured
    findings; it writes the second-opinion record (overlap / only-ours /
@@ -61,7 +61,7 @@ rules live in `docs/second-opinion-protocol.md` (read it; not restated here).
   uses `related_branch:` (not `branch:`) so no gate ever picks it up.
 
 ## Rules
-- Everything consequential is referenced from `docs/second-opinion-protocol.md`
+- Everything consequential is referenced from `${CLAUDE_PLUGIN_ROOT}/docs/second-opinion-protocol.md`
   and the guardrails, not restated: consent, the pre-send scan (fake data only in
   a shared screen), never-simulate, provenance, authority (informs, never rules),
   model picker, cost bounds.

@@ -7,7 +7,7 @@
 # it never blocks, and it ALWAYS exits 0 (a broken check must not trap the user
 # in a session).
 #
-# Wired by the project template's .claude/settings.json Stop hook.
+# Wired by the plugin's hooks/hooks.json Stop hook, gated to Odeo projects.
 
 set -u
 

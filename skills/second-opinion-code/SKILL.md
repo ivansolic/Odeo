@@ -8,7 +8,7 @@ disable-model-invocation: true
 Get an INDEPENDENT cross-model review of a code diff from an external vendor CLI,
 then have OUR `code-reviewer` compare the vendor's findings against ours. The
 vendor INFORMS; our reviewer keeps the verdict. The shared mechanism and rules
-live in `docs/second-opinion-protocol.md` (read it; not restated here).
+live in `${CLAUDE_PLUGIN_ROOT}/docs/second-opinion-protocol.md` (read it; not restated here).
 
 ## When to use (and when not)
 - Use when a diff earns a paid, independent read: it touches auth, payments,
@@ -29,7 +29,7 @@ live in `docs/second-opinion-protocol.md` (read it; not restated here).
    argument (default from the protocol's matrix); state the model it will run on
    and let the human confirm, pick another, or stop.
 4. **Run the wrapper**: `second-opinion.sh code <payload-file> [--vendor NAME]
-   [--model ID] [--mode review|adversarial]` (in `~/bin` or `bin/`). It runs
+   [--model ID] [--mode review|adversarial]` (on PATH through the Odeo plugin). It runs
    `privacy-scan.sh` before sending and stops on exit 1; a missing vendor CLI is
    exit 3 (it never simulates). Use `--mode adversarial` for security-shaped reads.
 5. **OUR code-reviewer authors the comparison**: hand it the vendor's structured
@@ -59,7 +59,7 @@ live in `docs/second-opinion-protocol.md` (read it; not restated here).
   uses `related_branch:` (not `branch:`) so the merge-gate never picks it up.
 
 ## Rules
-- Everything consequential is referenced from `docs/second-opinion-protocol.md`
+- Everything consequential is referenced from `${CLAUDE_PLUGIN_ROOT}/docs/second-opinion-protocol.md`
   and the guardrails, not restated: consent, the pre-send scan, never-simulate,
   provenance, authority (informs, never rules), model picker, cost bounds.
 - The vendor is an argument, never part of this skill's name or a command.

@@ -24,7 +24,7 @@ leaks, human approves.
   redaction or an explicit per-item override, then re-scan, then approve.
 - **A user deny-list**, `~/.claude/privacy-denylist.txt` (gitignored by living in
   `~/.claude`, never in a repo). Each user seeds their own private terms (employer,
-  internal product/tool names). `install.sh` creates a commented sample if absent.
+  internal product/tool names). Create it yourself when you need it; a missing file just means no extra terms.
 
 ## What it scans for
 - Emails (`name@domain.tld`), with an allowlist for GitHub noreply addresses.
