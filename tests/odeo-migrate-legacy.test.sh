@@ -19,6 +19,10 @@
 #   M8 shim marker matched anywhere in file  -> 1 FAIL (case 12). Write this mutant as
 #      `grep -q "$SHIM_MARKER" "$HOME/$f"`: dropping the FILE argument too leaves a grep
 #      reading stdin, which hangs the run instead of testing the rule (it did, once).
+#   M9 shim loop reads the cache listing on stdin -> 2 FAIL (cases 13, 14: the guard got the
+#      listing, 550 bytes, instead of the pushed paths, and passed an internal path)
+#   M10 no refresh of outdated shims         -> 2 FAIL (case 15)
+#   M11 refresh overwrites without a copy    -> 1 FAIL (case 15, nothing is ever deleted)
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SCRIPT="$ROOT/bin/odeo-migrate-legacy.sh"
@@ -178,6 +182,44 @@ assert_contains "says to run the plugin's copy" "plugin" "$out"
 #     mistaken for a shim: it moves aside like any other install.sh copy
 out="$(HOME="$H" "$SCRIPT" 2>&1)"
 assert_contains "stale migrate copy is a candidate" "bin/odeo-migrate-legacy.sh" "$out"
+
+# 13) the shim hands its caller's stdin to the real script untouched. publish-guard.sh reads
+#     the pushed paths on stdin; a shim that exec'd from inside a loop reading `ls` output
+#     handed it the rest of that listing instead, so the guard checked 0 files and passed.
+H="$TMP/h13"; make_home "$H"; HOME="$H" "$SCRIPT" --apply >/dev/null 2>&1
+c="$H/.claude/plugins/cache/odeo/odeo/2.0.0/bin"; mkdir -p "$c" "$H/.claude/plugins/cache/odeo/odeo/1.9.0/bin"
+printf '#!/usr/bin/env bash\nwc -c | tr -d " "\n' > "$c/secret-scan.sh"; chmod +x "$c/secret-scan.sh"
+touch -t 202001010000 "$H/.claude/plugins/cache/odeo/odeo/1.9.0/bin"   # a second, older cache entry
+got="$(printf 'docs/plans/x.md\0README.md\0' | HOME="$H" "$H/bin/secret-scan.sh" 2>/dev/null)"
+assert_exit "shim passes stdin through byte for byte" "$(printf "docs/plans/x.md\0README.md\0" | wc -c | tr -d " ")" "$got"
+
+# 14) THE GUARANTEE, end to end: an internal path piped through the ~/bin/publish-guard.sh
+#     shim reaches the plugin's real guard and is refused
+H="$TMP/h14"; make_home "$H"; printf '#!/bin/sh\n' > "$H/bin/publish-guard.sh"
+HOME="$H" "$SCRIPT" --apply >/dev/null 2>&1
+real="$H/.claude/plugins/cache/odeo/odeo/3.0.0"; mkdir -p "$real/bin" "$real/docs"
+cp "$ROOT/bin/publish-guard.sh" "$ROOT/bin/privacy-scan.sh" "$real/bin/"
+printf 'docs/plans/\n' > "$real/docs/internal-paths.txt"; printf 'README.md\n' > "$real/docs/public-paths.txt"
+plain="$TMP/plain14"; mkdir -p "$plain"
+rc="$(cd "$plain" && printf 'docs/plans/secret.md\0' | env -u CLAUDE_INTERNAL_PATHS -u CLAUDE_PUBLIC_PATHS \
+  GIT_CEILING_DIRECTORIES="$TMP" HOME="$H" "$H/bin/publish-guard.sh" - >/dev/null 2>&1; echo $?)"
+assert_exit "an internal path piped through the shim is refused" 1 "$rc"
+
+# 15) an outdated shim (written by an earlier version) is refreshed by --apply; a current one
+#     is left alone, and neither counts as an install.sh item to move
+H="$TMP/h15"; make_home "$H"; HOME="$H" "$SCRIPT" --apply >/dev/null 2>&1
+current="$(cat "$H/bin/secret-scan.sh")"
+printf '#!/usr/bin/env bash\n# odeo-migrate-legacy shim: an older version\nexec true\n' > "$H/bin/secret-scan.sh"
+out="$(HOME="$H" "$SCRIPT" 2>&1)"
+assert_contains "dry run names the outdated shim" "refresh" "$out"
+[ "$(sed -n 3p "$H/bin/secret-scan.sh")" = "exec true" ] && ok "dry run leaves the outdated shim" || bad "dry run changed the shim"
+out="$(HOME="$H" "$SCRIPT" --apply 2>&1)"
+[ "$(cat "$H/bin/secret-scan.sh")" = "$current" ] && ok "--apply refreshes an outdated shim" || bad "outdated shim not refreshed"
+# the refreshed-over version is KEPT (a user may have edited it): nothing is ever deleted
+kept="$(grep -rl '^exec true$' "$H"/.claude/odeo-legacy-*/bin/secret-scan.sh 2>/dev/null | head -1)"
+[ -n "$kept" ] && ok "the replaced shim is kept in a legacy folder" || bad "the replaced shim was overwritten without a copy"
+out="$(HOME="$H" "$SCRIPT" --apply 2>&1)"
+assert_contains "a current shim is not refreshed again" "nothing to migrate" "$out"
 
 # 6) unknown flag -> usage, exit 2, nothing moved
 H="$TMP/h6"; make_home "$H"; before="$(find "$H" | sort)"

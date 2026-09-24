@@ -11,17 +11,17 @@ EXPERIMENTS to test them. Based on the continuous-discovery school. It
 forces every idea to connect back to the outcome.
 
 ## When to use
-- During `/discover`, once you have a target outcome and some real user signal (from `/interview-synthesis`, `/personas`).
+- During `/odeo:discover`, once you have a target outcome and some real user signal (from `/odeo:interview-synthesis`, `/odeo:personas`).
 
 ## Process
-1. **Outcome (root):** one measurable outcome (from `/strategy` or `/metrics`), e.g. "more freelancers invoice within a day of finishing work."
+1. **Outcome (root):** one measurable outcome (from `/odeo:strategy` or `/odeo:metrics`), e.g. "more freelancers invoice within a day of finishing work."
 2. **Opportunities:** the unmet needs/pains that, addressed, drive that outcome. Source from real signal, not imagination. Frame as **needs, not features**.
-3. **Structure + dedupe** (group, parent/child); pick the **target opportunity** to pursue now. (This is a discovery-level choice, distinct from `/prioritize` at the epic level.)
-4. **Solutions:** 2 to 3 candidate solutions for the target opportunity (diverge; `/brainstorm` helps).
-5. **Experiments:** the cheapest test of the riskiest assumption behind the chosen solution (hand to `/experiments`).
+3. **Structure + dedupe** (group, parent/child); pick the **target opportunity** to pursue now. (This is a discovery-level choice, distinct from `/odeo:prioritize` at the epic level.)
+4. **Solutions:** 2 to 3 candidate solutions for the target opportunity (diverge; `/odeo:brainstorm` helps).
+5. **Experiments:** the cheapest test of the riskiest assumption behind the chosen solution (hand to `/odeo:experiments`).
 
 ## Output
-A tree (outcome -> opportunities -> solutions -> experiments) saved to `docs/research/`. Feeds `/prd` (the chosen solution) and `/experiments`.
+A tree (outcome -> opportunities -> solutions -> experiments) saved to `docs/research/`. Feeds `/odeo:prd` (the chosen solution) and `/odeo:experiments`.
 
 ## Example
 ```

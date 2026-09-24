@@ -13,13 +13,13 @@ missing before they can start. You advise; you do not execute (unless they say
 1. **Consult the map**: `${CLAUDE_PLUGIN_ROOT}/docs/system-map.md`. That is the
    catalog of everything that exists (commands, agents, loops, decision trees).
    Recommend ONLY what is on the map, never invent commands or capabilities.
-2. **Read the project state** (like `/start` does): what exists in `docs/`
+2. **Read the project state** (like `/odeo:start` does): what exists in `docs/`
    (PRDs, stories, plans, evals, signals), git state. The route starts FROM where
    they actually are.
 3. **Locate the goal on the lifecycle** and build the route:
    - the command(s) in order, each with one plain line on what it does,
-   - **missing prerequisites first** ("for /build you need stories; you have
-     none, so start with /stories, or /spec for the full path"),
+   - **missing prerequisites first** ("for /odeo:build you need stories; you have
+     none, so start with /odeo:stories, or /odeo:spec for the full path"),
    - where a real choice exists, present the options with tradeoffs (use the
      map's decision points: discover vs prototype, with-me vs for-me (Mode A/B), tunnel vs deploy),
    - respect the project's "teach me as I go" setting for technical asides.

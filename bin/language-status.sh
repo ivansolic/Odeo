@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # language-status.sh, reports the EFFECTIVE output language and WHERE it is set.
 #
-# The read side of the /language command. bin/resolve-language.sh answers WHICH
+# The read side of the /odeo:language command. bin/resolve-language.sh answers WHICH
 # code is effective; this script adds WHICH LEVEL set it (the scope), which the
 # resolver deliberately does not expose. The CODE is always taken from
 # resolve-language.sh, so the two can never disagree on the value; only the

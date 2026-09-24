@@ -20,8 +20,8 @@ For each item, estimate:
 
 **Score = (Reach x Impact x Confidence) / Effort.** Rank by score.
 
-Then sanity-check: does the ranking respect dependencies (`/stories` order) and strategy
-focus (`/strategy`)? Strategy and dependencies can override a raw score, say so explicitly when they do.
+Then sanity-check: does the ranking respect dependencies (`/odeo:stories` order) and strategy
+focus (`/odeo:strategy`)? Strategy and dependencies can override a raw score, say so explicitly when they do.
 
 ## Other lenses (use when RICE doesn't fit)
 - **MoSCoW** (Must / Should / Could / Won't), for release scoping and stakeholder alignment.

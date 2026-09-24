@@ -1,5 +1,5 @@
 ---
-description: Show or change the language your generated documents are written in (PRDs, stories, plans, reviews). "/language" reports the current language and where it is set; "/language de" sets it for this project; "/language de --global" changes your default for all projects. Supported codes: en, de, hr, fr. Explicit command; code, filenames, commit messages, and every machine-read field stay English. Example: "/language hr".
+description: Show or change the language your generated documents are written in (PRDs, stories, plans, reviews). "/odeo:language" reports the current language and where it is set; "/odeo:language de" sets it for this project; "/odeo:language de --global" changes your default for all projects. Supported codes: en, de, hr, fr. Explicit command; code, filenames, commit messages, and every machine-read field stay English. Example: "/odeo:language hr".
 disable-model-invocation: true
 ---
 
@@ -26,24 +26,24 @@ the same line the resolver reads; this command shows it and changes it.
 The scripts are on PATH through the Odeo plugin. The project is the repo root:
 `root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"`.
 
-**Show, `/language` with no argument:**
+**Show, `/odeo:language` with no argument:**
 1. Run `language-status.sh "$root"`. It prints one line, `<code> <scope>`, where
    scope is `project`, `global`, or `default` (the built-in English fallback).
 2. Report it plainly: name the language and where it comes from, for example
    "German (de), set for this project", "Croatian (hr), inherited from your global
    default", or "English (en), the default, nothing is set".
 
-**Set for this project, `/language <code>` (the default scope):**
+**Set for this project, `/odeo:language <code>` (the default scope):**
 1. Run `set-project-language.sh "$root" <code>`. A non-zero exit is a refusal:
    relay its message unchanged and stop.
 2. Re-run `language-status.sh "$root"` and report the new state.
 
-**Set your global default, `/language <code> --global`:**
+**Set your global default, `/odeo:language <code> --global`:**
 1. Run `set-global-language.sh <code> --overwrite`. The flag is what allows a
    CHANGE; without it the writer deliberately leaves an existing value alone,
    which is what keeps the install-time question a one-time question.
 2. Re-run `language-status.sh "$root"`. If the scope still reads `project`, say
-   so: this project's own line still wins, and offer `/language <code>` to change
+   so: this project's own line still wins, and offer `/odeo:language <code>` to change
    it here too.
 
 **Scope words map to the flag, they are never passed to a script.** "global",
@@ -69,26 +69,26 @@ That is not picking a code and never widens the set.
 Working in `~/code/shop`, whose CLAUDE.md carries `output_language: en`, with a
 global default of `de`:
 
-- "/language" -> `language-status.sh ~/code/shop` prints `en project` -> "English
+- "/odeo:language" -> `language-status.sh ~/code/shop` prints `en project` -> "English
   (en), set for this project. Your global default is separate."
-- "/language hr" -> `set-project-language.sh ~/code/shop hr` prints "project
+- "/odeo:language hr" -> `set-project-language.sh ~/code/shop hr` prints "project
   output language set to hr", status now prints `hr project` -> "Croatian (hr)
   from now on, in this project. Documents already written stay as they are."
-- "/language hr" again -> CLAUDE.md still has exactly one `output_language:` line;
+- "/odeo:language hr" again -> CLAUDE.md still has exactly one `output_language:` line;
   the value is replaced, never appended.
-- "/language klingon" -> the script exits 1 with "unknown language: klingon
+- "/odeo:language klingon" -> the script exits 1 with "unknown language: klingon
   (allowed: en de hr fr)". Relay it; do not guess a code.
-- "/language fr --global" -> `set-global-language.sh fr --overwrite` changes the
+- "/odeo:language fr --global" -> `set-global-language.sh fr --overwrite` changes the
   global default, and status still prints `hr project`, so: "Your default for new
-  projects is French now. This project still has Croatian; run /language fr here
+  projects is French now. This project still has Croatian; run /odeo:language fr here
   if you want to change that too."
-- "/language de" in a directory with NO `CLAUDE.md` -> the script exits 1 with "no
+- "/odeo:language de" in a directory with NO `CLAUDE.md` -> the script exits 1 with "no
   CLAUDE.md in <dir>". Do NOT create the file. Say: "This project has no CLAUDE.md
-  yet, so there is nothing to set the language on. Want me to run /setup-project? It
+  yet, so there is nothing to set the language on. Want me to run /odeo:setup-project? It
   configures the project and asks for the language as part of setup. If you would
-  rather not configure this project, /language de --global changes your default for
+  rather not configure this project, /odeo:language de --global changes your default for
   all projects instead." Then wait for the answer.
-- "/language German everywhere" -> "everywhere" is a scope word, so this is
+- "/odeo:language German everywhere" -> "everywhere" is a scope word, so this is
   `set-global-language.sh de --overwrite`; only `de` reaches the script.
 
 ## Output
@@ -101,11 +101,11 @@ global default of `de`:
 - The scripts own validation and the write. Never hand-edit either file to help
   the command along, and never widen the code set here.
 - If this project has no `CLAUDE.md`, do not create one and do not write the line
-  yourself. Relay the refusal, then OFFER to run `/setup-project` for the user (it
+  yourself. Relay the refusal, then OFFER to run `/odeo:setup-project` for the user (it
   configures the project properly and asks for the language as part of setup), and
-  name `/language <code> --global` as the alternative if they do not want to
+  name `/odeo:language <code> --global` as the alternative if they do not want to
   configure this project at all. Wait for their answer; never run setup unasked.
-  That file is `/setup-project`'s artifact.
+  That file is `/odeo:setup-project`'s artifact.
 - A `--global` change refuses a symlinked global config (a `--link` install points
   it at a tracked repo file). Relay the refusal and offer project scope instead.
 - Machine surfaces stay English whatever the code is; the guardrails in AGENTS.md

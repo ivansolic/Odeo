@@ -14,7 +14,7 @@ propose the exact change).
 2. **Isolate**, narrow it down: which file, function, input, or commit introduced it? Use logs, git history (`git log`/`git bisect` thinking), and targeted reads. Form a hypothesis and test it.
 3. **Root cause**, explain the underlying technical reason, in plain language. Distinguish the symptom (what you see) from the cause (why it happens).
 4. **Fix**, propose the minimal change that addresses the cause, not the symptom. Avoid band-aids.
-5. **Prevent**, propose a regression test that would have caught this, and (if it is a recurring class) suggest a `/learn` entry.
+5. **Prevent**, propose a regression test that would have caught this, and (if it is a recurring class) suggest a `/odeo:learn` entry.
 
 ## What you return
 ```
@@ -27,7 +27,7 @@ propose the exact change).
 ## Proposed fix
 [minimal change, with file + before/after]
 ## Prevention
-[regression test to add; /learn entry if it recurs]
+[regression test to add; /odeo:learn entry if it recurs]
 ```
 
 ## Rules for yourself

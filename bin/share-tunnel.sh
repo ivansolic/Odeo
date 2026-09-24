@@ -5,12 +5,12 @@
 # Exposes a local port through a cloudflared quick tunnel that SHUTS ITSELF
 # DOWN when the TTL expires, a forgotten share cannot stay public. Announces
 # the exact expiry time up front, records the share in docs/prototypes/.shares
-# (so /start can remind about it), and confirms shutdown.
+# (so /odeo:start can remind about it), and confirms shutdown.
 #
 # Usage:   share-tunnel.sh <port> [minutes]     (default TTL: 60 minutes)
 # Env:     SHARE_TTL_SECONDS overrides the TTL exactly (used by tests)
 # Exit:    0 tunnel ran and closed · 2 usage error · 3 cloudflared missing
-# Used by: the /prototype share step (and anything else that exposes localhost).
+# Used by: the /odeo:prototype share step (and anything else that exposes localhost).
 
 set -uo pipefail
 

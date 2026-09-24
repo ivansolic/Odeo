@@ -71,44 +71,78 @@ candidates() {
   return 0
 }
 
-items="$(candidates)"
-if [ -z "$items" ]; then
-  echo "odeo-migrate-legacy: nothing to migrate, no install.sh copies found in $HOME."
-  exit 0
-fi
-
-if ! $APPLY; then
-  echo "odeo-migrate-legacy: dry run. These install.sh copies would move aside (nothing is deleted):"
-  printf '%s\n' "$items" | sed "s|^|  ~/|"
-  echo "Run again with --apply to move them into ~/.claude/odeo-legacy-<timestamp>/."
-  exit 0
-fi
-
-# write_shim <name>: ~/bin/<name> runs the newest plugin copy of <name>, else blocks
-write_shim() {
-  { echo '#!/usr/bin/env bash'
-    echo "# $SHIM_MARKER: a pre-plugin project's git hook calls ~/bin/$1; this runs the"
-    echo "# newest Odeo plugin copy instead. Delete this file if you no longer use those projects."
-    printf 'fallback=%q\n' "$ROOT/bin"
-    printf 'config_at_migration=%q\n' "${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
-    cat <<'SHIM'
+# shim_content <name>: prints what ~/bin/<name> must contain: it runs the newest plugin copy
+# of <name>, else blocks
+shim_content() {
+  echo '#!/usr/bin/env bash'
+  echo "# $SHIM_MARKER: a pre-plugin project's git hook calls ~/bin/$1; this runs the"
+  echo "# newest Odeo plugin copy instead. Delete this file if you no longer use those projects."
+  printf 'fallback=%q\n' "$ROOT/bin"
+  printf 'config_at_migration=%q\n' "${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
+  cat <<'SHIM'
 name="$(basename "$0")"
-# run_if <path>: execs a candidate, never this shim itself (that would loop forever)
-run_if() { [ -x "$1" ] && ! [ "$1" -ef "$0" ] && exec "$1" "${@:2}"; return 0; }
-while IFS= read -r d; do
+# run_if <path>: execs a candidate with the CALLER's stdin (publish-guard.sh reads the pushed
+# paths there) and never this shim itself (that would loop forever). fd 3 carries the cache
+# listing and is closed first: exec'ing inside a loop that reads the listing on stdin once
+# handed the guard the rest of the listing, so it checked 0 files and passed.
+run_if() { [ -x "$1" ] && ! [ "$1" -ef "$0" ] && exec "$1" "${@:2}" 3<&-; return 0; }
+while IFS= read -r d <&3; do
   run_if "$d/$name" "$@"
-done < <(ls -1td "${CLAUDE_CONFIG_DIR:-$HOME/.claude}"/plugins/cache/*/odeo/*/bin \
-               "$config_at_migration"/plugins/cache/*/odeo/*/bin \
-               "$HOME"/.claude/plugins/cache/*/odeo/*/bin 2>/dev/null)
+done 3< <(ls -1td "${CLAUDE_CONFIG_DIR:-$HOME/.claude}"/plugins/cache/*/odeo/*/bin \
+                "$config_at_migration"/plugins/cache/*/odeo/*/bin \
+                "$HOME"/.claude/plugins/cache/*/odeo/*/bin 2>/dev/null)
 run_if "$fallback/$name" "$@"
 echo "$name: the Odeo plugin was not found, so this guard cannot run and BLOCKS." >&2
 echo "Reinstall the Odeo plugin, or delete ~/bin/$name if you no longer need it." >&2
 exit 1
 SHIM
-  } > "$HOME/bin/$1" && chmod +x "$HOME/bin/$1"
 }
 
+write_shim() { # write_shim <name>
+  shim_content "$1" > "$HOME/bin/$1" && chmod +x "$HOME/bin/$1"
+}
+
+# outdated_shims: prints each ~/bin shim of ours whose content is not the current version
+# (an earlier version, or a plugin that moved), so --apply refreshes it in place
+outdated_shims() {
+  local n f
+  for n in $SHIM_NAMES; do
+    f="$HOME/bin/$n"
+    [ -f "$f" ] && [ ! -L "$f" ] && sed -n 2p "$f" | grep -q "$SHIM_MARKER" || continue
+    [ "$(cat "$f")" = "$(shim_content "$n")" ] || echo "$n"
+  done
+  return 0
+}
+
+items="$(candidates)"
+stale="$(outdated_shims)"
+if [ -z "$items" ] && [ -z "$stale" ]; then
+  echo "odeo-migrate-legacy: nothing to migrate, no install.sh copies found in $HOME."
+  exit 0
+fi
+
+if ! $APPLY; then
+  if [ -n "$items" ]; then
+    echo "odeo-migrate-legacy: dry run. These install.sh copies would move aside (nothing is deleted):"
+    printf '%s\n' "$items" | sed "s|^|  ~/|"
+  fi
+  [ -n "$stale" ] && printf 'These shims are outdated and would be refreshed in place: %s\n' \
+    "$(printf '~/bin/%s ' $stale)"
+  echo "Run again with --apply to do it."
+  exit 0
+fi
+
 legacy="$HOME/.claude/odeo-legacy-$(date +%Y%m%d%H%M%S)-$$"
+# An outdated shim moves aside like everything else before the current one is written, so a
+# hand edit to it is never lost.
+for n in $stale; do
+  mkdir -p "$legacy/bin" && mv "$HOME/bin/$n" "$legacy/bin/$n" \
+    || { echo "odeo-migrate-legacy: could not move the old ~/bin/$n aside; nothing refreshed" >&2; exit 1; }
+  write_shim "$n" || { echo "odeo-migrate-legacy: could not write ~/bin/$n; the old one is in $legacy/bin" >&2; exit 1; }
+  echo "odeo-migrate-legacy: refreshed the ~/bin/$n shim; the previous one is kept in $legacy/bin/."
+done
+[ -n "$items" ] || exit 0
+
 moved=0
 while IFS= read -r f; do
   mkdir -p "$legacy/$(dirname "$f")" || { echo "odeo-migrate-legacy: cannot create $legacy" >&2; exit 1; }

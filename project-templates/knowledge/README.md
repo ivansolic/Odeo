@@ -2,11 +2,11 @@
 
 Reusable solved problems for this project. The compounding idea: the first time
 you solve something hard it costs research; every next time it is a quick lookup
-here. **Consulted before non-trivial work; captured with `/learn`; maintained
-with `/knowledge-refresh`.**
+here. **Consulted before non-trivial work; captured with `/odeo:learn`; maintained
+with `/odeo:knowledge-refresh`.**
 
 Starts empty on purpose. Only **verified, non-trivial, reusable** solutions go in
-(quality gate in `/learn`), so the base stays trustworthy.
+(quality gate in `/odeo:learn`), so the base stays trustworthy.
 
 ## Layout
 ```
@@ -34,9 +34,9 @@ created: [YYYY-MM-DD]
 
 ## How it is used
 - **Read (automatic):** before non-trivial work, Claude searches `knowledge/` and reuses a documented solution (rule lives in `CLAUDE.md`).
-- **Write (you):** `/learn` after a verified non-trivial solution (shows the draft before writing).
-- **Maintain:** `/knowledge-refresh` audits entries against the current code and Keeps / Updates / Consolidates / Replaces / Deletes them.
-- **Outcome-judged:** `/outcome` can promote or demote entries based on how a shipped solution actually performed in production.
-- **Share (opt-in):** `/contribute-lesson` sends a sanitized, generalized version of a universal lesson to the community knowledge base, after you approve.
+- **Write (you):** `/odeo:learn` after a verified non-trivial solution (shows the draft before writing).
+- **Maintain:** `/odeo:knowledge-refresh` audits entries against the current code and Keeps / Updates / Consolidates / Replaces / Deletes them.
+- **Outcome-judged:** `/odeo:outcome` can promote or demote entries based on how a shipped solution actually performed in production.
+- **Share (opt-in):** `/odeo:contribute-lesson` sends a sanitized, generalized version of a universal lesson to the community knowledge base, after you approve.
 
 `reuse_count` and `provenance` make reuse measurable and entries auditable.

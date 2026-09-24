@@ -7,7 +7,7 @@ redaction (or an explicit per-item override) before anything leaves the machine.
 Protects every user, not just the author.
 
 ## Why deterministic, not just the model
-`/contribute-lesson` (the outward path to the public community knowledge repo)
+`/odeo:contribute-lesson` (the outward path to the public community knowledge repo)
 relies on the model to sanitize plus the user's manual approval. Models can miss.
 A regex/deny-list scan is predictable and testable: the safety net under the
 model's judgment. Defense in depth: model generalizes, deterministic scan blocks
@@ -19,7 +19,7 @@ leaks, human approves.
   involved; pure pattern matching, so it is deterministic and unit-testable.
 - **`tests/privacy-scan.test.sh`**, the test suite (clean passes; each leak class
   blocks; allowlist and deny-list behavior).
-- **Wiring in `/contribute-lesson`**, after the model sanitizes the draft, run the
+- **Wiring in `/odeo:contribute-lesson`**, after the model sanitizes the draft, run the
   scanner on it before opening the PR. On a hit: block, show findings, require
   redaction or an explicit per-item override, then re-scan, then approve.
 - **A user deny-list**, `~/.claude/privacy-denylist.txt` (gitignored by living in

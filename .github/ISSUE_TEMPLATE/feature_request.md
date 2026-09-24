@@ -11,7 +11,7 @@ labels: enhancement
 
 ## Proposed improvement
 
-<!-- What you would like to see. A new command? A change to /build? A preset? Clearer docs? -->
+<!-- What you would like to see. A new command? A change to /odeo:build? A preset? Clearer docs? -->
 
 ## Who it helps
 

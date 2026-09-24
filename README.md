@@ -16,15 +16,15 @@ You do not memorize sixty commands. Five orchestrators chain the right ones in t
 
 | | Phase | What it chains | You decide |
 |---|---|---|---|
-| **`/discover`** | PM, fuzzy idea | brainstorm → personas → journey map → opportunity tree → experiments | which opportunity is worth pursuing |
-| **`/plan`** | PM, portfolio | prioritize → roadmap | what gets built, and in what order |
-| **`/spec`** | PM, one feature | PRD → critique → stories | whether the spec is right before anyone builds |
-| **`/build`** | Design + engineering | plan → build → test → review → merge | the plan, and every merge |
-| **`/go-to-market`** | Launch | positioning → marketing → GTM plan → release notes | the story you take to market |
+| **`/odeo:discover`** | PM, fuzzy idea | brainstorm → personas → journey map → opportunity tree → experiments | which opportunity is worth pursuing |
+| **`/odeo:plan`** | PM, portfolio | prioritize → roadmap | what gets built, and in what order |
+| **`/odeo:spec`** | PM, one feature | PRD → critique → stories | whether the spec is right before anyone builds |
+| **`/odeo:build`** | Design + engineering | plan → build → test → review → merge | the plan, and every merge |
+| **`/odeo:go-to-market`** | Launch | positioning → marketing → GTM plan → release notes | the story you take to market |
 
-Each is also runnable on its own. Skip straight to `/spec` for an incremental feature, or just build for a trivial fix. **Nothing chains past a gate on its own**, which is the subject of the next section.
+Each is also runnable on its own. Skip straight to `/odeo:spec` for an incremental feature, or just build for a trivial fix. **Nothing chains past a gate on its own**, which is the subject of the next section.
 
-After shipping, `/outcome` compares the real result against what the PRD said it would achieve, and `/learn` banks what you solved so the next story starts smarter.
+After shipping, `/odeo:outcome` compares the real result against what the PRD said it would achieve, and `/odeo:learn` banks what you solved so the next story starts smarter.
 
 ## It stops asking. It never stops checking.
 
@@ -59,11 +59,14 @@ Odeo is a Claude Code plugin. Nothing to clone, nothing to copy into your home f
 
 When the plugin is enabled, Claude Code asks once which language Odeo writes your
 documents in (English, Deutsch, Hrvatski, Français). Code, filenames and commits always
-stay English. Change it any time in `/config` or with `/language`.
+stay English. Change it any time in `/config` or with `/odeo:language`.
+
+Every Odeo command carries the `odeo:` prefix, because Claude Code namespaces plugin
+commands: type `/odeo:build`, `/odeo:prd`, `/odeo:merge`. Type `/odeo:` to see them all.
 
 Then start a project:
-- **New project:** `/new-project my-app`, then open that folder and run `/setup-project`.
-- **Existing codebase:** open it and run `/setup-project` (it maps the code instead of
+- **New project:** `/odeo:new-project my-app`, then open that folder and run `/odeo:setup-project`.
+- **Existing codebase:** open it and run `/odeo:setup-project` (it maps the code instead of
   scaffolding over it).
 
 Requires Claude Code 2.1.271 or later. The guards are bash scripts, so on Windows run Claude
@@ -110,17 +113,17 @@ plugin loads straight from your clone, so edits apply on the next session or
         🎩 PM HAT                    switch            🛠️ DEV HAT
   (decide what & why)                 hats           (build & ship)
                                         │
- brainstorm → PRD → critique →  ─────/build─────→  plan → build → verify
+ brainstorm → PRD → critique →  ──/odeo:build───→  plan → build → verify
  (optional) user stories                          → code-review
         │                                          → /security-review (sensitive)
-   saved in docs/                                  → /merge → ship → /retro
+   saved in docs/                                  → /odeo:merge → ship → /odeo:retro
                                                             │
-                                          /outcome (post-ship) → /learn (capture)
+                                          /odeo:outcome (post-ship) → /odeo:learn (capture)
                                                             │
                                                        lives on GitHub
 ```
 
-You run each step; nothing fires blindly. The two automatic guardrails: a TDD skill writes tests first for backend logic, and a security baseline applies to all code. `/build` runs human-first or runs a plan-first agent pipeline (the architect plans, you approve, builders execute, one per story in isolated worktrees); you approve at every gate.
+You run each step; nothing fires blindly. The two automatic guardrails: a TDD skill writes tests first for backend logic, and a security baseline applies to all code. `/odeo:build` runs human-first or runs a plan-first agent pipeline (the architect plans, you approve, builders execute, one per story in isolated worktrees); you approve at every gate.
 
 ## Repo structure
 
@@ -135,30 +138,29 @@ Odeo/
 ├── WORKFLOW.md               ← the daily operating manual
 ├── AGENTS.md                 ← the operating baseline (security, TDD, git, agent-first); read before CLAUDE.md
 ├── CLAUDE.md                 ← shim: @AGENTS.md + "developing this repo" notes
-├── install.sh                ← legacy installer, being replaced by the plugin
 ├── .claude-plugin/
 │   ├── plugin.json           ← plugin manifest (version, language dialog)
 │   └── marketplace.json      ← makes this repo its own marketplace
 ├── hooks/
-│   ├── hooks.json            ← session start (baseline, language), /focus fence, end-of-turn sweep
+│   ├── hooks.json            ← session start (baseline, language), /odeo:focus fence, end-of-turn sweep
 │   └── odeo-context.sh       ← delivers the global baseline to the session and to subagents
 ├── skills/                   ← slash commands (you type /name); each is a SKILL.md
-│   ├── build/                ← /build stories: human-first, or architect->builder agents (you approve)
-│   ├── merge/                ← /merge rebase onto main, test, merge PR, cleanup
-│   ├── learn/                ← /learn capture a verified solved problem (shows draft first)
-│   ├── knowledge-refresh/    ← /knowledge-refresh audit/refresh the knowledge base
-│   ├── outcome/              ← /outcome post-ship outcome check
-│   ├── contribute-lesson/    ← /contribute-lesson opt-in share to community knowledge
-│   ├── commit-push/          ← /commit-push with secret-scan + safety checks
-│   ├── retro/                ← /retro end-of-session learning capture
-│   ├── setup-project/        ← /setup-project onboarding interview
-│   ├── setup-design/         ← /setup-design design-system/tokens setup (UI)
-│   ├── start/                ← /start you-are-here + next step + due loop reminders
+│   ├── build/                ← /odeo:build stories: human-first, or architect->builder agents (you approve)
+│   ├── merge/                ← /odeo:merge rebase onto main, test, merge PR, cleanup
+│   ├── learn/                ← /odeo:learn capture a verified solved problem (shows draft first)
+│   ├── knowledge-refresh/    ← /odeo:knowledge-refresh audit/refresh the knowledge base
+│   ├── outcome/              ← /odeo:outcome post-ship outcome check
+│   ├── contribute-lesson/    ← /odeo:contribute-lesson opt-in share to community knowledge
+│   ├── commit-push/          ← /odeo:commit-push with secret-scan + safety checks
+│   ├── retro/                ← /odeo:retro end-of-session learning capture
+│   ├── setup-project/        ← /odeo:setup-project onboarding interview
+│   ├── setup-design/         ← /odeo:setup-design design-system/tokens setup (UI)
+│   ├── start/                ← /odeo:start you-are-here + next step + due loop reminders
 │   ├── guide/                ← auto-activates when you ask "how do I..." (routes goals)
-│   ├── prototype/            ← /prototype build-to-learn (N variants, live compare)
-│   ├── improve/              ← /improve evidence-gated system improvement (A/B, keep/revert)
-│   ├── product-signal/       ← /product-signal weekly user-feedback memo + trend
-│   ├── language/             ← /language set the prose language (code stays English)
+│   ├── prototype/            ← /odeo:prototype build-to-learn (N variants, live compare)
+│   ├── improve/              ← /odeo:improve evidence-gated system improvement (A/B, keep/revert)
+│   ├── product-signal/       ← /odeo:product-signal weekly user-feedback memo + trend
+│   ├── language/             ← /odeo:language set the prose language (code stays English)
 │   ├── test-driven-development/ ← auto-applies to logic (RED-GREEN-REFACTOR)
 │   ├── ux-design/            ← auto-applies to UI (heuristics, states, a11y)
 │   ├── ux-writing/           ← auto-applies to UI copy (microcopy, errors)
@@ -182,8 +184,8 @@ Odeo/
 │   ├── install-git-guards.sh ← installs pre-push + pre-commit hooks into a repo
 │   ├── token-report.py       ← session token usage (the one non-bash tool here)
 │   │                           gates (exit codes, no judgment; each one blocks something):
-│   ├── merge-gate.sh         ← /merge preconditions (branch, clean tree, EVERY review approves)
-│   ├── spec-gate.sh          ← /build entry gate (a story/PRD needs a fresh passing review)
+│   ├── merge-gate.sh         ← /odeo:merge preconditions (branch, clean tree, EVERY review approves)
+│   ├── spec-gate.sh          ← /odeo:build entry gate (a story/PRD needs a fresh passing review)
 │   ├── secret-scan.sh        ← staged-secrets gate (blocks the commit)
 │   ├── privacy-scan.sh       ← deterministic privacy guard (blocks leaks before sharing)
 │   ├── boundary-check.sh     ← DO-NOT-TOUCH path gate (blocks protected-path changes)
@@ -191,8 +193,8 @@ Odeo/
 │   │                           the global baseline, and the system map)
 │   ├── coverage-check.sh     ← PRD-requirement coverage check
 │   ├── docs-claims-check.sh  ← re-derives the docs' countable claims from the tree
-│   ├── focus-check.sh        ← /focus session edit fence
-│   │                           output language (see /language):
+│   ├── focus-check.sh        ← /odeo:focus session edit fence
+│   │                           output language (see /odeo:language):
 │   ├── resolve-language.sh   ← resolves the effective language (project > global > en)
 │   ├── language-guard.sh     ← keeps machine-read surfaces English (enforced)
 │   ├── language-status.sh    ← reports the effective language and where it came from
@@ -215,12 +217,12 @@ Odeo/
 ├── global/
 │   └── CLAUDE.md             ← user-global baseline, delivered at session start by the plugin
 ├── tests/
-│   └── *.test.sh             ← 39 suites, 1278 assertions. 26 of the 26 programs have their
+│   └── *.test.sh             ← 38 suites, 1261 assertions. 26 of the 26 programs have their
 │                               own suite; the remaining suites are cross-cutting rather than
 │                               per-program. The number counts the `ok` lines one full run
 │                               reports, so it moves with the machine: a skipped case takes its
-│                               assertions with it (no PowerShell for install-ps1, running as
-│                               root, a shell that refuses what a case needs), and a machine that
+│                               assertions with it (running as root, a shell that refuses what
+│                               a case needs), and a machine that
 │                               runs a case this one skips counts MORE. The suites name what they
 │                               skipped rather than pass quietly, and the claims check reports the
 │                               count as UNVERIFIED there instead of calling it drift
@@ -247,19 +249,19 @@ Odeo/
 ### Decide what to build
 | | What it gives you |
 |---|---|
-| `/discover`, `/brainstorm`, `/personas`, `/experiments` | a de-risked direction instead of a hunch, built on named public frameworks (Jobs-to-be-Done, continuous discovery, the four product risks) |
-| `/prd`, `/critique`, `/stories` | a spec that survived a red-team and a pre-mortem, split into INVEST stories |
-| `/prioritize`, `/roadmap` | RICE ordering and a now/next/later roadmap |
-| `/product-signal` | a weekly themed memo of what users actually said, compared to last week |
+| `/odeo:discover`, `/odeo:brainstorm`, `/odeo:personas`, `/odeo:experiments` | a de-risked direction instead of a hunch, built on named public frameworks (Jobs-to-be-Done, continuous discovery, the four product risks) |
+| `/odeo:prd`, `/odeo:critique`, `/odeo:stories` | a spec that survived a red-team and a pre-mortem, split into INVEST stories |
+| `/odeo:prioritize`, `/odeo:roadmap` | RICE ordering and a now/next/later roadmap |
+| `/odeo:product-signal` | a weekly themed memo of what users actually said, compared to last week |
 
 ### Build it
 | | What it gives you |
 |---|---|
-| `/build` | two modes, always your choice: build live with Claude, or approve a written plan and let agents execute it in isolated worktrees |
-| `/prototype` | 2-3 disposable variants running side by side, so you learn before you commit |
-| `ux-design`, `ux-writing`, `/setup-design` | usability heuristics, every UI state, WCAG AA, and design tokens as the source of truth. Auto-applies to UI, stays out of the way elsewhere |
+| `/odeo:build` | two modes, always your choice: build live with Claude, or approve a written plan and let agents execute it in isolated worktrees |
+| `/odeo:prototype` | 2-3 disposable variants running side by side, so you learn before you commit |
+| `ux-design`, `ux-writing`, `/odeo:setup-design` | usability heuristics, every UI state, WCAG AA, and design tokens as the source of truth. Auto-applies to UI, stays out of the way elsewhere |
 | `test-driven-development` | tests written before the logic they check. Auto-applies to backend rules, skips UI exploration |
-| `/new-project`, `/setup-project` | the project scaffold, then an interview that fills in your stack, commands and data model. Once per project |
+| `/odeo:new-project`, `/odeo:setup-project` | the project scaffold, then an interview that fills in your stack, commands and data model. Once per project |
 
 ### Keep it honest
 | | What it gives you |
@@ -268,22 +270,22 @@ Odeo/
 | Evals | every artifact type has a rubric and a scorer. Reviews ARE the eval record, so regressions are visible |
 | Guardrails | `[E]` enforced by a mechanism, `[I]` by instruction. No direct push to main, no secrets in commits, no merge without an approving record |
 | `privacy-scan`, `publish-guard` | deterministic gates. Nothing private leaves the machine unscanned, nothing internal reaches the public repo |
-| `/language` | choose the language Odeo writes prose in (English, German, Croatian, French). Code and machine-read surfaces stay English |
+| `/odeo:language` | choose the language Odeo writes prose in (English, German, Croatian, French). Code and machine-read surfaces stay English |
 
 ### Get smarter each time
 | | What it gives you |
 |---|---|
-| `/learn`, `knowledge/` | a verified solved problem becomes a reusable entry Claude reads before the next non-trivial task |
-| `/outcome` | a week after shipping, the real result against what the PRD promised. Never on fabricated data |
-| `/retro`, `lessons.md` | corrections become rules, so the same mistake does not return |
-| `/start`, `/guide` | where you are, what is next, and which command gets you there. Only ever recommends what exists |
+| `/odeo:learn`, `knowledge/` | a verified solved problem becomes a reusable entry Claude reads before the next non-trivial task |
+| `/odeo:outcome` | a week after shipping, the real result against what the PRD promised. Never on fabricated data |
+| `/odeo:retro`, `lessons.md` | corrections become rules, so the same mistake does not return |
+| `/odeo:start`, `/odeo:guide` | where you are, what is next, and which command gets you there. Only ever recommends what exists |
 
 Every skill implements a named, public method rather than improvised process: INVEST and the 3 C's for stories, Jobs-to-be-Done for personas, continuous discovery, red-team plus pre-mortem for critique, lean validation across the four product risks, WCAG AA for accessibility, TDD and Conventional Commits for engineering. Hand any artifact to a seasoned PM or engineer and they will recognize the method.
 
 ## Your data: what's private, what's shared
 - **Your memory and project knowledge stay yours.** Your Claude Code memory (your preferences) and each project's `knowledge/` live on your machine; nothing is uploaded.
 - **Install flows one way, to you.** Installing gives you the skills, agents, and baseline. It never sends your code or data anywhere.
-- **Community knowledge is opt-in, one lesson at a time.** `/contribute-lesson` is the *only* outward path: it sanitizes and generalizes a single lesson, runs a deterministic privacy scan (a hard gate), shows you exactly what would leave, and opens a PR only after you approve. A maintainer curates it; once merged, it reaches everyone on their next update (`/sync-community`). **You give one lesson; you get back the community's curated knowledge.**
+- **Community knowledge is opt-in, one lesson at a time.** `/odeo:contribute-lesson` is the *only* outward path: it sanitizes and generalizes a single lesson, runs a deterministic privacy scan (a hard gate), shows you exactly what would leave, and opens a PR only after you approve. A maintainer curates it; once merged, it reaches everyone on their next update (`/odeo:sync-community`). **You give one lesson; you get back the community's curated knowledge.**
 
 ## Quick start
 
@@ -295,20 +297,20 @@ Inside Claude Code:
 ```
 /plugin marketplace add ivansolic/Odeo
 /plugin install odeo@odeo
-/new-project my-app
+/odeo:new-project my-app
 ```
 
 Open `my-app` in Claude, then configure it for your stack:
 
 ```
-/setup-project
+/odeo:setup-project
 ```
 
-That's it, start with `/brainstorm` (our first-party PM skill) or paste an existing idea/PRD. See `WORKFLOW.md` for the full daily flow.
+That's it, start with `/odeo:brainstorm` (our first-party PM skill) or paste an existing idea/PRD. See `WORKFLOW.md` for the full daily flow.
 
 ## What a project looks like
 
-After `/new-project my-app`:
+After `/odeo:new-project my-app`:
 
 ```
 my-app/
@@ -325,12 +327,12 @@ my-app/
     ├── research/             ← user research notes
     └── templates/            ← ADR template
 
-# The commands (/build, /merge, ...), agents (architect, builder, code-reviewer, ...), and
+# The commands (/odeo:build, /odeo:merge, ...), agents (architect, builder, code-reviewer, ...), and
 # auto-skills (TDD, ux-design) come from the installed plugin, available here without
 # per-project copies. The Security Baseline applies to all code automatically.
 ```
 
-PRDs and user stories are generated by the PM skills (`/prd`, `/stories`) and saved as `PRD-NNN-<slug>.md` / `USR-NNN-<slug>.md`.
+PRDs and user stories are generated by the PM skills (`/odeo:prd`, `/odeo:stories`) and saved as `PRD-NNN-<slug>.md` / `USR-NNN-<slug>.md`.
 
 ## Read more
 
@@ -342,7 +344,7 @@ PRDs and user stories are generated by the PM skills (`/prd`, `/stories`) and sa
 
 - [Claude Code](https://claude.com/claude-code) 2.1.271 or later, includes the built-in `/security-review` command this workflow uses
 - Node.js 22+, `git`, [`gh`](https://cli.github.com/), required (Claude Code itself runs on Node)
-- `pnpm`, **only for JS/TS projects**. Other stacks (Python, Go, …): install that language's tooling instead; you set the real commands via `/setup-project`.
+- `pnpm`, **only for JS/TS projects**. Other stacks (Python, Go, …): install that language's tooling instead; you set the real commands via `/odeo:setup-project`.
 - VS Code (optional but recommended)
 
 ## Credits
@@ -352,7 +354,7 @@ PRDs and user stories are generated by the PM skills (`/prd`, `/stories`) and sa
 
 ## Contributing
 
-Contributions are welcome, and not just code. Better docs, a clearer beginner explanation, a new preset, a workflow improvement, or a generalizable lesson via `/contribute-lesson` all count. See [`CONTRIBUTING.md`](CONTRIBUTING.md) and the [code of conduct](CODE_OF_CONDUCT.md).
+Contributions are welcome, and not just code. Better docs, a clearer beginner explanation, a new preset, a workflow improvement, or a generalizable lesson via `/odeo:contribute-lesson` all count. See [`CONTRIBUTING.md`](CONTRIBUTING.md) and the [code of conduct](CODE_OF_CONDUCT.md).
 
 ## License
 

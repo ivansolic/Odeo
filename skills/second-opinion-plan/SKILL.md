@@ -42,7 +42,7 @@ our review still governs. The shared mechanism and rules live in
 6. **Present and discuss**: show the comparison; a real gap sends the plan back to
    the `architect` for a revision, per the normal plan-review loop.
 7. **Offer the absorption loop**: if a vendor-unique finding class recurs, offer
-   `/improve` to fold it into OUR architecture-reviewer as a permanent check.
+   `/odeo:improve` to fold it into OUR architecture-reviewer as a permanent check.
 
 ## Worked example
 "Second opinion on the sync-engine plan, we cannot re-do this later."

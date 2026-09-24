@@ -13,8 +13,8 @@
 # human classifies it (fail-closed).
 
 .claude/
-# local build-knowledge (/learn): kept in the working repo, shared only per-entry
-# via /contribute-lesson (sanitized, gated), never bulk-published.
+# local build-knowledge (/odeo:learn): kept in the working repo, shared only per-entry
+# via /odeo:contribute-lesson (sanitized, gated), never bulk-published.
 knowledge/
 docs/checklists/dogfood-protocol.md
 docs/checklists/dogfood-results.md

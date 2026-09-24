@@ -40,7 +40,7 @@ rules live in `${CLAUDE_PLUGIN_ROOT}/docs/second-opinion-protocol.md` (read it; 
    only-vendor + recommendation) and NEVER changes its own verdict.
 6. **Present and discuss**: show the comparison; the builder verifies before fixing.
 7. **Offer the absorption loop**: if a vendor-unique finding class recurs, offer
-   `/improve` to fold it into OUR design-reviewer as a permanent check.
+   `/odeo:improve` to fold it into OUR design-reviewer as a permanent check.
 
 ## Worked example
 "Second opinion on the checkout screen, conversion is dropping there."

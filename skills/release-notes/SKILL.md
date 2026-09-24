@@ -24,7 +24,7 @@ it helps them**, in their language. Not a git log.
    visible change.
 
 ## Output
-Release notes in the project's changelog / release format. Pairs with `/gtm-plan` for a real launch.
+Release notes in the project's changelog / release format. Pairs with `/odeo:gtm-plan` for a real launch.
 
 ## Quality rules
 - Benefit first, in the user's words; the mechanism is secondary.

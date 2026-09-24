@@ -25,7 +25,7 @@ first, then expand) plus a grounded TAM/SAM/SOM.
 
 ## Output
 Segments + a chosen beachhead + ICP + TAM/SAM/SOM with assumptions, saved under
-`docs/research/`. Feeds `/strategy`, `/prd`, `/gtm-plan`.
+`docs/research/`. Feeds `/odeo:strategy`, `/odeo:prd`, `/odeo:gtm-plan`.
 
 ## Quality rules
 - Narrow beachhead over broad "everyone"; focus is the strategy.

@@ -39,4 +39,4 @@ If any fails, say so and stop.
 - Never store unverified or trivial solutions (garbage in, garbage out).
 - Show the draft and get approval before writing; never write silently.
 - Don't duplicate; check first, consolidate overlaps.
-- `reuse_count` and `provenance` exist so `/knowledge-refresh` can later prune dead weight and so reuse becomes measurable.
+- `reuse_count` and `provenance` exist so `/odeo:knowledge-refresh` can later prune dead weight and so reuse becomes measurable.

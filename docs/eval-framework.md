@@ -19,7 +19,7 @@ EVAL RECORD (file)     scores per criterion + findings + verdict + version + dat
    |  saved in git
 BASELINE / REGRESSION  compare the new record to the previous one: better or worse?
    |  feeds
-FEEDBACK LOOP          repeated failures become lessons/knowledge or an /improve run
+FEEDBACK LOOP          repeated failures become lessons/knowledge or an /odeo:improve run
 ```
 
 ## Rubrics
@@ -88,7 +88,7 @@ Change vs previous version: outcome criterion went 1 -> 2 (metric + target added
 ```
 
 Records are used for: gates (did it pass the threshold?), regression (better than
-last time?), `/improve` signals (repeated drops on the same criterion), and blind
+last time?), `/odeo:improve` signals (repeated drops on the same criterion), and blind
 scoring in subagent tests.
 
 ## docs/evals is machine-owned (enforced)
@@ -143,21 +143,21 @@ model_tier: strongest
 - recommendation: [what to do; our verdict is unchanged, in its own record]
 ```
 
-Recurring `only-vendor` classes are the `/improve` signal that upgrades OUR
+Recurring `only-vendor` classes are the `/odeo:improve` signal that upgrades OUR
 reviewers (the absorption loop in the protocol).
 
 ## Rigor allocation (risk-based)
 Testing effort is proportional to the risk of being wrong:
 - **Content artifacts** (PRD, memo, stories): rubric scoring by the domain
   reviewer. Cheap, and mistakes are caught by later layers (critique, human gate).
-- **Skill changes**: subagent A/B testing via `/improve`. Full rigor (5+
+- **Skill changes**: subagent A/B testing via `/odeo:improve`. Full rigor (5+
   repetitions per variant) is reserved for discipline-critical skills
   (guardrails, TDD, merge, privacy). The user can request full rigor on anything.
 - **Code**: deterministic first (tests, lint), then `code-reviewer` scoring.
 
 ## Community sharing (opt-in)
 Improved rubrics and eval learnings can be contributed to the community knowledge
-base through `/contribute-lesson`, the same path as lessons: sanitize, privacy-scan
+base through `/odeo:contribute-lesson`, the same path as lessons: sanitize, privacy-scan
 (hard gate), show exactly what leaves, your approval, maintainer curation. Nothing
 is shared automatically.
 

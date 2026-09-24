@@ -21,8 +21,8 @@ labels: bug
 
 ## Where
 
-- [ ] A command/agent (`/build`, `/merge`, `/learn`, etc.):
-- [ ] `init-project.sh` / `install.sh`
+- [ ] A command/agent (`/odeo:build`, `/odeo:merge`, `/odeo:learn`, etc.):
+- [ ] `init-project.sh` / `/odeo:new-project` / plugin install
 - [ ] A skill (TDD, ux-design)
 - [ ] Docs (README, BEGINNERS-GUIDE, WORKFLOW)
 - [ ] Other:

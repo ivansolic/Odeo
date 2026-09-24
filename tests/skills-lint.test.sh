@@ -184,6 +184,42 @@ d="$(clean_root)"; printf -- 'baseline\nrun bin/init-project.language.sh for set
 printf -- 'placeholder\n' > "$d/bin/init-project.language.sh"
 check "C5 resolves a DOTTED script name without inventing a phantom" 0 "$d"; rm -rf "$d"
 
+# C14: a plugin install names every command /odeo:<skill>; a bare /<skill> is not typeable.
+# Observed failing (2026-09-24), each mutant checked to differ: README dropped from the scope
+# -> "flags a bare command in the README"; end boundary loosened to any character -> "leaves
+# built-ins and longer words alone" (/alphabet matched); pm-execution dropped from the plugin
+# list -> "C8 flags a third-party plugin in a public doc".
+# Round 2: the old allowlist start class -> the diagram and link-text cases (the reviewer's
+# positive control); manifests dropped from the scope -> the enable-dialog case.
+# Round 3: dropping } from the exclusion -> the plugin-root case (a real ${CLAUDE_PLUGIN_ROOT}/<skill> path).
+d="$(clean_root)"; printf -- 'Run `/alpha` to start.\n' > "$d/README.md"
+check "C14 flags a bare command in the README" 1 "$d"; rm -rf "$d"
+d="$(clean_root)"; printf -- 'Run `/odeo:alpha` to start.\n' > "$d/README.md"
+check "C14 passes the prefixed command" 0 "$d"; rm -rf "$d"
+d="$(clean_root)"; printf -- 'See docs/alphas/ and skills/alpha/SKILL.md and a/alpha.\n' > "$d/README.md"
+check "C14 ignores paths that contain a skill name" 0 "$d"; rm -rf "$d"
+d="$(clean_root)"; mkskill "$d" gamma "disable-model-invocation: true\n" "Explicit." "Then offer /beta once."
+check "C14 flags a bare command inside a skill" 1 "$d"; rm -rf "$d"
+d="$(clean_root)"; mkdir -p "$d/hooks"; printf -- 'echo "change it with /alpha"\n' > "$d/hooks/x.sh"
+check "C14 flags a bare command in a hook message" 1 "$d"; rm -rf "$d"
+d="$(clean_root)"; printf -- 'Built-ins stay: /security-review, /plugin, /config, /alphabet.\n' > "$d/README.md"
+check "C14 leaves built-ins and longer words alone" 0 "$d"; rm -rf "$d"
+
+d="$(clean_root)"; printf -- 'plan ─────/alpha─────> build\n' > "$d/README.md"
+check "C14 flags a bare command inside a box-drawing diagram" 1 "$d"; rm -rf "$d"
+d="$(clean_root)"; printf -- 'See [/alpha](docs/x.md).\n' > "$d/README.md"
+check "C14 flags a bare command as markdown link text" 1 "$d"; rm -rf "$d"
+d="$(clean_root)"; mkdir -p "$d/.claude-plugin"; printf -- '{"description": "change it with /alpha"}\n' > "$d/.claude-plugin/plugin.json"
+check "C14 flags a bare command in the plugin manifest (the enable dialog text)" 1 "$d"; rm -rf "$d"
+d="$(clean_root)"; mkdir -p "$d/.github/ISSUE_TEMPLATE"; printf -- '- [ ] /alpha\n' > "$d/.github/ISSUE_TEMPLATE/bug.md"
+check "C14 flags a bare command in a GitHub template" 1 "$d"; rm -rf "$d"
+d="$(clean_root)"; printf -- 'x ${CLAUDE_PLUGIN_ROOT}/alpha/rubric.md and https://x.io/alpha and ~/alpha\n' > "$d/README.md"
+check "C14 leaves plugin-root paths, URLs and home paths alone" 0 "$d"; rm -rf "$d"
+
+# C8 over ALL public docs: no third-party plugin names (pm-skills once lived in the beginners guide)
+d="$(clean_root)"; printf -- 'Write a PRD with /pm-execution:create-prd.\n' > "$d/BEGINNERS-GUIDE.md"
+check "C8 flags a third-party plugin in a public doc" 1 "$d"; rm -rf "$d"
+
 # FINAL: the real repo must pass its own lint
 check "the actual repo passes its own invariants" 0 "$TEST_DIR/.."
 

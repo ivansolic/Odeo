@@ -29,4 +29,4 @@ For each persona (keep it to 1 to 3 that matter):
 - Center the **job and the situation**, not demographics.
 - Name the **current alternative**, switching is the actual battle.
 - Mark assumptions vs. evidence; do not invent research. If there is no data, say so
-  and frame these as hypotheses to validate (see `/interview-synthesis`).
+  and frame these as hypotheses to validate (see `/odeo:interview-synthesis`).

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# merge-gate.sh, the deterministic /merge gate (enforced guardrail).
+# merge-gate.sh, the deterministic /odeo:merge gate (enforced guardrail).
 #
 # Refuses the merge path unless the mechanical preconditions hold:
 #   1. not on main/master (integration happens from a story branch)
@@ -14,7 +14,7 @@
 #
 # Usage:   merge-gate.sh [base-ref]      (default: main)
 # Exit:    0 all preconditions hold · 1 refused (reason printed) · 2 usage error
-# Used by: /merge (must run this and stop on non-zero before any rebase/merge).
+# Used by: /odeo:merge (must run this and stop on non-zero before any rebase/merge).
 
 set -uo pipefail
 # Deterministic collation: the cutoff comparison sorts ISO dates as strings, and `<`
