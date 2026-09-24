@@ -15,7 +15,13 @@
 #       the main session's context; with install.sh it read ~/.claude/CLAUDE.md itself.
 #       Prints nothing when the user's own global carries the Security Baseline heading.
 #   odeo-context.sh language SessionStart
-#       While no GLOBAL output language is set, asks Claude to ask the user once.
+#       Applies the plugin's userConfig `output_language` (the dialog Claude Code shows when
+#       the plugin is enabled, and a row in /config; hooks receive it as
+#       CLAUDE_PLUGIN_OPTION_OUTPUT_LANGUAGE) to the global setting, but only when that
+#       value CHANGES since the last session (state in CLAUDE_PLUGIN_DATA), so a /language
+#       change is never clobbered and the last change wins. On the first run a language
+#       that is already set is kept and the difference is named. Without the option (an
+#       older client), asks Claude to ask the user once while no global language is set.
 #   odeo-context.sh legacy SessionStart
 #       While an old install.sh install is still in the home directory (its markers:
 #       ~/.claude/odeo-docs, ~/.claude-templates, ~/bin/merge-gate.sh), points at
@@ -32,6 +38,7 @@ set -uo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BASELINE="$ROOT/global/CLAUDE.md"
 LANG_STATUS="$ROOT/bin/language-status.sh"
+SET_GLOBAL="$ROOT/bin/set-global-language.sh"
 USER_GLOBAL="${CLAUDE_GLOBAL_CONFIG:-$HOME/.claude/CLAUDE.md}"
 MARKER='## Security Baseline (non-negotiable'
 BUDGET=9200    # content chars per part; the header line keeps each part under 9,500
@@ -113,6 +120,15 @@ global_language_scope() {
   printf '%s' "$scope"
 }
 
+# Prints the effective GLOBAL language code (resolve-language.sh against an empty project).
+global_language_code() {
+  local empty code
+  empty="$(mktemp -d)" || return 1
+  code="$(CLAUDE_GLOBAL_CONFIG="$USER_GLOBAL" "$ROOT/bin/resolve-language.sh" "$empty" 2>/dev/null)"
+  rmdir "$empty"
+  printf '%s' "$code"
+}
+
 language_nudge() {
   cat <<'EOF'
 Odeo output language is not set yet. Once, at the start of your first reply in this session, ask the user which language Odeo should write its documents in (PRDs, stories, plans, reviews): English, Deutsch, Hrvatski or Français. Offer them as selectable options (AskUserQuestion) where the host supports it. Then run `set-global-language.sh <en|de|hr|fr>`. If the user skips or declines, run `set-global-language.sh en` so they are not asked again. Code, comments, filenames and commit messages always stay English. They can change it any time with /language.
@@ -140,8 +156,34 @@ run_baseline() { # run_baseline <part> <event>
   print_part "$1" | emit_json "$2"
 }
 
+# sync_dialog_language <option>: applies a changed dialog value; prints context, if any
+sync_dialog_language() {
+  local opt="$1" state="${CLAUDE_PLUGIN_DATA}/synced-language" last="" scope err
+  [ -f "$state" ] && last="$(cat "$state")"
+  [ "$opt" = "$last" ] && return 0
+  scope="$(global_language_scope)" || scope=""
+  if [ -z "$last" ] && [ "$scope" = "global" ]; then
+    # First run with a language already set: keep it, it may be a deliberate choice,
+    # while the dialog value may be its untouched default.
+    printf '%s' "$opt" > "$state"
+    printf 'Odeo: the plugin setting says output language "%s", but the global setting is already "%s" and was kept. If the user wants the plugin setting, run `/language %s --global`; otherwise say nothing about it.\n' \
+      "$opt" "$(global_language_code)" "$opt" | emit_json SessionStart
+    return 0
+  fi
+  if err="$(CLAUDE_GLOBAL_CONFIG="$USER_GLOBAL" "$SET_GLOBAL" "$opt" --overwrite 2>&1)"; then
+    printf '%s' "$opt" > "$state"
+  else
+    warn SessionStart "could not apply the plugin's output language \"$opt\" ($err); run /language to set it."
+  fi
+}
+
 run_language() {
-  local scope
+  local scope opt="${CLAUDE_PLUGIN_OPTION_OUTPUT_LANGUAGE:-}"
+  if [ -n "$opt" ] && [ -n "${CLAUDE_PLUGIN_DATA:-}" ] && [ -x "$SET_GLOBAL" ] && [ -x "$LANG_STATUS" ]; then
+    mkdir -p "$CLAUDE_PLUGIN_DATA" 2>/dev/null
+    sync_dialog_language "$opt"
+    return 0
+  fi
   if [ ! -x "$LANG_STATUS" ]; then
     warn SessionStart "language check unavailable ($LANG_STATUS missing); run /language to set the output language."
   elif ! scope="$(global_language_scope)"; then

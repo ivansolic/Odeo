@@ -16,6 +16,8 @@
 #   M5 budget raised from 9500 to 20000                 -> 3 FAIL (cases 1, 6)
 #   M6 `exit 1` after the missing-baseline warning      -> 1 FAIL (case 5)
 #   M7 legacy check ignores ~/.claude/odeo-docs          -> 1 FAIL (case 4b)
+#   M8 apply the dialog value every session             -> 2 FAIL (case 4c, clobbers /language)
+#   M9 no first-run keep of an existing language        -> 3 FAIL (case 4c)
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 HOOK="$ROOT/hooks/odeo-context.sh"
@@ -93,6 +95,39 @@ cfg="$TMP/bad-lang.md"; printf '# Mine\noutput_language: klingon\n' > "$cfg"
 assert_contains "invalid language -> nudge" "$NUDGE" "$(ctx "$(CLAUDE_GLOBAL_CONFIG="$cfg" "$HOOK" language SessionStart)")"
 cfg="$TMP/lang.md"; printf '# Mine\noutput_language: de\n' > "$cfg"
 assert_empty "language set -> silent" "$(CLAUDE_GLOBAL_CONFIG="$cfg" "$HOOK" language SessionStart)"
+
+# 4c) the plugin's userConfig dialog (CLAUDE_PLUGIN_OPTION_OUTPUT_LANGUAGE) is the first-run
+#     prompt. The hook applies it to the global setting only when the dialog value CHANGES
+#     (state in CLAUDE_PLUGIN_DATA), so /language keeps working and the last change wins.
+lang_run() { # lang_run <global> <data-dir> <option>: runs the language hook, prints context
+  ctx "$(CLAUDE_GLOBAL_CONFIG="$1" CLAUDE_PLUGIN_DATA="$2" CLAUDE_PLUGIN_OPTION_OUTPUT_LANGUAGE="$3" "$HOOK" language SessionStart)"
+}
+glang() { grep -m1 '^output_language:' "$1" 2>/dev/null | sed 's/^output_language: *//'; }
+# first run, global unset: the dialog value is written, no chat question
+g="$TMP/u1.md"; d="$TMP/data1"; mkdir -p "$d"; printf '# G\n' > "$g"
+out="$(lang_run "$g" "$d" de)"
+assert_contains "dialog value written to the global" "de" "$(glang "$g")"
+assert_absent "no chat question when the dialog answered" "$NUDGE" "$out"
+# unchanged dialog value + a later /language change: the user's change survives
+perl -pi -e 's/^output_language: .*/output_language: hr/' "$g"
+lang_run "$g" "$d" de >/dev/null
+assert_contains "unchanged dialog value does not clobber /language" "hr" "$(glang "$g")"
+# the dialog value changes in /config: it is applied
+lang_run "$g" "$d" fr >/dev/null
+assert_contains "changed dialog value is applied" "fr" "$(glang "$g")"
+# first run with a language already set (an install.sh user): kept, difference named
+g="$TMP/u2.md"; d="$TMP/data2"; mkdir -p "$d"; printf '# G\noutput_language: hr\n' > "$g"
+out="$(lang_run "$g" "$d" en)"
+assert_contains "existing global kept on first run" "hr" "$(glang "$g")"
+assert_contains "the difference is named" "/language en --global" "$out"
+lang_run "$g" "$d" en >/dev/null
+assert_contains "still kept on the next session" "hr" "$(glang "$g")"
+# an invalid dialog value is refused and reported, the global is untouched
+g="$TMP/u3.md"; d="$TMP/data3"; mkdir -p "$d"; printf '# G\noutput_language: de\n' > "$g"
+printf 'de' > "$d/synced-language"
+out="$(lang_run "$g" "$d" klingon)"
+assert_contains "invalid dialog value leaves the global" "de" "$(glang "$g")"
+assert_contains "invalid dialog value is reported" "could not apply" "$out"
 
 # 4b) legacy install.sh copies: a one-time pointer to the migration, silent otherwise
 lh="$TMP/legacy-home"; mkdir -p "$lh/.claude/odeo-docs"
