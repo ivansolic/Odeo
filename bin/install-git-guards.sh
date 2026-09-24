@@ -73,7 +73,7 @@ while read -r _local_ref local_sha remote_ref _remote_sha; do
   case "$remote_ref" in
     refs/heads/main|refs/heads/master)
       echo "pre-push: REFUSED, direct push to ${remote_ref#refs/heads/} is blocked." >&2
-      echo "Work on a branch and integrate through /merge (PR + your approval)." >&2
+      echo "Work on a branch and integrate through /odeo:merge (PR + your approval)." >&2
       exit 1 ;;
   esac
   if [ "$remote_name" = "$public_remote" ]; then

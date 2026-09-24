@@ -43,7 +43,7 @@ if [[ -z "$PROJECT_NAME" ]]; then
   exit 1
 fi
 
-# The name becomes a directory here and a repo name later, and /new-project passes user
+# The name becomes a directory here and a repo name later, and /odeo:new-project passes user
 # text straight in, so it is allowlisted: a letter or digit first, then letters, digits,
 # dot, underscore, hyphen. That rules out paths (/, ..), hidden dirs, spaces and shell text.
 if [[ ! "$PROJECT_NAME" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$ ]]; then
@@ -186,7 +186,7 @@ if [[ -f "$TEMPLATES_DIR/claude-settings.json" ]]; then
   cp "$TEMPLATES_DIR/claude-settings.json" .claude/settings.json
 fi
 
-# Design layer (only for UI projects). The design-reviewer agent and /setup-design
+# Design layer (only for UI projects). The design-reviewer agent and /odeo:setup-design
 # come from the plugin; here we only seed the project's token source of truth.
 if $HAS_UI; then
   mkdir -p design
@@ -278,11 +278,11 @@ if $HAS_UI; then echo "  ├── design/              (tokens.json, design sys
 echo "  └── docs/                (prds, stories, decisions, research, templates)"
 echo ""
 echo "Available everywhere from the Odeo plugin:"
-echo "  build:    /build /merge /ci /commit-push /optimize /worktree-parallel-check"
-echo "  PM:       /brainstorm /prd /critique /stories /prioritize /roadmap ... (full set:"
+echo "  build:    /odeo:build /odeo:merge /odeo:ci /odeo:commit-push /odeo:optimize /odeo:worktree-parallel-check"
+echo "  PM:       /odeo:brainstorm /odeo:prd /odeo:critique /odeo:stories /odeo:prioritize /odeo:roadmap ... (full set:"
 echo "            discovery, strategy, planning, metrics, launch, see the system map)"
-echo "  learning: /learn /retro /outcome /knowledge-refresh /product-signal /improve"
-echo "  navigate: /start (where am I + what's next)  ·  or just ask \"how do I...\" (/guide)"
+echo "  learning: /odeo:learn /odeo:retro /odeo:outcome /odeo:knowledge-refresh /odeo:product-signal /odeo:improve"
+echo "  navigate: /odeo:start (where am I + what's next)  ·  or just ask \"how do I...\" (/odeo:guide)"
 echo "  agents:   architect, builder, codebase-analyst + reviewers (code, pm, skill,"
 echo "            architecture$( $HAS_UI && echo ', design' )) + debugger"
 echo "  auto:     test-driven-development$( $HAS_UI && echo ', ux-design, ux-writing' )"
@@ -295,9 +295,9 @@ echo "                                    e.g. the built-in /security-review nee
 echo "  claude"
 echo ""
 echo "Then, first thing inside Claude, configure the project for your stack:"
-echo "  > /setup-project   (stack, commands, conventions → fills CLAUDE.md)"
+echo "  > /odeo:setup-project   (stack, commands, conventions → fills CLAUDE.md)"
 if $HAS_UI; then
   echo "After the PM phase, before building UI, set up the design system:"
-  echo "  > /setup-design    (ingest your tokens or generate from PRD/personas → tokens.json)"
+  echo "  > /odeo:setup-design    (ingest your tokens or generate from PRD/personas → tokens.json)"
 fi
 echo ""

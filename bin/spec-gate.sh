@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# spec-gate.sh, the /build entry gate for spec artifacts (enforced guardrail).
+# spec-gate.sh, the /odeo:build entry gate for spec artifacts (enforced guardrail).
 #
 # A story or PRD may enter the build ONLY with a fresh, passing eval record:
 #   1. the artifact file exists and has NO uncommitted changes
@@ -16,7 +16,7 @@
 #
 # Usage:   spec-gate.sh <artifact.md> [more artifacts...]
 # Exit:    0 all artifacts covered · 1 refused (reasons printed) · 2 usage error
-# Used by: /build (ENFORCED step 0, before the mode question).
+# Used by: /odeo:build (ENFORCED step 0, before the mode question).
 
 set -uo pipefail
 

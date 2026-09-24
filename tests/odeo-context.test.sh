@@ -120,7 +120,7 @@ assert_contains "changed dialog value is applied" "fr" "$(glang "$g")"
 g="$TMP/u2.md"; d="$TMP/data2"; mkdir -p "$d"; printf '# G\noutput_language: hr\n' > "$g"
 out="$(lang_run "$g" "$d" en)"
 assert_contains "existing global kept on first run" "hr" "$(glang "$g")"
-assert_contains "the difference is named" "/language en --global" "$out"
+assert_contains "the difference is named" "/odeo:language en --global" "$out"
 lang_run "$g" "$d" en >/dev/null
 assert_contains "still kept on the next session" "hr" "$(glang "$g")"
 # an invalid dialog value is refused and reported, the global is untouched
@@ -136,7 +136,7 @@ real="$TMP/real-global.md"; printf '# G\n' > "$real"; g="$TMP/linked.md"; ln -s 
 d="$TMP/data4"; mkdir -p "$d"
 out="$(lang_run "$g" "$d" de)"
 assert_contains "refused write is reported" "could not apply" "$out"
-assert_contains "names the per-project alternative" "/language de" "$out"
+assert_contains "names the per-project alternative" "/odeo:language de" "$out"
 assert_empty "the same refusal is not repeated next session" "$(CLAUDE_GLOBAL_CONFIG="$g" CLAUDE_PLUGIN_DATA="$d" CLAUDE_PLUGIN_OPTION_OUTPUT_LANGUAGE=de "$HOOK" language SessionStart)"
 [ -L "$g" ] && ok "symlinked global left a symlink" || bad "symlinked global was replaced"
 

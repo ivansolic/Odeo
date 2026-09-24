@@ -10,7 +10,7 @@ you're valuable and better. Based on the modern positioning framework:
 position relative to a chosen market category and the alternatives, not in a vacuum.
 
 ## When to use
-- Before `/gtm-plan` or launch; when prospects misunderstand or undervalue the product.
+- Before `/odeo:gtm-plan` or launch; when prospects misunderstand or undervalue the product.
 
 ## Process (the positioning components)
 1. **Competitive alternatives:** what would the customer use if you didn't exist
@@ -21,12 +21,12 @@ position relative to a chosen market category and the alternatives, not in a vac
    values it most. Attributes mean nothing without the value they unlock.
 4. **Market category:** the frame of reference you choose to compete in (it sets buyers'
    expectations). Pick the category that makes your value obvious, not the most ambitious one.
-5. **Best-fit customers:** the segment for whom this is a no-brainer (from `/market-segments`).
+5. **Best-fit customers:** the segment for whom this is a no-brainer (from `/odeo:market-segments`).
 6. **(Optional) trend:** a relevant shift that makes you timely, without overshadowing the value.
 
 ## Output
-A positioning statement + the underlying components, saved under `docs/`. Feeds `/gtm-plan`,
-`/release-notes`, and marketing copy.
+A positioning statement + the underlying components, saved under `docs/`. Feeds `/odeo:gtm-plan`,
+`/odeo:release-notes`, and marketing copy.
 
 ## Quality rules
 - Position against the **real alternative** (often the status quo), never in a vacuum.

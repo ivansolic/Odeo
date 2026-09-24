@@ -5,7 +5,7 @@ disable-model-invocation: true
 
 The integration step. Brings an approved branch into main with a clean, linear
 history (rebase, not merge commits). You trigger it; Claude does fetch + rebase +
-tests + merge. Offered by both `/build` modes when a story is approved.
+tests + merge. Offered by both `/odeo:build` modes when a story is approved.
 
 **This command NEVER starts itself.** It runs only when the user invokes it or
 answers an offer with an explicit yes. "The reviews passed", "the pipeline
@@ -61,7 +61,7 @@ human floor.
    (check `.github/workflows/` or equivalent); if it doesn't, run the FULL suite
    locally (non-watch: `vitest run`, not bare `vitest`) and watch it pass, and
    offer once: "no CI here yet, want me to set it up so every PR gets tested
-   automatically? (/ci, ~2 minutes)". If red after rebase, fix before proceeding.
+   automatically? (/odeo:ci, ~2 minutes)". If red after rebase, fix before proceeding.
 4. If the branch was already pushed, update it: `git push --force-with-lease`
    (safe: only your own unshared branch; refuses if someone else changed it).
    First push to a fresh remote? Also run `git remote set-head origin -a` once,
@@ -71,34 +71,34 @@ human floor.
    (`git pull` here is the same hazard as step 2 in a second costume: it merges the remote
    line into your local `main`. Upstream-only, per 1b.)
 7. **Close by compounding, not by trailing off.** If this story solved anything
-   non-trivial, name it and what it cost, then offer `/learn` warmly and
-   concretely ("that capture-parser detour cost an hour; /learn banks it so next
+   non-trivial, name it and what it cost, then offer `/odeo:learn` warmly and
+   concretely ("that capture-parser detour cost an hour; /odeo:learn banks it so next
    time it's free, want me to draft the entry?"). Never present it as
    skippable hygiene; it is how the system gets smarter with every story. If
-   several stories merged since the last `/retro`, say so and offer it too.
+   several stories merged since the last `/odeo:retro`, say so and offer it too.
    If the merged diff touched behavior the docs describe (a supported format, a
-   flag, an endpoint, a default in README/docs/CLAUDE.md), offer `/sync-docs`
+   flag, an endpoint, a default in README/docs/CLAUDE.md), offer `/odeo:sync-docs`
    once, stating why ("this changed the export format the README documents, want
    me to reconcile the docs?"), never after a decline.
    (Draft-first: the user approves anything saved. A "no" is final, no nagging.)
 
 ## Worked example
 ```
-> /merge                          (on feature/usr-012-timer, reviewed, you approved)
+> /odeo:merge                          (on feature/usr-012-timer, reviewed, you approved)
 merge-gate: preconditions hold (branch 'feature/usr-012-timer', 1 record(s) checked: docs/evals/code-feature-usr-012-timer.md)
 upstream check: main is an ancestor of origin/main -> ordinary upstream, rebase applies
 fetch + rebase onto origin/main: clean
 tests + typecheck: green
 gh pr merge --squash: merged
 cleanup: back on main, branch deleted local + remote
--> "USR-012 integrated. Next by dependency: USR-013. About a week after shipping, run /outcome."
+-> "USR-012 integrated. Next by dependency: USR-013. About a week after shipping, run /odeo:outcome."
 ```
 
 ## Two histories (when 1b says the remote is a publication)
 Same gate, different back half. Do not rebase, do not push the branch there, do not
 `git pull` main from it.
 ```
-> /merge                          (on docs/fix-the-thing, reviewed, you approved)
+> /odeo:merge                          (on docs/fix-the-thing, reviewed, you approved)
 merge-gate: preconditions hold (branch 'docs/fix-the-thing', 1 record(s) checked: docs/evals/skill-merge.md)
 upstream check: neither main nor origin/main is an ancestor of the other,
                 and a pre-push hook refuses this remote -> PUBLICATION, not upstream

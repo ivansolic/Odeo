@@ -64,7 +64,7 @@ comes later, through the real build pipeline.
      DEPLOYS cannot expire on their own: record each one in
      `docs/prototypes/.shares` (what, host, URL, date), recommend password
      protection where the host offers it, and delete the deploy when it has
-     served its purpose, `/start` reminds about old ones.
+     served its purpose, `/odeo:start` reminds about old ones.
    - Live-editing a SHARED prototype: static servers + tunnels cache hard;
      reload with a cache-busted URL (`?v=<timestamp>`) so the viewer sees the
      change, not the stale copy.
@@ -74,16 +74,16 @@ comes later, through the real build pipeline.
 7. **Write the findings** to `docs/prototypes/<idea>/findings.md`, the durable
    handoff (checklist below), **and commit them**: durable means committed, an
    untracked file dies with the next cleanup. Branch `chore/prototype-findings`,
-   commit, offer `/merge` (docs-only PR). Delete or keep the dead worktrees;
+   commit, offer `/odeo:merge` (docs-only PR). Delete or keep the dead worktrees;
    the findings are what matters.
    (A reference example of a complete findings file:
    `docs/examples/prototype-findings-example.md`.)
 8. **Promote gate (your decision)**: the winner rejoins the normal flow AT THE
    PHASE ITS SCOPE NEEDS:
-   - solo/small feature -> `/spec` (prd -> critique -> stories) -> `/build`;
+   - solo/small feature -> `/odeo:spec` (prd -> critique -> stories) -> `/odeo:build`;
    - real product / many epics -> strategy (scaled to ambition) -> product-level
      foundation (architecture + ADR + high-level critique incl. security), never
-     skipped -> `/plan` -> `/spec` per epic -> `/build`.
+     skipped -> `/odeo:plan` -> `/odeo:spec` per epic -> `/odeo:build`.
    Two build paths: **harden in place** (clean prototype: add tests, review,
    refactor to standard) or **rebuild from findings** (dirty prototype: throw the
    code, keep the learnings). Either way full dev rigor applies from here on.

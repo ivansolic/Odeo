@@ -24,14 +24,14 @@ few measurable Key Results (how we'll know we got there). Based on the OKR metho
 
 ## Check-in mode (re-run over existing OKRs)
 If OKRs already exist in `docs/`, this run is a CHECK-IN, not a rewrite:
-1. Pull current actuals for each KR (real numbers only, from `/metrics` sources
+1. Pull current actuals for each KR (real numbers only, from `/odeo:metrics` sources
    or what the user provides; a metric without data = "not instrumented", never a guess).
 2. Status per KR: on track / at risk / off track, actual vs target, plain one-liner why.
 3. Recommend per KR: keep pushing, change the bet feeding it, or (rarely, explicitly) revise the KR.
 4. Nothing is rewritten without the user's approval; a check-in is a report first.
 
 ## Output
-1 objective + 2 to 4 outcome KRs with baselines/targets, saved under `docs/`. Pairs with `/metrics`.
+1 objective + 2 to 4 outcome KRs with baselines/targets, saved under `docs/`. Pairs with `/odeo:metrics`.
 Check-in mode: a status report per KR appended/updated in the same document (dated).
 
 ## Quality rules

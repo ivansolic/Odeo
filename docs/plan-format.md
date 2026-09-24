@@ -13,7 +13,7 @@ it alone, without asking what was meant.**
 ## Where plans live
 `docs/plans/<YYYY-MM-DD>-<feature-or-story-slug>.md`, one plan per story (or one
 per small batch when stories are tightly related). Committed to git; the approved
-version is the contract. The `/build` pipeline will not dispatch a builder
+version is the contract. The `/odeo:build` pipeline will not dispatch a builder
 without an approved plan file.
 
 ## Structure
@@ -50,7 +50,7 @@ model_plan:             # the judgment model and effort AS OF when the plan is w
                         # actually served, so it discloses what was requested rather
                         # than claiming what executed. Prior plans keep the older
                         # `builder:` child; they are records of what was, never migrated.
-arch_review: pending    # set by the /build pipeline after the plan-review loop:
+arch_review: pending    # set by the /odeo:build pipeline after the plan-review loop:
                         # "clean (vN, YYYY-MM-DD)" or "waived (human)" for
                         # standalone human-supplied plans. The builder requires it.
 
@@ -96,7 +96,7 @@ Constraints: <copied verbatim from the spec/story. Boundaries live in the
 <every file this plan creates or modifies, with its responsibility>
 - bin/language-status.sh        CREATE: prints the effective language and its scope
 - tests/language-status.test.sh CREATE: tests for language-status.sh
-- skills/language/SKILL.md      CREATE: the /language command surface
+- skills/language/SKILL.md      CREATE: the /odeo:language command surface
 
 ## Tasks
 <the smallest independently testable units, in dependency order; each task:>

@@ -1,5 +1,5 @@
 ---
-description: Create a new Claude-ready project folder with Odeo's structure (CLAUDE.md, docs/, tasks/, knowledge/, design/ for UI projects), a git repo on main and the git guards installed. Explicit command; run it once per new project, then open the folder and run /setup-project. Example: "/new-project my-app".
+description: Create a new Claude-ready project folder with Odeo's structure (CLAUDE.md, docs/, tasks/, knowledge/, design/ for UI projects), a git repo on main and the git guards installed. Explicit command; run it once per new project, then open the folder and run /odeo:setup-project. Example: "/odeo:new-project my-app".
 disable-model-invocation: true
 ---
 
@@ -11,7 +11,7 @@ the plugin's `bin/` is on the PATH of Claude's shell.
 
 ## When to use (and when not)
 - Starting a NEW product or repo that should follow the Odeo workflow.
-- Not for an existing codebase: open that folder and run `/setup-project`, which has an
+- Not for an existing codebase: open that folder and run `/odeo:setup-project`, which has an
   existing-project mode that maps the code instead of scaffolding over it.
 
 ## Process
@@ -32,7 +32,7 @@ the plugin's `bin/` is on the PATH of Claude's shell.
    (adds the design layer), no means `--no-ui`.
 4. **Language.** `resolve-language.sh '<parent>'` prints the language to pass: the
    parent folder's own `CLAUDE.md` setting if it has one, otherwise the global default.
-   Do not ask again; the user changes it later with `/language`.
+   Do not ask again; the user changes it later with `/odeo:language`.
 5. **Run in ONE call**, so the folder created is the folder confirmed:
    `cd -- '<parent>' && pwd -P && init-project.sh '<name>' --ui|--no-ui --language <code>`
    The first output line is the real parent path; report `<that path>/<name>`, never
@@ -48,14 +48,14 @@ the plugin's `bin/` is on the PATH of Claude's shell.
      not run them; step 7 is the only way to a remote.
 7. **Hand over.** Say what was created and the next two steps: open the folder in Claude
    (terminal: `cd <name> && claude`; desktop app: open the folder as the project), then
-   run `/setup-project` there to set the stack and commands.
+   run `/odeo:setup-project` there to set the stack and commands.
 8. **Remote, only if asked.** Creating a GitHub repository sends the project outward, so
    offer it and run `gh repo create '<name>' --private --source='<path>' --remote=origin`
    only after an explicit yes (`${CLAUDE_PLUGIN_ROOT}/AGENTS.md` Guardrails 1, human
    floor). Never push `main`.
 
 ## Worked example
-"/new-project invoice-tracker"
+"/odeo:new-project invoice-tracker"
 - `invoice-tracker` matches the name rule. The current folder is `/Users/ana/code`, not
   inside a repository: "I'll create `/Users/ana/code/invoice-tracker`, OK?" Yes.
 - "Will this project have a user interface?" Yes, so `--ui`.
@@ -64,8 +64,8 @@ the plugin's `bin/` is on the PATH of Claude's shell.
   --language de`. First line `/Users/ana/code`, exit 0, no `hooks skipped` line.
 - "Created `/Users/ana/code/invoice-tracker` with git on `main` and the guards installed
   (no direct push to main, secret scan on commit). Next: open it (`cd invoice-tracker &&
-  claude`) and run `/setup-project`. Want a private GitHub repo for it as well?"
-- Had the user typed `/new-project my app`: "`my app` has a space; project names use
+  claude`) and run `/odeo:setup-project`. Want a private GitHub repo for it as well?"
+- Had the user typed `/odeo:new-project my app`: "`my app` has a space; project names use
   letters, digits, `.`, `_` or `-`. How about `my-app`?"
 
 ## Output

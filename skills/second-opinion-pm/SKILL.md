@@ -37,7 +37,7 @@ live in `${CLAUDE_PLUGIN_ROOT}/docs/second-opinion-protocol.md` (read it; not re
    only-vendor + recommendation) and NEVER changes its own verdict.
 6. **Present and discuss**: show the comparison; decisions stay with the human.
 7. **Offer the absorption loop**: if a vendor-unique finding class recurs, offer
-   `/improve` to fold it into OUR pm-reviewer as a permanent check.
+   `/odeo:improve` to fold it into OUR pm-reviewer as a permanent check.
 
 ## Worked example
 "Second opinion on PRD-007, this is our whole Q3 bet."

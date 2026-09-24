@@ -1,5 +1,5 @@
 ---
-description: Build one or more ready user stories. Two modes you choose: "with me" (live, you and Claude build together in your editor) or "for me" (agents execute a plan you approved, each story in its own git worktree). Name several stories to build them in parallel, e.g. "/build USR-001 USR-002 in parallel". Hybrid agentic build, you hold the gates.
+description: Build one or more ready user stories. Two modes you choose: "with me" (live, you and Claude build together in your editor) or "for me" (agents execute a plan you approved, each story in its own git worktree). Name several stories to build them in parallel, e.g. "/odeo:build USR-001 USR-002 in parallel". Hybrid agentic build, you hold the gates.
 disable-model-invocation: true
 ---
 
@@ -115,7 +115,7 @@ pipeline.** With me: you enter plan mode and approve before building. For me: th
 `architect` writes the plan document (`docs/plans/`, per `${CLAUDE_PLUGIN_ROOT}/docs/plan-format.md`),
 you approve it, and only then is a `builder` dispatched, a builder without an
 approved plan does not build, by design. Skipping the plan is only sensible for a
-trivial fix (which skips `/build` entirely).
+trivial fix (which skips `/odeo:build` entirely).
 
 **Editor (both modes, one rule): reuse, never multiply.** Reveal and open with
 `code -r` / `code --add` so everything lands in the user's EXISTING editor
@@ -140,7 +140,7 @@ For one story at a time. The safest mode and the right default while learning.
 5. **Agree the success-signal (the loop's stop condition):** what "done" means here, every acceptance criterion + tests/lint/typecheck green + any quality targets (in plain language: "loads fast", "works for keyboard/screen-reader users"). Default is just the acceptance criteria + tests; add targets only if they matter.
 6. **Plan first, I prompt you and I wait.** Offer once: *"want the `architect` agent to draft the plan for us to review, or shall I draft it here?"* Either way: tell the user on screen: *"press Shift+Tab twice (plan mode), I'll present the steps and wait for your OK before writing any code."* In plan mode, present the step-by-step plan; **write no code until the user approves.** Approving the plan exits plan mode automatically and building starts (if they want changes, revise and re-present). Then build together (TDD for logic, ux-design + ux-writing for UI, follow AGENTS.md/CLAUDE.md + security baseline), looping build -> check the success-signal -> fix; stop and report if stuck after a few tries.
 7. Verify every success-signal item. Then `code-reviewer` (and `design-reviewer` if UI). If the change touches auth, input handling, uploads, payments, or data access, run the built-in `/security-review` too (note: it needs `origin/HEAD`; if the repo's remote is new, run `git remote set-head origin -a` once first).
-8. When the user says so, integrate with `/merge` (rebase onto main, tests, merge PR, cleanup). Offer it; never start it on your own.
+8. When the user says so, integrate with `/odeo:merge` (rebase onto main, tests, merge PR, cleanup). Offer it; never start it on your own.
 
 ---
 
@@ -155,7 +155,7 @@ architect (plans ALL chosen stories, read-only)
      within it is the builder's)
   -> reviewers (code-reviewer, + design-reviewer if UI)
   -> YOU approve each result                       [gate 2]
-  -> /merge (serialized)                           [gate 3: your approval again]
+  -> /odeo:merge (serialized)                           [gate 3: your approval again]
 ```
 
 ### B1. Overlap check (before parallel), run `worktree-parallel-check`
@@ -163,7 +163,7 @@ Run the `worktree-parallel-check` logic: compare the chosen stories against each
 AND against any **other active worktrees** (other sessions/agents in progress, via
 `git worktree list` + their changed files). If anything overlaps, WARN and recommend
 sequential or a non-overlapping alternative. Parallel is only safe for independent work.
-It states its limit (estimate + `/merge` as the backstop). Scope by module, not by task.
+It states its limit (estimate + `/odeo:merge` as the backstop). Scope by module, not by task.
 
 ### B2. Propose a build order (by dependency)
 Order the stories by technical dependency (data model before the feature that
@@ -179,7 +179,7 @@ Present these as a clear choice, and say what happens if the user just says "go"
   >  per story, each in its own worktree) instead of one at a time. Default is one
   >  at a time. Want parallel? Just say 'parallel' (or say 'go' for one at a time)."
   The user triggers parallel by saying so here, or up front when invoking (e.g.
-  "/build USR-001 USR-002 in parallel"). If the stories overlap (B1), don't offer
+  "/odeo:build USR-001 USR-002 in parallel"). If the stories overlap (B1), don't offer
   parallel; explain why and stay sequential.
 - **Oversight is structural:** the plan gate is not optional in Mode B. The
   architect's plan is what you approve; builders only run against an approved plan.
@@ -277,8 +277,8 @@ from the plan), reviewer verdicts + scores, decisions and assumptions,
 
 ### B7. Gate + integrate (the merge is the user's move, full stop)
 You approve each, or request changes (the agent revises and re-presents). On
-approval, /build's job ENDS with the offer: "approved and ready, run /merge when
-you want it integrated (or say 'merge it')." `/merge` starts ONLY when the user
+approval, /odeo:build's job ENDS with the offer: "approved and ready, run /odeo:merge when
+you want it integrated (or say 'merge it')." `/odeo:merge` starts ONLY when the user
 invokes it or answers that offer with an explicit yes. Reviews passing is not
 permission; "the pipeline naturally continues" is not permission; having merged
 the previous story is not permission. When several stories are approved, merge
@@ -289,7 +289,7 @@ explicit user go.
 
 ## Worked example
 ```
-> /build USR-012
+> /odeo:build USR-012
 "USR-012 (session timer) is ready: clear ACs. How do you want to build this?
  with me (live, in your editor) or for me (agents on a plan you approve)?"
 > for me
@@ -308,20 +308,20 @@ architecture-reviewer on the plan: fits inherited architecture, 1 note (shown)
 builder in ../dogfood-usr-012 -> success-signal checklist all pass
 code-reviewer 12/12 APPROVE -> docs/evals/code-USR-012.md
   (branch: + reviewed_commit: + build_model_as_dispatched: <the model it was dispatched on>)
-"Approved and ready. Run /merge when you want it integrated."   <- ENDS here
+"Approved and ready. Run /odeo:merge when you want it integrated."   <- ENDS here
 ```
 
 ## After building
 If anything non-trivial got solved, don't let it evaporate: say what the
-reusable finding is and what it cost to figure out, then offer `/learn`, e.g.
-"that JSON-LD fallback cost us an hour; /learn banks it in knowledge/ so next
+reusable finding is and what it cost to figure out, then offer `/odeo:learn`, e.g.
+"that JSON-LD fallback cost us an hour; /odeo:learn banks it in knowledge/ so next
 time it's free. Two minutes, want me to draft it?" (Draft-first, the user
 approves what gets saved. If they decline, drop it, no nagging.)
 
 ## Safety rules
 - Parallel only for independent stories; one story = one branch = one PR.
-- The mode is ASKED, never inferred, every /build invocation, no exceptions.
-- `/merge` is never self-triggered: user invocation or an explicit yes, only.
+- The mode is ASKED, never inferred, every /odeo:build invocation, no exceptions.
+- `/odeo:merge` is never self-triggered: user invocation or an explicit yes, only.
 - Never merge without explicit approval. Your review is the bottleneck: keep parallel builders to 2-4.
 - **No builder without an approved plan**, the plan gate is structural, not advisory.
 - **Never background a LONE builder** (no concurrency to gain, all the downside); background is the parallel-only, higher-trust opt-in described in B3. Default = single builder, foreground.

@@ -34,7 +34,7 @@ Threshold: total >= 8/10 (or >= 6/8 when criterion 5 is N/A) AND no criterion at
 Notes for the scorer:
 - Quote the criterion or story line behind every score.
 - A beautiful story set for the wrong feature still passes here, feature choice
-  is `/prioritize` and `/critique` territory, not this rubric.
+  is `/odeo:prioritize` and `/odeo:critique` territory, not this rubric.
 - **Coverage is a precondition, not a graded criterion.** Before scoring a set that
   decomposes a PRD, confirm every PRD requirement maps to at least one story (a
   traceability map); an uncovered requirement blocks the set regardless of score. Kept

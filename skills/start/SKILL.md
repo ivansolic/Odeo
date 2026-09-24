@@ -1,5 +1,5 @@
 ---
-description: Use when the user asks "where are we", "what's next", or "what's the status", seems lost about their position in the lifecycle, or wants a session-opening overview of the project. Read-only; also invoked directly as /start.
+description: Use when the user asks "where are we", "what's next", or "what's the status", seems lost about their position in the lifecycle, or wants a session-opening overview of the project. Read-only; also invoked directly as /odeo:start.
 ---
 
 # Start (you-are-here)
@@ -20,12 +20,12 @@ what the next step is, and which recurring loops are due. Changes nothing.
    active worktrees), mention it.
 4. **Consolidate loop reminders** (max a short list, easy to ignore): signal
    memo older than a week, knowledge-refresh older than ~3 weeks, an unshipped
-   `/outcome` for a feature merged ~a week ago, repeated eval drops (suggest
-   `/improve`), and **stories merged since the last `/retro`** (e.g. "3 stories
-   merged, no retro yet, 10 minutes of /retro now compounds into every future
+   `/odeo:outcome` for a feature merged ~a week ago, repeated eval drops (suggest
+   `/odeo:improve`), and **stories merged since the last `/odeo:retro`** (e.g. "3 stories
+   merged, no retro yet, 10 minutes of /odeo:retro now compounds into every future
    story"). Sell the value in one concrete line; a "no" is final, no nagging.
    When MORE THAN ONE epic/PRD exists and no prioritization artifact does,
-   suggest `/prioritize` + `/roadmap` (value ordering is a PM decision that
+   suggest `/odeo:prioritize` + `/odeo:roadmap` (value ordering is a PM decision that
    single-epic projects never needed).
    **Model preference**: if CLAUDE.md carries `session_model_preference` and
    the session's current model does not match what that preference resolves to
@@ -40,11 +40,11 @@ what the next step is, and which recurring loops are due. Changes nothing.
 5. For an **empty/new project**, the first question is whether the IDEA exists,
    before any setup:
    > "Do you already know what you're building?
-   >  - not yet / several directions -> `/brainstorm` (shape the direction first;
+   >  - not yet / several directions -> `/odeo:brainstorm` (shape the direction first;
    >    stack questions come after there IS a direction)
-   >  - a concrete feature you want to feel in your hands -> `/prototype`
-   >  - yes, and I can describe it -> `/setup-project`, then `/prd`
-   >  - I already have a PRD -> paste it + `/critique`"
+   >  - a concrete feature you want to feel in your hands -> `/odeo:prototype`
+   >  - yes, and I can describe it -> `/odeo:setup-project`, then `/odeo:prd`
+   >  - I already have a PRD -> paste it + `/odeo:critique`"
 
 ## Output shape (keep it this tight)
 ```
@@ -57,5 +57,5 @@ Where you are: <project>, phase: <lifecycle phase>
 
 ## Rules for yourself
 - Read-only, always. Recommend; never run the next step without being asked.
-- One primary recommendation, not a menu (the user can ask /guide for routes).
+- One primary recommendation, not a menu (the user can ask /odeo:guide for routes).
 - State only what the artifacts prove; don't guess intent from thin air.

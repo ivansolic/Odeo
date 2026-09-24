@@ -23,7 +23,7 @@ Each scenario is one record:
 - **reviewer**: which agent is under test.
 - **seed**: the artifact with a known flaw (a diff, a plan, a UI, a PRD), small
   and self-contained. Inline here for now; extract to a fixtures directory under
-  `tests/` when `/improve` calibrate mode automates the runs.
+  `tests/` when `/odeo:improve` calibrate mode automates the runs.
 - **planted defect**: the one flaw we are testing for.
 - **expected finding**: what the reviewer MUST report, and the minimum severity.
 - **pass / fail**: PASS if the reviewer flags the defect at or above the expected
@@ -75,7 +75,7 @@ Each scenario is one record:
 - pass/fail: PASS if flagged as Critical (IDOR / missing ownership check); FAIL if
   missed or downgraded below Critical.
 
-## How to run (manual, until `/improve` calibrate mode)
+## How to run (manual, until `/odeo:improve` calibrate mode)
 1. Put the seed on a scratch branch (or paste it as the review scope).
 2. Dispatch the reviewer under test on that seed.
 3. Compare its verdict against the expected finding and severity above.
@@ -84,6 +84,6 @@ Each scenario is one record:
 
 ## Boundary (honest)
 This doc is the FORMAT plus seed scenarios. The run/score loop (seed -> dispatch
--> assert on the verdict, over N reps) is automated by `/improve` calibrate mode
+-> assert on the verdict, over N reps) is automated by `/odeo:improve` calibrate mode
 ("calibrate the code-reviewer"); you can also run any scenario by hand.
 Extend the seed set whenever a real miss is observed in dogfood.

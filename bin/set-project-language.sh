@@ -9,7 +9,7 @@
 # Unlike bin/set-global-language.sh (idempotent by default, which is what
 # protects the install-time "asked exactly once" guarantee), this script IS a
 # change path: overwriting an existing project value is its job, because the
-# project override is the per-repo setting /language changes.
+# project override is the per-repo setting /odeo:language changes.
 #
 # Only records WHICH language to write prose in; machine surfaces (filenames,
 # frontmatter keys, commit types, code) stay English regardless of the code.
@@ -43,7 +43,7 @@ fi
 
 TARGET="$PROJECT_DIR/CLAUDE.md"
 if [ ! -f "$TARGET" ]; then
-  echo "set-project-language: no CLAUDE.md in $PROJECT_DIR (run /setup-project first, or set the global default instead)" >&2
+  echo "set-project-language: no CLAUDE.md in $PROJECT_DIR (run /odeo:setup-project first, or set the global default instead)" >&2
   exit 1
 fi
 

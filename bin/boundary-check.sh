@@ -12,7 +12,7 @@
 #
 # Usage:   boundary-check.sh [base-ref]     (default base-ref: main)
 # Exit:    0 clean/nothing-to-enforce · 1 boundary touched (BLOCK) · 2 usage error
-# Used by: /build (before presenting a builder's result) and /merge.
+# Used by: /odeo:build (before presenting a builder's result) and /odeo:merge.
 
 set -uo pipefail
 

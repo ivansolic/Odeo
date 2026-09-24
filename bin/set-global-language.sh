@@ -7,7 +7,7 @@
 #
 # IDEMPOTENT BY DESIGN: if the config already carries an output_language: line,
 # this does nothing and reports "already set". That is what enforces "asked
-# exactly once" across re-installs: the caller (install.sh) never re-prompts
+# exactly once": a caller never re-prompts
 # because the line is already there (a skip writes `en`, so even a skip counts).
 #
 # This only records WHICH language to write prose in; machine surfaces (filenames,
@@ -18,14 +18,14 @@
 #   set-global-language.sh <code> --overwrite    # CHANGE an existing value
 #
 # Without --overwrite it is idempotent by design (see above): an existing line is
-# left alone. --overwrite is the explicit opt-in the /language command uses to
-# CHANGE the global default; install.sh never passes it, so the install-time
-# "asked exactly once, never silently overwritten" guarantee is unaffected.
+# left alone. --overwrite is the explicit opt-in the /odeo:language command uses to
+# CHANGE the global default, and the plugin's hook passes it only when the user changed
+# the language in the plugin's dialog, so nothing else is ever silently overwritten.
 #
 # The no-flag path is unchanged for every NON-SYMLINK input. One deliberate delta:
 # a symlinked config is now refused on BOTH paths (it previously appended through
 # the link, which under a --link install would have written into the repo's tracked
-# global/CLAUDE.md). install.sh cannot reach it, since it skips symlinks first.
+# global/CLAUDE.md).
 #
 # Exit codes:
 #   0  line present after the call (freshly written, changed, or already set)

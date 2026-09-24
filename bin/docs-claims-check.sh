@@ -118,12 +118,12 @@ if [[ "$WITH_ASSERTIONS" -eq 1 ]]; then
   # are not. Saying so turns a confusing "the README drifted" into "this machine ran fewer
   # assertions", which are opposite problems: one needs the document fixed, the other needs a
   # different machine or shell.
-  # The note names CAUSES, plural, because it used to name one. Measured reasons a suite skips
-  # here: an optional tool is absent (pwsh, for install.ps1); the case cannot run as the current
-  # user (six root guards in ledger-backup.test.sh, where an unreadable file is readable anyway);
-  # or the shell refuses what the case needs (bash 3.2 makes SHELLOPTS readonly). Naming only
-  # the first made the note FALSE on an ordinary run of this repo, which is worse than no note:
-  # it sends the reader to install a tool that was never missing.
+  # The note names CAUSES, plural, and only causes that occur. Measured reasons a suite skips
+  # here: the case cannot run as the current user (six root guards in ledger-backup.test.sh,
+  # where an unreadable file is readable anyway), or the shell refuses what the case needs
+  # (bash 3.2 makes SHELLOPTS readonly). It once named only a missing optional tool (pwsh, for
+  # the since-removed install.ps1 suite), which made it FALSE on an ordinary run: a note that
+  # names a cause that does not apply sends the reader to install a tool that was never missing.
   # Counted in SKIP LINES, not assertions: a suite reports one line per skipped case, so this
   # says how much went unverified, never how much the total is short by. Which is also why the
   # error runs in BOTH directions and the claim below is not failed when there is any skip at
@@ -131,9 +131,9 @@ if [[ "$WITH_ASSERTIONS" -eq 1 ]]; then
   # HIGHER than the README, not lower.
   skip_reason=""
   if [[ "$n_skipped" -gt 0 ]]; then
-    skip_reason="$n_skipped check(s) were SKIPPED here (an optional tool is missing, the case cannot run as this user, or this shell refuses what it needs)."
-    echo "note: $n_skipped check(s) were SKIPPED here (an optional tool is missing, the case"
-    echo "      cannot run as this user, or this shell refuses what it needs), so the count"
+    skip_reason="$n_skipped check(s) were SKIPPED here (the case cannot run as this user, or this shell refuses what it needs)."
+    echo "note: $n_skipped check(s) were SKIPPED here (the case cannot run as this user, or"
+    echo "      this shell refuses what it needs), so the count"
     echo "      below can read LOW or HIGH on this machine without the README being wrong."
   fi
   claim "assertions" "$total" '[0-9]+ assertions' "$skip_reason"

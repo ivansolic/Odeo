@@ -18,7 +18,7 @@ hats, and the whole process is just *knowing which hat you're wearing*.
 - 🛠️ **Dev hat**, *build and ship* it. Planning, code, tests, review, merge.
   You don't type code, **Claude is your developer**; you direct and approve.
 
-`/build` is the literal moment you **switch hats**: PM work is done, time to
+`/odeo:build` is the literal moment you **switch hats**: PM work is done, time to
 build. Everything before it is PM; everything after is Dev.
 
 And remember the relationship with Claude:
@@ -55,8 +55,8 @@ starting from zero; you're adding a delivery half to skills you already have.
         🎩 PM HAT                    switch         🛠️ DEV HAT
   (decide what & why)                 hats        (build & ship)
                                         │
- brainstorm → PRD → critique →  ─────/build─────→  plan → build → verify
- (optional) user stories                          → review → /merge
+ brainstorm → PRD → critique →  ──/odeo:build───→  plan → build → verify
+ (optional) user stories                          → review → /odeo:merge
         │                                                        │
    saved in docs/                                          lives on GitHub
 ```
@@ -71,7 +71,7 @@ When a project is freshly created, its `CLAUDE.md` (the file that tells Claude
 about your project) is full of blanks. **Your first move inside a new project:**
 
 ```
-/setup-project
+/odeo:setup-project
 ```
 
 Claude interviews you, what's your stack, how do you run tests, any house rules, 
@@ -84,9 +84,9 @@ write your PRDs, stories, plans, and reviews in German, Croatian, or French, whi
 the code, the commit messages, and the filenames always stay English. Set it once:
 
 ```
-/language de          (German, for this project)
-/language de --global (German, for every project)
-/language             (just show the current setting)
+/odeo:language de          (German, for this project)
+/odeo:language de --global (German, for every project)
+/odeo:language             (just show the current setting)
 ```
 
 Only the *prose* Claude writes for you changes; anything a machine reads stays
@@ -122,19 +122,19 @@ Don't memorize these. They stick after a week of use.
 You'll see two kinds of capabilities. The difference is simple, **who decides to
 use it:**
 
-| | **Command** (e.g. `/setup-project`, `/build`, `/retro`) | **Skill** (e.g. the TDD skill, ux-design) |
+| | **Command** (e.g. `/odeo:setup-project`, `/odeo:build`, `/odeo:retro`) | **Skill** (e.g. the TDD skill, ux-design) |
 |---|---|---|
 | Who starts it | **You**, by typing the `/name` | **Claude**, automatically, when the work matches |
 | Trigger | Explicit: you choose the moment | Contextual: Claude reads the skill's description and engages when it fits |
 | Good for | Deliberate actions you run at a specific point | Background expertise that should "just apply" |
-| Example | You type `/build` when ready to build | You build a backend rule → the TDD skill kicks in on its own |
+| Example | You type `/odeo:build` when ready to build | You build a backend rule → the TDD skill kicks in on its own |
 
 Think of it as: **commands are buttons you press; skills are reflexes Claude has.**
 (Plugin-bundled skills are a special case: skills that ship inside a plugin are
 invoked by a namespaced name like `/plugin-name:command`, so they behave like
 commands in practice.)
 
-This is why the end-of-session retro is a **command** (`/retro`) and not a skill:
+This is why the end-of-session retro is a **command** (`/odeo:retro`) and not a skill:
 Claude can't detect that you're wrapping up, so *you* press the button.
 
 ---
@@ -153,17 +153,17 @@ Claude can edit files, run commands, create branches, commit, actually act.
 
 **Why this matters (the question every beginner hits):** some commands need to
 *do* things, so they must run in **normal mode**. The clearest case is
-`/build`, it creates a branch and writes a file; plan mode (read-only)
+`/odeo:build`, it creates a branch and writes a file; plan mode (read-only)
 would block it.
 
 > **The golden order:** set the stage first (normal mode), *then* think (plan
 > mode), *then* build (normal mode).
 >
-> `/build` (DO) → `Shift+Tab` twice to plan mode (THINK) → Claude drafts the plan →
+> `/odeo:build` (DO) → `Shift+Tab` twice to plan mode (THINK) → Claude drafts the plan →
 > you **approve** (approving **automatically exits** plan mode) → it BUILDS.
 
 You don't manually switch back: approving the plan exits plan mode for you. And in
-Mode A, `/build` **tells you on screen** to press `Shift+Tab` and **waits**, it won't
+Mode A, `/odeo:build` **tells you on screen** to press `Shift+Tab` and **waits**, it won't
 write code before you approve, so you can't forget.
 
 If you remember one thing: **set the stage in normal mode, plan in plan mode,
@@ -172,14 +172,14 @@ build in normal mode.**
 ### Three things called "plan", don't mix them up
 - **a plan** = the *list of steps* ("1. data model, 2. timer, ..."). Claude writes it; you approve it before code.
 - **plan mode** = the `Shift+Tab` *safety switch* that stops Claude from touching files while you review that list. (Optional lock; in Mode B the background agent doesn't use it, it just shows its plan and waits.)
-- **`/plan`** = a *PM skill* (a different thing): it prioritizes and roadmaps which features to build, way upstream, before any code.
-- (And **`todo.md`** = the saved checklist that carries your task across sessions; `/build` writes it for you.)
+- **`/odeo:plan`** = a *PM skill* (a different thing): it prioritizes and roadmaps which features to build, way upstream, before any code.
+- (And **`todo.md`** = the saved checklist that carries your task across sessions; `/odeo:build` writes it for you.)
 
 ---
 
 ## 8. VS Code, your window into the code (and where to keep working)
 
-When you run `/build`, it **opens VS Code automatically**. VS Code is just
+When you run `/odeo:build`, it **opens VS Code automatically**. VS Code is just
 the **editor where you can *see* the code**, your Claude session stays in the
 terminal regardless. The moment it opens, you choose where to work:
 
@@ -192,7 +192,7 @@ terminal regardless. The moment it opens, you choose where to work:
 
 > ⚠️ Don't run the *same* session in two terminals at once, one at a time.
 
-**No VS Code installed?** No problem, `/build` notices, skips opening it,
+**No VS Code installed?** No problem, `/odeo:build` notices, skips opening it,
 and tells you. The branch and checklist are still created; you work terminal-only.
 
 ---
@@ -227,24 +227,24 @@ Full chain for a **bigger feature or a project built from scratch**:
 
 | # | Step (hat) | **You trigger** | **Claude writes** | **Saved where** |
 |---|---|---|---|---|
-| 0 | 🛠️ Configure project | `/setup-project` | your filled CLAUDE.md | `CLAUDE.md` |
-| 1 | 🎩 Brainstorm | `/pm-product-discovery:brainstorm-ideas-new` | options to choose from | (in chat) |
-| 2 | 🎩 PRD | `/pm-execution:create-prd` | the PRD document | `docs/prds/PRD-NNN-<slug>.md` |
-| 3 | 🎩 Critique | `/pm-execution:strategy-red-team` + `:pre-mortem` | weak spots & risks | (in chat) |
-| 4 | 🎩 Stories **+ acceptance criteria** | `/pm-execution:user-stories` | each story **with its acceptance criteria** | `docs/stories/USR-NNN-<slug>.md` |
+| 0 | 🛠️ Configure project | `/odeo:setup-project` | your filled CLAUDE.md | `CLAUDE.md` |
+| 1 | 🎩 Brainstorm | `/odeo:brainstorm` | options to choose from | (in chat) |
+| 2 | 🎩 PRD | `/odeo:prd` | the PRD document | `docs/prds/PRD-NNN-<slug>.md` |
+| 3 | 🎩 Critique | `/odeo:critique` (red team + pre-mortem) | weak spots & risks | (in chat) |
+| 4 | 🎩 Stories **+ acceptance criteria** | `/odeo:stories` | each story **with its acceptance criteria** | `docs/stories/USR-NNN-<slug>.md` |
 | 5 | 🎩 Pick a story | *(you decide)* |, |, |
-| 6 | switch hats + build | `/build` | branch + checklist, then plan & build | `.claude/tasks/todo.md` |
+| 6 | switch hats + build | `/odeo:build` | branch + checklist, then plan & build | `.claude/tasks/todo.md` |
 | 7 | 🛠️ Plan | plan mode → "implement USR-NNN" | the step-by-step plan | `todo.md` |
 | 8 | 🛠️ Verify | "walk through each acceptance criterion" | proof each criterion passes | (in chat) |
 | 9 | 🛠️ Review | "invoke code-reviewer" | findings to fix | (in chat) |
-| 10 | 🛠️ Ship | `/commit-push`, then `/merge` | commit + PR merged, cleaned up | GitHub |
-| 11 | 🎩 Retro | `/retro` | lessons routed to the right file, then the gitignored ledger backed up outside the repo | `lessons.md` / CLAUDE.md, plus your backup target |
-| 12 | 🎩 Capture / measure | `/learn` now, `/outcome` ~a week later | knowledge entry, real outcome verdict | `knowledge/` |
+| 10 | 🛠️ Ship | `/odeo:commit-push`, then `/odeo:merge` | commit + PR merged, cleaned up | GitHub |
+| 11 | 🎩 Retro | `/odeo:retro` | lessons routed to the right file, then the gitignored ledger backed up outside the repo | `lessons.md` / CLAUDE.md, plus your backup target |
+| 12 | 🎩 Capture / measure | `/odeo:learn` now, `/odeo:outcome` ~a week later | knowledge entry, real outcome verdict | `knowledge/` |
 
 **Key points beginners miss:**
 
 - **Acceptance criteria aren't separate**, they live *inside* each user story.
-  When you run `/pm-execution:user-stories` (step 4), Claude writes the story
+  When you run `/odeo:stories` (step 4), Claude writes the story
   *and* its acceptance criteria. You review and adjust them.
 - **The same criteria come back at the Verify step** (step 8 in this table) as
   your test checklist. Write them well once, use them twice, first as the spec,
@@ -290,7 +290,7 @@ automatically** (it lives in your global CLAUDE.md). Claude validates input,
 uses safe database queries, keeps personal data out of logs, handles passwords
 and secrets properly, without you asking. Your part is small and structured:
 
-- **When setting up a project** (`/setup-project`), you'll be asked a few plain
+- **When setting up a project** (`/odeo:setup-project`), you'll be asked a few plain
   questions: what personal data will this handle? where are your users? will
   people log in? That fills the project's "Security & Data" section.
 - **When a feature touches sensitive ground** (login, personal data, payments,
@@ -317,12 +317,12 @@ Three places hold "lessons," from narrow to broad:
 - **Global `CLAUDE.md`**, rules that apply to *all* your work, everywhere.
 
 A lesson "graduates" upward as it proves it matters everywhere. Capturing them is
-the job of **`/retro`**, run it at the end of a session (it's a command, so *you*
+the job of **`/odeo:retro`**, run it at the end of a session (it's a command, so *you*
 press it; Claude can't tell when you're done). It proposes what you learned and
 routes each lesson, with your approval, to the right file. Over weeks this quietly
 becomes a record of how *you* like to work, and Claude stops repeating misses.
 
-`/retro` also **backs those files up outside the repository**. `lessons.md` and
+`/odeo:retro` also **backs those files up outside the repository**. `lessons.md` and
 `todo.md` are gitignored, so they never ship in a published snapshot and no commit
 carries them either: without a backup they exist only on this machine. At the end
 of the retro Claude runs `ledger-backup.sh`, which copies both to the target you
@@ -356,15 +356,15 @@ times. Stop it, send it back to plan mode, make it rethink.
 ## 16. Your very first feature, slow-motion walkthrough
 
 1. Open the terminal, go to your project, type `claude`.
-2. 🛠️ Run `/setup-project` (first time in this project only) → answer the stack
+2. 🛠️ Run `/odeo:setup-project` (first time in this project only) → answer the stack
    questions or pick a preset.
 3. 🎩 Plan mode ON (`Shift+Tab` twice). Describe your idea, let Claude give
    options, pick one.
-4. 🎩 Run `/pm-execution:create-prd`. Answer its questions about the problem.
-5. 🎩 Run `/pm-execution:strategy-red-team` to poke holes. Fix the PRD.
-6. 🎩 (Bigger feature only) `/pm-execution:user-stories` → Claude writes stories
+4. 🎩 Run `/odeo:prd`. Answer its questions about the problem.
+5. 🎩 Run `/odeo:critique` to poke holes. Fix the PRD.
+6. 🎩 (Bigger feature only) `/odeo:stories` → Claude writes stories
    and acceptance criteria. Review them.
-7. **switch hats.** Plan mode OFF. Run `/build`, it makes your branch and
+7. **switch hats.** Plan mode OFF. Run `/odeo:build`, it makes your branch and
    checklist, and opens VS Code (Section 8, choose where to work). (This is Mode A,
    human-first. Once you trust the flow, Mode B has an architect plan each story,
    you approve the plan, and builder agents execute it and present the result.)
@@ -373,18 +373,18 @@ times. Stop it, send it back to plan mode, make it rethink.
 10. 🛠️ "Walk through every acceptance criterion." Then "invoke code-reviewer."
     If the change touches login, personal data, payments, or uploads: also run
     `/security-review` (Section 13).
-11. 🛠️ Run `/commit-push`, then `/merge` (rebase onto main, test, merge PR, clean up).
-12. 🎩 Before you stop: run `/retro`, capture what you learned, and let it back up
+11. 🛠️ Run `/odeo:commit-push`, then `/odeo:merge` (rebase onto main, test, merge PR, clean up).
+12. 🎩 Before you stop: run `/odeo:retro`, capture what you learned, and let it back up
     `todo.md` + `lessons.md` outside the repo (git ignores them, so nothing else
-    carries them). If you solved something reusable, `/learn` it.
-13. You shipped something. 🎉 About a week later, run `/outcome` to see if it
+    carries them). If you solved something reusable, `/odeo:learn` it.
+13. You shipped something. 🎉 About a week later, run `/odeo:outcome` to see if it
     actually solved the problem. Next piece: back to step 7.
 
 ---
 
 ## 17. Never lost: two helpers that always know the way
 
-- **`/start`**, type it any time: it reads your project and answers "where am I,
+- **`/odeo:start`**, type it any time: it reads your project and answers "where am I,
   what's next?" with one concrete next command, plus any due reminders (like
   "you haven't captured lessons this week").
 - **Just ask**, you don't need to memorize commands. Ask in plain words ("how do
@@ -392,7 +392,7 @@ times. Stop it, send it back to plan mode, make it rethink.
   by itself: it tells you the route, what's missing first, and offers to start.
   It never runs anything without your yes.
 
-Rule of thumb: lost = `/start`; have a goal = just ask.
+Rule of thumb: lost = `/odeo:start`; have a goal = just ask.
 
 ---
 

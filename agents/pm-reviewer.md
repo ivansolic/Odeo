@@ -29,7 +29,7 @@ NOT yours: code (code-reviewer), UI (design-reviewer), architecture
    decomposes a PRD, build a traceability table, every PRD requirement (R1, R2,
    ...) maps to at least one story id. Report it (`Rn -> USR-NNN`). A requirement
    with no covering story is a **coverage FAIL**, reported separately from the
-   rubric score, and it blocks `/build`; the fix is to add or split a story, never
+   rubric score, and it blocks `/odeo:build`; the fix is to add or split a story, never
    to adjust the rubric. This is backed deterministically by `bin/coverage-check.sh`
    (each story carries a `covers:` field); your table is the human-readable view of it.
 3. **Verdict** against the rubric's threshold: PASS or FAIL, plus the top fixes

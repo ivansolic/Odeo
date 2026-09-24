@@ -1,5 +1,5 @@
 ---
-description: Reconcile what the shipped code actually does against what the docs claim (README, docs/, CLAUDE.md, release notes), then sync the docs or name the gap, always with your approval. Explicit command; run it after a change altered behavior the docs describe, or before a release or pitch when the docs must be trustworthy. Offered by /merge when a merged diff touched documented behavior. Example: "/sync-docs" after shipping a change to the export format.
+description: Reconcile what the shipped code actually does against what the docs claim (README, docs/, CLAUDE.md, release notes), then sync the docs or name the gap, always with your approval. Explicit command; run it after a change altered behavior the docs describe, or before a release or pitch when the docs must be trustworthy. Offered by /odeo:merge when a merged diff touched documented behavior. Example: "/odeo:sync-docs" after shipping a change to the export format.
 disable-model-invocation: true
 ---
 
@@ -13,7 +13,7 @@ approval and never claims behavior it did not verify in the code.
 - After a change altered behavior the docs describe (a flag, an endpoint, a
   default, a supported format), or before a release or pitch when the docs must
   be trustworthy.
-- Offered by `/merge` when the merged diff touched documented behavior; otherwise
+- Offered by `/odeo:merge` when the merged diff touched documented behavior; otherwise
   human-invoked. Never after a decline.
 - Not for: pure internal refactors that changed no described behavior; or writing
   NEW docs from scratch (that is authoring, not reconciliation).
@@ -33,10 +33,10 @@ approval and never claims behavior it did not verify in the code.
    half-built code, that is a decision for the human, not a sync).
 5. **Your gate**: show the drafted doc edits as a diff plus the named gaps; apply
    only what you approve. Nothing is written silently.
-6. **Offer `/release-notes`** when user-facing behavior changed and a release is near.
+6. **Offer `/odeo:release-notes`** when user-facing behavior changed and a release is near.
 
 ## Worked example
-"/sync-docs" after a change that added Excel export alongside CSV.
+"/odeo:sync-docs" after a change that added Excel export alongside CSV.
 - Scope: the export module diff.
 - Docs: README "Exports" section claims "export to CSV".
 - Compare: README is STALE (the code now exports CSV and Excel); the CLI

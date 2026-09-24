@@ -12,7 +12,7 @@ verifier; the target (or diminishing returns) is the stop.
 
 ## When to use
 - Something is **measurably** slow or heavy: slow page/endpoint, big bundle, expensive
-  query, high cost. Often flagged by `/outcome`. Not part of every build, reach for it
+  query, high cost. Often flagged by `/odeo:outcome`. Not part of every build, reach for it
   when performance is a real problem.
 
 ## Process
@@ -31,7 +31,7 @@ verifier; the target (or diminishing returns) is the stop.
   on, add the technical term as a short aside: "dashboard loads in 0.9s instead of 1.9s,
   fixed how it loads data (technical: removed an N+1 query)."
 - What you tried that did **not** help (and reverted).
-- Changes land via `/merge` with your approval, like any build (human-gated).
+- Changes land via `/odeo:merge` with your approval, like any build (human-gated).
 
 ## Quality rules
 - **Never optimize without measuring.** No guessing, no premature optimization.

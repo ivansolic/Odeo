@@ -60,7 +60,7 @@ prose. Use it sparingly, and in OUR voice:
 - Left column is the tempting thought, right column is the reality. One line each.
 - REFERENCE the guardrail it protects, do not restate it (the rule above still
   holds); the table points at the rule, it is not a second copy.
-- Add one ONLY where the shortcut has been observed (a dogfood run, an `/improve`
+- Add one ONLY where the shortcut has been observed (a dogfood run, an `/odeo:improve`
   pressure test) or is a known high-risk judgment point, never speculatively.
   Mechanical slips are caught by lint and the gates and need no table.
 
@@ -72,8 +72,8 @@ Worked example (a build-time loophole):
 | "This task is tagged `mechanical`, a quick skim is fine" | The `Scrutiny:` tag guides attention, not coverage; the change still gets a full correctness and security read. |
 
 ## Documentation duties
-- If the skill adds a command, update `docs/system-map.md` (the catalog `/guide`
-  and `/start` consult). A skill that isn't on the map doesn't exist.
+- If the skill adds a command, update `docs/system-map.md` (the catalog `/odeo:guide`
+  and `/odeo:start` consult). A skill that isn't on the map doesn't exist.
 - Recurring skills get the recurring mark in docs (not in the name).
 
 ## Testing duties (before a skill ships or changes)
@@ -82,7 +82,7 @@ Worked example (a build-time loophole):
 - **Behavior/discipline skills:** subagent test (baseline without vs variant
   with), see `docs/eval-framework.md`. Full rigor (5+ reps) for
   discipline-critical skills.
-- Edits to an existing skill go through `/improve` (evidence, keep or revert).
+- Edits to an existing skill go through `/odeo:improve` (evidence, keep or revert).
 
 ## Skill rubric (used by skill-reviewer, 0-2 per criterion)
 ```

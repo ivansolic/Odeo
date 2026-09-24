@@ -10,21 +10,21 @@ know we succeeded**, before anyone builds. Problem before solution; outcomes ove
 features. Structure adapted from common product-spec practice (an 8-section layout).
 
 ## When to use
-- An idea has shape (often after `/brainstorm`, `/personas`, `/market-segments`).
+- An idea has shape (often after `/odeo:brainstorm`, `/odeo:personas`, `/odeo:market-segments`).
 - For non-trivial work. Skip for a typo or a one-line fix.
 
 ## Walk through, in this order (do not jump to the solution)
-1. **Problem**, who hurts, how much, how often, why now. Cite evidence (`/interview-synthesis`) or mark as assumption.
+1. **Problem**, who hurts, how much, how often, why now. Cite evidence (`/odeo:interview-synthesis`) or mark as assumption.
 2. **Outcome & success metrics**, the measurable user outcome that means we won
    (e.g. "users who forgot their password regain access in <60s without support"),
    not "we shipped reset." Define the metric and target.
-3. **Context**, relevant research, the real alternative / competitors (`/competitor-analysis`), constraints.
+3. **Context**, relevant research, the real alternative / competitors (`/odeo:competitor-analysis`), constraints.
    If this section rests on assumptions instead of evidence, offer once:
-   "shall I back this with `/research`? (cited sources, ~10 min quick scan)"
+   "shall I back this with `/odeo:research`? (cited sources, ~10 min quick scan)"
    and cite the resulting RES-NNN here.
 4. **Hypotheses & assumptions**, what we're betting is true, and **how we'd know we're wrong**.
 5. **Scope**, the thin slice (MVP) that tests the outcome. Explicit in / out. Non-goals.
-6. **Requirements & acceptance criteria**, high-level, observable. (Detailed ACs live in `/stories`.)
+6. **Requirements & acceptance criteria**, high-level, observable. (Detailed ACs live in `/odeo:stories`.)
 7. **Risks & dependencies**, value/viability/feasibility/usability risks. **Security
    pre-mortem (required if the feature touches auth, PII, payments, uploads, or anything
    private):** "it's 6 months later and we had a breach through this, what was the hole?"
@@ -45,7 +45,7 @@ stop for the session.
 Score the PRD with the **`pm-reviewer`** agent against `${CLAUDE_PLUGIN_ROOT}/skills/prd/rubric.md`. It writes the eval record to
 `docs/evals/`. Below max score = fix the named gaps and re-dispatch pm-reviewer
 to verify, automatically, looping to the AGENTS.md review-loop rule (max 3
-cycles); show first -> final score. Then `/critique`, then `/stories`.
+cycles); show first -> final score. Then `/odeo:critique`, then `/odeo:stories`.
 
 ## Quality rules
 - Problem and outcome before solution; if you're listing features first, stop.

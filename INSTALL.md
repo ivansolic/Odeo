@@ -53,7 +53,7 @@ Follow the on-screen instructions (it may ask for your Mac password and tell you
 
 `node`, `git`, `gh` are always required, Claude Code itself runs on Node.
 `pnpm` is only needed for JS/TS projects; skip it otherwise and install your
-language's tooling instead (you set the real commands later via `/setup-project`).
+language's tooling instead (you set the real commands later via `/odeo:setup-project`).
 
 ```bash
 brew install node git gh      # always
@@ -128,7 +128,7 @@ Security Baseline heading, yours is used and nothing is duplicated.
 > **Language:** when the plugin is enabled, Claude Code asks once which language Odeo
 > writes your documents in (PRDs, stories, plans, reviews): English (default), German,
 > Croatian, or French. Code, filenames and commit messages always stay English. Change it
-> later in `/config` (the Odeo row) or with `/language`.
+> later in `/config` (the Odeo row) or with `/odeo:language`.
 
 > **Updates:** third-party marketplaces do not auto-update by default. Turn it on once:
 > `/plugin` → **Marketplaces** → **odeo** → **Enable auto-update**. Or update by hand with
@@ -190,13 +190,13 @@ convention either way.)
 
 ## Step 7b, Environment notes (read once, saves an afternoon)
 
-- **Repos created locally** (the normal `/new-project` flow) don't have
+- **Repos created locally** (the normal `/odeo:new-project` flow) don't have
   `origin/HEAD` until you run `git remote set-head origin -a` once after
   creating the remote, the init output reminds you. The built-in
   `/security-review` needs it.
 - **Test commands must be non-interactive**: `vitest run`, never bare `vitest`
   (watch mode never exits, and agents run your test command constantly).
-  `/setup-project` records them correctly if you let it.
+  `/odeo:setup-project` records them correctly if you let it.
 - **Registry/network limits**: corporate networks and sandboxes sometimes block
   package fetches (pnpm/npm). If installs hang, that's the environment, not the
   system; try again on an open network before debugging further.
@@ -211,7 +211,7 @@ convention either way.)
 Test the whole chain with a throwaway project. Inside Claude, from your Desktop folder:
 
 ```
-/new-project test-setup
+/odeo:new-project test-setup
 ```
 
 Claude confirms the path, asks whether the project has a UI, creates the folder with git
@@ -220,8 +220,8 @@ Open `test-setup` in Claude, then verify each piece:
 
 1. Type `/`, you should see `setup-project`, `build`, `merge`, `commit-push` (workflow) and `prd`, `brainstorm`, `stories`, `critique` (PM skills)
 2. Ask: *"What does the global baseline say about git discipline?"*, Claude should quote the rules (proves the plugin delivered the baseline)
-3. Run `/setup-project`, Claude should interview you about your stack (or offer a preset) and fill in CLAUDE.md (proves onboarding works). On a fresh scaffold, CLAUDE.md starts with `[...]` placeholders until you do this.
-4. Ask: *"List the subagents available in this project"*, should mention `architect`, `builder`, `code-reviewer`, and `architecture-reviewer` (PM critique is the `/critique` skill)
+3. Run `/odeo:setup-project`, Claude should interview you about your stack (or offer a preset) and fill in CLAUDE.md (proves onboarding works). On a fresh scaffold, CLAUDE.md starts with `[...]` placeholders until you do this.
+4. Ask: *"List the subagents available in this project"*, should mention `architect`, `builder`, `code-reviewer`, and `architecture-reviewer` (PM critique is the `/odeo:critique` skill)
 5. Press `Shift+Tab` twice, bottom of screen should show plan mode is on
 
 If all 5 pass: **your setup is complete.** Clean up by deleting the `test-setup` folder.
@@ -239,11 +239,11 @@ If all 5 pass: **your setup is complete.** Clean up by deleting the `test-setup`
 │   │                            templates, one folder per version (managed by Claude Code)
 │   ├── plugins/data/          ← what the plugin remembers between updates (e.g. the last
 │   │                            applied language)
-│   └── community-knowledge/   ← shared knowledge base, after your first /sync-community
+│   └── community-knowledge/   ← shared knowledge base, after your first /odeo:sync-community
 └── (nothing else: no ~/bin, no ~/.claude-templates, no shell-profile edits)
 ```
 
-Everything Odeo ships updates with the plugin. Per project (created by `/new-project`,
+Everything Odeo ships updates with the plugin. Per project (created by `/odeo:new-project`,
 project-specific files only; the commands, agents and skills come from the plugin and
 work in every project):
 ```
@@ -259,7 +259,7 @@ my-project/
     ├── stories/               ← user stories
     ├── decisions/             ← Architecture Decision Records
     ├── research/              ← user research notes
-    └── templates/             ← ADR template (PRD/story format comes from /prd, /stories)
+    └── templates/             ← ADR template (PRD/story format comes from /odeo:prd, /odeo:stories)
 ```
 
 ---
@@ -269,11 +269,11 @@ my-project/
 In Claude, from the folder where you keep projects:
 
 ```
-/new-project my-real-project
+/odeo:new-project my-real-project
 ```
 
 Say yes when it offers a private GitHub repo, open `my-real-project` in Claude, and run
-`/setup-project`.
+`/odeo:setup-project`.
 
 Then open WORKFLOW.md and follow the daily operating manual. If you're new to
 coding, read BEGINNERS-GUIDE.md first, it explains the concepts behind the

@@ -22,7 +22,12 @@ git rev-parse --is-inside-work-tree >/dev/null 2>&1 || {
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 GUARD="$ROOT/bin/publish-guard.sh"
 [ -x "$GUARD" ] || { echo "publish-snapshot: publish-guard.sh not found or not executable: $GUARD" >&2; exit 2; }
-DENYLIST="${CLAUDE_INTERNAL_PATHS:-$ROOT/docs/internal-paths.txt}"
+# The strip and the check must read the SAME lists, and the guard owns the rule for which
+# lists apply (the project's, when it carries them), so the strip asks it instead of copying
+# the rule: stripping with this script's own lists while the guard checked the project's
+# failed every snapshot in a project with its own classification. The guard's later check
+# runs from this same directory, so it resolves the same pair on its own.
+DENYLIST="$("$GUARD" --print-lists | sed -n 1p)"
 [ -f "$DENYLIST" ] || { echo "publish-snapshot: denylist not found: $DENYLIST" >&2; exit 2; }
 
 OUT="${1:-$(mktemp -d)}"

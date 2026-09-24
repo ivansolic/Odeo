@@ -14,14 +14,14 @@ pick a small number of hard problems), strategy is choice, not a list of everyth
 - When everything feels equally important (it isn't).
 
 ## Process
-1. **Restate the vision + the target market/beachhead** (pull from `/vision`, `/market-segments`).
+1. **Restate the vision + the target market/beachhead** (pull from `/odeo:vision`, `/odeo:market-segments`).
 2. **Surface the key insights:** what do you understand about the market, users, data, or
    technology that others don't, or act on more seriously? Strategy rides on insight.
 3. **Choose the focus:** the **one or few** problems/segments you will win now. Name what
    you are explicitly NOT doing. Focus is the whole point.
 4. **Sequence the bets:** the order that builds leverage (each win unlocks the next).
    Tie each bet to the insight and the outcome it drives.
-5. **Define how you'll know it's working:** leading signals per bet (links to `/metrics`).
+5. **Define how you'll know it's working:** leading signals per bet (links to `/odeo:metrics`).
 6. **Name the risks** (value, viability, feasibility, usability) and how you'll de-risk early.
 
 ## Output

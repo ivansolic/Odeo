@@ -280,7 +280,7 @@ case "$KIND" in
     dest="${dest/#\~/$HOME}"
     [ -n "$dest" ] || { echo "ledger-backup: 'dir' needs a path" >&2; exit 2; }
     # ABSOLUTE ONLY. A relative target resolves against whatever directory the caller happens
-    # to be in, and /retro runs this from the project root: `dir backupdir` then writes the
+    # to be in, and /odeo:retro runs this from the project root: `dir backupdir` then writes the
     # ledger INTO the work tree, where nothing ignores it, and reports success. That is this
     # program putting the content it exists to keep out of git into git.
     case "$dest" in
@@ -362,7 +362,7 @@ case "$KIND" in
     # WHAT IT DOES NOT DO, so nobody reads more into it: it cannot decide whether a remote is
     # PUBLIC. ssh and https spellings of the same host, a mirror under another name, a fork:
     # all invisible here. Choosing a backup target that is not published stays the human's
-    # call, and /retro's exit-2 row says so.
+    # call, and /odeo:retro's exit-2 row says so.
     # ONE CONVERSION FROM URL TO PATH, FOR BOTH GUARDS BELOW. The publish check and the
     # containment check each used to carry their own, and two conversions are two answers: the
     # same repository spelled `file://localhost/srv/pub.git` was a path to one of them and an

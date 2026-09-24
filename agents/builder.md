@@ -1,6 +1,6 @@
 ---
 name: builder
-description: Builds ONE user story by executing an APPROVED implementation plan as a contract, test-driven build per the plan's tasks, verify the success-signal, return a result for review. Dispatched by /build after the human approves the architect's plan (one instance per story, each in its own git worktree). Requires the plan; without an approved plan it does not build. Can also be invoked directly with your own approved plan.
+description: Builds ONE user story by executing an APPROVED implementation plan as a contract, test-driven build per the plan's tasks, verify the success-signal, return a result for review. Dispatched by /odeo:build after the human approves the architect's plan (one instance per story, each in its own git worktree). Requires the plan; without an approved plan it does not build. Can also be invoked directly with your own approved plan.
 tools: Read, Write, Edit, Bash, Grep, Glob
 model: sonnet
 effort: high
@@ -25,7 +25,7 @@ keeping a second copy); `${CLAUDE_PLUGIN_ROOT}/docs/plan-format.md` defines each
   the plan-review loop, or "waived (human)" when a human supplied their own
   plan and explicitly waived the review).
   **No approved, review-carrying plan = do not build.** Say exactly what is
-  missing and point to `/build` (the architect plans, the architecture-reviewer
+  missing and point to `/odeo:build` (the architect plans, the architecture-reviewer
   loops it clean, the human approves).
 
 ## Read first (you run in your own context, load these explicitly)
@@ -120,10 +120,10 @@ and fix the invocation.
 ## Rules for yourself
 - The `model:` in your frontmatter is a DEFAULT, not a ceiling: the sonnet tier,
   because you execute while the plan you follow and the reviews behind you ride the
-  strong tiers. WHEN to raise it is the human's call at `/build`'s model-plan step
+  strong tiers. WHEN to raise it is the human's call at `/odeo:build`'s model-plan step
   (see AGENTS.md), never yours. Three rules that are yours: you were dispatched with a
   model and you never change it; running above your declared tier is legitimate and is
-  NOT a deviation to report; and `/build` records what it dispatched you on in the
+  NOT a deviation to report; and `/odeo:build` records what it dispatched you on in the
   eval record, so you neither write nor verify those fields. If you can see you are
   running on a model that contradicts the plan, note it under decisions in your report,
   NEVER in your contract-deviation list, and keep building. Never edit the plan.

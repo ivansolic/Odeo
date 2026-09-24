@@ -30,12 +30,12 @@ instead of reacting to the loudest recent voice.
    what got STRONGER, what FADED, what disappeared. First run has no baseline,
    say so and skip the comparison, from run two onward this is the payoff.
 4. **Draft the signal memo**: themes + evidence + frequency + trend + a short
-   "what this suggests" (feeds `/prioritize`, `/roadmap`, `/prd`, `/outcome`).
+   "what this suggests" (feeds `/odeo:prioritize`, `/odeo:roadmap`, `/odeo:prd`, `/odeo:outcome`).
 5. **Your gate**: you review (is this real? actionable?), then save to
    `docs/signals/<YYYY-MM-DD>.md`, it becomes next week's baseline.
 6. **Roadmap-drift check**: if a finding changes the priority picture ("the top
    pain isn't on the roadmap"), offer: "this changes priorities, want to revisit
-   /roadmap (or /plan)?" Offer only; you decide.
+   /odeo:roadmap (or /odeo:plan)?" Offer only; you decide.
 
 ## Memo shape
 ```

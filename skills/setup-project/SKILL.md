@@ -11,7 +11,7 @@ Setup answers HOW we build; it cannot precede knowing WHAT we build. If the user
 hasn't stated a direction yet (or says "we still need to brainstorm"), say so
 plainly and route first:
 > "Stack and conventions follow from what we're building. Want to shape the idea
->  first (`/brainstorm`, or `/prototype` to feel a concrete feature), and come
+>  first (`/odeo:brainstorm`, or `/odeo:prototype` to feel a concrete feature), and come
 >  back to setup once there's a direction? Or if you already know, tell me in a
 >  sentence and we'll set up now."
 Never march a user without a direction through stack questions.
@@ -140,7 +140,7 @@ prices exist right now, never recite from this file), then ask:
 >  sentence changes it permanently."
 Record semantically in CLAUDE.md Conventions: `session_model_preference:
 strongest | strong-default`, never a model name (names age; the preference
-must not). /start reminds when the session and the preference disagree.
+must not). /odeo:start reminds when the session and the preference disagree.
 
 **I. How should I talk to you? (plain language preference)**
 > "I always explain things in plain language. Do you also want me to teach you the
@@ -200,12 +200,12 @@ stack-agnostic). Update `_Last updated:_` to today's date.
 ## 5. Confirm and finalize
 - Show the user the filled CLAUDE.md (or a summary of each section).
 - Ask for corrections; apply them.
-- Remind them: "You can rerun `/setup-project` anytime, or just edit CLAUDE.md
+- Remind them: "You can rerun `/odeo:setup-project` anytime, or just edit CLAUDE.md
   directly. The TDD skill will use the Commands you set here."
 - If the repo has a GitHub remote (or as soon as it gets one), offer CI once:
-  "want every pull request tested automatically? `/ci` generates the workflow
+  "want every pull request tested automatically? `/odeo:ci` generates the workflow
   from the Commands you just set, about two minutes." (Setup can wait; the
-  offer should not be pushy, /merge re-offers when it matters.)
+  offer should not be pushy, /odeo:merge re-offers when it matters.)
 
 ## Safety Rules
 - Never invent a stack, ask, or read the project's manifest and confirm.

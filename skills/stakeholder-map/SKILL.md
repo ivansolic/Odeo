@@ -22,7 +22,7 @@ Power/Interest grid.
 4. **Communication plan:** who gets what, how often, in what format.
 
 ## Output
-A power/interest grid + a short comms plan saved to `docs/`. Useful input to `/go-to-market` and `/plan`.
+A power/interest grid + a short comms plan saved to `docs/`. Useful input to `/odeo:go-to-market` and `/odeo:plan`.
 
 ## Example
 ```

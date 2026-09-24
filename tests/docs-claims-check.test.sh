@@ -53,7 +53,7 @@ out2="$( cd "$tmp2" && bash "$CHECK" 2>&1 )"; rc2=$?
 rm -rf "$tmp2"
 
 # 4. --assertions counts what the suites report, and SAYS when some were skipped. A suite that
-#    skips assertions (install-ps1.test.sh without pwsh, a root guard, a shell that refuses
+#    skips assertions (a root guard, a shell that refuses
 #    SHELLOPTS) makes the total environment-dependent, and without the note a machine that ran
 #    a different amount of the suite reads as a drifted README, which sends the reader to fix a
 #    document that is correct.

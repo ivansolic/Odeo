@@ -8,14 +8,14 @@ the curated knowledge of all contributors comes back to you on update. **Opt-in 
 approval-gated: nothing leaves your machine without your explicit OK.**
 
 ## When this runs
-- You invoke `/contribute-lesson`, OR
-- After `/learn` or `/retro`, if a lesson looks universal, Claude offers it (you choose), OR
-- After `/improve` keeps a rubric or skill change that would help everyone, Claude offers it.
+- You invoke `/odeo:contribute-lesson`, OR
+- After `/odeo:learn` or `/odeo:retro`, if a lesson looks universal, Claude offers it (you choose), OR
+- After `/odeo:improve` keeps a rubric or skill change that would help everyone, Claude offers it.
 Only for **generalizable** content (universal patterns), never project-specific.
 
 ## What can be contributed (three kinds, same pipeline)
 1. **A lesson** from `knowledge/` (a solved, reusable problem).
-2. **An improved rubric** (e.g. a sharper PRD criterion that /improve proved better), shared so everyone's quality bar rises.
+2. **An improved rubric** (e.g. a sharper PRD criterion that /odeo:improve proved better), shared so everyone's quality bar rises.
 3. **An eval learning** (a scoring insight, e.g. "PRDs keep failing on X, here is the counter"), generalized.
 
 ## The offer (when Claude suggests it)

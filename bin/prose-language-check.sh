@@ -5,7 +5,7 @@
 # ADVISORY ONLY: it prints, it never blocks, and no document content, whatever it
 # contains, can make it exit non-zero. It is a heuristic, and a warning enforces
 # nothing: a mismatched document commits, merges and ships exactly as before. Human
-# review and /merge remain the backstop. See AGENTS.md Guardrails 7.
+# review and /odeo:merge remain the backstop. See AGENTS.md Guardrails 7.
 #
 # One divergence from bin/session-end-check.sh, the advisory script this follows: that
 # one exits 0 even when it breaks, because a Stop hook must never trap a session. This
