@@ -132,13 +132,17 @@ if ! $APPLY; then
   exit 0
 fi
 
+legacy="$HOME/.claude/odeo-legacy-$(date +%Y%m%d%H%M%S)-$$"
+# An outdated shim moves aside like everything else before the current one is written, so a
+# hand edit to it is never lost.
 for n in $stale; do
-  write_shim "$n" || { echo "odeo-migrate-legacy: could not refresh ~/bin/$n" >&2; exit 1; }
-  echo "odeo-migrate-legacy: refreshed the ~/bin/$n shim to the current version."
+  mkdir -p "$legacy/bin" && mv "$HOME/bin/$n" "$legacy/bin/$n" \
+    || { echo "odeo-migrate-legacy: could not move the old ~/bin/$n aside; nothing refreshed" >&2; exit 1; }
+  write_shim "$n" || { echo "odeo-migrate-legacy: could not write ~/bin/$n; the old one is in $legacy/bin" >&2; exit 1; }
+  echo "odeo-migrate-legacy: refreshed the ~/bin/$n shim; the previous one is kept in $legacy/bin/."
 done
 [ -n "$items" ] || exit 0
 
-legacy="$HOME/.claude/odeo-legacy-$(date +%Y%m%d%H%M%S)-$$"
 moved=0
 while IFS= read -r f; do
   mkdir -p "$legacy/$(dirname "$f")" || { echo "odeo-migrate-legacy: cannot create $legacy" >&2; exit 1; }

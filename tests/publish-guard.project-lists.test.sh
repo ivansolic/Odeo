@@ -9,6 +9,13 @@
 # refused. Found because tests/install-git-guards.test.sh failed only on a machine with the
 # plugin installed. Precedence under test: explicit env override, then the lists at the
 # git top level of the current directory, then the guard's own root.
+#
+# Observed failing (2026-09-24), each mutant checked to differ from the original:
+#   MA allowlist from the guard root (the reviewer's surviving mutant) -> 5 FAIL (3b-3e)
+#   MC lists always from the guard root                               -> 10 FAIL
+#   MB snapshot strips with its own denylist                          -> 2 FAIL (3e)
+#   (Handing the resolved pair to the guard by env was dropped: that mutant stayed green,
+#   because the guard resolves the same pair from the same directory by itself.)
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 fail=0
@@ -23,7 +30,7 @@ unset CLAUDE_INTERNAL_PATHS CLAUDE_PUBLIC_PATHS
 tool="$TMP/plugin-root"; mkdir -p "$tool/bin" "$tool/docs"
 cp "$ROOT/bin/publish-guard.sh" "$ROOT/bin/privacy-scan.sh" "$tool/bin/"
 printf 'tool-internal/\n' > "$tool/docs/internal-paths.txt"
-printf 'README.md\ntool-internal/\nsecret/\n' > "$tool/docs/public-paths.txt"
+printf 'README.md\ntool-internal/\nsecret/\ntool-only.md\n' > "$tool/docs/public-paths.txt"
 GUARD="$tool/bin/publish-guard.sh"
 
 # A project with DIFFERENT lists
@@ -44,6 +51,36 @@ assert_exit "a path the project never classified is refused under --require-allo
   "$(check "$proj" unlisted.md --require-allowlist)"
 assert_exit "a path the project lists as public passes under --require-allowlist" 0 \
   "$(check "$proj" tool-internal/a.md --require-allowlist)"
+# 3b) the ALLOWLIST is the project's too: a path only the tool calls public is refused
+assert_exit "a path only the tool's allowlist lists is refused in the project" 1 \
+  "$(check "$proj" tool-only.md --require-allowlist)"
+# 3c) a project with a denylist but no allowlist never borrows the tool's allowlist
+half="$TMP/half"; mkdir -p "$half/docs"; git init -q "$half"; printf 'secret/\n' > "$half/docs/internal-paths.txt"
+assert_exit "project denylist without allowlist -> allowlist not found (2)" 2 \
+  "$(check "$half" README.md --require-allowlist)"
+# 3d) --print-lists reports the resolved pair, so publish-snapshot.sh strips with the same
+#     denylist the guard then checks against
+real() { ( cd "$(dirname "$1")" 2>/dev/null && printf '%s/%s' "$(pwd -P)" "$(basename "$1")" ); }
+got="$(cd "$proj" && "$GUARD" --print-lists 2>/dev/null)"
+assert_exit "--print-lists names the project's denylist" "$(real "$proj/docs/internal-paths.txt")" "$(real "$(sed -n 1p <<<"$got")")"
+assert_exit "--print-lists names the project's allowlist" "$(real "$proj/docs/public-paths.txt")" "$(real "$(sed -n 2p <<<"$got")")"
+
+# 3e) publish-snapshot.sh run from the plugin copy in a project with its own lists: the
+#     project's internal path is STRIPPED by the same list the guard checks, so the snapshot
+#     is produced and the internal file is not in it
+cp "$ROOT/bin/publish-snapshot.sh" "$tool/bin/"
+snapproj="$TMP/snapproj"; mkdir -p "$snapproj/docs" "$snapproj/secret"; git init -q "$snapproj"
+printf 'secret/\n' > "$snapproj/docs/internal-paths.txt"
+printf 'README.md\ndocs/internal-paths.txt\ndocs/public-paths.txt\n' > "$snapproj/docs/public-paths.txt"
+echo hello > "$snapproj/README.md"; echo plan > "$snapproj/secret/x.md"
+( cd "$snapproj" && git add -A && git -c user.name=t -c user.email=t@example.com commit -qm c )
+snapout="$TMP/snapout"
+( cd "$snapproj" && "$tool/bin/publish-snapshot.sh" "$snapout" >/dev/null 2>&1 ); rc=$?
+case "$rc" in 0|3) ok "snapshot from the plugin copy succeeds in a project with its own lists ($rc)";;
+  *) bad "snapshot from the plugin copy failed ($rc)";; esac
+[ -f "$snapout/README.md" ] && [ ! -e "$snapout/secret/x.md" ] && ok "the project's internal file is stripped, the public one kept" \
+  || bad "snapshot content wrong (README present: $([ -f "$snapout/README.md" ] && echo y || echo n), secret present: $([ -e "$snapout/secret/x.md" ] && echo y || echo n))"
+
 # 4) from a subdirectory of the project, still the project's lists
 mkdir -p "$proj/sub/deeper"
 assert_exit "subdirectory resolves the project top level" 1 "$(check "$proj/sub/deeper" secret/x.md)"

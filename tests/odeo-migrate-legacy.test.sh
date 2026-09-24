@@ -22,6 +22,7 @@
 #   M9 shim loop reads the cache listing on stdin -> 2 FAIL (cases 13, 14: the guard got the
 #      listing, 550 bytes, instead of the pushed paths, and passed an internal path)
 #   M10 no refresh of outdated shims         -> 2 FAIL (case 15)
+#   M11 refresh overwrites without a copy    -> 1 FAIL (case 15, nothing is ever deleted)
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SCRIPT="$ROOT/bin/odeo-migrate-legacy.sh"
@@ -214,7 +215,9 @@ assert_contains "dry run names the outdated shim" "refresh" "$out"
 [ "$(sed -n 3p "$H/bin/secret-scan.sh")" = "exec true" ] && ok "dry run leaves the outdated shim" || bad "dry run changed the shim"
 out="$(HOME="$H" "$SCRIPT" --apply 2>&1)"
 [ "$(cat "$H/bin/secret-scan.sh")" = "$current" ] && ok "--apply refreshes an outdated shim" || bad "outdated shim not refreshed"
-[ -z "$(ls -d "$H"/.claude/odeo-legacy-* 2>/dev/null | sed -n 2p)" ] && ok "refreshing moves nothing aside" || bad "refresh created a second legacy folder"
+# the refreshed-over version is KEPT (a user may have edited it): nothing is ever deleted
+kept="$(grep -rl '^exec true$' "$H"/.claude/odeo-legacy-*/bin/secret-scan.sh 2>/dev/null | head -1)"
+[ -n "$kept" ] && ok "the replaced shim is kept in a legacy folder" || bad "the replaced shim was overwritten without a copy"
 out="$(HOME="$H" "$SCRIPT" --apply 2>&1)"
 assert_contains "a current shim is not refreshed again" "nothing to migrate" "$out"
 
