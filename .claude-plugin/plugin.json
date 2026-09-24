@@ -12,7 +12,7 @@
     "output_language": {
       "type": "string",
       "title": "Document language",
-      "description": "Language Odeo writes your documents in (PRDs, stories, plans, reviews). Code, filenames and commits stay English. en = English, de = Deutsch, hr = Hrvatski, fr = Français. Change it any time here or with /language.",
+      "description": "Language Odeo writes your documents in (PRDs, stories, plans, reviews). Code, filenames and commits stay English. en = English, de = Deutsch, hr = Hrvatski, fr = Français. Change it any time here or with /odeo:language.",
       "options": [
         "en",
         "de",

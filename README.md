@@ -113,7 +113,7 @@ plugin loads straight from your clone, so edits apply on the next session or
         🎩 PM HAT                    switch            🛠️ DEV HAT
   (decide what & why)                 hats           (build & ship)
                                         │
- brainstorm → PRD → critique →  ─────/build─────→  plan → build → verify
+ brainstorm → PRD → critique →  ──/odeo:build───→  plan → build → verify
  (optional) user stories                          → code-review
         │                                          → /security-review (sensitive)
    saved in docs/                                  → /odeo:merge → ship → /odeo:retro
@@ -217,7 +217,7 @@ Odeo/
 ├── global/
 │   └── CLAUDE.md             ← user-global baseline, delivered at session start by the plugin
 ├── tests/
-│   └── *.test.sh             ← 38 suites, 1256 assertions. 26 of the 26 programs have their
+│   └── *.test.sh             ← 38 suites, 1261 assertions. 26 of the 26 programs have their
 │                               own suite; the remaining suites are cross-cutting rather than
 │                               per-program. The number counts the `ok` lines one full run
 │                               reports, so it moves with the machine: a skipped case takes its

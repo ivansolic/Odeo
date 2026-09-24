@@ -55,7 +55,7 @@ starting from zero; you're adding a delivery half to skills you already have.
         🎩 PM HAT                    switch         🛠️ DEV HAT
   (decide what & why)                 hats        (build & ship)
                                         │
- brainstorm → PRD → critique →  ─────/build─────→  plan → build → verify
+ brainstorm → PRD → critique →  ──/odeo:build───→  plan → build → verify
  (optional) user stories                          → review → /odeo:merge
         │                                                        │
    saved in docs/                                          lives on GitHub
