@@ -39,7 +39,7 @@ RESOLVER="$HERE/resolve-language.sh"
 # resolve-language.sh and set-global-language.sh). MUST stay identical to
 # USR-002's allowlist; tests/language-allowlist-agreement.test.sh enforces it.
 VALID="en de hr fr"
-GLOBAL_CONFIG="${CLAUDE_GLOBAL_CONFIG:-$HOME/.claude/CLAUDE.md}"
+GLOBAL_CONFIG="${CLAUDE_GLOBAL_CONFIG:-${CLAUDE_CONFIG_DIR:-$HOME/.claude}/CLAUDE.md}"
 
 # read_lang FILE, same rules as resolve-language.sh: first ^output_language:
 # line, strip CR, trim, lowercase, print only a recognized code.

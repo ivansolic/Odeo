@@ -65,7 +65,7 @@ if [ "$valid" -ne 1 ]; then
   exit 1
 fi
 
-GLOBAL_CONFIG="${CLAUDE_GLOBAL_CONFIG:-$HOME/.claude/CLAUDE.md}"
+GLOBAL_CONFIG="${CLAUDE_GLOBAL_CONFIG:-${CLAUDE_CONFIG_DIR:-$HOME/.claude}/CLAUDE.md}"
 
 # Idempotence gate (USR-003's "asked exactly once"): WITHOUT --overwrite an existing
 # line is left exactly as it is. The grep runs against $GLOBAL_CONFIG ONLY; this
@@ -97,7 +97,11 @@ if [ "$HAS_LINE" -eq 1 ]; then
     echo "set-global-language: $GLOBAL_CONFIG is not writable" >&2
     exit 1
   fi
-  tmp="$(mktemp)" || { echo "set-global-language: could not create a temp file" >&2; exit 1; }
+  # The temp file sits BESIDE the target and keeps its mode (cp -p), so the final mv is an
+  # atomic rename: a reader running in parallel (the plugin's SessionStart hooks) sees the
+  # old file or the new one, never a half-written one, and a failed write cannot truncate.
+  tmp="$(mktemp "$GLOBAL_CONFIG.XXXXXX")" && cp -p "$GLOBAL_CONFIG" "$tmp" \
+    || { rm -f "${tmp:-}"; echo "set-global-language: could not create a temp file" >&2; exit 1; }
   # Clean up the temp file even on a signal (every explicit error path also removes it).
   trap 'rm -f "$tmp"' EXIT
   if ! awk -v line="output_language: $CODE" '
@@ -106,10 +110,9 @@ if [ "$HAS_LINE" -eq 1 ]; then
   ' "$GLOBAL_CONFIG" > "$tmp"; then
     rm -f "$tmp"; echo "set-global-language: rewrite failed for $GLOBAL_CONFIG" >&2; exit 1
   fi
-  if ! cat "$tmp" > "$GLOBAL_CONFIG"; then
+  if ! mv -f "$tmp" "$GLOBAL_CONFIG"; then
     rm -f "$tmp"; echo "set-global-language: could not write $GLOBAL_CONFIG" >&2; exit 1
   fi
-  rm -f "$tmp"
   echo "set-global-language: global output language changed to $CODE."
   exit 0
 fi

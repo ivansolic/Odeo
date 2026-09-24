@@ -28,7 +28,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # CLAUDE_CONFIG_DIR, the config dir at install time, and ~/.claude, since a user may run
 # Claude with CLAUDE_CONFIG_DIR while git runs from a shell without it), then the
 # directory these hooks were installed from (baked in; stable for a plugin loaded in place
-# from a clone), then the repo's own bin/.
+# from a clone), then the repo's own bin/. Limit: with CLAUDE_CODE_SUBPROCESS_ENV_SCRUB set,
+# CLAUDE_CONFIG_DIR may not reach this installer, so the baked config dir falls back to
+# ~/.claude; the install-time bin dir still works until an update sweeps that version.
 hook_preamble() {
   echo '#!/usr/bin/env bash'
   printf 'ODEO_BIN_AT_INSTALL=%q\n' "$SCRIPT_DIR"

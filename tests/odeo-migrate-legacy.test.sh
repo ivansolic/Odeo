@@ -12,6 +12,8 @@
 #   M1 apply by default                      -> 3 FAIL (case 1)
 #   M2 `rm -rf` instead of `mv`              -> 9 FAIL (case 2: every kept-in-legacy + count)
 #   M3 also move ~/.claude/CLAUDE.md          -> 1 FAIL (case 2, untouched)
+#   M4 no shims (SHIM_NAMES empty)           -> 10 FAIL (cases 2, 7, 8, 9, 10)
+#   M5 shim exits 0 when no plugin is found  -> 1 FAIL (case 8, fails open)
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SCRIPT="$ROOT/bin/odeo-migrate-legacy.sh"
@@ -37,6 +39,7 @@ make_home() {
   echo odeo > "$h/.claude/odeo-docs/plan-format.md"
   echo odeo > "$h/.claude-templates/CLAUDE.md"
   printf '#!/bin/sh\n' > "$h/bin/merge-gate.sh"; printf '#!/bin/sh\n' > "$h/bin/my-tool.sh"
+  printf '#!/bin/sh\nexit 0\n' > "$h/bin/secret-scan.sh"; chmod +x "$h/bin/secret-scan.sh"
   echo "# mine" > "$h/.claude/CLAUDE.md"; echo secret-terms > "$h/.claude/privacy-denylist.txt"
   echo lesson > "$h/.claude/community-knowledge/a.md"
 }
@@ -63,8 +66,10 @@ for p in .claude/skills/my-own .claude/agents/my-agent.md bin/my-tool.sh .claude
          .claude/privacy-denylist.txt .claude/community-knowledge/a.md; do
   exists "untouched: $p" "$H/$p"
 done
-[ "$(count_files "$H")" = "$n_before" ] && ok "no file deleted ($n_before before and after)" \
-  || bad "file count changed: $n_before -> $(count_files "$H")"
+# every original survives (in place or in legacy); the only NEW file is the one shim
+[ "$(count_files "$H")" = "$((n_before + 1))" ] && ok "no file deleted ($n_before + 1 shim)" \
+  || bad "file count changed: $n_before -> $(count_files "$H") (expected +1 shim)"
+exists "original secret-scan kept in legacy" "$legacy/bin/secret-scan.sh"
 assert_contains "names the legacy folder" "$legacy" "$out"
 
 # 3) a --link install (symlinks): the link moves, its target is untouched
@@ -85,6 +90,55 @@ assert_contains "clean home says nothing to do" "nothing to migrate" "$out"
 # 5) re-running after an apply finds nothing
 H="$TMP/h2"; out="$(HOME="$H" "$SCRIPT" --apply 2>&1)"
 assert_contains "second apply is a no-op" "nothing to migrate" "$out"
+
+# 7) the ~/bin/secret-scan.sh a pre-plugin project's pre-commit hook calls becomes a shim
+#    that runs the newest plugin copy and passes its exit code through
+shim="$H/bin/secret-scan.sh"
+grep -q "odeo-migrate-legacy shim" "$shim" && ok "secret-scan.sh replaced by a shim" || bad "no shim at ~/bin/secret-scan.sh"
+[ -x "$shim" ] && ok "shim is executable" || bad "shim is not executable"
+[ -e "$H/bin/publish-guard.sh" ] && bad "shim written for a script the user never had" || ok "no shim for an absent script"
+c="$H/.claude/plugins/cache/odeo/odeo/0.9.0/bin"; mkdir -p "$c"
+printf '#!/usr/bin/env bash\necho PLUGIN-SCAN\nexit 1\n' > "$c/secret-scan.sh"; chmod +x "$c/secret-scan.sh"
+out="$(HOME="$H" "$shim" 2>&1)"; rc=$?
+assert_contains "shim runs the plugin's copy" "PLUGIN-SCAN" "$out"
+assert_exit "shim passes a blocking exit through" 1 "$rc"
+# 8) no plugin anywhere: the shim BLOCKS (a missing guard must not pass silently)
+rm -rf "$H/.claude/plugins"
+fake_root="$TMP/moved-root"; out="$(HOME="$H" ODEO_SHIM_FALLBACK_OVERRIDE="$fake_root" "$shim" 2>&1)"; rc=$?
+assert_exit "shim without a plugin blocks" 1 "$rc"
+assert_contains "shim says how to fix it" "Odeo plugin" "$out"
+# 9) a second apply recognises its own shim and leaves it
+out="$(HOME="$H" "$SCRIPT" --apply 2>&1)"
+grep -q "odeo-migrate-legacy shim" "$shim" && ok "second apply keeps the shim" || bad "second apply moved the shim"
+assert_contains "second apply still has nothing to migrate" "nothing to migrate" "$out"
+
+# 10) THE GUARANTEE, end to end: a project scaffolded before the plugin, with the
+#     pre-plugin pre-commit hook (its lookup copied verbatim from that version), still has
+#     its secret gate after --apply, and the gate is the plugin's current scanner.
+export GIT_AUTHOR_NAME=t GIT_AUTHOR_EMAIL=t@example.com GIT_COMMITTER_NAME=t GIT_COMMITTER_EMAIL=t@example.com
+H="$TMP/h10"; make_home "$H"
+printf '#!/usr/bin/env bash\nexit 0\n' > "$H/bin/secret-scan.sh"            # the old copy passes
+c="$H/.claude/plugins/cache/odeo/odeo/1.0.0/bin"; mkdir -p "$c"
+printf '#!/usr/bin/env bash\necho PLUGIN-BLOCKED >&2\nexit 1\n' > "$c/secret-scan.sh"; chmod +x "$c/secret-scan.sh"
+old="$TMP/old-project"; git init -q "$old"; git -C "$old" commit -q --allow-empty -m init
+cat > "$old/.git/hooks/pre-commit" <<'OLDHOOK'
+#!/usr/bin/env bash
+scan="$(command -v secret-scan.sh || true)"
+[ -z "$scan" ] && [ -x "$HOME/bin/secret-scan.sh" ] && scan="$HOME/bin/secret-scan.sh"
+[ -z "$scan" ] && [ -x "bin/secret-scan.sh" ] && scan="bin/secret-scan.sh"
+if [ -n "$scan" ]; then
+  "$scan" || exit 1
+else
+  echo "pre-commit WARNING: secret-scan.sh not found, committing WITHOUT the secret gate." >&2
+fi
+exit 0
+OLDHOOK
+chmod +x "$old/.git/hooks/pre-commit"
+HOME="$H" "$SCRIPT" --apply >/dev/null 2>&1
+( cd "$old" && echo x > f && git add f && HOME="$H" PATH="$(dirname "$(command -v git)"):/usr/bin:/bin" git commit -qm c >/dev/null 2>"$TMP/err10" ); rc=$?
+[ "$rc" != 0 ] && ok "pre-plugin project: commit still gated after --apply" \
+  || bad "pre-plugin project committed WITHOUT a secret gate after --apply"
+assert_contains "the gate that ran is the plugin's scanner" "PLUGIN-BLOCKED" "$(cat "$TMP/err10")"
 
 # 6) unknown flag -> usage, exit 2, nothing moved
 H="$TMP/h6"; make_home "$H"; before="$(find "$H" | sort)"

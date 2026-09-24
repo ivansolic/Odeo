@@ -18,6 +18,7 @@
 #   M7 legacy check ignores ~/.claude/odeo-docs          -> 1 FAIL (case 4b)
 #   M8 apply the dialog value every session             -> 2 FAIL (case 4c, clobbers /language)
 #   M9 no first-run keep of an existing language        -> 3 FAIL (case 4c)
+#   M10 no state on a refused write                     -> 1 FAIL (case 4d, repeats)
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 HOOK="$ROOT/hooks/odeo-context.sh"
@@ -128,6 +129,16 @@ printf 'de' > "$d/synced-language"
 out="$(lang_run "$g" "$d" klingon)"
 assert_contains "invalid dialog value leaves the global" "de" "$(glang "$g")"
 assert_contains "invalid dialog value is reported" "could not apply" "$out"
+
+# 4d) a global the writer refuses (a symlink, a supported setup): warn ONCE per dialog
+#     value and name the per-project way, never degrade every session with the same warning
+real="$TMP/real-global.md"; printf '# G\n' > "$real"; g="$TMP/linked.md"; ln -s "$real" "$g"
+d="$TMP/data4"; mkdir -p "$d"
+out="$(lang_run "$g" "$d" de)"
+assert_contains "refused write is reported" "could not apply" "$out"
+assert_contains "names the per-project alternative" "/language de" "$out"
+assert_empty "the same refusal is not repeated next session" "$(CLAUDE_GLOBAL_CONFIG="$g" CLAUDE_PLUGIN_DATA="$d" CLAUDE_PLUGIN_OPTION_OUTPUT_LANGUAGE=de "$HOOK" language SessionStart)"
+[ -L "$g" ] && ok "symlinked global left a symlink" || bad "symlinked global was replaced"
 
 # 4b) legacy install.sh copies: a one-time pointer to the migration, silent otherwise
 lh="$TMP/legacy-home"; mkdir -p "$lh/.claude/odeo-docs"

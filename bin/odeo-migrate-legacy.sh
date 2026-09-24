@@ -15,12 +15,20 @@
 # not ship. A user's own skill that happens to share an Odeo name is moved too (by name,
 # the only thing install.sh left to go by), which the dry run shows first.
 #
+# One exception keeps a guard alive: projects scaffolded before the plugin carry a
+# pre-commit / pre-push hook that calls ~/bin/secret-scan.sh and ~/bin/publish-guard.sh.
+# When one of those moves, a small SHIM takes its place that runs the newest plugin copy,
+# so those projects keep their secret scan and follow plugin updates. With no plugin to
+# be found the shim BLOCKS (exit 1) and says so: a guard that vanished must not pass.
+#
 # Usage:   odeo-migrate-legacy.sh            dry run: list what would move (the default)
 #          odeo-migrate-legacy.sh --apply    move it
 # Exit:    0 done or nothing to do · 1 a move failed (stops, nothing further moved) · 2 usage
 set -uo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+SHIM_NAMES="secret-scan.sh publish-guard.sh"   # what pre-plugin git hooks call in ~/bin
+SHIM_MARKER="odeo-migrate-legacy shim"
 APPLY=false
 case "${1:-}" in
   "") ;;
@@ -42,7 +50,9 @@ candidates() {
   done
   for d in "$ROOT"/bin/*; do
     n="$(basename "$d")"; f="bin/$n"
-    { [ -e "$HOME/$f" ] || [ -L "$HOME/$f" ]; } && echo "$f"
+    { [ -e "$HOME/$f" ] || [ -L "$HOME/$f" ]; } || continue
+    [ ! -L "$HOME/$f" ] && grep -q "$SHIM_MARKER" "$HOME/$f" 2>/dev/null && continue   # our own shim
+    echo "$f"
   done
   for f in .claude/odeo-docs .claude-templates; do
     { [ -e "$HOME/$f" ] || [ -L "$HOME/$f" ]; } && echo "$f"
@@ -63,6 +73,26 @@ if ! $APPLY; then
   exit 0
 fi
 
+# write_shim <name>: ~/bin/<name> runs the newest plugin copy of <name>, else blocks
+write_shim() {
+  { echo '#!/usr/bin/env bash'
+    echo "# $SHIM_MARKER: a pre-plugin project's git hook calls ~/bin/$1; this runs the"
+    echo "# newest Odeo plugin copy instead. Delete this file if you no longer use those projects."
+    printf 'fallback="${ODEO_SHIM_FALLBACK_OVERRIDE:-%s}"\n' "$ROOT/bin"
+    cat <<'SHIM'
+name="$(basename "$0")"
+while IFS= read -r d; do
+  [ -x "$d/$name" ] && exec "$d/$name" "$@"
+done < <(ls -1td "${CLAUDE_CONFIG_DIR:-$HOME/.claude}"/plugins/cache/*/odeo/*/bin \
+               "$HOME"/.claude/plugins/cache/*/odeo/*/bin 2>/dev/null)
+[ -x "$fallback/$name" ] && exec "$fallback/$name" "$@"
+echo "$name: the Odeo plugin was not found, so this guard cannot run and BLOCKS." >&2
+echo "Reinstall the Odeo plugin, or delete ~/bin/$name if you no longer need it." >&2
+exit 1
+SHIM
+  } > "$HOME/bin/$1" && chmod +x "$HOME/bin/$1"
+}
+
 legacy="$HOME/.claude/odeo-legacy-$(date +%Y%m%d%H%M%S)-$$"
 moved=0
 while IFS= read -r f; do
@@ -72,8 +102,17 @@ while IFS= read -r f; do
     exit 1
   fi
   moved=$((moved + 1))
+  case " $SHIM_NAMES " in
+    *" ${f#bin/} "*) [ "${f%%/*}" = bin ] && { write_shim "${f#bin/}" \
+        || { echo "odeo-migrate-legacy: could not write the ~/$f shim; the original is in $legacy" >&2; exit 1; }; } ;;
+  esac
 done <<EOF
 $items
 EOF
 echo "odeo-migrate-legacy: moved $moved install.sh item(s) to $legacy"
 echo "Nothing was deleted. To undo, move them back; delete that folder once the plugin works for you."
+for n in $SHIM_NAMES; do
+  grep -q "$SHIM_MARKER" "$HOME/bin/$n" 2>/dev/null \
+    && echo "~/bin/$n is now a shim that runs the plugin's copy, so projects created before the plugin keep their git guards."
+done
+exit 0

@@ -34,7 +34,7 @@ PROJECT_DIR="$1"
 VALID="en de hr fr"
 
 # Global config path: env override for tests, then the real user config.
-GLOBAL_CONFIG="${CLAUDE_GLOBAL_CONFIG:-$HOME/.claude/CLAUDE.md}"
+GLOBAL_CONFIG="${CLAUDE_GLOBAL_CONFIG:-${CLAUDE_CONFIG_DIR:-$HOME/.claude}/CLAUDE.md}"
 
 # read_lang FILE
 # Reads the first output_language: line from FILE, normalizes the value

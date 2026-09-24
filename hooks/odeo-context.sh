@@ -39,7 +39,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BASELINE="$ROOT/global/CLAUDE.md"
 LANG_STATUS="$ROOT/bin/language-status.sh"
 SET_GLOBAL="$ROOT/bin/set-global-language.sh"
-USER_GLOBAL="${CLAUDE_GLOBAL_CONFIG:-$HOME/.claude/CLAUDE.md}"
+USER_GLOBAL="${CLAUDE_GLOBAL_CONFIG:-${CLAUDE_CONFIG_DIR:-$HOME/.claude}/CLAUDE.md}"
 MARKER='## Security Baseline (non-negotiable'
 BUDGET=9200    # content chars per part; the header line keeps each part under 9,500
 
@@ -137,7 +137,7 @@ EOF
 
 legacy_nudge() {
   cat <<'EOF'
-Odeo: an old install.sh installation is still in this home directory (~/.claude/odeo-docs, ~/.claude-templates or ~/bin/merge-gate.sh), so Odeo's skills and agents load twice, once from the plugin and once from those copies. Tell the user once, and offer to run `odeo-migrate-legacy.sh` (a dry run that lists what would move), then `odeo-migrate-legacy.sh --apply` only after they say yes. It moves the copies aside into ~/.claude/odeo-legacy-<timestamp>/ and deletes nothing.
+Odeo: an old install.sh installation is still in this home directory (~/.claude/odeo-docs, ~/.claude-templates or ~/bin/merge-gate.sh), so Odeo's skills and agents load twice, once from the plugin and once from those copies. If their ~/.claude/CLAUDE.md is the old install.sh copy of the baseline, it also no longer updates; the plugin delivers the current one only when that file lacks the Security Baseline heading. Tell the user once, and offer to run `odeo-migrate-legacy.sh` (a dry run that lists what would move), then `odeo-migrate-legacy.sh --apply` only after they say yes. It moves the copies aside into ~/.claude/odeo-legacy-<timestamp>/ and deletes nothing.
 EOF
 }
 
@@ -170,10 +170,13 @@ sync_dialog_language() {
       "$opt" "$(global_language_code)" "$opt" | emit_json SessionStart
     return 0
   fi
+  # The value is recorded either way: a refusal (a symlinked global, an invalid code) is
+  # reported ONCE per dialog value instead of degrading every session with the same warning.
   if err="$(CLAUDE_GLOBAL_CONFIG="$USER_GLOBAL" "$SET_GLOBAL" "$opt" --overwrite 2>&1)"; then
     printf '%s' "$opt" > "$state"
   else
-    warn SessionStart "could not apply the plugin's output language \"$opt\" ($err); run /language to set it."
+    printf '%s' "$opt" > "$state"
+    warn SessionStart "could not apply the plugin's output language \"$opt\" to the global setting ($err). Tell the user once; they can set it per project with \`/language $opt\` inside that project."
   fi
 }
 
