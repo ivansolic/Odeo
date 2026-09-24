@@ -26,8 +26,15 @@ bad()  { echo "FAIL - $1"; fail=$((fail+1)); }
 # expectation is filtered by the rule under test can only confirm that rule is consistent
 # with itself. The contract is "every file in bin/ is installed, or the install FAILS", so
 # the count comes from the directory and the skip case below covers the other direction.
+# ONE named exception, by name and not by rule: odeo-migrate-legacy.sh must run from the
+# plugin root it reads Odeo's names from, so install.sh never places it in ~/bin.
+EXCLUDED="odeo-migrate-legacy.sh"
 expected=0
-for s in "$ROOT"/bin/*; do [[ -f "$s" ]] && expected=$((expected+1)); done
+for s in "$ROOT"/bin/*; do
+  [[ -f "$s" ]] || continue
+  [[ "$(basename "$s")" == "$EXCLUDED" ]] && continue
+  expected=$((expected+1))
+done
 [[ "$expected" -gt 0 ]] || { echo "FAIL - instrument broken: no files found in bin/"; exit 1; }
 ok "instrument: bin/ holds $expected files, counted independently of the shebang rule"
 
@@ -95,6 +102,8 @@ got=$(ls "$h/bin" 2>/dev/null | wc -l | tr -d ' ')
   || bad "installed $got of $expected programs"
 [[ -f "$h/bin/token-report.py" ]] && ok "the non-.sh program is installed (token-report.py)" \
   || bad "token-report.py missing from ~/bin (the original defect)"
+[[ ! -e "$h/bin/$EXCLUDED" ]] && ok "the excluded program is not installed ($EXCLUDED)" \
+  || bad "$EXCLUDED was installed into ~/bin"
 rm -rf "$tmp"
 
 # 2. Exec bits stripped (the Windows-clone shape .gitattributes guards against): the

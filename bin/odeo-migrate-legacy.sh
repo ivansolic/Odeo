@@ -29,6 +29,15 @@ set -uo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SHIM_NAMES="secret-scan.sh publish-guard.sh"   # what pre-plugin git hooks call in ~/bin
 SHIM_MARKER="odeo-migrate-legacy shim"
+
+# Every "what Odeo ships" name comes from the root this runs in, so it must be a plugin
+# root. A copy in ~/bin (install.sh put one there) would take $HOME for the root and move
+# the user's own files while leaving the real duplicates in place.
+if [ ! -f "$ROOT/.claude-plugin/plugin.json" ]; then
+  echo "odeo-migrate-legacy: this copy is not inside the Odeo plugin ($ROOT); refusing." >&2
+  echo "Run the plugin's copy: inside Claude it is on PATH as odeo-migrate-legacy.sh." >&2
+  exit 2
+fi
 APPLY=false
 case "${1:-}" in
   "") ;;
@@ -51,7 +60,9 @@ candidates() {
   for d in "$ROOT"/bin/*; do
     n="$(basename "$d")"; f="bin/$n"
     { [ -e "$HOME/$f" ] || [ -L "$HOME/$f" ]; } || continue
-    [ ! -L "$HOME/$f" ] && grep -q "$SHIM_MARKER" "$HOME/$f" 2>/dev/null && continue   # our own shim
+    # our own shim, recognised by its line 2 only (a stale copy of THIS script contains the
+    # marker text too, and must move like any other install.sh copy)
+    [ ! -L "$HOME/$f" ] && sed -n 2p "$HOME/$f" 2>/dev/null | grep -q "$SHIM_MARKER" && continue
     echo "$f"
   done
   for f in .claude/odeo-docs .claude-templates; do
@@ -78,14 +89,18 @@ write_shim() {
   { echo '#!/usr/bin/env bash'
     echo "# $SHIM_MARKER: a pre-plugin project's git hook calls ~/bin/$1; this runs the"
     echo "# newest Odeo plugin copy instead. Delete this file if you no longer use those projects."
-    printf 'fallback="${ODEO_SHIM_FALLBACK_OVERRIDE:-%s}"\n' "$ROOT/bin"
+    printf 'fallback=%q\n' "$ROOT/bin"
+    printf 'config_at_migration=%q\n' "${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
     cat <<'SHIM'
 name="$(basename "$0")"
+# run_if <path>: execs a candidate, never this shim itself (that would loop forever)
+run_if() { [ -x "$1" ] && ! [ "$1" -ef "$0" ] && exec "$1" "${@:2}"; return 0; }
 while IFS= read -r d; do
-  [ -x "$d/$name" ] && exec "$d/$name" "$@"
+  run_if "$d/$name" "$@"
 done < <(ls -1td "${CLAUDE_CONFIG_DIR:-$HOME/.claude}"/plugins/cache/*/odeo/*/bin \
+               "$config_at_migration"/plugins/cache/*/odeo/*/bin \
                "$HOME"/.claude/plugins/cache/*/odeo/*/bin 2>/dev/null)
-[ -x "$fallback/$name" ] && exec "$fallback/$name" "$@"
+run_if "$fallback/$name" "$@"
 echo "$name: the Odeo plugin was not found, so this guard cannot run and BLOCKS." >&2
 echo "Reinstall the Odeo plugin, or delete ~/bin/$name if you no longer need it." >&2
 exit 1

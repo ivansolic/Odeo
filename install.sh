@@ -100,6 +100,8 @@ installed=0
 skipped=""
 for script in "$REPO_DIR"/bin/*; do
   [[ -f "$script" ]] || continue
+  # The migration must run from the plugin root it reads names from, never from ~/bin.
+  [[ "$(basename "$script")" == odeo-migrate-legacy.sh ]] && continue
   if ! head -c 2 "$script" 2>/dev/null | grep -q '#!'; then
     skipped="$skipped $(basename "$script")"
     continue

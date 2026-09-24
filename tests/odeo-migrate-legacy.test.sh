@@ -12,8 +12,13 @@
 #   M1 apply by default                      -> 3 FAIL (case 1)
 #   M2 `rm -rf` instead of `mv`              -> 9 FAIL (case 2: every kept-in-legacy + count)
 #   M3 also move ~/.claude/CLAUDE.md          -> 1 FAIL (case 2, untouched)
-#   M4 no shims (SHIM_NAMES empty)           -> 10 FAIL (cases 2, 7, 8, 9, 10)
-#   M5 shim exits 0 when no plugin is found  -> 1 FAIL (case 8, fails open)
+#   M4 no shims (SHIM_NAMES empty)           -> 11 FAIL (cases 2, 7, 8, 8b, 9, 10)
+#   M5 shim exits 0 when no plugin is found  -> 2 FAIL (cases 8, 8b, fails open)
+#   M6 no plugin-root check                  -> 3 FAIL (cases 11, 12)
+#   M7 shim may exec itself (drop -ef)       -> 1 FAIL (case 8b, 143 from the watchdog)
+#   M8 shim marker matched anywhere in file  -> 1 FAIL (case 12). Write this mutant as
+#      `grep -q "$SHIM_MARKER" "$HOME/$f"`: dropping the FILE argument too leaves a grep
+#      reading stdin, which hangs the run instead of testing the rule (it did, once).
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SCRIPT="$ROOT/bin/odeo-migrate-legacy.sh"
@@ -27,6 +32,22 @@ gone() { if [ -e "$2" ] || [ -L "$2" ]; then bad "$1 ($2 still there)"; else ok 
 
 TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT
 count_files() { find "$1" \( -type f -o -type l \) | wc -l | tr -d ' '; }
+# fake_root <dir>: a removable copy of the plugin root (manifest, bin, skills, agents), so
+# a shim's baked fallback can be taken away the way an uninstall or cache sweep would
+fake_root() {
+  mkdir -p "$1/docs"; cp -R "$ROOT/.claude-plugin" "$ROOT/bin" "$ROOT/skills" "$ROOT/agents" "$1/"
+  cp "$ROOT/docs/agent-rubric.md" "$1/docs/"; printf '%s' "$1"
+}
+# bounded <cmd...>: runs a command that must not hang (a shim that execs itself would). A
+# watchdog kills it by PID after 10s (an exec chain keeps the PID), giving exit 143. Not
+# perl's alarm: bash drops an inherited alarm on exec, so that version never fired.
+bounded() {
+  "$@" & local pid=$!
+  ( sleep 10; kill "$pid" 2>/dev/null ) & local dog=$!
+  wait "$pid"; local rc=$?
+  kill "$dog" 2>/dev/null; wait "$dog" 2>/dev/null
+  return "$rc"
+}
 
 # make_home <dir>: an install.sh-style home plus the user's own things
 make_home() {
@@ -102,11 +123,16 @@ printf '#!/usr/bin/env bash\necho PLUGIN-SCAN\nexit 1\n' > "$c/secret-scan.sh"; 
 out="$(HOME="$H" "$shim" 2>&1)"; rc=$?
 assert_contains "shim runs the plugin's copy" "PLUGIN-SCAN" "$out"
 assert_exit "shim passes a blocking exit through" 1 "$rc"
-# 8) no plugin anywhere: the shim BLOCKS (a missing guard must not pass silently)
-rm -rf "$H/.claude/plugins"
-fake_root="$TMP/moved-root"; out="$(HOME="$H" ODEO_SHIM_FALLBACK_OVERRIDE="$fake_root" "$shim" 2>&1)"; rc=$?
+# 8) no plugin anywhere (no cache, the plugin root it was migrated from is gone): BLOCKS
+H8="$TMP/h8"; make_home "$H8"; R8="$(fake_root "$TMP/root8")"
+HOME="$H8" "$R8/bin/odeo-migrate-legacy.sh" --apply >/dev/null 2>&1; rm -rf "$R8"
+out="$(HOME="$H8" bounded "$H8/bin/secret-scan.sh" 2>&1)"; rc=$?
 assert_exit "shim without a plugin blocks" 1 "$rc"
 assert_contains "shim says how to fix it" "Odeo plugin" "$out"
+# 8b) a fallback that points back at the shim itself never loops: it blocks, fast
+perl -pi -e "s|^fallback=.*|fallback=$H8/bin|" "$H8/bin/secret-scan.sh"
+HOME="$H8" bounded "$H8/bin/secret-scan.sh" >/dev/null 2>&1; rc=$?
+assert_exit "self-referencing fallback blocks instead of looping" 1 "$rc"
 # 9) a second apply recognises its own shim and leaves it
 out="$(HOME="$H" "$SCRIPT" --apply 2>&1)"
 grep -q "odeo-migrate-legacy shim" "$shim" && ok "second apply keeps the shim" || bad "second apply moved the shim"
@@ -139,6 +165,19 @@ HOME="$H" "$SCRIPT" --apply >/dev/null 2>&1
 [ "$rc" != 0 ] && ok "pre-plugin project: commit still gated after --apply" \
   || bad "pre-plugin project committed WITHOUT a secret gate after --apply"
 assert_contains "the gate that ran is the plugin's scanner" "PLUGIN-BLOCKED" "$(cat "$TMP/err10")"
+
+# 11) run from a copy outside a plugin root (install.sh used to put one in ~/bin): refuses,
+#     because every "what Odeo ships" name comes from the root it runs in
+H="$TMP/h11"; make_home "$H"; printf '#!/bin/sh\n' > "$H/bin/my-own-backup-tool"
+cp "$SCRIPT" "$H/bin/odeo-migrate-legacy.sh"; before="$(find "$H" | sort)"
+out="$(HOME="$H" "$H/bin/odeo-migrate-legacy.sh" --apply 2>&1)"; rc=$?
+assert_exit "copy outside a plugin root -> 2" 2 "$rc"
+assert_contains "says to run the plugin's copy" "plugin" "$out"
+[ "$(find "$H" | sort)" = "$before" ] && ok "refusing copy moved nothing" || bad "refusing copy changed the home"
+# 12) a stale ~/bin/odeo-migrate-legacy.sh (it CONTAINS the shim marker text) is not
+#     mistaken for a shim: it moves aside like any other install.sh copy
+out="$(HOME="$H" "$SCRIPT" 2>&1)"
+assert_contains "stale migrate copy is a candidate" "bin/odeo-migrate-legacy.sh" "$out"
 
 # 6) unknown flag -> usage, exit 2, nothing moved
 H="$TMP/h6"; make_home "$H"; before="$(find "$H" | sort)"
