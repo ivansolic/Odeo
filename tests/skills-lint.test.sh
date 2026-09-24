@@ -191,6 +191,7 @@ check "C5 resolves a DOTTED script name without inventing a phantom" 0 "$d"; rm 
 # list -> "C8 flags a third-party plugin in a public doc".
 # Round 2: the old allowlist start class -> the diagram and link-text cases (the reviewer's
 # positive control); manifests dropped from the scope -> the enable-dialog case.
+# Round 3: dropping } from the exclusion -> the plugin-root case (a real ${CLAUDE_PLUGIN_ROOT}/<skill> path).
 d="$(clean_root)"; printf -- 'Run `/alpha` to start.\n' > "$d/README.md"
 check "C14 flags a bare command in the README" 1 "$d"; rm -rf "$d"
 d="$(clean_root)"; printf -- 'Run `/odeo:alpha` to start.\n' > "$d/README.md"
@@ -212,7 +213,7 @@ d="$(clean_root)"; mkdir -p "$d/.claude-plugin"; printf -- '{"description": "cha
 check "C14 flags a bare command in the plugin manifest (the enable dialog text)" 1 "$d"; rm -rf "$d"
 d="$(clean_root)"; mkdir -p "$d/.github/ISSUE_TEMPLATE"; printf -- '- [ ] /alpha\n' > "$d/.github/ISSUE_TEMPLATE/bug.md"
 check "C14 flags a bare command in a GitHub template" 1 "$d"; rm -rf "$d"
-d="$(clean_root)"; printf -- 'x ${CLAUDE_PLUGIN_ROOT}/docs/alpha-format.md and https://x.io/alpha and ~/alpha\n' > "$d/README.md"
+d="$(clean_root)"; printf -- 'x ${CLAUDE_PLUGIN_ROOT}/alpha/rubric.md and https://x.io/alpha and ~/alpha\n' > "$d/README.md"
 check "C14 leaves plugin-root paths, URLs and home paths alone" 0 "$d"; rm -rf "$d"
 
 # C8 over ALL public docs: no third-party plugin names (pm-skills once lived in the beginners guide)

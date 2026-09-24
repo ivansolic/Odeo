@@ -206,15 +206,15 @@ fi
 #      user can type (verified in a fresh session: only /odeo:new-project is offered).
 #      The names come from skills/ itself, so a new skill is covered without editing this.
 #      A path such as docs/prds/, skills/prd/SKILL.md, ~/prd, a URL or
-#      ${CLAUDE_PLUGIN_ROOT}/docs/prd-x.md is not a command: the character before its / is a
-#      letter, digit, '.', ':', '/', '~' or '-'. The start boundary is that EXCLUSION, not a
+#      ${CLAUDE_PLUGIN_ROOT}/prd is not a command: the character before its / is a
+#      letter, digit, '.', ':', '/', '~', '}' or '-'. The start boundary is that EXCLUSION, not a
 #      list of allowed characters: an allowlist let '─/build─' in a diagram and '[/prd](x)'
 #      through, because box-drawing characters and '[' were not on it.
 names="$(ls -d "$ROOT"/skills/*/ 2>/dev/null | xargs -n1 basename 2>/dev/null | paste -sd'|' -)"
 if [ -n "$names" ]; then
   while IFS= read -r hit; do
     [ -n "$hit" ] && viol C14 "$hit (write it as /odeo:<skill>)"
-  done < <(grep -nE "(^|[^A-Za-z0-9_.:/~-])/($names)([^A-Za-z0-9_-]|\$)" \
+  done < <(grep -nE "(^|[^A-Za-z0-9_.:/~}-])/($names)([^A-Za-z0-9_-]|\$)" \
              "${PUBLIC_TEXT[@]:+${PUBLIC_TEXT[@]}}" /dev/null 2>/dev/null | cut -c1-200)
 fi
 
