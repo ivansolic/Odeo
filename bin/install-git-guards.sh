@@ -24,12 +24,15 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # hook_preamble: the shebang plus odeo_tool, shared by both hooks. Git runs hooks from
 # the user's own terminal too, where a plugin's bin/ is NOT on PATH (Claude Code adds it to
 # the Bash tool only), and a copied plugin lives in a per-version cache directory that an
-# update replaces. So a tool is looked up: PATH, then the newest cached Odeo version, then
-# the directory these hooks were installed from (baked in here; stable for a plugin loaded
-# in place from a clone), then the repo's own bin/.
+# update replaces. So a tool is looked up: PATH, then the newest cached Odeo version (in
+# CLAUDE_CONFIG_DIR, the config dir at install time, and ~/.claude, since a user may run
+# Claude with CLAUDE_CONFIG_DIR while git runs from a shell without it), then the
+# directory these hooks were installed from (baked in; stable for a plugin loaded in place
+# from a clone), then the repo's own bin/.
 hook_preamble() {
   echo '#!/usr/bin/env bash'
   printf 'ODEO_BIN_AT_INSTALL=%q\n' "$SCRIPT_DIR"
+  printf 'ODEO_CONFIG_AT_INSTALL=%q\n' "${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
   cat <<'PREAMBLE'
 odeo_tool() { # odeo_tool <name>: prints the path of an Odeo script, nothing if not found
   local name="$1" c
@@ -38,7 +41,9 @@ odeo_tool() { # odeo_tool <name>: prints the path of an Odeo script, nothing if 
   # newest first: after an update the old version stays in the cache for a grace period
   while IFS= read -r c; do
     [ -x "$c/$name" ] && { printf '%s' "$c/$name"; return 0; }
-  done < <(ls -1td "$HOME"/.claude/plugins/cache/*/odeo/*/bin 2>/dev/null)
+  done < <(ls -1td "${CLAUDE_CONFIG_DIR:-$HOME/.claude}"/plugins/cache/*/odeo/*/bin \
+                   "$ODEO_CONFIG_AT_INSTALL"/plugins/cache/*/odeo/*/bin \
+                   "$HOME"/.claude/plugins/cache/*/odeo/*/bin 2>/dev/null)
   for c in "$ODEO_BIN_AT_INSTALL" "bin"; do
     [ -x "$c/$name" ] && { printf '%s' "$c/$name"; return 0; }
   done

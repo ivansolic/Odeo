@@ -12,6 +12,7 @@
 #                                  attributed by M2, not M1.
 #   M2 cache read oldest first  -> 4 FAIL (cases 1, 2, 3, 4)
 #   M3 no install-time dir      -> 1 FAIL (case 5)
+#   M4 no install-time config dir -> 1 FAIL (case 7)
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 fail=0
@@ -90,5 +91,16 @@ rm -rf "$TMP/clone"; : > "$LOG"
 rc="$(commit_in "$repo")"
 assert_eq "commit still succeeds (existing fail-open warning)" 0 "$rc"
 assert_contains "warning names the Odeo plugin" "Odeo plugin" "$(cat "$TMP/err")"
+
+# 7) a config dir outside ~/.claude (CLAUDE_CONFIG_DIR, documented for side-by-side
+#    accounts): hooks installed with it set find a LATER version in that config's cache,
+#    even when git runs from a terminal where CLAUDE_CONFIG_DIR is not set
+cfg="$TMP/other-config"; ccache="$cfg/plugins/cache/odeo/odeo"
+stub "$ccache/0.2.0/bin" cfg-new 0; cp "$ROOT/bin/install-git-guards.sh" "$ccache/0.2.0/bin/"
+r="$TMP/r7"; git init -q "$r" && git -C "$r" commit -q --allow-empty -m init
+( cd "$r" && HOME="$HOME_T" PATH="$CLEAN_PATH" CLAUDE_CONFIG_DIR="$cfg" bash "$ccache/0.2.0/bin/install-git-guards.sh" >/dev/null )
+sleep 1; stub "$ccache/0.3.0/bin" cfg-newer 0; rm -rf "$ccache/0.2.0"   # updated, old one swept
+: > "$LOG"; commit_in "$r" >/dev/null
+assert_eq "config dir remembered from install time" "secret-scan.sh cfg-newer" "$(cat "$LOG")"
 
 [ "$fail" -eq 0 ] && echo "ALL PASS" || { echo "SOME FAILED"; exit 1; }
