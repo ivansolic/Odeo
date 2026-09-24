@@ -10,8 +10,8 @@
 # documents.
 #
 # The four scripts are driven behaviorally; init-project.sh (do-not-touch here) and
-# install.ps1 are checked textually, because invoking the scaffolder would create a whole
-# project tree, and PowerShell is not present on most machines that run this suite.
+# .claude-plugin/plugin.json are checked textually, because invoking the scaffolder would
+# create a whole project tree, and plugin.json is data read by Claude Code, not a program.
 #
 # This guard has been OBSERVED FAILING (mutation RED, recorded in the commit body): adding
 # `es` to VALID in set-project-language.sh alone fails cases 2 and 3, and adding it to
@@ -26,7 +26,7 @@ assert_true() { if eval "$2"; then echo "ok: $1"; else echo "FAIL: $1"; fail=1; 
 
 TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT
 
-EXPECTED="en de hr fr"          # the one intended set; update HERE and in all five files together
+EXPECTED="en de hr fr"          # the one intended set; update HERE and in all six files together
 CANDIDATES="en de hr fr es it klingon EN"
 
 fresh_proj() { # fresh_proj <name> -> echoes a project dir with an anchor, no language line
