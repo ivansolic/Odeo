@@ -20,6 +20,20 @@ SKILLS=()
 while IFS= read -r f; do SKILLS+=("$f"); done < <(ls "$ROOT"/skills/*/SKILL.md 2>/dev/null)
 AGENTS=()
 while IFS= read -r f; do AGENTS+=("$f"); done < <(ls "$ROOT"/agents/*.md 2>/dev/null)
+# Every text a user or Claude reads as instructions or messages: the public docs, skills,
+# agents, project templates, and the messages hooks and scripts print. Tests and internal
+# records (docs/evals, docs/plans, ...) are not in it. skills-lint.sh itself is left out
+# because it names the patterns it forbids.
+PUBLIC_TEXT=()
+while IFS= read -r f; do PUBLIC_TEXT+=("$f"); done < <(
+  { for n in README.md INSTALL.md WORKFLOW.md BEGINNERS-GUIDE.md AGENTS.md CONTRIBUTING.md \
+             ROADMAP.md CLAUDE.md global/CLAUDE.md docs/checklists/review-calibration.md; do
+      [ -f "$ROOT/$n" ] && echo "$ROOT/$n"
+    done
+    ls "$ROOT"/skills/*/*.md "$ROOT"/agents/*.md "$ROOT"/docs/*.md "$ROOT"/docs/examples/*.md \
+       "$ROOT"/hooks/*.sh "$ROOT"/bin/*.sh 2>/dev/null | grep -v '/bin/skills-lint\.sh$'
+    [ -d "$ROOT/project-templates" ] && find "$ROOT/project-templates" -name '*.md'
+  } | sort -u)
 
 # C1. Model-invocable skills must contain "Use when" (routing floor)
 for f in "${SKILLS[@]:+${SKILLS[@]}}"; do
@@ -102,7 +116,8 @@ cred_hits="$(grep -rlE "$PERSONS" "$ROOT/skills" "$ROOT/agents" "$ROOT/docs/syst
 for f in $cred_hits; do
   viol C8 "$f: credits a person or company by name (attribution policy: frameworks only)"
 done
-plug_hits="$(grep -rliE "$PLUGINS" "$ROOT/skills" "$ROOT/agents" "$ROOT/docs/system-map.md" "$ROOT/global/CLAUDE.md" 2>/dev/null || true)"
+PLUGINS="$PLUGINS|pm-execution|pm-product-discovery"
+plug_hits="$(grep -liE "$PLUGINS" "${PUBLIC_TEXT[@]:+${PUBLIC_TEXT[@]}}" 2>/dev/null || true)"
 for f in $plug_hits; do
   viol C8 "$f: names a third-party plugin"
 done
@@ -180,6 +195,20 @@ if [[ -d "$ROOT/agents" ]]; then
     is_agent_definition "$f" || continue
     c13_check "$f" "$(basename "$f")"
   done
+fi
+
+# C14. Commands are named the way a plugin install types them: /odeo:<skill>.
+#      Claude Code namespaces every plugin skill, so a bare /<skill> is not a command a
+#      user can type (verified in a fresh session: only /odeo:new-project is offered).
+#      The names come from skills/ itself, so a new skill is covered without editing this.
+#      A path such as docs/prds/ or skills/prd/SKILL.md is not a command: the character
+#      before its / is a letter, and the boundary class below excludes letters.
+names="$(ls -d "$ROOT"/skills/*/ 2>/dev/null | xargs -n1 basename 2>/dev/null | paste -sd'|' -)"
+if [ -n "$names" ]; then
+  while IFS= read -r hit; do
+    [ -n "$hit" ] && viol C14 "$hit (write it as /odeo:<skill>)"
+  done < <(grep -nE "(^|[[:space:]\`(\"'>|*])/($names)([^A-Za-z0-9_-]|\$)" \
+             "${PUBLIC_TEXT[@]:+${PUBLIC_TEXT[@]}}" 2>/dev/null | cut -c1-200)
 fi
 
 # C9. Every SKILL.md declares a non-empty description
