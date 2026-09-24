@@ -10,7 +10,7 @@ supporting metrics, and explicit guardrails. Draws on North Star Metric practice
 (the AARRR pirate-metrics funnel) and the HEART framework.
 
 ## When to use
-- Standing up measurement; making a PRD's outcome quantifiable; before `/outcome`.
+- Standing up measurement; making a PRD's outcome quantifiable; before `/odeo:outcome`.
 
 ## Process
 1. **North Star Metric:** the single metric that best captures the core value delivered
@@ -27,7 +27,7 @@ supporting metrics, and explicit guardrails. Draws on North Star Metric practice
 
 ## Output
 A North Star + supporting + guardrails, with baselines and sources, saved under `docs/`.
-Pairs with `/okrs`; feeds the post-ship `/outcome` check.
+Pairs with `/odeo:okrs`; feeds the post-ship `/odeo:outcome` check.
 
 ## Quality rules
 - North Star reflects **user value**, not vanity (signups, pageviews, raw usage).

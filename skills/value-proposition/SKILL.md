@@ -10,10 +10,10 @@ product's pain-relievers and gain-creators. Based on the Value Proposition
 Canvas, paired with Jobs-to-be-Done.
 
 ## When to use
-- Before a PRD or `/positioning`; when you can't crisply say why someone should care.
+- Before a PRD or `/odeo:positioning`; when you can't crisply say why someone should care.
 
 ## Process
-1. **Customer profile** (pull from `/personas` if done):
+1. **Customer profile** (pull from `/odeo:personas` if done):
    - **Jobs:** what they're trying to get done.
    - **Pains:** frustrations, risks, obstacles with the current way.
    - **Gains:** outcomes and benefits they want.
@@ -27,7 +27,7 @@ Canvas, paired with Jobs-to-be-Done.
    [alternative]." Make it falsifiable, not fluff.
 
 ## Output
-A value-prop canvas + a sharp one-liner, saved under `docs/`. Feeds `/prd`, `/positioning`, `/gtm-plan`.
+A value-prop canvas + a sharp one-liner, saved under `docs/`. Feeds `/odeo:prd`, `/odeo:positioning`, `/odeo:gtm-plan`.
 
 ## Quality rules
 - Map to the **ranked** pains/gains; relieving a trivial pain is not value.

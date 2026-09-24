@@ -13,7 +13,7 @@ confident single figure.
 - **market-size**: TAM/SAM/SOM as RANGES, triangulated from 2+ methods
   (top-down report data + bottom-up unit math), method shown for each.
 - **competitors**: who plays, positioning, pricing, strengths/gaps, a
-  feature-table only where sources support it. Feeds `/competitor-analysis`.
+  feature-table only where sources support it. Feeds `/odeo:competitor-analysis`.
 - **pricing**: what the market charges, models (per-seat, usage, freemium),
   where the price walls sit.
 - **deep-dive**: any question ("do recipe sites block server-side scraping?"),
@@ -46,14 +46,14 @@ confident single figure.
    fallback `cursor -r`; neither installed, give the path). Mention
    Cmd+Shift+V once for the formatted view.
 7. **Route it**: offer the natural next step, cite it in the PRD's Context
-   (`/prd` picks RES-NNN up), hand competitor rows to `/competitor-analysis`,
-   or feed sizing into `/prioritize`. Follow-ups the user wants later go into
+   (`/odeo:prd` picks RES-NNN up), hand competitor rows to `/odeo:competitor-analysis`,
+   or feed sizing into `/odeo:prioritize`. Follow-ups the user wants later go into
    `.claude/tasks/todo.md`.
 
 ## Where it sits in the process
-Discovery. `/discover` offers it as an optional evidence step; `/prd` offers it
+Discovery. `/odeo:discover` offers it as an optional evidence step; `/odeo:prd` offers it
 when the Context section rests on assumptions ("shall I back this with
-/research?"). Fully standalone too, any question, any time, no phase required.
+/odeo:research?"). Fully standalone too, any question, any time, no phase required.
 
 ## Worked example
 > User: "how big is the meal-prep app market in the EU?"

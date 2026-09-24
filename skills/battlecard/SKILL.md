@@ -6,8 +6,8 @@ disable-model-invocation: true
 # Competitive battlecard
 
 A one-page, **honest** cheat-sheet for going up against a specific competitor. Standard
-sales-enablement practice. Built on `/competitor-analysis` (the landscape) and
-`/positioning` (your frame).
+sales-enablement practice. Built on `/odeo:competitor-analysis` (the landscape) and
+`/odeo:positioning` (your frame).
 
 ## When to use
 - You repeatedly compete against a named rival; enabling sales/support; sharpening a comparison page.
@@ -20,7 +20,7 @@ sales-enablement practice. Built on `/competitor-analysis` (the landscape) and
 5. **Objection handling:** their top 3 objections about us + a true, non-defensive response.
 
 ## Output
-A one-page battlecard per key competitor saved to `docs/`. Pairs with `/competitor-analysis` and `/positioning`.
+A one-page battlecard per key competitor saved to `docs/`. Pairs with `/odeo:competitor-analysis` and `/odeo:positioning`.
 
 ## Example
 ```

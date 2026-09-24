@@ -9,7 +9,7 @@ and a **pre-mortem** that imagines failure and works backward (the classic
 pre-mortem technique).
 
 ## When to use
-- After a `/prd` or `/strategy` draft, before committing to build.
+- After a `/odeo:prd` or `/odeo:strategy` draft, before committing to build.
 - Re-run if the revisions are large.
 
 ## Pass 1, Red-team (attack it)
@@ -38,7 +38,7 @@ security findings as requirements. Re-run if changes were large.
 **Route the follow-ups so they survive the session.** Any finding the user wants
 to act on but not now (a test to run, a gate to satisfy, an assumption to check)
 goes into `.claude/tasks/todo.md` as a checkable item, with a one-line why.
-Long projects resume through `/start`, and /start can only surface what is
+Long projects resume through `/odeo:start`, and /odeo:start can only surface what is
 written down. If the PRD was revised, open the revised file in the editor
 (`code -r <file>`, fallback `cursor -r`, else just give the path).
 

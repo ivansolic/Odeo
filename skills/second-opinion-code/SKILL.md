@@ -38,7 +38,7 @@ live in `${CLAUDE_PLUGIN_ROOT}/docs/second-opinion-protocol.md` (read it; not re
 6. **Present and discuss**: show the comparison; the builder verifies a finding
    before fixing it, as with any review.
 7. **Offer the absorption loop**: if a vendor-unique finding class recurs, offer
-   `/improve` to fold it into OUR code-reviewer as a permanent check.
+   `/odeo:improve` to fold it into OUR code-reviewer as a permanent check.
 
 ## Worked example
 "Give me a second opinion on this auth change."

@@ -11,10 +11,10 @@
   root. Edits under `skills/`, `agents/`, `bin/`, `hooks/` or `project-templates/` apply
   at the next session or `/reload-plugins`, with no version bump. That is also how this
   repo dogfoods its own tools: there are no project-level copies of the skills or agents.
-- Solved, reusable problems are banked in `knowledge/` via `/learn`, one file per
+- Solved, reusable problems are banked in `knowledge/` via `/odeo:learn`, one file per
   fact with YAML frontmatter (module/tags/problem_type/provenance/reuse_count/created);
   search `knowledge/` before re-solving. It is internal (denylisted from publish);
-  share an individual lesson outward only via `/contribute-lesson` (sanitized, gated).
+  share an individual lesson outward only via `/odeo:contribute-lesson` (sanitized, gated).
 - House rule: no em dashes or en dashes (see AGENTS.md).
 
 Odeo's own artifacts stay English whatever the user's global default is (PRD-001 R4), so this override is deliberate and not a leftover.

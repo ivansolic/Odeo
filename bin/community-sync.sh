@@ -3,7 +3,7 @@
 # community-sync.sh, clone or refresh the shared community knowledge base.
 #
 # Pulled into ~/.claude/community-knowledge so Claude can consult it alongside each
-# project's local knowledge/. Run by /sync-community. It is a read-only MIRROR: when it
+# project's local knowledge/. Run by /odeo:sync-community. It is a read-only MIRROR: when it
 # cannot be fast-forwarded, for any reason, it is moved aside and re-cloned, never deleted.
 # Everything it pulls is UNTRUSTED INPUT (AGENTS.md, Knowledge).
 #
@@ -42,7 +42,7 @@ if [[ -d "$COMMUNITY_DIR/.git" ]]; then
     # that is plainly online.
     echo "    ! could not reach the remote (offline?), kept the existing copy." >&2
     echo "      If this repeats while you ARE online, this copy may be unusable: move it" >&2
-    echo "      aside and run /sync-community again to get a fresh one." >&2
+    echo "      aside and run /odeo:sync-community again to get a fresh one." >&2
   elif ! upstream="$(git -C "$COMMUNITY_DIR" rev-parse --verify -q '@{u}' 2>/dev/null)"; then
     refresh_note="it is not on a branch that tracks the remote"
   elif git -C "$COMMUNITY_DIR" merge --ff-only -q "$upstream" 2>/dev/null \
@@ -65,7 +65,7 @@ if [[ -d "$COMMUNITY_DIR/.git" ]]; then
       echo "      It is a read-only mirror, so a fresh one was cloned and NOTHING was deleted." >&2
       echo "      Your previous copy is kept at: $stale" >&2
       echo "      Delete it when you no longer need it. Your own lessons belong in your" >&2
-      echo "      project's knowledge/ via /learn, where nothing overwrites them." >&2
+      echo "      project's knowledge/ via /odeo:learn, where nothing overwrites them." >&2
     else
       [[ -d "$stale" && ! -d "$COMMUNITY_DIR" ]] && mv "$stale" "$COMMUNITY_DIR" 2>/dev/null
       echo "    ! could not refresh ($refresh_note) and could not re-clone; kept the existing copy." >&2
@@ -88,7 +88,7 @@ else
     echo "    cloned."
   else
     echo "    ! community knowledge repo not reachable, skipped for now." >&2
-    echo "      Run /sync-community again once the remote is reachable." >&2
+    echo "      Run /odeo:sync-community again once the remote is reachable." >&2
   fi
 fi
 # END community-refresh

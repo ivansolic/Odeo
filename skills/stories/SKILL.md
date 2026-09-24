@@ -10,7 +10,7 @@ clear way to know it's done. Built on the 3 C's (Card, Conversation, Confirmatio
 and the INVEST checklist.
 
 ## When to use
-- After a `/prd` is critiqued; to decompose work into buildable, reviewable pieces.
+- After a `/odeo:prd` is critiqued; to decompose work into buildable, reviewable pieces.
 - Greenfield especially: scope the PRD to a thin slice, then sequence stories for it.
 
 ## Process
@@ -23,7 +23,7 @@ and the INVEST checklist.
    ingredient", not "≥1"; plain sentences, not notation. And match technicality
    to the audience: when the stories feed THIS repo's build, verification detail
    (test fixtures, endpoints) may ride along in a "verification note" under the
-   AC; when /stories is used standalone (a company product, no codebase here),
+   AC; when /odeo:stories is used standalone (a company product, no codebase here),
    keep ACs purely user-observable, the reader is a stakeholder, not a builder.
 4. **For UI stories**, fold design expectations into the same ACs: the **flow**, the
    **screens**, and **which states** apply (loading / empty / error / no-results, plus
@@ -61,7 +61,7 @@ one). One story from that set:
 ## PRD coverage (traceability, a precondition)
 When the set decomposes a PRD, before the quality gate, build a **traceability map**: every
 PRD requirement (R1, R2, ...) maps to at least one story. Show it (`Rn -> USR-NNN`). A
-requirement with no covering story is a **coverage gap** that blocks `/build`, close it by
+requirement with no covering story is a **coverage gap** that blocks `/odeo:build`, close it by
 adding or splitting a story. Coverage is separate from the rubric (which grades how WELL the
 stories are written); a set can score 8/8 and still fail coverage.
 
@@ -70,7 +70,7 @@ requirement IDs it satisfies (e.g. `covers: R1 R5`), and `bin/coverage-check.sh 
 docs/stories` verifies every requirement is covered, exit 1 on any gap. That is the `[E]`
 enforced backstop for the map above.
 
-## Quality gate (before handing to /build)
+## Quality gate (before handing to /odeo:build)
 Score the story set with the **`pm-reviewer`** agent against
 `${CLAUDE_PLUGIN_ROOT}/skills/stories/rubric.md`;
 eval record goes to `docs/evals/`. Below max score = fix the named gaps and

@@ -9,8 +9,8 @@ Keep this open until the rhythm becomes muscle memory (~2-3 weeks).
 > language. This file is the *what to type*; that file is the *why*.
 
 The workflow (the phases, the discipline, the rhythm) is yours and stays fixed.
-The PM thinking inside Phase 1 runs on our **first-party PM skills** (`/brainstorm`,
-`/prd`, `/critique`, `/stories`, ...).
+The PM thinking inside Phase 1 runs on our **first-party PM skills** (`/odeo:brainstorm`,
+`/odeo:prd`, `/odeo:critique`, `/odeo:stories`, ...).
 
 ---
 
@@ -24,12 +24,12 @@ project.
 ### Start a brand-new project
 In Claude, from the folder where you keep projects:
 ```
-/new-project my-project      # scaffolds the full structure, git on main, guards installed
+/odeo:new-project my-project      # scaffolds the full structure, git on main, guards installed
 ```
 It offers a private GitHub repo (only on your yes). Open `my-project` in Claude, then,
 **first thing**, configure the project for your stack:
 ```
-/setup-project
+/odeo:setup-project
 ```
 Claude interviews you (stack, commands, conventions) and fills in `CLAUDE.md`, 
 or you start from a preset it offers when one fits your stack. Once per project.
@@ -68,22 +68,22 @@ IDEA (fresh or imported)
  ▼
 ┌─────────────────────────────────────────────┐
 │ PHASE 1: PM (discovery & specification)     │
-│ /brainstorm → /prd → /critique → /stories   │
+│ /odeo:brainstorm → /odeo:prd → /odeo:critique → /odeo:stories   │
 │ (first-party PM skills)                     │
 └──────────────────┬──────────────────────────┘
                    ▼
-               /build
+               /odeo:build
                    │
                    ▼
 ┌─────────────────────────────────────────────┐
 │ PHASE 2: DEVELOPMENT (one story at a time)  │
-│ /build → plan → implement → verify → review │
+│ /odeo:build → plan → implement → verify → review │
 │   with me (live)      ·  for me (agents)    │
 └──────────────────┬──────────────────────────┘
                    ▼
 ┌─────────────────────────────────────────────┐
 │ PHASE 3: CLOSE (per story)                  │
-│ /merge (rebase, test, PR) → /outcome → /learn │
+│ /odeo:merge (rebase, test, PR) → /odeo:outcome → /odeo:learn │
 └─────────────────────────────────────────────┘
 ```
 
@@ -121,14 +121,14 @@ After importing, continue normally, usually jump to step **1.3 (critique)** or
 ### External feature requests or user feedback
 
 ```
-/interview-synthesis
+/odeo:interview-synthesis
 ```
-Paste the list, Claude extracts opportunities and themes; then `/prioritize` to triage.
+Paste the list, Claude extracts opportunities and themes; then `/odeo:prioritize` to triage.
 
 ### External interview notes or research
 
 ```
-/interview-synthesis
+/odeo:interview-synthesis
 ```
 Paste the notes; Claude turns them into structured insights and opportunities.
 
@@ -146,20 +146,20 @@ PRDs and stories into `docs/prds/PRD-NNN-<slug>.md` and
 Start Claude in your project, plan mode ON (`Shift+Tab` twice).
 
 ```
-/brainstorm
+/odeo:brainstorm
 ```
 
 It diverges into many distinct options before converging, problem-first. Push
 back, combine options, iterate until the idea has shape. (For discovery support:
-`/personas`, `/interview-synthesis`, `/competitor-analysis`, `/market-segments`;
-for direction: `/vision`, `/strategy`.)
+`/odeo:personas`, `/odeo:interview-synthesis`, `/odeo:competitor-analysis`, `/odeo:market-segments`;
+for direction: `/odeo:vision`, `/odeo:strategy`.)
 
 ### 1.2 Write the PRD
 
 When the idea has shape:
 
 ```
-/prd
+/odeo:prd
 ```
 
 Walk through, in this order:
@@ -176,7 +176,7 @@ hyphenated slug) so the folder convention stays intact.
 ### 1.3 Critique it
 
 ```
-/critique
+/odeo:critique
 ```
 
 Two passes in one skill: a **red-team** that attacks the assumptions, logic, and
@@ -203,7 +203,7 @@ Revise the PRD based on the findings. Re-run if the changes were large.
 ### 1.4 Break into user stories
 
 ```
-/stories
+/odeo:stories
 ```
 
 > "Order them by dependency, what must be built first. Save them into
@@ -244,7 +244,7 @@ These ride in the normal AC list; you don't tag them as "design" vs "functional.
 ### 1.5 Commit the PM work
 
 ```
-/commit-push
+/odeo:commit-push
 ```
 
 PM artifacts are code. They get committed like code (the command will put you
@@ -254,15 +254,15 @@ on a `docs/` branch if you're on main).
 
 ### The full PM set (by lifecycle phase)
 
-**Discovery & research:** `/brainstorm` · `/personas` (JTBD) · `/interview-synthesis` · `/competitor-analysis` · `/market-segments` · `/opportunity-solution-tree` (Torres) · `/customer-journey-map` · `/experiments` (assumption tests, Ries + Cagan's 4 risks)
-**Strategy & viability:** `/vision` · `/strategy` (Cagan) · `/value-proposition` · `/okrs` · `/business-model` (Lean/Business Model Canvas) · `/pricing` (value-based)
-**Planning (portfolio):** `/prioritize` (RICE) · `/roadmap` (now/next/later) · `/stakeholder-map`
-**Spec (feature):** `/prd` · `/critique` (red-team + pre-mortem) · `/stories` (INVEST + 3 C's)
-**Metrics & analytics:** `/metrics` (North Star) · `/ab-test` · `/cohorts` · `/query` (NL->SQL)
-**Launch & growth:** `/positioning` (Dunford) · `/marketing` · `/gtm-plan` · `/release-notes` · `/growth-loops` · `/battlecard` · `/product-name`
+**Discovery & research:** `/odeo:brainstorm` · `/odeo:personas` (JTBD) · `/odeo:interview-synthesis` · `/odeo:competitor-analysis` · `/odeo:market-segments` · `/odeo:opportunity-solution-tree` (Torres) · `/odeo:customer-journey-map` · `/odeo:experiments` (assumption tests, Ries + Cagan's 4 risks)
+**Strategy & viability:** `/odeo:vision` · `/odeo:strategy` (Cagan) · `/odeo:value-proposition` · `/odeo:okrs` · `/odeo:business-model` (Lean/Business Model Canvas) · `/odeo:pricing` (value-based)
+**Planning (portfolio):** `/odeo:prioritize` (RICE) · `/odeo:roadmap` (now/next/later) · `/odeo:stakeholder-map`
+**Spec (feature):** `/odeo:prd` · `/odeo:critique` (red-team + pre-mortem) · `/odeo:stories` (INVEST + 3 C's)
+**Metrics & analytics:** `/odeo:metrics` (North Star) · `/odeo:ab-test` · `/odeo:cohorts` · `/odeo:query` (NL->SQL)
+**Launch & growth:** `/odeo:positioning` (Dunford) · `/odeo:marketing` · `/odeo:gtm-plan` · `/odeo:release-notes` · `/odeo:growth-loops` · `/odeo:battlecard` · `/odeo:product-name`
 
 **Orchestrators (chain the above, with a human gate between each step):**
-`/discover` (front funnel) -> `/plan` (prioritize -> roadmap) -> `/spec` (prd -> critique -> stories) -> `/go-to-market` (positioning -> marketing -> gtm-plan -> release-notes).
+`/odeo:discover` (front funnel) -> `/odeo:plan` (prioritize -> roadmap) -> `/odeo:spec` (prd -> critique -> stories) -> `/odeo:go-to-market` (positioning -> marketing -> gtm-plan -> release-notes).
 
 Browse everything with `/`. All first-party (built from named public frameworks).
 
@@ -270,22 +270,22 @@ Browse everything with `/`. All first-party (built from named public frameworks)
 The lifecycle runs top-down by altitude: understand, decide, define, build, measure, launch.
 ```
 NEW PRODUCT (full):
-  /discover  ->  strategy (/vision /strategy /market-segments /business-model /pricing)
-            ->  /plan (/prioritize -> /roadmap)
-            ->  per epic in roadmap order: /spec (/prd -> /critique -> /stories)
-            ->  /build -> /merge -> /outcome   (loop to /plan for the next epic)
-            ->  /go-to-market when an epic is ready for users
-INCREMENTAL FEATURE: skip to /spec -> /build -> /outcome
-TRIVIAL FIX:         just /build
+  /odeo:discover  ->  strategy (/odeo:vision /odeo:strategy /odeo:market-segments /odeo:business-model /odeo:pricing)
+            ->  /odeo:plan (/odeo:prioritize -> /odeo:roadmap)
+            ->  per epic in roadmap order: /odeo:spec (/odeo:prd -> /odeo:critique -> /odeo:stories)
+            ->  /odeo:build -> /odeo:merge -> /odeo:outcome   (loop to /odeo:plan for the next epic)
+            ->  /odeo:go-to-market when an epic is ready for users
+INCREMENTAL FEATURE: skip to /odeo:spec -> /odeo:build -> /odeo:outcome
+TRIVIAL FIX:         just /odeo:build
 ```
-**Worked example (new product: freelancer billable-time tracker):** `/discover` finds the
-opportunity (invoicing is a chore) -> `/plan` ranks epics and roadmaps them (NOW capture
-time, NEXT invoicing) -> `/spec` the MVP "capture time" (`/prd` -> `/critique` -> `/stories`
-ordered by dependency: data model -> timer -> tagging) -> `/build` each -> `/outcome` ->
-loop to `/plan` for invoicing -> `/go-to-market` at launch.
+**Worked example (new product: freelancer billable-time tracker):** `/odeo:discover` finds the
+opportunity (invoicing is a chore) -> `/odeo:plan` ranks epics and roadmaps them (NOW capture
+time, NEXT invoicing) -> `/odeo:spec` the MVP "capture time" (`/odeo:prd` -> `/odeo:critique` -> `/odeo:stories`
+ordered by dependency: data model -> timer -> tagging) -> `/odeo:build` each -> `/odeo:outcome` ->
+loop to `/odeo:plan` for invoicing -> `/odeo:go-to-market` at launch.
 
-**Two altitudes of prioritization (don't confuse them):** `/prioritize` + `/roadmap` rank
-*which epics* (value, portfolio level); `/stories` orders *which stories within an epic* (by
+**Two altitudes of prioritization (don't confuse them):** `/odeo:prioritize` + `/odeo:roadmap` rank
+*which epics* (value, portfolio level); `/odeo:stories` orders *which stories within an epic* (by
 dependency, not value). Every step is human-gated; merge-to-main, ship, and send-out always
 need your approval.
 
@@ -305,7 +305,7 @@ never goes away, it always holds the implementation plan for whatever you're
 building right now. A story is just an optional spec *above* todo.md, never a
 replacement for it.
 
-- **With stories:** PRD → stories → `/build` (per story) seeds the plan
+- **With stories:** PRD → stories → `/odeo:build` (per story) seeds the plan
   into `todo.md` → build
 - **Without stories:** PRD → plan mode drafts the plan straight into `todo.md`
   → build
@@ -330,13 +330,13 @@ generating 40 stories at once. Instead, scope the PRD to a **thin vertical slice
 (the MVP)** and let stories sequence that slice:
 
 ```
-/brainstorm                → shape the concept
-/vision (optional)         → the north star
-/prd                       → PRD for the MVP slice ONLY
-/critique                  → red-team + pre-mortem, pull it apart
-/stories                   → decompose the slice, order by dependency
+/odeo:brainstorm                → shape the concept
+/odeo:vision (optional)         → the north star
+/odeo:prd                       → PRD for the MVP slice ONLY
+/odeo:critique                  → red-team + pre-mortem, pull it apart
+/odeo:stories                   → decompose the slice, order by dependency
    USR-001 data model  →  USR-002 auth  →  USR-003 core flow  → ...
-/build (per story) → review → /merge → next story
+/odeo:build (per story) → review → /odeo:merge → next story
 ```
 
 Each merged PR is one visible step toward the MVP.
@@ -347,8 +347,8 @@ For a typo, a copy tweak, a one-line fix, skip the PRD and stories entirely:
 
 ```
 git checkout -b fix/<short-description>
-# make the change → "Invoke code-reviewer" (still worth it) → /commit-push
-/merge   # rebase onto main, test, open + merge PR, cleanup
+# make the change → "Invoke code-reviewer" (still worth it) → /odeo:commit-push
+/odeo:merge   # rebase onto main, test, open + merge PR, cleanup
 ```
 
 The one rule that always holds, in every track: **never batch multiple stories
@@ -364,7 +364,7 @@ If this project has UI and you haven't done it yet, run, **after** the PM phase
 (so it's informed by the PRD/personas/strategy), **before** building UI:
 
 ```
-/setup-design
+/odeo:setup-design
 ```
 
 It ingests your existing tokens (or a Figma export), or proposes a starter from
@@ -372,9 +372,9 @@ your product context, then wires token compilation to your stack. One-time per
 project. (Skip for API-only/backend projects.) Tokens become the styling source
 of truth; the `ux-design` skill applies them when you build.
 
-### /build
+### /odeo:build
 
-When stories are ready and you're switching to building, `/build` is the single
+When stories are ready and you're switching to building, `/odeo:build` is the single
 entry. It has two modes; you pick at the start:
 
 - **With me (Mode A).** You and Claude build one story together, step by step,
@@ -392,15 +392,15 @@ entry. It has two modes; you pick at the start:
   **One story at a time is the default.** Parallel (several agents at once) is
   opt-in and only offered when the stories you picked are *independent* (Claude
   runs an overlap check first). To trigger it, either name multiple stories when
-  you invoke (`/build USR-001 USR-002 in parallel`) or just say "parallel" when
+  you invoke (`/odeo:build USR-001 USR-002 in parallel`) or just say "parallel" when
   Claude asks. If you say "go", you get them one at a time. Keep parallel to 2 to 4
   so your review stays the bottleneck, not a rubber stamp.
 
 ```
-/build
+/odeo:build
 ```
 
-> ⚠️ **Run `/build` in normal mode, not plan mode.** It creates branches and
+> ⚠️ **Run `/odeo:build` in normal mode, not plan mode.** It creates branches and
 > writes `todo.md`, actions that plan mode (read-only) would block. In Mode A,
 > enter plan mode (`Shift+Tab` twice) only *after* it sets up, for step 2.1.
 > Order: **build setup (do) → plan mode (think) → exit plan mode (build).**
@@ -414,7 +414,7 @@ In Mode A it will:
 5. Open VS Code (as editor, your Claude session stays in this terminal)
 
 Then continue with 2.1 below. In Mode B the agents run that pipeline for you and
-you jump to reviewing their results (2.3 onward) before `/merge`.
+you jump to reviewing their results (2.3 onward) before `/odeo:merge`.
 
 ---
 
@@ -446,12 +446,12 @@ Built-in Claude Code tools (use these, don't rebuild them; all work in any termi
 - **`claude --bg "task"`** starts a background agent from the shell; **`claude --worktree <name>`** opens an interactive session in its own isolated worktree; **`claude attach|logs|stop <id>`** manages a background session.
 - Our `builder` agent has `isolation: worktree`, so dispatched agents are isolated automatically. To check what's safe to parallelize, run **`worktree-parallel-check`** first.
 
-**When with-me vs for-me:** clear + independent work -> for me (agents, faster, parallel); fuzzy / needs your steering -> with me (build together). The mode is asked on every /build, never assumed. The isolation benefit ("no context-mixing = better output") holds for both; Mode A just lets you steer live.
+**When with-me vs for-me:** clear + independent work -> for me (agents, faster, parallel); fuzzy / needs your steering -> with me (build together). The mode is asked on every /odeo:build, never assumed. The isolation benefit ("no context-mixing = better output") holds for both; Mode A just lets you steer live.
 
 **When to parallelize, and the gotchas:**
-- Only **independent** tasks (different files/modules). `worktree-parallel-check` / the `/build` overlap check warns first; coupled work stays sequential, or you get merge conflicts.
+- Only **independent** tasks (different files/modules). `worktree-parallel-check` / the `/odeo:build` overlap check warns first; coupled work stays sequential, or you get merge conflicts.
 - Each worktree needs its **own `node_modules` and `.env`** (not shared); don't run two dev servers on the **same port**.
-- Integrate **serially**: `/merge` rebases each branch onto an up-to-date main, one at a time, so conflicts surface cleanly.
+- Integrate **serially**: `/odeo:merge` rebases each branch onto an up-to-date main, one at a time, so conflicts surface cleanly.
 - Keep each agent's context **lean** (let it pull from `knowledge/` on demand; context minimalism).
 - The human floor holds: every branch still merges only with your approval.
 
@@ -549,7 +549,7 @@ surface), skipping this step is fine, code-reviewer still covers the basics.
 ### 2.5 Commit and push
 
 ```
-/commit-push
+/odeo:commit-push
 ```
 
 The command checks you're on a branch, scans for secrets, runs lint+typecheck,
@@ -574,7 +574,7 @@ Future-you (and future teammates) will thank you for the WHY being written down.
 
 ### Definition of Done (every story)
 
-`/stories` gives each story its own acceptance criteria, but not a DoD checklist,
+`/odeo:stories` gives each story its own acceptance criteria, but not a DoD checklist,
 this is yours, the same gate for every story before it's "done":
 
 - [ ] Code merged to main via PR
@@ -588,12 +588,12 @@ this is yours, the same gate for every story before it's "done":
 - [ ] No new `pnpm audit` criticals/highs, required if dependencies changed
 - [ ] No PII or secrets in logs, commits, or error messages introduced by this story
 
-### 3.1 Integrate with /merge
+### 3.1 Integrate with /odeo:merge
 
 When the story is reviewed and you approve it, run:
 
 ```
-/merge
+/odeo:merge
 ```
 
 It does the git mechanics for you, on a clean linear history:
@@ -609,7 +609,7 @@ It does the git mechanics for you, on a clean linear history:
 6. Cleans up: back to main, pulls, deletes the branch local + remote
 
 Even solo, read your own PR diff once before approving the merge. You'll catch
-things. With multiple stories in flight, `/merge` integrates them one at a time so
+things. With multiple stories in flight, `/odeo:merge` integrates them one at a time so
 conflicts surface and resolve cleanly.
 
 ### 3.2 Close the loop in the project
@@ -623,16 +623,16 @@ If the story involved solving a non-trivial, verified problem that is likely to
 recur, capture it so the system reuses it next time:
 
 ```
-/learn
+/odeo:learn
 ```
 
 It quality-gates (verified + non-trivial + reusable), shows you the drafted entry,
 and writes it to `knowledge/` only after you approve. Periodically, run
-`/knowledge-refresh` to audit that base against the current code and prune dead
+`/odeo:knowledge-refresh` to audit that base against the current code and prune dead
 weight.
 
 If a lesson is **universal** (not specific to this project), Claude may offer
-`/contribute-lesson`, an opt-in way to share a sanitized, generalized version with
+`/odeo:contribute-lesson`, an opt-in way to share a sanitized, generalized version with
 the community knowledge base. You see exactly what would be shared and approve
 before anything leaves your machine; in return, future updates bring back the
 curated knowledge of all contributors.
@@ -652,7 +652,7 @@ measurably better on YOUR project over time.
 Before you close a working session, run:
 
 ```
-/retro
+/odeo:retro
 ```
 
 It looks back over the session, proposes the lessons worth keeping, and routes
@@ -662,7 +662,7 @@ that applies to all your work → a proposed global CLAUDE.md update.
 Then it backs up the build ledger, which is the part git deliberately cannot do.
 `.claude/tasks/todo.md` and `lessons.md` are gitignored so they never reach a
 published snapshot, which also means no commit carries them: lose the machine and
-you lose the task state and every correction the project has learned. `/retro`
+you lose the task state and every correction the project has learned. `/odeo:retro`
 runs `ledger-backup.sh`, which copies both files to the target recorded as a
 `ledger_backup:` line in `CLAUDE.local.md` (read first, the right place for a
 private target) or `CLAUDE.md`, either a git remote and branch or a directory,
@@ -672,7 +672,7 @@ Every failure has its own exit code and the "last backup" stamp is written only
 after a verified success, so a backup that silently stopped working reports as
 behind instead of passing as done.
 
-> ⚠️ `/retro` is something **you invoke** when wrapping up, Claude can't detect
+> ⚠️ `/odeo:retro` is something **you invoke** when wrapping up, Claude can't detect
 > that you're ending a session, so nothing fires it automatically.
 
 This turns the learning files from "filled only on correction" into "reviewed
@@ -690,7 +690,7 @@ Shipping is not the finish line, the question the PRD asked was whether this
 data), run:
 
 ```
-/outcome
+/odeo:outcome
 ```
 
 It reads the PRD's intended outcome and success criteria, gathers **real** signals
@@ -702,7 +702,7 @@ need-more-data**.
 > data yet, the honest output is "need-more-data, here's what to instrument," not
 > invented numbers. Fake outcomes would poison `knowledge/`.
 
-With your approval, the result feeds `/learn` (what worked or failed in
+With your approval, the result feeds `/odeo:learn` (what worked or failed in
 production) and promotes or demotes related `knowledge/` entries, so the knowledge
 base is judged by real outcomes, not just whether code matched. This closes the
 loop: idea → ship → measure → learn → better next story.
@@ -719,9 +719,9 @@ MINUTES   the agent's inner loop     build -> test -> fix, to the success-signal
           (builder; verifier = tests/criteria; stop = all green or ~3 tries)
 HOURS     your steering loop         plan gate -> review -> approve/redirect
           (you direct and taste; you don't QA line by line)
-DAYS      the users' loop            /outcome + /product-signal -> back into /plan
+DAYS      the users' loop            /odeo:outcome + /odeo:product-signal -> back into /odeo:plan
           (real signals decide what's next; never fabricated)
-WEEKS     the system learns          /learn, /knowledge-refresh, /improve
+WEEKS     the system learns          /odeo:learn, /odeo:knowledge-refresh, /odeo:improve
           (knowledge compounds; skills/rubrics only change with evidence)
 ```
 
@@ -733,20 +733,20 @@ brake on the system; they're where its best information enters.
 
 | Loop | Natural moment | Interval |
 |---|---|---|
-| `/knowledge-refresh` | session start (quiet, only if due) | every 2-4 weeks |
-| `/improve` | when evals show repeated drops | after ~3-5 same-criterion drops |
-| `/product-signal` | first session after the interval | ~weekly |
-| `/learn` + `/retro` | after `/merge`, or when you say you're wrapping up | per story / session |
-| `/outcome` | you decide, ~a week after shipping | per shipped feature |
+| `/odeo:knowledge-refresh` | session start (quiet, only if due) | every 2-4 weeks |
+| `/odeo:improve` | when evals show repeated drops | after ~3-5 same-criterion drops |
+| `/odeo:product-signal` | first session after the interval | ~weekly |
+| `/odeo:learn` + `/odeo:retro` | after `/odeo:merge`, or when you say you're wrapping up | per story / session |
+| `/odeo:outcome` | you decide, ~a week after shipping | per shipped feature |
 
 Rules: at most ONE nudge, short, easy to decline; nothing ever runs on a silent
 schedule (no scheduler exists, that's a guardrail).
 
-**Background option:** read-only loops (`/product-signal`, analysis parts of
-`/improve` and `/knowledge-refresh`) can run in the background while you work,
+**Background option:** read-only loops (`/odeo:product-signal`, analysis parts of
+`/odeo:improve` and `/odeo:knowledge-refresh`) can run in the background while you work,
 they read and think in their own isolated worktree and STOP at "here's my
 proposal, approve?". Applying any change waits for your gate, at a calm moment
-(after `/merge` or at the next session start), never mid-build.
+(after `/odeo:merge` or at the next session start), never mid-build.
 
 ---
 
@@ -782,8 +782,8 @@ senior's job: "How do you know it works?" / "Did you actually run it?"
 
 ### Skill & subagent invocation (your current level)
 Invoke explicitly, every time:
-- PM thinking (Phase 1) → our PM skills (`/brainstorm`, `/prd`, `/critique`,
-  `/stories`, `/prioritize`, ...)
+- PM thinking (Phase 1) → our PM skills (`/odeo:brainstorm`, `/odeo:prd`, `/odeo:critique`,
+  `/odeo:stories`, `/odeo:prioritize`, ...)
 - `code-reviewer` subagent → before every commit
 - `architecture-reviewer` subagent → any decision touching multiple modules
 
@@ -796,52 +796,52 @@ trusting auto-invocation.
 
 | I want to... | I do... |
 |---|---|
-| Start a new project | `/new-project <name>` → open it → `/setup-project` |
-| See where you are + what's next | `/start` (you-are-here + due loop reminders) |
-| Ask "how do I do X here?" | just ask, `/guide` auto-activates (routes goal -> commands) |
-| Try an idea by building it | `/prototype` (N disposable variants, live compare, keep the learnings) |
-| Improve a skill/rubric with evidence | `/improve` (A/B test, you keep or revert) |
-| Weekly listen to your users | `/product-signal` (themes + trend vs last week) |
-| Configure a new project (stack, commands) | `/setup-project` (once per project, first thing) |
-| Change the language of generated documents | `/language` (shows it) · `/language de` (this project) · `/language de --global` (all projects). Moves PROSE only; code, commits and filenames stay English, the prose check is advisory and never blocks |
+| Start a new project | `/odeo:new-project <name>` → open it → `/odeo:setup-project` |
+| See where you are + what's next | `/odeo:start` (you-are-here + due loop reminders) |
+| Ask "how do I do X here?" | just ask, `/odeo:guide` auto-activates (routes goal -> commands) |
+| Try an idea by building it | `/odeo:prototype` (N disposable variants, live compare, keep the learnings) |
+| Improve a skill/rubric with evidence | `/odeo:improve` (A/B test, you keep or revert) |
+| Weekly listen to your users | `/odeo:product-signal` (themes + trend vs last week) |
+| Configure a new project (stack, commands) | `/odeo:setup-project` (once per project, first thing) |
+| Change the language of generated documents | `/odeo:language` (shows it) · `/odeo:language de` (this project) · `/odeo:language de --global` (all projects). Moves PROSE only; code, commits and filenames stay English, the prose check is advisory and never blocks |
 | Import an existing PRD | Paste it, or "Read docs/prds/... and evaluate it" |
-| Triage external requests | `/interview-synthesis` then `/prioritize` |
-| Run the whole discovery cycle | `/discover` (brainstorm -> personas -> journey -> OST -> experiments) |
-| Explore an idea | `/brainstorm` |
-| De-risk before building | `/experiments` (assumption tests) |
-| Plan the portfolio | `/plan` (`/prioritize` -> `/roadmap`) |
-| Spec one feature | `/spec` (`/prd` -> `/critique` -> `/stories`) |
+| Triage external requests | `/odeo:interview-synthesis` then `/odeo:prioritize` |
+| Run the whole discovery cycle | `/odeo:discover` (brainstorm -> personas -> journey -> OST -> experiments) |
+| Explore an idea | `/odeo:brainstorm` |
+| De-risk before building | `/odeo:experiments` (assumption tests) |
+| Plan the portfolio | `/odeo:plan` (`/odeo:prioritize` -> `/odeo:roadmap`) |
+| Spec one feature | `/odeo:spec` (`/odeo:prd` -> `/odeo:critique` -> `/odeo:stories`) |
 | Check what's safe to build next / in parallel | `worktree-parallel-check` (read-only; recommends + warns on overlap) |
 | Watch the agent fleet (no desktop app) | `claude agents` (terminal dashboard) |
-| Write a PRD | `/prd` |
-| Challenge a PRD | `/critique` (red-team + pre-mortem) |
-| Create stories | `/stories` |
-| Prioritize epics / roadmap | `/prioritize` (RICE) · `/roadmap` (now/next/later) |
-| Take it to market (launch) | `/go-to-market` (positioning -> marketing -> gtm-plan -> release-notes) |
-| Price it / model the business | `/pricing` · `/business-model` |
-| Analyze a test / retention | `/ab-test` · `/cohorts` · `/query` |
-| Speed up something slow | `/optimize` (measure -> change -> re-measure; never guess) |
-| Set up the design system | `/setup-design` (once, after PM, before building UI) |
-| Switch to building / build a story | `/build` (with me: live together, or for me: agents on your approved plan; you approve at the gate) |
+| Write a PRD | `/odeo:prd` |
+| Challenge a PRD | `/odeo:critique` (red-team + pre-mortem) |
+| Create stories | `/odeo:stories` |
+| Prioritize epics / roadmap | `/odeo:prioritize` (RICE) · `/odeo:roadmap` (now/next/later) |
+| Take it to market (launch) | `/odeo:go-to-market` (positioning -> marketing -> gtm-plan -> release-notes) |
+| Price it / model the business | `/odeo:pricing` · `/odeo:business-model` |
+| Analyze a test / retention | `/odeo:ab-test` · `/odeo:cohorts` · `/odeo:query` |
+| Speed up something slow | `/odeo:optimize` (measure -> change -> re-measure; never guess) |
+| Set up the design system | `/odeo:setup-design` (once, after PM, before building UI) |
+| Switch to building / build a story | `/odeo:build` (with me: live together, or for me: agents on your approved plan; you approve at the gate) |
 | Check it's really done | "Walk through every acceptance criterion" |
 | Review code | "Invoke code-reviewer on these changes" |
 | Review UI | "Invoke design-reviewer on these changes" (states, a11y, tokens, heuristics) |
 | Security-check a sensitive change | `/security-review` (auth, input, uploads, payments, data access) |
 | Audit dependencies | `pnpm audit` after adding/updating packages |
-| Commit + push | `/commit-push` |
-| Integrate an approved branch | `/merge` (rebase onto main, test, merge PR, cleanup) |
-| Ship it to the platform | `/deploy` (re-checks green, deploys, verifies; after `/merge`) |
-| Get PRs tested automatically | `/ci` (sets up GitHub Actions, ~2 minutes) |
-| Market/web research with sources | `/research` (market size, competitors, pricing, verifying a claim) |
-| Docs drifted from the code | `/sync-docs` (reconciles README/docs/CLAUDE.md against what actually ships) |
-| Want an independent check from another vendor's model | `/second-opinion-code` · `/second-opinion-plan` · `/second-opinion-pm` · `/second-opinion-design`. **Paid**, opt-in, never automatic: an external model reviews, then OUR reviewer weighs its findings. See `docs/second-opinion-protocol.md` |
+| Commit + push | `/odeo:commit-push` |
+| Integrate an approved branch | `/odeo:merge` (rebase onto main, test, merge PR, cleanup) |
+| Ship it to the platform | `/odeo:deploy` (re-checks green, deploys, verifies; after `/odeo:merge`) |
+| Get PRs tested automatically | `/odeo:ci` (sets up GitHub Actions, ~2 minutes) |
+| Market/web research with sources | `/odeo:research` (market size, competitors, pricing, verifying a claim) |
+| Docs drifted from the code | `/odeo:sync-docs` (reconciles README/docs/CLAUDE.md against what actually ships) |
+| Want an independent check from another vendor's model | `/odeo:second-opinion-code` · `/odeo:second-opinion-plan` · `/odeo:second-opinion-pm` · `/odeo:second-opinion-design`. **Paid**, opt-in, never automatic: an external model reviews, then OUR reviewer weighs its findings. See `docs/second-opinion-protocol.md` |
 | Record a decision | "Create an ADR for this decision" |
 | Teach Claude a lesson | "Update lessons.md so you don't repeat this" |
-| Wrap up a session / capture learnings | `/retro` |
-| Capture a reusable solved problem | `/learn` (verified + non-trivial only; shows draft first) |
-| Keep the knowledge base current | `/knowledge-refresh` |
-| Share a lesson with the community | `/contribute-lesson` (opt-in, sanitized, approval-gated) |
-| Pull the latest community knowledge | `/sync-community` (vs `/plugin update` for the tooling) |
-| Check a shipped feature's outcome | `/outcome` (about a week after shipping, real data only) |
+| Wrap up a session / capture learnings | `/odeo:retro` |
+| Capture a reusable solved problem | `/odeo:learn` (verified + non-trivial only; shows draft first) |
+| Keep the knowledge base current | `/odeo:knowledge-refresh` |
+| Share a lesson with the community | `/odeo:contribute-lesson` (opt-in, sanitized, approval-gated) |
+| Pull the latest community knowledge | `/odeo:sync-community` (vs `/plugin update` for the tooling) |
+| Check a shipped feature's outcome | `/odeo:outcome` (about a week after shipping, real data only) |
 | Resume yesterday's session | `claude --continue` |
 | Claude is stuck/looping | "Stop. Enter plan mode. Reinvestigate from scratch." |

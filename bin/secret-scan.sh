@@ -12,7 +12,7 @@
 #   - credential assignments (API_KEY/SECRET/TOKEN/PASSWORD = "value")
 #
 # Exit codes: 0 clean · 1 secrets found (BLOCK) · 2 usage error (not a git repo)
-# Used by: /commit-push (hard gate) and the pre-commit hook (install-git-guards.sh).
+# Used by: /odeo:commit-push (hard gate) and the pre-commit hook (install-git-guards.sh).
 
 set -uo pipefail
 

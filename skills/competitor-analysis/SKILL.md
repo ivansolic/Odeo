@@ -28,7 +28,7 @@ dangerous competitor is often "the status quo" (a spreadsheet, doing nothing).
 
 ## Output
 A short landscape + an explicit wedge and "why now", saved under `docs/research/`.
-Feeds `/prd`, `/positioning`, `/strategy`.
+Feeds `/odeo:prd`, `/odeo:positioning`, `/odeo:strategy`.
 
 ## Example (a meeting-notes AI)
 - **Alternatives:** direct: Otter, Fireflies; indirect: Notion AI, a shared doc; status quo: nobody takes notes, or one person scrambles.

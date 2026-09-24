@@ -15,19 +15,19 @@ Business Model Canvas and the Lean Canvas (the startup-focused variant).
 ## Process (Lean Canvas, best for new/uncertain)
 Fill briefly and honestly:
 1. **Problem** (top 1-3) + existing alternatives
-2. **Customer segments** (+ early adopters), link `/market-segments`
-3. **Unique value proposition**, link `/value-proposition`
+2. **Customer segments** (+ early adopters), link `/odeo:market-segments`
+3. **Unique value proposition**, link `/odeo:value-proposition`
 4. **Solution** (top features)
-5. **Channels**, link `/gtm-plan`
-6. **Revenue streams**, link `/pricing`
+5. **Channels**, link `/odeo:gtm-plan`
+6. **Revenue streams**, link `/odeo:pricing`
 7. **Cost structure**
-8. **Key metrics**, link `/metrics`
+8. **Key metrics**, link `/odeo:metrics`
 9. **Unfair advantage** (hard to copy)
 
 For an established business, use the full **Business Model Canvas** (adds key partners, activities, resources, customer relationships).
 
 ## Output
-A one-page canvas saved to `docs/`. The riskiest box is an assumption, feed it to `/experiments`.
+A one-page canvas saved to `docs/`. The riskiest box is an assumption, feed it to `/odeo:experiments`.
 
 ## Example (freelancer tool, Lean Canvas, abbreviated)
 ```
@@ -39,5 +39,5 @@ Unfair advantage: tracked-time-to-invoice in one step
 
 ## Quality rules
 - One page, honest. A blank box is a **finding** (a hole in the model), not a failure to hide.
-- The riskiest box is an assumption to test (`/experiments`), not a fact to assert.
-- Tie boxes to the relevant skills (`/pricing`, `/gtm-plan`, `/metrics`); don't silo them.
+- The riskiest box is an assumption to test (`/odeo:experiments`), not a fact to assert.
+- Tie boxes to the relevant skills (`/odeo:pricing`, `/odeo:gtm-plan`, `/odeo:metrics`); don't silo them.

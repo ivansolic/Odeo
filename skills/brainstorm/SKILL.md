@@ -25,7 +25,7 @@ discovery (opportunity before solution) and classic diverge-then-converge.
    - **experience**: onboarding, habit, the moment it feels great;
    - **viability/effort**: what is cheap vs expensive to TRY, flagged in one
      line per option. This lens flags, it never designs: no stacks, no
-     architectures, technology decisions come later (`/setup-project`, `/build`).
+     architectures, technology decisions come later (`/odeo:setup-project`, `/odeo:build`).
    A brainstorm is about the product, not the implementation.
 3. **Group by approach.** Cluster the options (e.g. by mechanism, by user, by effort)
    so the real choices become visible.
@@ -36,7 +36,7 @@ discovery (opportunity before solution) and classic diverge-then-converge.
 
 ## Output
 A grouped option set + criteria, in chat. If it firms up, feed the chosen direction
-into `/prd`.
+into `/odeo:prd`.
 
 ## Quality rules
 - Problem before solution, always. Redirect solution-first framing.

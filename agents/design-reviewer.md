@@ -88,7 +88,7 @@ foundations X/2 · microcopy X/2  -> total X/12  (threshold: >=9, no zero)
 ## Eval record (review = eval)
 After reviewing, write the record to `docs/evals/ui-<branch-or-story-id>.md`
 (format in `${CLAUDE_PLUGIN_ROOT}/docs/eval-framework.md`), including the exact `branch:` field (the
-/merge gate matches on it), with the regression note if a previous
+/odeo:merge gate matches on it), with the regression note if a previous
 record exists. In blind scoring mode (subagent A/B tests) return scores only.
 
 **The frontmatter verdict is the gate's single source of truth.** Exactly ONE

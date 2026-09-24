@@ -10,7 +10,7 @@ version is better. Propose -> measure -> present evidence -> the human decides
 keep or revert -> commit. The system may only get better, never silently worse.
 
 ## When this runs
-- You invoke it ("improve the /prd skill, it feels too generic"), OR
+- You invoke it ("improve the /odeo:prd skill, it feels too generic"), OR
 - A nudge fires on a signal: `docs/evals/` shows ~3-5 repeated drops on the same
   criterion ("PRDs keep failing 'outcome'"), and you say yes.
 - Analysis can run in the background while you work (read-only); APPLYING a
@@ -38,12 +38,12 @@ keep or revert -> commit. The system may only get better, never silently worse.
 5. **The human decides**: KEEP (commit, versioned in git) or REVERT (discard,
    the old version stands). No evidence of improvement = recommend revert.
 6. **Offer the loop-closers**: if the kept change is universal, offer
-   `/contribute-lesson` (rubric/eval learnings are contributable); update the
+   `/odeo:contribute-lesson` (rubric/eval learnings are contributable); update the
    eval baseline.
 
 ## Worked example
 Signal: last 5 PRDs scored 1/2 on "measurable outcome".
-Change: add to /prd, "do not proceed until the outcome is a metric + target".
+Change: add to /odeo:prd, "do not proceed until the outcome is a metric + target".
 Test: "write a PRD for password reset", 2 subagents on old, 2 on new;
 pm-reviewer scores all four blind. Old avg 7/10 (outcome 1/2), new avg 9/10
 (outcome 2/2), nothing else dropped. Presented; you keep; committed.

@@ -1,5 +1,5 @@
 ---
-description: Use when the user asks to set up CI, continuous integration, GitHub Actions, or a checks.yml workflow, wants pull requests tested automatically, complains tests didn't run on a PR, or says yes to a CI offer from /setup-project or /merge.
+description: Use when the user asks to set up CI, continuous integration, GitHub Actions, or a checks.yml workflow, wants pull requests tested automatically, complains tests didn't run on a PR, or says yes to a CI offer from /odeo:setup-project or /odeo:merge.
 ---
 
 # CI (the safety net that outlives the session)
@@ -18,7 +18,7 @@ CI exists; this command makes it exist in about two minutes.
 1. **A GitHub remote exists** (`git remote -v`). None yet -> point to
    `gh repo create <name> --private --source=. --remote=origin --push`, then return.
 2. **CLAUDE.md Commands are real** (no `[...]` placeholders). Placeholders ->
-   route to `/setup-project` first; CI built on guessed commands lies.
+   route to `/odeo:setup-project` first; CI built on guessed commands lies.
 3. **`.github/workflows/` doesn't already have a checks workflow.** If it does,
    offer to review/update it instead of overwriting.
 
@@ -66,7 +66,7 @@ The workflow file goes through the normal discipline, never directly to main:
 1. Branch `chore/ci-setup`, write the file, show it to the user (`code -r` per
    the editor rule), confirm.
 2. Commit; `code-reviewer` reviews it like any change (it is executable config);
-   integrate with `/merge` when the user says so.
+   integrate with `/odeo:merge` when the user says so.
 3. After the first PR runs, VERIFY: `gh run list --limit 1` shows the workflow
    green. A CI that never ran is as unverified as the tests it guards.
 
@@ -85,7 +85,7 @@ JSON
 ```
 Say honestly: branch protection on private repos needs a paid GitHub plan on
 some account types; if the API refuses, the workflow still runs and reports,
-it just can't block, /merge's local gate remains the backstop.
+it just can't block, /odeo:merge's local gate remains the backstop.
 
 ## Rules for yourself
 - Verify (integration) only; never add deploy steps, deployment is a human

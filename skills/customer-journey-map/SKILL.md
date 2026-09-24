@@ -6,10 +6,10 @@ disable-model-invocation: true
 # Customer journey map
 
 See the experience as the user lives it, stage by stage, so you find the pains worth
-fixing. Standard CX / service-design technique. Built on a persona (run `/personas` first).
+fixing. Standard CX / service-design technique. Built on a persona (run `/odeo:personas` first).
 
 ## When to use
-- During `/discover` after `/personas`; or when a flow feels disjointed and you need to locate the break.
+- During `/odeo:discover` after `/odeo:personas`; or when a flow feels disjointed and you need to locate the break.
 
 ## Process
 For the chosen persona and a **specific scenario** (e.g. "first time tracking and billing a client"):
@@ -19,7 +19,7 @@ For the chosen persona and a **specific scenario** (e.g. "first time tracking an
 4. Note **moments of truth** (make-or-break) and what you own vs. depend on others for.
 
 ## Output
-A stage-by-stage journey for one persona + scenario, pains flagged, saved to `docs/research/`. Feeds `/opportunity-solution-tree` and `/prd`.
+A stage-by-stage journey for one persona + scenario, pains flagged, saved to `docs/research/`. Feeds `/odeo:opportunity-solution-tree` and `/odeo:prd`.
 
 ## Example (freelancer, "bill a client for the first time")
 ```

@@ -9,7 +9,7 @@ first. Surface assumptions, rank by risk, test the riskiest cheaply. Based on Le
 Startup thinking (build-measure-learn, validated learning) and the four product risks.
 
 ## When to use
-- After a solution or `/prd` takes shape; before committing build effort, especially for new/uncertain bets.
+- After a solution or `/odeo:prd` takes shape; before committing build effort, especially for new/uncertain bets.
 
 ## Process
 1. **List assumptions** across the four product risks:
@@ -19,10 +19,10 @@ Startup thinking (build-measure-learn, validated learning) and the four product 
    - **Viability** (does it work for the business: cost, legal, model?)
 2. **Prioritize:** plot Impact x Uncertainty. High-impact + high-uncertainty assumptions get tested first.
 3. **Design the cheapest test** that could *disprove* each top assumption: interview, fake door, concierge, Wizard-of-Oz, prototype, landing page. **Define the pass/fail signal BEFORE running.**
-4. **Run, then decide:** persevere / pivot / kill. Record what you learned (feeds `/learn`, `/prd`).
+4. **Run, then decide:** persevere / pivot / kill. Record what you learned (feeds `/odeo:learn`, `/odeo:prd`).
 
 ## Output
-A ranked assumption list + experiment designs (with pass/fail criteria) saved to `docs/research/`. Pairs with `/opportunity-solution-tree` and `/critique`.
+A ranked assumption list + experiment designs (with pass/fail criteria) saved to `docs/research/`. Pairs with `/odeo:opportunity-solution-tree` and `/odeo:critique`.
 
 ## Example
 ```
@@ -34,4 +34,4 @@ Pass if: >= 30% of active testers click within a week. Fail -> reconsider the be
 ## Quality rules
 - Test the **riskiest** assumption, not the easiest. Value risk usually comes first.
 - Define **pass/fail before** running, otherwise you'll rationalize any result.
-- The cheapest test that could prove you wrong. Never fabricate a result (same honesty rule as `/outcome`).
+- The cheapest test that could prove you wrong. Never fabricate a result (same honesty rule as `/odeo:outcome`).

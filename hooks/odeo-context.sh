@@ -18,7 +18,7 @@
 #       Applies the plugin's userConfig `output_language` (the dialog Claude Code shows when
 #       the plugin is enabled, and a row in /config; hooks receive it as
 #       CLAUDE_PLUGIN_OPTION_OUTPUT_LANGUAGE) to the global setting, but only when that
-#       value CHANGES since the last session (state in CLAUDE_PLUGIN_DATA), so a /language
+#       value CHANGES since the last session (state in CLAUDE_PLUGIN_DATA), so a /odeo:language
 #       change is never clobbered and the last change wins. On the first run a language
 #       that is already set is kept and the difference is named. Without the option (an
 #       older client), asks Claude to ask the user once while no global language is set.
@@ -131,7 +131,7 @@ global_language_code() {
 
 language_nudge() {
   cat <<'EOF'
-Odeo output language is not set yet. Once, at the start of your first reply in this session, ask the user which language Odeo should write its documents in (PRDs, stories, plans, reviews): English, Deutsch, Hrvatski or Français. Offer them as selectable options (AskUserQuestion) where the host supports it. Then run `set-global-language.sh <en|de|hr|fr>`. If the user skips or declines, run `set-global-language.sh en` so they are not asked again. Code, comments, filenames and commit messages always stay English. They can change it any time with /language.
+Odeo output language is not set yet. Once, at the start of your first reply in this session, ask the user which language Odeo should write its documents in (PRDs, stories, plans, reviews): English, Deutsch, Hrvatski or Français. Offer them as selectable options (AskUserQuestion) where the host supports it. Then run `set-global-language.sh <en|de|hr|fr>`. If the user skips or declines, run `set-global-language.sh en` so they are not asked again. Code, comments, filenames and commit messages always stay English. They can change it any time with /odeo:language.
 EOF
 }
 
@@ -166,7 +166,7 @@ sync_dialog_language() {
     # First run with a language already set: keep it, it may be a deliberate choice,
     # while the dialog value may be its untouched default.
     printf '%s' "$opt" > "$state"
-    printf 'Odeo: the plugin setting says output language "%s", but the global setting is already "%s" and was kept. If the user wants the plugin setting, run `/language %s --global`; otherwise say nothing about it.\n' \
+    printf 'Odeo: the plugin setting says output language "%s", but the global setting is already "%s" and was kept. If the user wants the plugin setting, run `/odeo:language %s --global`; otherwise say nothing about it.\n' \
       "$opt" "$(global_language_code)" "$opt" | emit_json SessionStart
     return 0
   fi
@@ -176,7 +176,7 @@ sync_dialog_language() {
     printf '%s' "$opt" > "$state"
   else
     printf '%s' "$opt" > "$state"
-    warn SessionStart "could not apply the plugin's output language \"$opt\" to the global setting ($err). Tell the user once; they can set it per project with \`/language $opt\` inside that project."
+    warn SessionStart "could not apply the plugin's output language \"$opt\" to the global setting ($err). Tell the user once; they can set it per project with \`/odeo:language $opt\` inside that project."
   fi
 }
 
@@ -188,9 +188,9 @@ run_language() {
     return 0
   fi
   if [ ! -x "$LANG_STATUS" ]; then
-    warn SessionStart "language check unavailable ($LANG_STATUS missing); run /language to set the output language."
+    warn SessionStart "language check unavailable ($LANG_STATUS missing); run /odeo:language to set the output language."
   elif ! scope="$(global_language_scope)"; then
-    warn SessionStart "language check unavailable (language-status.sh returned nothing); run /language to set the output language."
+    warn SessionStart "language check unavailable (language-status.sh returned nothing); run /odeo:language to set the output language."
   elif [ "$scope" = "default" ]; then
     language_nudge | emit_json SessionStart
   fi

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# focus-check.sh, the /focus session edit fence (Claude Code PreToolUse hook).
+# focus-check.sh, the /odeo:focus session edit fence (Claude Code PreToolUse hook).
 #
 # Reads a PreToolUse event on stdin. When a focus zone is set (the project's
 # .claude/focus-zone holds ONE absolute directory), it DENIES an Edit/Write/
@@ -71,5 +71,5 @@ print(json.dumps({"hookSpecificOutput": {
   "hookEventName": "PreToolUse",
   "permissionDecision": "deny",
   "permissionDecisionReason": sys.argv[1]}}))' \
-  "focus is on $ZONE; this edit targets $RP outside it. Run /focus off to edit elsewhere."
+  "focus is on $ZONE; this edit targets $RP outside it. Run /odeo:focus off to edit elsewhere."
 exit 0

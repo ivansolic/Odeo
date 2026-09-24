@@ -15,13 +15,13 @@ talk willingness-to-pay early, design around a value metric.
 ## Process
 1. **Value metric:** the unit you charge by that scales with value received (per active client, per invoice, per seat). The single most important choice.
 2. **Willingness-to-pay:** which segments pay, and how much (research/interviews; for a new product this is a **hypothesis to test**, not a fact).
-3. **Model:** subscription / usage / per-seat / freemium / one-time, matched to how value accrues and to the buying motion (`/gtm-plan`).
+3. **Model:** subscription / usage / per-seat / freemium / one-time, matched to how value accrues and to the buying motion (`/odeo:gtm-plan`).
 4. **Tiers / packaging:** good-better-best aligned to segments; put the must-have value where you want people to land. No feature soup.
 5. **Price points + fences:** the anchor, and the logic for moving between tiers.
 6. **Guardrails:** discounting policy; what should be paid vs. free.
 
 ## Output
-A pricing proposal (value metric, model, tiers, rationale) saved to `docs/`. Pairs with `/business-model` and `/gtm-plan`.
+A pricing proposal (value metric, model, tiers, rationale) saved to `docs/`. Pairs with `/odeo:business-model` and `/odeo:gtm-plan`.
 
 ## Example (freelancer tool)
 ```
@@ -32,5 +32,5 @@ Tiers: Free (1 client) | Solo $12 (unlimited + invoicing) | Pro $29 (+ reminders
 
 ## Quality rules
 - Choose the **value metric** first; price scales with value, not arbitrary usage.
-- New-product willingness-to-pay is a hypothesis -> test it (`/experiments`), don't assert it.
+- New-product willingness-to-pay is a hypothesis -> test it (`/odeo:experiments`), don't assert it.
 - Good-better-best with a clear reason to upgrade; no feature soup.

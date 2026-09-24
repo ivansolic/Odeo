@@ -9,7 +9,7 @@ all styling.
   - **semantic**, intent that references primitives (`action.primary`,
     `feedback.danger`, `text.default`). **Components use semantic tokens only.**
 - Tokens **compile** to your framework's theme (CSS variables / Tailwind config /
-  theme object), set up by `/setup-design` for your stack.
+  theme object), set up by `/odeo:setup-design` for your stack.
 - The compiled theme is **generated output**, never hand-edit it; change
   `tokens.json` and recompile.
 
@@ -19,13 +19,13 @@ all styling.
 - Dark mode / rebrand = swap primitive values or semantic references; recompile.
 
 ## Setup / change
-- Run **`/setup-design`** to: ingest your existing tokens (or a Figma export), or
+- Run **`/odeo:setup-design`** to: ingest your existing tokens (or a Figma export), or
   generate a starter from your brand, then wire compilation to your stack.
-- Already have a UI library / design system (MUI, Chakra, shadcn…)? `/setup-design`
+- Already have a UI library / design system (MUI, Chakra, shadcn…)? `/odeo:setup-design`
   maps tokens to its theming instead of reinventing.
 
 ## Importing existing tokens (how it actually works)
-If you already have tokens, `/setup-design` **ingests** them, three ways to hand
+If you already have tokens, `/odeo:setup-design` **ingests** them, three ways to hand
 the file over:
 1. **Paste** the JSON into the chat.
 2. **Save it here** (e.g. `design/my-tokens.json`) and say *"read it."*
@@ -34,10 +34,10 @@ the file over:
    method 1 or 2.
 
 It's a **manual export-then-ingest, not a live sync**, Odeo consumes the
-file you give it; it doesn't reach into Figma on its own. On ingest, `/setup-design`
+file you give it; it doesn't reach into Figma on its own. On ingest, `/odeo:setup-design`
 validates the JSON is DTCG, ensures the semantic tokens components need exist
 (fills gaps), checks WCAG contrast, merges into `tokens.json`, and wires compilation.
 
 ## Accessibility
 Semantic color pairs must meet WCAG AA contrast (4.5:1 text, 3:1 large/UI).
-`/setup-design` checks this when generating.
+`/odeo:setup-design` checks this when generating.

@@ -27,7 +27,7 @@ better future, not your roadmap.
 
 ## Output
 A vision narrative + one-line statement, saved under `docs/` (e.g. `docs/vision.md`).
-Anchors `/strategy`, `/prd`, and prioritization.
+Anchors `/odeo:strategy`, `/odeo:prd`, and prioritization.
 
 ## Quality rules
 - About the **customer's future**, not your feature list or your company.

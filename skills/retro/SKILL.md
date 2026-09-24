@@ -72,7 +72,7 @@ session later with `claude --continue`.
 
 ## Worked example
 ```
-> /retro
+> /odeo:retro
 Session review: built USR-012 (timer), 2 corrections happened.
 Proposed lessons:
 1. PROJECT: "2026-07-07, timer drifted with setInterval. Rule: use timestamp

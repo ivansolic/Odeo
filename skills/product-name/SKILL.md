@@ -12,7 +12,7 @@ A good name is short, sayable, ownable, and evokes the value, but in a crowded s
 - Naming a product, feature, or company.
 
 ## Process
-1. **Anchor:** what must the name evoke (the value/positioning, from `/positioning`)? Tone + audience.
+1. **Anchor:** what must the name evoke (the value/positioning, from `/odeo:positioning`)? Tone + audience.
 2. **Diverge:** 10 to 15 candidates across approaches, coined (Stripe/Vercel style), far-domain real word, metaphor, descriptive; in saturated spaces (AI especially) **lead with coined/oblique**, since dictionary words and on-the-nose metaphors are mostly gone. Then apply sound-craft: 1 to 2 syllables read easiest, a vowel ending feels warm, a hard consonant (k, t, v) feels strong. Don't fall for the first three.
 3. **Group by approach;** shortlist on: short, sayable, spellable, evokes value, vendor-independent.
 4. **Ownability check (BEFORE you attach emotionally):** search existing products/companies, especially **direct competitors in your category**; check domain + handle. Check **homophones too, not just spelling** (Rivo/Rovo, Odeo/Odoo collide by ear). A hit in a **different trademark class** may still be usable, don't discard on a bare search collision; flag same-category ones loudly. Dictionary words in crowded spaces (e.g. AI) are mostly taken.

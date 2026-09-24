@@ -34,5 +34,5 @@ Threshold: total >= 8/10 (or >= 6/8 when criterion 5 is N/A) AND no criterion at
 
 Notes for the scorer:
 - Score the document, not the idea. A well-specified bad idea passes the rubric
-  and dies in `/critique`, that is the correct division of labor.
+  and dies in `/odeo:critique`, that is the correct division of labor.
 - Quote the line that earned or lost each point. No unexplained scores.

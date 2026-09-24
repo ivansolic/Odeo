@@ -26,7 +26,7 @@ to features.
 
 ## Output
 A themed opportunity map + notable quotes, saved under `docs/research/`. Feeds
-`/personas`, `/brainstorm`, and `/prd`.
+`/odeo:personas`, `/odeo:brainstorm`, and `/odeo:prd`.
 
 ## Quality rules
 - Opportunities, not features. Never launder a feature request into "the insight."

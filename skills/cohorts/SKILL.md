@@ -9,17 +9,17 @@ Averages lie; cohorts tell the truth about retention. Group users by start perio
 trait) and watch how each behaves over time. Standard growth/retention practice.
 
 ## When to use
-- Post-launch; judging retention, activation, or whether growth is real or churn-masked. Pairs with `/metrics` and `/outcome`.
+- Post-launch; judging retention, activation, or whether growth is real or churn-masked. Pairs with `/odeo:metrics` and `/odeo:outcome`.
 
 ## Process
 1. **Cohort axis:** usually signup week/month; or a trait (channel, plan, feature used).
-2. **Retained action:** the action that counts as active, tied to your **value metric** (`/metrics`).
+2. **Retained action:** the action that counts as active, tied to your **value metric** (`/odeo:metrics`).
 3. **Retention curve** per cohort over periods (week 1, 2, 3...). Look for the curve **flattening** (a flat tail = real retention) vs. decaying to zero.
 4. **Compare cohorts:** are newer cohorts retaining better (product improving) or worse?
 5. **Segment** to find who retains (best-fit users) and who churns fast.
 
 ## Output
-Retention curves by cohort + the read (does it flatten? improving? who retains?), saved to `docs/`. Feeds `/outcome` and `/strategy`.
+Retention curves by cohort + the read (does it flatten? improving? who retains?), saved to `docs/`. Feeds `/odeo:outcome` and `/odeo:strategy`.
 
 ## Example
 ```

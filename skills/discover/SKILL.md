@@ -10,16 +10,16 @@ remember the sequence. Human-in-command.
 
 ## Flow (stop anytime; each step runs standalone too)
 ```
-1. /brainstorm                 diverge on problem + solutions        -> GATE: pick a direction
-2. /personas                   who it's for (Jobs-to-be-Done)        -> GATE
-3. /customer-journey-map       map their journey, find the pains     -> GATE
-4. /opportunity-solution-tree  outcome -> opportunities -> solutions -> GATE: pick target opportunity
-5. /experiments                riskiest assumptions + cheap tests    -> GATE
+1. /odeo:brainstorm                 diverge on problem + solutions        -> GATE: pick a direction
+2. /odeo:personas                   who it's for (Jobs-to-be-Done)        -> GATE
+3. /odeo:customer-journey-map       map their journey, find the pains     -> GATE
+4. /odeo:opportunity-solution-tree  outcome -> opportunities -> solutions -> GATE: pick target opportunity
+5. /odeo:experiments                riskiest assumptions + cheap tests    -> GATE
 ```
-Adjacent, pull in when relevant: `/research` (cited web evidence for any claim, market size, competitors, pricing), `/interview-synthesis` (if you have interview notes), `/competitor-analysis`, `/market-segments`.
+Adjacent, pull in when relevant: `/odeo:research` (cited web evidence for any claim, market size, competitors, pricing), `/odeo:interview-synthesis` (if you have interview notes), `/odeo:competitor-analysis`, `/odeo:market-segments`.
 
 ## Output
-A discovery packet in `docs/research/`. Next: strategy skills (`/vision`, `/strategy`), then `/plan`.
+A discovery packet in `docs/research/`. Next: strategy skills (`/odeo:vision`, `/odeo:strategy`), then `/odeo:plan`.
 
 ## Rules
 - Human gate between every step; never auto-advance.
@@ -29,4 +29,4 @@ A discovery packet in `docs/research/`. Next: strategy skills (`/vision`, `/stra
 ## Example
 Fuzzy idea "help freelancers get paid" -> brainstorm angles -> persona (solo designer)
 -> journey-map (invoicing = the low point) -> OST (target opportunity: invoicing is a chore)
--> experiment (fake-door one-click invoice). Out: a de-risked direction for `/plan` and `/prd`.
+-> experiment (fake-door one-click invoice). Out: a de-risked direction for `/odeo:plan` and `/odeo:prd`.

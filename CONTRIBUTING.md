@@ -10,11 +10,11 @@ of those counts just as much.
 | Area | Examples |
 |---|---|
 | **Docs** | A clearer explanation in `BEGINNERS-GUIDE.md`, a fix in `WORKFLOW.md`, a better `README.md` line, typos. |
-| **Workflow** | A sharper command, a better gate, a missing step in `/build`, `/merge`, `/learn`, etc. |
+| **Workflow** | A sharper command, a better gate, a missing step in `/odeo:build`, `/odeo:merge`, `/odeo:learn`, etc. |
 | **Commands & agents** | New or improved templates in `project-templates/`. |
 | **Skills** | Improvements to the `test-driven-development` or `ux-design` skills. |
 | **Presets** | A filled stack preset (e.g. a new framework) others can start from. |
-| **Knowledge** | Generalizable lessons via `/contribute-lesson` (the easiest way in, see below). |
+| **Knowledge** | Generalizable lessons via `/odeo:contribute-lesson` (the easiest way in, see below). |
 | **Ideas & feedback** | Open an issue. A good problem report or idea is a real contribution. |
 
 If you are not a developer, the docs, workflow, presets, and knowledge are exactly
@@ -22,7 +22,7 @@ where you can help most. Don't self-filter because "it's not code."
 
 ## The easiest contribution: a lesson
 
-If you solved something reusable while building, run `/contribute-lesson`. It takes
+If you solved something reusable while building, run `/odeo:contribute-lesson`. It takes
 a local `knowledge/` entry, **sanitizes and generalizes it** (no secrets, no PII,
 no proprietary code, no internal names), shows you exactly what would be shared,
 and only opens a PR after you approve. Nothing leaves your machine without your OK.

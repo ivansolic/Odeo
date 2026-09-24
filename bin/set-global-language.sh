@@ -18,7 +18,7 @@
 #   set-global-language.sh <code> --overwrite    # CHANGE an existing value
 #
 # Without --overwrite it is idempotent by design (see above): an existing line is
-# left alone. --overwrite is the explicit opt-in the /language command uses to
+# left alone. --overwrite is the explicit opt-in the /odeo:language command uses to
 # CHANGE the global default, and the plugin's hook passes it only when the user changed
 # the language in the plugin's dialog, so nothing else is ever silently overwritten.
 #

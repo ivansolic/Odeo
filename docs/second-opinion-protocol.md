@@ -74,7 +74,7 @@ severity, who-found); and a comparison body. It NEVER carries a gate `verdict:`,
 it informs, and OUR reviewer's own record still holds the verdict.
 
 ## Absorption loop (every paid opinion upgrades the first)
-When a vendor-unique finding CLASS recurs across records, `/improve` proposes it
+When a vendor-unique finding CLASS recurs across records, `/odeo:improve` proposes it
 as a permanent check in OUR matching reviewer, A/B tests old vs new, and the human
 keeps or reverts. Structured findings from day one make this mineable, so a paid
 review is never a one-off: it compounds into our free reviewers.

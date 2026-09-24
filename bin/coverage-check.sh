@@ -20,7 +20,7 @@ prd_id="$(grep -m1 -E '^id:[[:space:]]*' "$PRD" | sed -E 's/^id:[[:space:]]*//; 
 [ -n "$prd_id" ] || { echo "coverage-check: no 'id:' frontmatter in $PRD" >&2; exit 2; }
 
 # Requirement IDs are recognised language-independently: a requirement is a LIST
-# ITEM whose bold token is R<n> (e.g. "- **R1 , ...", the form /prd emits). Inline
+# ITEM whose bold token is R<n> (e.g. "- **R1 , ...", the form /odeo:prd emits). Inline
 # or prose references like "see R6" or "as in **R2**" are not list-item bold
 # definitions, so they are not miscounted. Keying off the R<n> token, not the
 # heading language, is what lets this work on non-English PRDs.
