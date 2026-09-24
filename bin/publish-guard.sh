@@ -44,9 +44,18 @@ for a in "$@"; do
   esac
 done
 
-DENYLIST="${CLAUDE_INTERNAL_PATHS:-$ROOT/docs/internal-paths.txt}"
+# The lists belong to the PROJECT being checked, not to wherever this guard is installed:
+# run from a plugin install or an old ~/bin copy, "$ROOT/docs" is the plugin's own
+# classification (or nothing), and a project's push would be checked against it. So the
+# lists come from the git top level of the current directory when it carries them, and
+# from this guard's own root otherwise. Both come from ONE place, so a project's denylist is
+# never paired with another project's allowlist. An explicit env override still wins.
+LIST_ROOT="$ROOT"
+project_top="$(git rev-parse --show-toplevel 2>/dev/null || true)"
+[ -n "$project_top" ] && [ -f "$project_top/docs/internal-paths.txt" ] && LIST_ROOT="$project_top"
+DENYLIST="${CLAUDE_INTERNAL_PATHS:-$LIST_ROOT/docs/internal-paths.txt}"
 [ -f "$DENYLIST" ] || { echo "publish-guard: denylist not found: $DENYLIST" >&2; exit 2; }
-ALLOWLIST="${CLAUDE_PUBLIC_PATHS:-$ROOT/docs/public-paths.txt}"
+ALLOWLIST="${CLAUDE_PUBLIC_PATHS:-$LIST_ROOT/docs/public-paths.txt}"
 if [ "$REQUIRE_ALLOWLIST" = 1 ]; then
   [ -f "$ALLOWLIST" ] || { echo "publish-guard: allowlist not found: $ALLOWLIST" >&2; exit 2; }
 fi
