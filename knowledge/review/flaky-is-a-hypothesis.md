@@ -28,7 +28,17 @@ Fixed by reading the listing on fd 3 and closing it on exec:
     run_if() { ... exec "$1" "${@:2}" 3<&-; }
 The guard now gets the caller's stdin (the pushed paths). Test: bytes in == bytes out.
 
+## Why it works
+exec replaces the process but keeps its file descriptors. Inside `while ...; done < <(ls)`,
+fd 0 IS the listing, so the exec'd guard inherited it. Reading the listing on fd 3 leaves
+fd 0 as the caller's stdin, and `3<&-` keeps the listing from leaking into the target.
+
 ## Prevention
 Before accepting "flaky", run the test in a clean environment AND the real one; if they
 differ, the difference is the bug. Trace a varying failure's INPUT instead of retrying.
 Never exec from inside a loop that redirects stdin.
+
+## Example
+tests/odeo-migrate-legacy.test.sh cases 13 and 14: 26 bytes piped in must arrive as 26
+bytes (the bug delivered 550 bytes of listing), and an internal path piped through the
+shim must be refused by the real guard.

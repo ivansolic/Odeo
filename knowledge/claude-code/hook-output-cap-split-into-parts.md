@@ -13,8 +13,9 @@ created: 2026-09-26
 Delivering a baseline (an 18.6k-char CLAUDE.md) through a SessionStart hook. The official
 hooks docs (code.claude.com/docs/en/hooks.md, read raw) say additionalContext and plain
 stdout are "capped at 10,000 characters"; over it, Claude gets a file path plus a 2,000-char
-preview and is NOT asked to read the rest. The cap is measured PER HOOK, and when several
-hooks answer the same event "Claude receives all of the values".
+preview and is NOT asked to read the rest. The cap is measured per string ("each string on
+its own", so each hook's additionalContext separately), and when several hooks answer the
+same event "Claude receives all of the values".
 
 ## Guidance
 - Register one hook command per part (`baseline 1`, `baseline 2`, ...) and split at section
@@ -30,3 +31,8 @@ Trimming silently loses rules; one oversized hook silently becomes a 2k preview.
 
 ## When to apply
 Any hook that injects more than a few thousand characters.
+
+## Example
+hooks/odeo-context.sh `baseline <part> <event>` with 4 registrations per event in
+hooks/hooks.json; tests/odeo-context.test.sh case 1 rejoins the parts and diffs them against
+global/CLAUDE.md, case 7 checks the registrations.
