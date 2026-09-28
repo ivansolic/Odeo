@@ -21,6 +21,10 @@ git init -q --bare "$bare"
 deny="$TMP/deny.txt"; printf 'docs/plans/\ndocs/evals/\n' > "$deny"
 export CLAUDE_INTERNAL_PATHS="$deny"
 
+# This repo PUBLISHES through a snapshot (it carries docs/internal-paths.txt), so contract A
+# applies to it; a plain project without that file is covered at the end.
+mkdir -p "$repo/docs"; cp "$deny" "$repo/docs/internal-paths.txt"
+
 # Make the guard findable from the repo (the hook looks for bin/publish-guard.sh).
 mkdir -p "$repo/bin"; cp "$GUARD" "$repo/bin/publish-guard.sh"; chmod +x "$repo/bin/publish-guard.sh"
 
@@ -92,5 +96,28 @@ out="$(printf 'refs/heads/main %s refs/heads/main %s\n' "$clean_sha" "$zero" | h
 assert_exit "creating main on the public remote without the marker -> refused" 1 "$rc"
 
 echo
-if [ "$fail" = 0 ]; then echo "ALL PASS"; else echo "SOME FAILED"; fi
+if # Observed failing (2026-09-28), each mutant checked to differ and parse: contract A
+# everywhere again -> 2 FAIL (the plain-project pushes, the original bug); internal-paths
+# ignored -> 7 FAIL (every publishing-project contract A case); an explicit public remote
+# ignored -> 1 FAIL. The last case makes its own commit: chained on the one before, it went
+# red under that mutant only because nothing was left to push.
+# (z) contract A belongs to projects that publish through a snapshot. A PLAIN project (no
+#     docs/internal-paths.txt, the shape init-project.sh scaffolds) pushes to its own origin
+#     normally; before this, every Odeo project refused every push to origin.
+plain="$TMP/plain"; plainbare="$TMP/plain.git"; git init -q "$plain"; git init -q --bare "$plainbare"
+( cd "$plain" && bash "$INSTALLER" ) >/dev/null 2>&1
+( cd "$plain" && echo x > f && git add f && git commit -q -m init && git remote add origin "$plainbare" )
+( cd "$plain" && git switch -q -c feature/y && git push -q origin feature/y ) >/dev/null 2>&1; rc=$?
+assert_exit "plain project: a feature branch reaches its own origin" 0 "$rc"
+( cd "$plain" && git switch -q main 2>/dev/null || git switch -q master; git push -q origin HEAD:refs/heads/main ) >/dev/null 2>&1; rc=$?
+assert_exit "plain project: the first push of main seeds the empty origin" 0 "$rc"
+( cd "$plain" && echo y >> f && git commit -qam more && git push -q origin HEAD:refs/heads/main ) >/dev/null 2>&1; rc=$?
+assert_exit "plain project: a later push to main is still refused" 1 "$rc"
+( cd "$plain" && git switch -q feature/y && echo z >> f && git commit -qam z && CLAUDE_PUBLIC_REMOTE=origin git push -q origin feature/y ) >/dev/null 2>&1; rc=$?
+assert_exit "plain project that names a public remote explicitly: contract A applies" 1 "$rc"
+# its own new commit, so it never depends on whether the case above pushed feature/y
+( cd "$plain" && mkdir -p docs && printf 'docs/plans/\n' > docs/internal-paths.txt && echo w >> f && git commit -qam w && git push -q origin feature/y ) >/dev/null 2>&1; rc=$?
+assert_exit "adding docs/internal-paths.txt switches contract A on, no reinstall" 1 "$rc"
+
+[ "$fail" = 0 ]; then echo "ALL PASS"; else echo "SOME FAILED"; fi
 exit "$fail"

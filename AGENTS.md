@@ -259,7 +259,9 @@ baseline above) does not exist.
   stories, research, dogfood/audit checklists, `.claude/`) never reach the public
   repo. It is published ONLY via `publish-snapshot.sh` (clean snapshot, verified by
   `publish-guard.sh`), and the pre-push hook (contract A) refuses every other push to the
-  public remote.
+  public remote. Contract A applies in a project that publishes this way, which is what
+  `docs/internal-paths.txt` marks (or one that sets `CLAUDE_PUBLIC_REMOTE`); every other
+  project pushes to its own `origin` normally.
   Fail-closed: any committed path on NEITHER `docs/internal-paths.txt` nor
   `docs/public-paths.txt` blocks the publish until a human classifies it.
 - [E] Public tunnels are time-boxed: `share-tunnel.sh` shuts itself down at the

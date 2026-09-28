@@ -60,7 +60,8 @@ PREAMBLE
 #       CREATES main/master on a remote that has none (git reports the remote sha as all
 #       zeros). That is how a new project seeds its empty GitHub repo; without it a new
 #       project could never get the main a PR merges into. Deleting it is not creating it.
-#   (2) PUSH CONTRACT A: the working repo is NEVER pushed to the PUBLIC remote;
+#   (2) PUSH CONTRACT A (only in a project that publishes through a snapshot, see
+#       contract_a below): the working repo is NEVER pushed to the PUBLIC remote;
 #       the public repo is published only from a clean snapshot (publish-snapshot.sh).
 #       So any push to the public remote is refused unless CLAUDE_PUBLISH_SNAPSHOT=1
 #       (set only by publish-snapshot.sh), and even then the pushed tree is re-scanned
@@ -69,6 +70,16 @@ PREAMBLE
 set -uo pipefail
 remote_name="${1:-}"
 public_remote="${CLAUDE_PUBLIC_REMOTE:-origin}"
+# Contract A belongs to a project that PUBLISHES through a snapshot, which is what
+# docs/internal-paths.txt marks (read at push time, so adding it later switches this on), or
+# to one that names its public remote explicitly. Every other project, including everything
+# init-project.sh scaffolds, pushes to its own origin normally: before this scoping, every
+# Odeo project refused every push to origin.
+contract_a=0
+project_top="$(git rev-parse --show-toplevel 2>/dev/null || true)"
+if [ -n "${CLAUDE_PUBLIC_REMOTE:-}" ] || { [ -n "$project_top" ] && [ -f "$project_top/docs/internal-paths.txt" ]; }; then
+  contract_a=1
+fi
 
 guard="$(odeo_tool publish-guard.sh)"
 
@@ -84,7 +95,7 @@ while read -r _local_ref local_sha remote_ref remote_sha; do
       exit 1
       fi ;;
   esac
-  if [ "$remote_name" = "$public_remote" ]; then
+  if [ "$contract_a" = 1 ] && [ "$remote_name" = "$public_remote" ]; then
     if [ "${CLAUDE_PUBLISH_SNAPSHOT:-}" != "1" ]; then
       echo "pre-push: REFUSED, the working repo is never pushed to '$public_remote'." >&2
       echo "Publish via bin/publish-snapshot.sh; raw pushes to the public remote are blocked (contract A)." >&2
