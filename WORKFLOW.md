@@ -478,8 +478,9 @@ Only approve when you understand what's about to happen.
 
 Switch out of plan mode (Shift+Tab) and let Claude work.
 
-With `CLAUDE_CODE_AUTO_VERIFY=1` set, Claude automatically loops:
-generate → lint → typecheck → test → self-correct → repeat until green.
+Claude runs the project's own checks itself (the lint, typecheck and test commands in
+the project's `CLAUDE.md`) and loops: generate → lint → typecheck → test → self-correct →
+repeat until green. No setting switches this on; it is how the skills tell Claude to work.
 
 **TDD-lite (automatic):** for logic with clear rules, backend, API, services,
 validation, calculations, bug fixes, the `test-driven-development` skill engages

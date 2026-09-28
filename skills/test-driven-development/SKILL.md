@@ -62,8 +62,8 @@ than forcing TDD onto UI/exploratory work.
   section), e.g. the unit-test, backend-test, and e2e commands listed there.
 - If they aren't filled in yet, infer them from the project's manifest (e.g.
   `package.json` scripts, `Makefile`, `pyproject.toml`) and confirm with the user.
-- `CLAUDE_CODE_AUTO_VERIFY=1` already runs these automatically after codegen.
-  TDD adds one thing on top: the test must **exist and have failed first**.
+- Run them yourself after each change; no setting runs them for you. TDD adds one
+  thing on top: the test must **exist and have failed first**.
 
 ## Red flags, stop if you catch any of these
 - Production code written before its test → delete it and start from the test
