@@ -161,7 +161,9 @@ out="$(printf '(delete) %s refs/heads/main %s\n' "$zero" "$zero" | hook backup "
 assert_exit "deleting a non-existent main (zero/zero) -> refused" 1 "$rc"
 
 # Observed failing (2026-09-28, round 3): the pushed tree not read -> the (v) case; the mark
-# read as a literal string -> the (u) case. Each mutant checked to differ and parse.
+# read as a literal string -> the (u) case; the latch line removed -> the mark check after
+# (v); only known true values counting -> the invalid-value case. Each mutant checked to
+# differ and parse.
 # (v) the PUSHED commit carries the list, but the checkout never did while pushing: an
 #     unmarked repo gains the list in a commit, checks out an older commit, pushes the branch
 #     that has the list. The hook reads the pushed tree, so contract A applies.
@@ -175,10 +177,19 @@ v="$TMP/v"; vbare="$TMP/v.git"; git init -q "$v"; git init -q --bare "$vbare"
 assert_exit "the old checkout really lacks the list (instrument)" 1 "$vi"
 ( cd "$v" && git push -q origin feat ) >/dev/null 2>&1; rc=$?
 assert_exit "a pushed branch that carries the list is guarded whatever is checked out" 1 "$rc"
+# only the pushed-tree path could have marked it here: the checkout never had the list
+assert_exit "the pushed-tree path marks the repo" "true" "$(git -C "$v" config --bool --get odeo.publishesSnapshot)"
 # (u) a mark written as another git boolean (yes, 1) still counts
 u="$TMP/u"; git init -q "$u"; ( cd "$u" && bash "$INSTALLER" ) >/dev/null 2>&1; git -C "$u" config odeo.publishesSnapshot yes
 out="$(cd "$u" && printf 'refs/heads/feature/q %s refs/heads/feature/q %s\n' "$clean_sha" "$zero" | env CLAUDE_INTERNAL_PATHS="$deny" .git/hooks/pre-push origin "file://$bare" 2>&1)"; rc=$?
 assert_exit "mark 'yes' counts as true" 1 "$rc"
+# a value that is no git boolean (a hand-edited typo) fails CLOSED; only an explicit false is off
+git -C "$u" config odeo.publishesSnapshot maybe
+out="$(cd "$u" && printf 'refs/heads/feature/q %s refs/heads/feature/q %s\n' "$clean_sha" "$zero" | env CLAUDE_INTERNAL_PATHS="$deny" .git/hooks/pre-push origin "file://$bare" 2>&1)"; rc=$?
+assert_exit "an invalid mark value keeps contract A on" 1 "$rc"
+git -C "$u" config odeo.publishesSnapshot false
+out="$(cd "$u" && printf 'refs/heads/feature/q %s refs/heads/feature/q %s\n' "$clean_sha" "$zero" | env CLAUDE_INTERNAL_PATHS="$deny" .git/hooks/pre-push origin "file://$bare" 2>&1)"; rc=$?
+assert_exit "an explicit false turns it off" 0 "$rc"
 
 if [ "$fail" = 0 ]; then echo "ALL PASS"; else echo "SOME FAILED"; fi
 exit "$fail"

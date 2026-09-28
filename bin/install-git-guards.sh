@@ -86,7 +86,10 @@ public_remote="${CLAUDE_PUBLIC_REMOTE:-origin}"
 # Every other project, including everything init-project.sh scaffolds, pushes to its own
 # origin normally: before this scoping, every Odeo project refused every push to origin.
 contract_a=0
-[ "$(git config --bool --get odeo.publishesSnapshot 2>/dev/null)" = "true" ] && contract_a=1
+# Any value but an explicit off counts as on: a hand-edited typo (git config --bool fails on
+# "maybe" and prints nothing) must not switch a guard off.
+mark="$(git config --get odeo.publishesSnapshot 2>/dev/null | tr '[:upper:]' '[:lower:]')"
+case "$mark" in ''|false|no|off|0) ;; *) contract_a=1 ;; esac
 [ -n "${CLAUDE_PUBLIC_REMOTE:-}" ] && contract_a=1
 project_top="$(git rev-parse --show-toplevel 2>/dev/null || true)"
 # Seeing the list makes the mark STICKY (written once, in the shared git config), so a repo
