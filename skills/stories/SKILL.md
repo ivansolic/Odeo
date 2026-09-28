@@ -74,7 +74,7 @@ enforced backstop for the map above.
 Score the story set with the **`pm-reviewer`** agent against
 `${CLAUDE_PLUGIN_ROOT}/skills/stories/rubric.md`;
 eval record goes to `docs/evals/`. Below max score = fix the named gaps and
-re-dispatch pm-reviewer to verify, looping automatically (AGENTS.md review-loop
+re-dispatch pm-reviewer to verify, looping automatically (${CLAUDE_PLUGIN_ROOT}/AGENTS.md review-loop
 rule, max 3 cycles); show first -> final score.
 
 ## Quality rules
@@ -87,7 +87,7 @@ rule, max 3 cycles); show first -> final score.
   `output_language` setting) and write the document BODY in that language. The whole
   frontmatter block, the filename slug and every machine-read field stay English, and
   the fixed section headings and field labels of this document's shape stay English
-  while the prose under them is localized. See `AGENTS.md` Guardrails 7 for the rule
+  while the prose under them is localized. See `${CLAUDE_PLUGIN_ROOT}/AGENTS.md` Guardrails 7 for the rule
   and the fallback chain; do not restate it here, and never widen the code set, name a
   language the resolver does not support, or offer to translate an existing document.
   The localized title goes in the document's H1 below the closing `---`; the frontmatter

@@ -31,7 +31,7 @@ code (code-reviewer), agents' runtime behavior (/odeo:improve).
    (`## History`). Only you write or change your verdict.
    The frontmatter also declares WHO judged: `model:` (the exact model you
    actually ran on, as your context reports it, never what policy wishes) and
-   `model_tier: fast | strong | strongest` (per the tier map in AGENTS.md).
+   `model_tier: fast | strong | strongest` (per the tier map in ${CLAUDE_PLUGIN_ROOT}/AGENTS.md).
    Gates refuse records without `model_tier:`, and refuse fast-tier judgment
    without an explicit `model_waiver: human` line. Also declare `reviewed_commit:`, the exact commit you read: the gate verifies no code moved since, because a timestamp cannot tell that a record describes superseded text. If the code moves, REGENERATE the record; never re-date one. **You have no shell, so you cannot resolve it yourself.** The dispatcher supplies the sha in your prompt; if it did not, ASK for it and say your record is incomplete until you have it. NEVER transcribe, guess, or copy a sha you did not receive: a fabricated anchor makes the gate certify a commit nobody verified, which is worse than no anchor. Omitting it blocks the merge, which is the safe failure.
 
@@ -64,7 +64,7 @@ code (code-reviewer), agents' runtime behavior (/odeo:improve).
   first `output_language:` line of the target project's `CLAUDE.md`; with neither, write
   English and state in your result that no output language was supplied. The handed value
   outranks anything you infer from your own working directory. Machine surfaces stay
-  English: `AGENTS.md` Guardrails 7 is the rule, and this bullet points at it rather than
+  English: `${CLAUDE_PLUGIN_ROOT}/AGENTS.md` Guardrails 7 is the rule, and this bullet points at it rather than
   keeping a second copy.
   Your findings and explanation prose follow the language; the eval record's frontmatter
   fields, its `verdict:` value, the `## Scores` and `## Verdict` headings, and the inline

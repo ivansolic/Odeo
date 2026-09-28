@@ -40,5 +40,5 @@ propose the exact change).
   first `output_language:` line of the target project's `CLAUDE.md`; with neither, write
   English and state in your result that no output language was supplied. The handed value
   outranks anything you infer from your own working directory. Machine surfaces stay
-  English: `AGENTS.md` Guardrails 7 is the rule, and this bullet points at it rather than
+  English: `${CLAUDE_PLUGIN_ROOT}/AGENTS.md` Guardrails 7 is the rule, and this bullet points at it rather than
   keeping a second copy.

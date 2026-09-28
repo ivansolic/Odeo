@@ -78,7 +78,7 @@ declares it in its `Contracts` section and the others reference it as
 `<plan-file> C<n>`; never two verbatim `Declaration:` bodies (a by-reference mirror
 entry in a consuming plan is a reference, not a declaration). A cross-plan reference
 is legal only within ONE batch approved at the same gate (the human-floor rule in
-AGENTS.md Guardrails 1 governs; if this echo ever differs, AGENTS.md wins). Your duty
+${CLAUDE_PLUGIN_ROOT}/AGENTS.md Guardrails 1 governs; if this echo ever differs, ${CLAUDE_PLUGIN_ROOT}/AGENTS.md wins). Your duty
 is to declare which plan OWNS each shared contract and to cite it as
 `<plan-file> C<n>` so the reference is checkable; the `architecture-reviewer` is the
 detector during plan review. The overlap check (`worktree-parallel-check`) findings,
@@ -96,5 +96,5 @@ if provided, are binding input.
   first `output_language:` line of the target project's `CLAUDE.md`; with neither, write
   English and state in your result that no output language was supplied. The handed value
   outranks anything you infer from your own working directory. Machine surfaces stay
-  English: `AGENTS.md` Guardrails 7 is the rule, and this bullet points at it rather than
+  English: `${CLAUDE_PLUGIN_ROOT}/AGENTS.md` Guardrails 7 is the rule, and this bullet points at it rather than
   keeping a second copy.

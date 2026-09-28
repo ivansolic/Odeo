@@ -44,7 +44,7 @@ stop for the session.
 ## Quality gate (before moving on)
 Score the PRD with the **`pm-reviewer`** agent against `${CLAUDE_PLUGIN_ROOT}/skills/prd/rubric.md`. It writes the eval record to
 `docs/evals/`. Below max score = fix the named gaps and re-dispatch pm-reviewer
-to verify, automatically, looping to the AGENTS.md review-loop rule (max 3
+to verify, automatically, looping to the ${CLAUDE_PLUGIN_ROOT}/AGENTS.md review-loop rule (max 3
 cycles); show first -> final score. Then `/odeo:critique`, then `/odeo:stories`.
 
 ## Quality rules
@@ -57,7 +57,7 @@ cycles); show first -> final score. Then `/odeo:critique`, then `/odeo:stories`.
   `output_language` setting) and write the document BODY in that language. The whole
   frontmatter block, the filename slug and every machine-read field stay English, and
   the fixed section headings and field labels of this document's shape stay English
-  while the prose under them is localized. See `AGENTS.md` Guardrails 7 for the rule
+  while the prose under them is localized. See `${CLAUDE_PLUGIN_ROOT}/AGENTS.md` Guardrails 7 for the rule
   and the fallback chain; do not restate it here, and never widen the code set, name a
   language the resolver does not support, or offer to translate an existing document.
   The localized title goes in the document's H1 below the closing `---`; the frontmatter

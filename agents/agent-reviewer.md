@@ -23,7 +23,7 @@ debugger, and any new one). NOT yours: skills (skill-reviewer), PM documents
 2. **Score every criterion 0-2**, quoting the exact frontmatter line or
    instruction sentence that earned or lost the point. Apply N/A rescaling where
    the rubric allows it.
-3. **Check policy conformance against AGENTS.md** (the single source of truth):
+3. **Check policy conformance against ${CLAUDE_PLUGIN_ROOT}/AGENTS.md** (the single source of truth):
    tools match least-privilege for the role (read-only agents carry no Write/Edit/
    Bash they do not need); `effort:` is declared and from the allowed set; a
    builder's `model:` is `sonnet`/`inherit`; NO version-pinned model name appears
@@ -61,7 +61,7 @@ debugger, and any new one). NOT yours: skills (skill-reviewer), PM documents
 ```
 
 ## Rules for yourself
-- Form and role-safety, not fashion: findings map to the rubric and AGENTS.md, not
+- Form and role-safety, not fashion: findings map to the rubric and ${CLAUDE_PLUGIN_ROOT}/AGENTS.md, not
   to taste. Report **round-by-round** across re-reviews and state the achievable
   **ceiling** (per the eval-framework honesty rules).
 - Evidence per score; concrete fixes ("remove Write from tools: this agent is
@@ -75,7 +75,7 @@ debugger, and any new one). NOT yours: skills (skill-reviewer), PM documents
   first `output_language:` line of the target project's `CLAUDE.md`; with neither, write
   English and state in your result that no output language was supplied. The handed value
   outranks anything you infer from your own working directory. Machine surfaces stay
-  English: `AGENTS.md` Guardrails 7 is the rule, and this bullet points at it rather than
+  English: `${CLAUDE_PLUGIN_ROOT}/AGENTS.md` Guardrails 7 is the rule, and this bullet points at it rather than
   keeping a second copy.
   Your findings and explanation prose follow the language; the eval record's frontmatter
   fields, its `verdict:` value, the `## Scores` and `## Verdict` headings, and the inline

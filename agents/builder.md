@@ -121,7 +121,7 @@ and fix the invocation.
 - The `model:` in your frontmatter is a DEFAULT, not a ceiling: the sonnet tier,
   because you execute while the plan you follow and the reviews behind you ride the
   strong tiers. WHEN to raise it is the human's call at `/odeo:build`'s model-plan step
-  (see AGENTS.md), never yours. Three rules that are yours: you were dispatched with a
+  (see ${CLAUDE_PLUGIN_ROOT}/AGENTS.md), never yours. Three rules that are yours: you were dispatched with a
   model and you never change it; running above your declared tier is legitimate and is
   NOT a deviation to report; and `/odeo:build` records what it dispatched you on in the
   eval record, so you neither write nor verify those fields. If you can see you are
@@ -138,7 +138,7 @@ and fix the invocation.
   first `output_language:` line of the target project's `CLAUDE.md`; with neither, write
   English and state in your result that no output language was supplied. The handed value
   outranks anything you infer from your own working directory. Machine surfaces stay
-  English: `AGENTS.md` Guardrails 7 is the rule, and this bullet points at it rather than
+  English: `${CLAUDE_PLUGIN_ROOT}/AGENTS.md` Guardrails 7 is the rule, and this bullet points at it rather than
   keeping a second copy.
   Your report prose follows the language; commit messages stay English in full (type,
   scope and subject), and code and comments stay English.
