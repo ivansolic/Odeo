@@ -162,7 +162,8 @@ assert_exit "deleting a non-existent main (zero/zero) -> refused" 1 "$rc"
 
 # Observed failing (2026-09-28, round 3): the pushed tree not read -> the (v) case; the mark
 # read as a literal string -> the (u) case; the latch line removed -> the mark check after
-# (v); only known true values counting -> the invalid-value case. Each mutant checked to
+# (v); only git's own `true` counting -> the invalid-value case (the bare key without '='
+# reads as true to git, so it is covered by git's parser, not by our spelling list). Each mutant checked to
 # differ and parse.
 # (v) the PUSHED commit carries the list, but the checkout never did while pushing: an
 #     unmarked repo gains the list in a commit, checks out an older commit, pushes the branch
@@ -187,6 +188,11 @@ assert_exit "mark 'yes' counts as true" 1 "$rc"
 git -C "$u" config odeo.publishesSnapshot maybe
 out="$(cd "$u" && printf 'refs/heads/feature/q %s refs/heads/feature/q %s\n' "$clean_sha" "$zero" | env CLAUDE_INTERNAL_PATHS="$deny" .git/hooks/pre-push origin "file://$bare" 2>&1)"; rc=$?
 assert_exit "an invalid mark value keeps contract A on" 1 "$rc"
+# a bare key with no '=' means true to git; `git config --get` prints nothing for it
+git -C "$u" config --unset odeo.publishesSnapshot; printf '[odeo]\n\tpublishesSnapshot\n' >> "$u/.git/config"
+out="$(cd "$u" && printf 'refs/heads/feature/q %s refs/heads/feature/q %s\n' "$clean_sha" "$zero" | env CLAUDE_INTERNAL_PATHS="$deny" .git/hooks/pre-push origin "file://$bare" 2>&1)"; rc=$?
+assert_exit "a bare key without '=' counts as on" 1 "$rc"
+git -C "$u" config --unset-all odeo.publishesSnapshot 2>/dev/null
 git -C "$u" config odeo.publishesSnapshot false
 out="$(cd "$u" && printf 'refs/heads/feature/q %s refs/heads/feature/q %s\n' "$clean_sha" "$zero" | env CLAUDE_INTERNAL_PATHS="$deny" .git/hooks/pre-push origin "file://$bare" 2>&1)"; rc=$?
 assert_exit "an explicit false turns it off" 0 "$rc"
