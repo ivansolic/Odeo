@@ -226,7 +226,7 @@ fi
 #      that merely mentions "the project's CLAUDE.md" next to Odeo's rules file.
 while IFS= read -r hit; do
   [ -n "$hit" ] && viol C15 "$hit (cite it as \${CLAUDE_PLUGIN_ROOT}/AGENTS.md, or mark the project's own file with (project + global))"
-done < <(grep -n 'AGENTS\.md' "${SKILLS[@]:+${SKILLS[@]}}" "${AGENTS[@]:+${AGENTS[@]}}" /dev/null 2>/dev/null \
+done < <(grep -n 'AGENTS\.md' "$ROOT"/skills/*/*.md "${AGENTS[@]:+${AGENTS[@]}}" /dev/null 2>/dev/null \
            | awk '{ line = $0; gsub(/\$\{CLAUDE_PLUGIN_ROOT\}\/AGENTS\.md/, "", line)
                     if (line ~ /AGENTS\.md/ && index(line, "(project + global)") == 0) print }' | cut -c1-200)
 

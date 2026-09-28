@@ -2,8 +2,10 @@
 #
 # install-git-guards.sh, installs the enforced git hooks into the CURRENT repo.
 #
-#   pre-push   : refuses a direct push to main/master, AND (contract A) refuses any
-#                push to the public remote unless CLAUDE_PUBLISH_SNAPSHOT=1
+#   pre-push   : refuses a direct push to main/master (except the push that creates it on
+#                a remote without it), AND, in a repository that publishes through a
+#                snapshot, (contract A) refuses any push to the public remote unless
+#                CLAUDE_PUBLISH_SNAPSHOT=1
 #   pre-commit : runs secret-scan.sh over the staged changes; secrets block commit
 #
 # Hooks live in .git/hooks (not versioned), so each clone runs this once.
@@ -87,7 +89,12 @@ contract_a=0
 [ "$(git config --get odeo.publishesSnapshot 2>/dev/null)" = "true" ] && contract_a=1
 [ -n "${CLAUDE_PUBLIC_REMOTE:-}" ] && contract_a=1
 project_top="$(git rev-parse --show-toplevel 2>/dev/null || true)"
-[ -n "$project_top" ] && [ -f "$project_top/docs/internal-paths.txt" ] && contract_a=1
+# Seeing the list makes the mark STICKY (written once, in the shared git config), so a repo
+# that gained it after install stays guarded when a later checkout lacks it.
+if [ -n "$project_top" ] && [ -f "$project_top/docs/internal-paths.txt" ]; then
+  contract_a=1
+  git config odeo.publishesSnapshot true 2>/dev/null || true
+fi
 
 guard="$(odeo_tool publish-guard.sh)"
 
@@ -148,4 +155,8 @@ HOOK
 } > "$hooks_dir/pre-commit"
 chmod +x "$hooks_dir/pre-commit"
 
-echo "install-git-guards: pre-push (no direct main + contract A public-remote guard) + pre-commit (secret scan) installed."
+if [ "$(git config --get odeo.publishesSnapshot 2>/dev/null)" = "true" ]; then
+  echo "install-git-guards: pre-push (no direct main + contract A public-remote guard) + pre-commit (secret scan) installed."
+else
+  echo "install-git-guards: pre-push (no direct main) + pre-commit (secret scan) installed; contract A switches on if this repo gains docs/internal-paths.txt."
+fi

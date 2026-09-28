@@ -96,7 +96,7 @@ out="$(printf 'refs/heads/main %s refs/heads/main %s\n' "$clean_sha" "$zero" | h
 assert_exit "creating main on the public remote without the marker -> refused" 1 "$rc"
 
 echo
-if # Observed failing (2026-09-28): the hook not reading odeo.publishesSnapshot -> the three (y)
+# Observed failing (2026-09-28): the hook not reading odeo.publishesSnapshot -> the three (y)
 # cases; the installer not setting it -> the same three. Each mutant checked to differ.
 # (y) contract A belongs to the REPOSITORY, not to the working tree: a project marked as
 #     publishing at install time stays guarded however its checkout looks at push time
@@ -136,5 +136,24 @@ assert_exit "plain project that names a public remote explicitly: contract A app
 ( cd "$plain" && mkdir -p docs && printf 'docs/plans/\n' > docs/internal-paths.txt && echo w >> f && git commit -qam w && git push -q origin feature/y ) >/dev/null 2>&1; rc=$?
 assert_exit "adding docs/internal-paths.txt switches contract A on, no reinstall" 1 "$rc"
 
-[ "$fail" = 0 ]; then echo "ALL PASS"; else echo "SOME FAILED"; fi
+# Observed failing (2026-09-28): the hook not writing the mark -> both (x) cases.
+# (x) the mark is STICKY: a repo that gains docs/internal-paths.txt after the hooks were
+#     installed is marked by the hook itself on the next push, and stays guarded when the
+#     file later leaves the checkout (an old commit, an orphan branch)
+late="$TMP/late"; latebare="$TMP/late.git"; git init -q "$late"; git init -q --bare "$latebare"
+( cd "$late" && bash "$INSTALLER" ) >/dev/null 2>&1
+( cd "$late" && echo x > f && git add f && git commit -q -m init && git remote add origin "$latebare" && git switch -q -c feature/l ) >/dev/null 2>&1
+( cd "$late" && mkdir -p docs && printf 'docs/plans/\n' > docs/internal-paths.txt && git add -A && git commit -qm list && git push -q origin feature/l ) >/dev/null 2>&1
+assert_exit "the hook marks a repo that gained the list" "true" "$(git -C "$late" config --get odeo.publishesSnapshot)"
+( cd "$late" && git switch -q --orphan bare-branch ) >/dev/null 2>&1   # empties index and tree
+[ ! -e "$late/docs/internal-paths.txt" ] && ok_orphan=1 || ok_orphan=0
+assert_exit "the orphan checkout really lacks the list (instrument)" 1 "$ok_orphan"
+( cd "$late" && echo o > o && git add o && git commit -qm orphan && git push -q origin bare-branch ) >/dev/null 2>&1; rc=$?
+assert_exit "a marked repo pushing an orphan branch without the list -> refused" 1 "$rc"
+# (w) deleting a main the remote does not have reaches the hook as zero/zero: refused, not
+#     mistaken for the seed
+out="$(printf '(delete) %s refs/heads/main %s\n' "$zero" "$zero" | hook backup "" 2>&1)"; rc=$?
+assert_exit "deleting a non-existent main (zero/zero) -> refused" 1 "$rc"
+
+if [ "$fail" = 0 ]; then echo "ALL PASS"; else echo "SOME FAILED"; fi
 exit "$fail"

@@ -211,8 +211,9 @@ baseline above) does not exist.
 
 ### 1. Human floor (irreversible or outward = a human decides)
 - [E] No direct push to main/master (pre-push hook, `install-git-guards.sh`). One exception:
-  the push that CREATES main on a remote that has none, so a new project can seed its empty
-  repository; every later push to it, and deleting it, is refused.
+  the push that CREATES main (or master) on a remote that does not have that branch yet, so a
+  new project can seed its empty repository; every later push to it, and deleting it, is
+  refused. It is per branch: creating master on a remote that already has main is allowed.
 - [E] `/odeo:merge` preconditions (`merge-gate.sh`): story branch, clean tree, boundaries
   clean, and **EVERY** review record carrying this branch approves, not just one. A
   record's frontmatter `verdict:` is the only thing read (body prose never flips the

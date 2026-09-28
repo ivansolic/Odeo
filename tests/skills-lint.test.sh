@@ -218,7 +218,8 @@ check "C14 leaves plugin-root paths, URLs and home paths alone" 0 "$d"; rm -rf "
 
 # C15: in a plugin install the rules file is the PLUGIN's, a user's project has no AGENTS.md
 # Observed failing (2026-09-28): a loose "project" exemption -> the mentions-a-project case;
-# C15 disabled -> the bare-citation case. Each mutant checked to differ.
+# C15 disabled -> the bare-citation case; C15 scanning only SKILL.md -> the rubric.md case.
+# Each mutant checked to differ.
 d="$(clean_root)"; mkskill "$d" gamma "disable-model-invocation: true\n" "Explicit." "Follow AGENTS.md Guardrails 1."
 check "C15 flags a bare AGENTS.md citation in a skill" 1 "$d"; rm -rf "$d"
 d="$(clean_root)"; mkskill "$d" gamma "disable-model-invocation: true\n" "Explicit." 'Follow `${CLAUDE_PLUGIN_ROOT}/AGENTS.md` Guardrails 1.'
@@ -227,6 +228,8 @@ d="$(clean_root)"; mkskill "$d" gamma "disable-model-invocation: true\n" "Explic
 check "C15 passes a line that means the PROJECT's own file" 0 "$d"; rm -rf "$d"
 d="$(clean_root)"; mkskill "$d" gamma "disable-model-invocation: true\n" "Explicit." 'A conflict with AGENTS.md or the project'"'"'s CLAUDE.md resolves against the entry.'
 check "C15 flags Odeo's rules file even when the line mentions a project" 1 "$d"; rm -rf "$d"
+d="$(clean_root)"; printf -- 'Score it per AGENTS.md Guardrails 3.\n' > "$d/skills/alpha/rubric.md"
+check "C15 flags a bare citation in a skill's rubric.md" 1 "$d"; rm -rf "$d"
 
 # C8 over ALL public docs: no third-party plugin names (pm-skills once lived in the beginners guide)
 d="$(clean_root)"; printf -- 'Write a PRD with /pm-execution:create-prd.\n' > "$d/BEGINNERS-GUIDE.md"
