@@ -19,7 +19,18 @@ export LC_ALL=C
 git rev-parse --is-inside-work-tree >/dev/null 2>&1 || {
   echo "publish-snapshot: not a git repository" >&2; exit 2; }
 
+# Resolve this script's own location FIRST: $0 may be relative to the caller's directory.
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+
+# Work from the repo root: `git archive HEAD` archives the CURRENT directory's subtree, and
+# the list entries are root-relative, so a run from a subdirectory produced a partial tree
+# that failed the guard. A relative output dir is resolved against the caller's directory
+# first, so it still lands where the caller meant.
+if [ -n "${1:-}" ]; then
+  case "$1" in /*) ;; *) set -- "$(pwd -P)/$1" ;; esac
+fi
+cd "$(git rev-parse --show-toplevel)" || { echo "publish-snapshot: cannot enter the repo root" >&2; exit 2; }
+
 GUARD="$ROOT/bin/publish-guard.sh"
 [ -x "$GUARD" ] || { echo "publish-snapshot: publish-guard.sh not found or not executable: $GUARD" >&2; exit 2; }
 # The strip and the check must read the SAME lists, and the guard owns the rule for which
