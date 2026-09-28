@@ -86,7 +86,7 @@ public_remote="${CLAUDE_PUBLIC_REMOTE:-origin}"
 # Every other project, including everything init-project.sh scaffolds, pushes to its own
 # origin normally: before this scoping, every Odeo project refused every push to origin.
 contract_a=0
-[ "$(git config --get odeo.publishesSnapshot 2>/dev/null)" = "true" ] && contract_a=1
+[ "$(git config --bool --get odeo.publishesSnapshot 2>/dev/null)" = "true" ] && contract_a=1
 [ -n "${CLAUDE_PUBLIC_REMOTE:-}" ] && contract_a=1
 project_top="$(git rev-parse --show-toplevel 2>/dev/null || true)"
 # Seeing the list makes the mark STICKY (written once, in the shared git config), so a repo
@@ -110,6 +110,13 @@ while read -r _local_ref local_sha remote_ref remote_sha; do
       exit 1
       fi ;;
   esac
+  # The PUSHED commit can carry the list while the checkout does not (an unmarked repo that
+  # gained it in a commit, then checked out an older one): that also marks and guards.
+  if [ "$contract_a" = 0 ] && [ "$local_sha" != "$zero_sha" ] \
+     && git cat-file -e "$local_sha:docs/internal-paths.txt" 2>/dev/null; then
+    contract_a=1
+    git config odeo.publishesSnapshot true 2>/dev/null || true
+  fi
   if [ "$contract_a" = 1 ] && [ "$remote_name" = "$public_remote" ]; then
     if [ "${CLAUDE_PUBLISH_SNAPSHOT:-}" != "1" ]; then
       echo "pre-push: REFUSED, the working repo is never pushed to '$public_remote'." >&2
@@ -155,7 +162,7 @@ HOOK
 } > "$hooks_dir/pre-commit"
 chmod +x "$hooks_dir/pre-commit"
 
-if [ "$(git config --get odeo.publishesSnapshot 2>/dev/null)" = "true" ]; then
+if [ "$(git config --bool --get odeo.publishesSnapshot 2>/dev/null)" = "true" ]; then
   echo "install-git-guards: pre-push (no direct main + contract A public-remote guard) + pre-commit (secret scan) installed."
 else
   echo "install-git-guards: pre-push (no direct main) + pre-commit (secret scan) installed; contract A switches on if this repo gains docs/internal-paths.txt."

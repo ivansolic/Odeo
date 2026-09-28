@@ -30,6 +30,10 @@ mkdir -p "$repo/bin"; cp "$GUARD" "$repo/bin/publish-guard.sh"; chmod +x "$repo/
 
 # Install the hooks into the repo under test.
 ( cd "$repo" && bash "$INSTALLER" ) >/dev/null 2>&1
+# The INSTALLER marks this publishing repo, before any hook has run (a hook that sees the
+# list marks it too, which once hid an installer that did not).
+[ "$(git -C "$repo" config --bool --get odeo.publishesSnapshot)" = "true" ] \
+  && echo "ok: the installer marks a publishing repo" || { echo "FAIL: the installer did not mark the publishing repo"; fail=1; }
 
 # (a) pre-push installed and executable
 [ -x "$repo/.git/hooks/pre-push" ] && { echo "ok: pre-push installed +x"; } || { echo "FAIL: pre-push not installed +x"; fail=1; }
@@ -97,7 +101,8 @@ assert_exit "creating main on the public remote without the marker -> refused" 1
 
 echo
 # Observed failing (2026-09-28): the hook not reading odeo.publishesSnapshot -> the three (y)
-# cases; the installer not setting it -> the same three. Each mutant checked to differ.
+# cases; the installer not setting it -> the install-time mark check (the (y) cases stay green
+# then, because the hook marks the repo itself). Each mutant checked to differ.
 # (y) contract A belongs to the REPOSITORY, not to the working tree: a project marked as
 #     publishing at install time stays guarded however its checkout looks at push time
 #     (security review of the working-tree check: sparse checkouts, a deleted file, --git-dir
@@ -154,6 +159,26 @@ assert_exit "a marked repo pushing an orphan branch without the list -> refused"
 #     mistaken for the seed
 out="$(printf '(delete) %s refs/heads/main %s\n' "$zero" "$zero" | hook backup "" 2>&1)"; rc=$?
 assert_exit "deleting a non-existent main (zero/zero) -> refused" 1 "$rc"
+
+# Observed failing (2026-09-28, round 3): the pushed tree not read -> the (v) case; the mark
+# read as a literal string -> the (u) case. Each mutant checked to differ and parse.
+# (v) the PUSHED commit carries the list, but the checkout never did while pushing: an
+#     unmarked repo gains the list in a commit, checks out an older commit, pushes the branch
+#     that has the list. The hook reads the pushed tree, so contract A applies.
+v="$TMP/v"; vbare="$TMP/v.git"; git init -q "$v"; git init -q --bare "$vbare"
+( cd "$v" && bash "$INSTALLER" ) >/dev/null 2>&1
+( cd "$v" && echo x > f && git add f && git commit -q -m init && git remote add origin "$vbare" \
+  && git switch -q -c feat && mkdir -p docs && printf 'docs/plans/\n' > docs/internal-paths.txt \
+  && mkdir -p docs/plans && echo p > docs/plans/p.md && git add -A && git commit -q -m list \
+  && git checkout -q HEAD~1 ) >/dev/null 2>&1
+[ ! -e "$v/docs/internal-paths.txt" ] && vi=1 || vi=0
+assert_exit "the old checkout really lacks the list (instrument)" 1 "$vi"
+( cd "$v" && git push -q origin feat ) >/dev/null 2>&1; rc=$?
+assert_exit "a pushed branch that carries the list is guarded whatever is checked out" 1 "$rc"
+# (u) a mark written as another git boolean (yes, 1) still counts
+u="$TMP/u"; git init -q "$u"; ( cd "$u" && bash "$INSTALLER" ) >/dev/null 2>&1; git -C "$u" config odeo.publishesSnapshot yes
+out="$(cd "$u" && printf 'refs/heads/feature/q %s refs/heads/feature/q %s\n' "$clean_sha" "$zero" | env CLAUDE_INTERNAL_PATHS="$deny" .git/hooks/pre-push origin "file://$bare" 2>&1)"; rc=$?
+assert_exit "mark 'yes' counts as true" 1 "$rc"
 
 if [ "$fail" = 0 ]; then echo "ALL PASS"; else echo "SOME FAILED"; fi
 exit "$fail"
