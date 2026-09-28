@@ -69,10 +69,27 @@ assert_exit "tag push to public, no marker -> refused" 1 "$rc"
 out="$(printf 'refs/heads/feature/x %s refs/heads/feature/x %s\n' "$clean_sha" "$zero" | hook backup "" 2>&1)"; rc=$?
 assert_exit "push to non-public remote -> allowed" 0 "$rc"
 
-# preserved (1): a direct push to main is still refused (on any remote)
-out="$(printf 'refs/heads/main %s refs/heads/main %s\n' "$clean_sha" "$zero" | hook backup "" 2>&1)"; rc=$?
+# preserved (1): a direct push to an EXISTING main is still refused (on any remote)
+old_sha=1111111111111111111111111111111111111111
+out="$(printf 'refs/heads/main %s refs/heads/main %s\n' "$clean_sha" "$old_sha" | hook backup "" 2>&1)"; rc=$?
 assert_exit "direct push to main -> refused" 1 "$rc"
 assert_contains "main refusal message" "direct push to main" "$out"
+out="$(printf 'refs/heads/master %s refs/heads/master %s\n' "$clean_sha" "$old_sha" | hook backup "" 2>&1)"; rc=$?
+assert_exit "direct push to an existing master -> refused" 1 "$rc"
+# Observed failing (2026-09-28), each mutant checked to differ and parse: seeding allowed
+# whatever the remote sha -> 3 FAIL (existing main/master pushes pass); deleting treated as
+# seeding -> 1 FAIL (the delete case).
+# (1b) the ONE exception: the push that CREATES main on a remote that has none (the remote
+#      sha is all zeros), so a new project can seed its empty GitHub repo. Every later push
+#      to main is still refused above.
+out="$(printf 'refs/heads/main %s refs/heads/main %s\n' "$clean_sha" "$zero" | hook backup "" 2>&1)"; rc=$?
+assert_exit "the push that creates main on an empty remote -> allowed" 0 "$rc"
+# ... but deleting main is not creating it
+out="$(printf '(delete) %s refs/heads/main %s\n' "$zero" "$old_sha" | hook backup "" 2>&1)"; rc=$?
+assert_exit "deleting main on the remote -> refused" 1 "$rc"
+# ... and contract A still applies: seeding the PUBLIC remote without the marker is refused
+out="$(printf 'refs/heads/main %s refs/heads/main %s\n' "$clean_sha" "$zero" | hook origin "" 2>&1)"; rc=$?
+assert_exit "creating main on the public remote without the marker -> refused" 1 "$rc"
 
 echo
 if [ "$fail" = 0 ]; then echo "ALL PASS"; else echo "SOME FAILED"; fi

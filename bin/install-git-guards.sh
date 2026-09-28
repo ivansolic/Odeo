@@ -56,7 +56,10 @@ PREAMBLE
 
 { hook_preamble; cat <<'HOOK'
 # Enforced guardrails:
-#   (1) no direct push to main/master (any remote)
+#   (1) no direct push to main/master (any remote), with ONE exception: the push that
+#       CREATES main/master on a remote that has none (git reports the remote sha as all
+#       zeros). That is how a new project seeds its empty GitHub repo; without it a new
+#       project could never get the main a PR merges into. Deleting it is not creating it.
 #   (2) PUSH CONTRACT A: the working repo is NEVER pushed to the PUBLIC remote;
 #       the public repo is published only from a clean snapshot (publish-snapshot.sh).
 #       So any push to the public remote is refused unless CLAUDE_PUBLISH_SNAPSHOT=1
@@ -69,12 +72,17 @@ public_remote="${CLAUDE_PUBLIC_REMOTE:-origin}"
 
 guard="$(odeo_tool publish-guard.sh)"
 
-while read -r _local_ref local_sha remote_ref _remote_sha; do
+zero_sha=0000000000000000000000000000000000000000
+while read -r _local_ref local_sha remote_ref remote_sha; do
   case "$remote_ref" in
     refs/heads/main|refs/heads/master)
+      if [ "$remote_sha" = "$zero_sha" ] && [ "$local_sha" != "$zero_sha" ]; then
+        echo "pre-push: creating ${remote_ref#refs/heads/} on a remote that has none (one-time seed); later pushes to it are refused." >&2
+      else
       echo "pre-push: REFUSED, direct push to ${remote_ref#refs/heads/} is blocked." >&2
       echo "Work on a branch and integrate through /odeo:merge (PR + your approval)." >&2
-      exit 1 ;;
+      exit 1
+      fi ;;
   esac
   if [ "$remote_name" = "$public_remote" ]; then
     if [ "${CLAUDE_PUBLISH_SNAPSHOT:-}" != "1" ]; then
