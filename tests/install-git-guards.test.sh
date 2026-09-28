@@ -96,7 +96,24 @@ out="$(printf 'refs/heads/main %s refs/heads/main %s\n' "$clean_sha" "$zero" | h
 assert_exit "creating main on the public remote without the marker -> refused" 1 "$rc"
 
 echo
-if # Observed failing (2026-09-28), each mutant checked to differ and parse: contract A
+if # Observed failing (2026-09-28): the hook not reading odeo.publishesSnapshot -> the three (y)
+# cases; the installer not setting it -> the same three. Each mutant checked to differ.
+# (y) contract A belongs to the REPOSITORY, not to the working tree: a project marked as
+#     publishing at install time stays guarded however its checkout looks at push time
+#     (security review of the working-tree check: sparse checkouts, a deleted file, --git-dir
+#     from outside, an old commit without the file all turned it off)
+feat_line="$(printf 'refs/heads/feature/q %s refs/heads/feature/q %s\n' "$clean_sha" "$zero")"
+mv "$repo/docs/internal-paths.txt" "$TMP/ip.bak"
+out="$(printf '%s\n' "$feat_line" | hook origin "" 2>&1)"; rc=$?
+assert_exit "publishing repo, internal-paths.txt missing from the checkout -> still refused" 1 "$rc"
+mv "$TMP/ip.bak" "$repo/docs/internal-paths.txt"
+mkdir -p "$TMP/emptywt"
+rc="$(cd "$TMP" && printf '%s\n' "$feat_line" | env CLAUDE_INTERNAL_PATHS="$deny" GIT_DIR="$repo/.git" GIT_WORK_TREE="$TMP/emptywt" "$repo/.git/hooks/pre-push" origin "file://$bare" >/dev/null 2>&1; echo $?)"
+assert_exit "publishing repo pushed via GIT_DIR from outside -> still refused" 1 "$rc"
+rc="$(cd "$TMP" && printf '%s\n' "$feat_line" | env CLAUDE_INTERNAL_PATHS="$deny" GIT_DIR="$repo/.git" "$repo/.git/hooks/pre-push" origin "file://$bare" >/dev/null 2>&1; echo $?)"
+assert_exit "publishing repo, hook run where rev-parse has no work tree -> still refused" 1 "$rc"
+
+# Observed failing (2026-09-28), each mutant checked to differ and parse: contract A
 # everywhere again -> 2 FAIL (the plain-project pushes, the original bug); internal-paths
 # ignored -> 7 FAIL (every publishing-project contract A case); an explicit public remote
 # ignored -> 1 FAIL. The last case makes its own commit: chained on the one before, it went

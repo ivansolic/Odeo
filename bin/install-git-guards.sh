@@ -18,6 +18,11 @@ git rev-parse --is-inside-work-tree >/dev/null 2>&1 || {
   echo "install-git-guards: not a git repository" >&2; exit 2; }
 
 hooks_dir="$(git rev-parse --git-path hooks)"
+# A project that publishes through a snapshot (it carries docs/internal-paths.txt) is marked
+# in its repo config, so the pre-push hook's contract A holds whatever the checkout looks like.
+if [ -f "$(git rev-parse --show-toplevel 2>/dev/null)/docs/internal-paths.txt" ]; then
+  git config odeo.publishesSnapshot true
+fi
 mkdir -p "$hooks_dir"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -70,16 +75,19 @@ PREAMBLE
 set -uo pipefail
 remote_name="${1:-}"
 public_remote="${CLAUDE_PUBLIC_REMOTE:-origin}"
-# Contract A belongs to a project that PUBLISHES through a snapshot, which is what
-# docs/internal-paths.txt marks (read at push time, so adding it later switches this on), or
-# to one that names its public remote explicitly. Every other project, including everything
-# init-project.sh scaffolds, pushes to its own origin normally: before this scoping, every
-# Odeo project refused every push to origin.
+# Contract A belongs to a REPOSITORY that publishes through a snapshot, not to whatever its
+# working tree looks like at push time. install-git-guards.sh records that as the repo
+# config odeo.publishesSnapshot (the shared git dir, so every worktree and a bare clone see
+# it), and nothing in a checkout can switch it off: a sparse checkout, a deleted
+# docs/internal-paths.txt, an old commit without it, or GIT_DIR from outside once did.
+# The file in the working tree, and an explicit CLAUDE_PUBLIC_REMOTE, can only switch it ON.
+# Every other project, including everything init-project.sh scaffolds, pushes to its own
+# origin normally: before this scoping, every Odeo project refused every push to origin.
 contract_a=0
+[ "$(git config --get odeo.publishesSnapshot 2>/dev/null)" = "true" ] && contract_a=1
+[ -n "${CLAUDE_PUBLIC_REMOTE:-}" ] && contract_a=1
 project_top="$(git rev-parse --show-toplevel 2>/dev/null || true)"
-if [ -n "${CLAUDE_PUBLIC_REMOTE:-}" ] || { [ -n "$project_top" ] && [ -f "$project_top/docs/internal-paths.txt" ]; }; then
-  contract_a=1
-fi
+[ -n "$project_top" ] && [ -f "$project_top/docs/internal-paths.txt" ] && contract_a=1
 
 guard="$(odeo_tool publish-guard.sh)"
 
