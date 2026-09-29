@@ -24,7 +24,7 @@ clean_root() { # a minimal root that passes every check
   touch "$d/bin/privacy-scan.sh"
   mkskill "$d" alpha "" "Use when the user wants alpha things."
   mkskill "$d" beta "disable-model-invocation: true\n" "Explicit command, any description."
-  printf -- '---\nname: code-reviewer\neffort: high\n---\nOnly you write the verdict.\n## History\noutput_language: prose follows it, see AGENTS.md Guardrails 7.\n' > "$d/agents/code-reviewer.md"
+  printf -- '---\nname: code-reviewer\neffort: high\n---\nOnly you write the verdict.\n## History\noutput_language: prose follows it, see ${CLAUDE_PLUGIN_ROOT}/AGENTS.md Guardrails 7.\n' > "$d/agents/code-reviewer.md"
   printf -- 'baseline\n' > "$d/global/CLAUDE.md"
   printf -- 'baseline\n' > "$d/AGENTS.md"
   printf -- 'map\n' > "$d/docs/system-map.md"
@@ -39,10 +39,10 @@ d="$(clean_root)"; mkskill "$d" gamma "" "Does gamma things, invoked by the mode
 check "C1 flags auto skill without Use-when" 1 "$d"; rm -rf "$d"
 
 # C12: an agent definition (has name:) missing effort: -> fail
-d="$(clean_root)"; printf -- '---\nname: lonely\n---\nbody\noutput_language: prose follows it, see AGENTS.md Guardrails 7.\n' > "$d/agents/lonely.md"
+d="$(clean_root)"; printf -- '---\nname: lonely\n---\nbody\noutput_language: prose follows it, see ${CLAUDE_PLUGIN_ROOT}/AGENTS.md Guardrails 7.\n' > "$d/agents/lonely.md"
 check "C12 flags an agent without effort:" 1 "$d"; rm -rf "$d"
 # C12: an agent with an invalid effort value -> fail
-d="$(clean_root)"; printf -- '---\nname: lonely\neffort: turbo\n---\nbody\noutput_language: prose follows it, see AGENTS.md Guardrails 7.\n' > "$d/agents/lonely.md"
+d="$(clean_root)"; printf -- '---\nname: lonely\neffort: turbo\n---\nbody\noutput_language: prose follows it, see ${CLAUDE_PLUGIN_ROOT}/AGENTS.md Guardrails 7.\n' > "$d/agents/lonely.md"
 check "C12 flags an agent with invalid effort" 1 "$d"; rm -rf "$d"
 # C12: a non-definition file in agents/ (no name:, e.g. a rubric) is NOT required to carry effort
 d="$(clean_root)"; printf -- '# Agent rubric\nno frontmatter here\n' > "$d/agents/agent-rubric.md"
@@ -55,9 +55,9 @@ d="$(clean_root)"; mkskill "$d" share "disable-model-invocation: true\n" "Shares
 check "C2 passes tunnel with teardown" 0 "$d"; rm -rf "$d"
 
 # C3: a doc-producing skill (prd) without editor-open -> fail
-d="$(clean_root)"; mkskill "$d" prd "disable-model-invocation: true\n" "Writes PRDs." "Save to docs/prds/PRD-NNN.md Prose follows output_language, see AGENTS.md Guardrails 7."
+d="$(clean_root)"; mkskill "$d" prd "disable-model-invocation: true\n" "Writes PRDs." "Save to docs/prds/PRD-NNN.md Prose follows output_language, see \${CLAUDE_PLUGIN_ROOT}/AGENTS.md Guardrails 7."
 check "C3 flags prd without editor-open" 1 "$d"; rm -rf "$d"
-d="$(clean_root)"; mkskill "$d" prd "disable-model-invocation: true\n" "Writes PRDs." "Save to docs/prds/PRD-NNN.md then open with code -r <file>. Prose follows output_language, see AGENTS.md Guardrails 7."
+d="$(clean_root)"; mkskill "$d" prd "disable-model-invocation: true\n" "Writes PRDs." "Save to docs/prds/PRD-NNN.md then open with code -r <file>. Prose follows output_language, see \${CLAUDE_PLUGIN_ROOT}/AGENTS.md Guardrails 7."
 check "C3 passes prd with editor-open" 0 "$d"; rm -rf "$d"
 
 # C4: "Mode A" without "with me" in the same file -> fail
@@ -73,7 +73,7 @@ d="$(clean_root)"; mkskill "$d" eps "disable-model-invocation: true\n" "Uses scr
 check "C5 passes existing script reference" 0 "$d"; rm -rf "$d"
 
 # C6: reviewer agent without the single-verdict contract -> fail
-d="$(clean_root)"; printf -- '---\nname: pm-reviewer\n---\nScores documents.\noutput_language: prose follows it, see AGENTS.md Guardrails 7.\n' > "$d/agents/pm-reviewer.md"
+d="$(clean_root)"; printf -- '---\nname: pm-reviewer\n---\nScores documents.\noutput_language: prose follows it, see ${CLAUDE_PLUGIN_ROOT}/AGENTS.md Guardrails 7.\n' > "$d/agents/pm-reviewer.md"
 check "C6 flags reviewer without verdict contract" 1 "$d"; rm -rf "$d"
 
 # C7: em dash in a skill -> fail
@@ -95,9 +95,9 @@ d="$(clean_root)"; mkskill "$d" kappa "disable-model-invocation: true\n" "Uses m
 check "C11 flags versioned model id" 1 "$d"; rm -rf "$d"
 
 # C11: builder frontmatter model must be sonnet or inherit
-d="$(clean_root)"; printf -- '---\nname: builder\nmodel: haiku\ntools: Read\n---\nOnly you write the verdict.\n## History\noutput_language: prose follows it, see AGENTS.md Guardrails 7.\n' > "$d/agents/builder.md"
+d="$(clean_root)"; printf -- '---\nname: builder\nmodel: haiku\ntools: Read\n---\nOnly you write the verdict.\n## History\noutput_language: prose follows it, see ${CLAUDE_PLUGIN_ROOT}/AGENTS.md Guardrails 7.\n' > "$d/agents/builder.md"
 check "C11 flags builder on a non-sonnet tier" 1 "$d"; rm -rf "$d"
-d="$(clean_root)"; printf -- '---\nname: builder\nmodel: sonnet\neffort: high\ntools: Read\n---\nbody\noutput_language: prose follows it, see AGENTS.md Guardrails 7.\n' > "$d/agents/builder.md"
+d="$(clean_root)"; printf -- '---\nname: builder\nmodel: sonnet\neffort: high\ntools: Read\n---\nbody\noutput_language: prose follows it, see ${CLAUDE_PLUGIN_ROOT}/AGENTS.md Guardrails 7.\n' > "$d/agents/builder.md"
 check "C11 passes builder on sonnet" 0 "$d"; rm -rf "$d"
 
 # C11: prose model name with version -> fail; old-style id -> fail; in AGENTS.md -> fail
@@ -109,7 +109,7 @@ d="$(clean_root)"; printf -- 'baseline\nOpus 4.8 is great.\n' > "$d/AGENTS.md"
 check "C11 flags versioned name in AGENTS.md" 1 "$d"; rm -rf "$d"
 
 # C11: builder model with trailing whitespace must still pass
-d="$(clean_root)"; printf -- '---\nname: builder\nmodel: sonnet \neffort: high\ntools: Read\n---\nbody\noutput_language: prose follows it, see AGENTS.md Guardrails 7.\n' > "$d/agents/builder.md"
+d="$(clean_root)"; printf -- '---\nname: builder\nmodel: sonnet \neffort: high\ntools: Read\n---\nbody\noutput_language: prose follows it, see ${CLAUDE_PLUGIN_ROOT}/AGENTS.md Guardrails 7.\n' > "$d/agents/builder.md"
 check "C11 tolerates trailing whitespace on builder model" 0 "$d"; rm -rf "$d"
 
 # C10: a second-opinion skill without the protocol reference -> fail
@@ -145,16 +145,16 @@ d="$(clean_root)"; printf -- '---\nname: lonely\neffort: high\n---\nbody\nProse 
 check "C13 catches a restatement: token present, pointer missing" 1 "$d"; rm -rf "$d"
 
 # And the mirror: pointer present, token missing.
-d="$(clean_root)"; printf -- '---\nname: lonely\neffort: high\n---\nbody\nSee AGENTS.md Guardrails 7 for the rule.\n' > "$d/agents/lonely.md"
+d="$(clean_root)"; printf -- '---\nname: lonely\neffort: high\n---\nbody\nSee ${CLAUDE_PLUGIN_ROOT}/AGENTS.md Guardrails 7 for the rule.\n' > "$d/agents/lonely.md"
 check "C13 catches a pointer with no marker" 1 "$d"; rm -rf "$d"
 
 d="$(clean_root)"; printf -- 'A rubric, not a definition: no frontmatter, no name key.\n' > "$d/agents/agent-rubric.md"
 check "C13 skips a non-definition file in agents/" 0 "$d"; rm -rf "$d"
 
 d="$(clean_root)"
-mkskill "$d" prd "disable-model-invocation: true\n" "Writes PRDs." "Save to docs/prds/PRD-NNN.md then open with code -r <file>. Prose follows output_language, see AGENTS.md Guardrails 7."
-mkskill "$d" build "disable-model-invocation: true\n" "Builds a story." "Hand the builder output_language, see AGENTS.md Guardrails 7."
-printf -- '---\nname: lonely\neffort: high\n---\nbody\noutput_language: prose follows it, see AGENTS.md Guardrails 7.\n' > "$d/agents/lonely.md"
+mkskill "$d" prd "disable-model-invocation: true\n" "Writes PRDs." "Save to docs/prds/PRD-NNN.md then open with code -r <file>. Prose follows output_language, see \${CLAUDE_PLUGIN_ROOT}/AGENTS.md Guardrails 7."
+mkskill "$d" build "disable-model-invocation: true\n" "Builds a story." "Hand the builder output_language, see \${CLAUDE_PLUGIN_ROOT}/AGENTS.md Guardrails 7."
+printf -- '---\nname: lonely\neffort: high\n---\nbody\noutput_language: prose follows it, see ${CLAUDE_PLUGIN_ROOT}/AGENTS.md Guardrails 7.\n' > "$d/agents/lonely.md"
 check "C13 passes when the skills and the agent definition all carry it" 0 "$d"; rm -rf "$d"
 
 # C5, widened scope. AGENTS.md and global/CLAUDE.md are now scanned, because Guardrails 7
@@ -215,6 +215,21 @@ d="$(clean_root)"; mkdir -p "$d/.github/ISSUE_TEMPLATE"; printf -- '- [ ] /alpha
 check "C14 flags a bare command in a GitHub template" 1 "$d"; rm -rf "$d"
 d="$(clean_root)"; printf -- 'x ${CLAUDE_PLUGIN_ROOT}/alpha/rubric.md and https://x.io/alpha and ~/alpha\n' > "$d/README.md"
 check "C14 leaves plugin-root paths, URLs and home paths alone" 0 "$d"; rm -rf "$d"
+
+# C15: in a plugin install the rules file is the PLUGIN's, a user's project has no AGENTS.md
+# Observed failing (2026-09-28): a loose "project" exemption -> the mentions-a-project case;
+# C15 disabled -> the bare-citation case; C15 scanning only SKILL.md -> the rubric.md case.
+# Each mutant checked to differ.
+d="$(clean_root)"; mkskill "$d" gamma "disable-model-invocation: true\n" "Explicit." "Follow AGENTS.md Guardrails 1."
+check "C15 flags a bare AGENTS.md citation in a skill" 1 "$d"; rm -rf "$d"
+d="$(clean_root)"; mkskill "$d" gamma "disable-model-invocation: true\n" "Explicit." 'Follow `${CLAUDE_PLUGIN_ROOT}/AGENTS.md` Guardrails 1.'
+check "C15 passes the plugin-root citation" 0 "$d"; rm -rf "$d"
+d="$(clean_root)"; mkskill "$d" gamma "disable-model-invocation: true\n" "Explicit." 'Read `AGENTS.md` / `CLAUDE.md` (project + global) for conventions.'
+check "C15 passes a line that means the PROJECT's own file" 0 "$d"; rm -rf "$d"
+d="$(clean_root)"; mkskill "$d" gamma "disable-model-invocation: true\n" "Explicit." 'A conflict with AGENTS.md or the project'"'"'s CLAUDE.md resolves against the entry.'
+check "C15 flags Odeo's rules file even when the line mentions a project" 1 "$d"; rm -rf "$d"
+d="$(clean_root)"; printf -- 'Score it per AGENTS.md Guardrails 3.\n' > "$d/skills/alpha/rubric.md"
+check "C15 flags a bare citation in a skill's rubric.md" 1 "$d"; rm -rf "$d"
 
 # C8 over ALL public docs: no third-party plugin names (pm-skills once lived in the beginners guide)
 d="$(clean_root)"; printf -- 'Write a PRD with /pm-execution:create-prd.\n' > "$d/BEGINNERS-GUIDE.md"

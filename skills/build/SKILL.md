@@ -52,7 +52,7 @@ same pattern as the model with one addition: the value is always spoken with its
 source. In order of authority:
 1. the latest `/effort` output in this session, if the user ran it. It overrides
    everything below.
-2. otherwise READ it, walking the sources in AGENTS.md (`CLAUDE_EFFORT` plus the
+2. otherwise READ it, walking the sources in ${CLAUDE_PLUGIN_ROOT}/AGENTS.md (`CLAUDE_EFFORT` plus the
    settings files). Read them ALL in one command and take the highest-precedence hit;
    stopping at the first would make a disagreement undetectable. That list and its
    precedence are the single source; never keep a second copy of it here. Name the file
@@ -85,9 +85,9 @@ In WITH-ME mode drop the Build line from that question entirely: there is no bui
 agent and no dispatch, so the only lever is `/model` for the session itself.
 
 The choice goes into the PLAN as a tier word, never into an instruction file
-(`AGENTS.md` Guardrail 3, lint C11).
+(`${CLAUDE_PLUGIN_ROOT}/AGENTS.md` Guardrail 3, lint C11).
 The change mechanism is per host (Claude Code: `/model` + `/effort`; other hosts
-use their equivalent from the per-host adapter in AGENTS.md), so the same step
+use their equivalent from the per-host adapter in ${CLAUDE_PLUGIN_ROOT}/AGENTS.md), so the same step
 works everywhere. In for-me mode, write into the plan's `model_plan:` the judgment
 model and effort AND `builder_tier:` (a tier word plus effort; that is the line the
 builder's contract requires). A value that came from step 2 rather than from the user
@@ -100,7 +100,7 @@ later reviewer trusts. When either was stated by the user, write it plain, no so
 The build model NAME never goes in the plan, see B5.4.
 In with-me mode the spoken question is the announcement.
 If judgment would run below the strongest model in the CURRENT OFFICIAL LINEUP
-(resolved live per AGENTS.md, which tells you what EXISTS, not what this account has)
+(resolved live per ${CLAUDE_PLUGIN_ROOT}/AGENTS.md, which tells you what EXISTS, not what this account has)
 OR below `high` effort, say so in the same breath, name the stronger model and how to
 switch (`/model`, `/effort`), and for architecture-critical work (plans, security,
 reviews) recommend switching up first. A CONFIGURED value below the bar counts the same
@@ -138,7 +138,7 @@ For one story at a time. The safest mode and the right default while learning.
 3. Seed `.claude/tasks/todo.md` with the task, context, and key decisions.
 4. Open the editor: `code -r .` (fallback `cursor -r .`; if neither exists, say so once and skip). As you build, reveal each file you just finished with `code -r -g <file>` so the user watches the story take shape; note that VS Code's Source Control panel marks changed lines in the gutter automatically. If the user says it's noisy, ease off.
 5. **Agree the success-signal (the loop's stop condition):** what "done" means here, every acceptance criterion + tests/lint/typecheck green + any quality targets (in plain language: "loads fast", "works for keyboard/screen-reader users"). Default is just the acceptance criteria + tests; add targets only if they matter.
-6. **Plan first, I prompt you and I wait.** Offer once: *"want the `architect` agent to draft the plan for us to review, or shall I draft it here?"* Either way: tell the user on screen: *"press Shift+Tab twice (plan mode), I'll present the steps and wait for your OK before writing any code."* In plan mode, present the step-by-step plan; **write no code until the user approves.** Approving the plan exits plan mode automatically and building starts (if they want changes, revise and re-present). Then build together (TDD for logic, ux-design + ux-writing for UI, follow AGENTS.md/CLAUDE.md + security baseline), looping build -> check the success-signal -> fix; stop and report if stuck after a few tries.
+6. **Plan first, I prompt you and I wait.** Offer once: *"want the `architect` agent to draft the plan for us to review, or shall I draft it here?"* Either way: tell the user on screen: *"press Shift+Tab twice (plan mode), I'll present the steps and wait for your OK before writing any code."* In plan mode, present the step-by-step plan; **write no code until the user approves.** Approving the plan exits plan mode automatically and building starts (if they want changes, revise and re-present). Then build together (TDD for logic, ux-design + ux-writing for UI, follow `${CLAUDE_PLUGIN_ROOT}/AGENTS.md` and the project's `CLAUDE.md` + security baseline), looping build -> check the success-signal -> fix; stop and report if stuck after a few tries.
 7. Verify every success-signal item. Then `code-reviewer` (and `design-reviewer` if UI). If the change touches auth, input handling, uploads, payments, or data access, run the built-in `/security-review` too (note: it needs `origin/HEAD`; if the repo's remote is new, run `git remote set-head origin -a` once first).
 8. When the user says so, integrate with `/odeo:merge` (rebase onto main, tests, merge PR, cleanup). Offer it; never start it on your own.
 
@@ -211,7 +211,7 @@ once so a still editor is not mistaken for a stall. Live watching is with-me (Mo
    **Hand it the language:** resolve the story's project with `resolve-language.sh
    <project-dir>` and include the line `output_language: <code>` in the dispatch prompt.
    The architect holds no `Bash`, so this is the only way it can know; same reason you
-   supply the commit sha (`AGENTS.md` Guardrails 7 carries the rule and the fallback).
+   supply the commit sha (`${CLAUDE_PLUGIN_ROOT}/AGENTS.md` Guardrails 7 carries the rule and the fallback).
 2. **Plan review LOOP (architecture-reviewer x architect, to clean, max 3)**:
    dispatch `architecture-reviewer` on each plan (read-only): does it fit the
    inherited architecture, respect boundaries, hide no risky ambiguity? Real
@@ -227,7 +227,7 @@ once so a still editor is not mistaken for a stall. Live watching is with-me (Mo
    **Hand the `output_language: <code>` line over on EVERY round of this loop**, to
    `architecture-reviewer` and to the `architect` on each re-dispatch. Neither holds
    `Bash`, and the loop REGENERATES the artifact, so a later round would otherwise drop
-   the field and the surviving artifact is the one the gate reads (`AGENTS.md`
+   the field and the surviving artifact is the one the gate reads (`${CLAUDE_PLUGIN_ROOT}/AGENTS.md`
    Guardrails 7).
 3. **Present the plans for approval**: approach, file map, riskiest part, open
    questions, + the plan-review trajectory. The user approves (flip
@@ -256,7 +256,7 @@ once so a still editor is not mistaken for a stall. Live watching is with-me (Mo
    **Hand the `output_language: <code>` line to the builder and to every reviewer you
    dispatch on its result**, on EVERY dispatch including re-dispatches in the review
    loop, for the same reason the dispatched model name above travels on every round
-   (`AGENTS.md` Guardrails 7 carries the fallback chain). Each builder
+   (`${CLAUDE_PLUGIN_ROOT}/AGENTS.md` Guardrails 7 carries the fallback chain). Each builder
    executes its plan as a contract: success-signal, green baseline, tasks in
    order (dev-rigor style from CLAUDE.md), loop to the signal, stop-and-ask on
    any plan conflict. Then run `code-reviewer` (plus `design-reviewer` if UI) on
@@ -264,7 +264,7 @@ once so a still editor is not mistaken for a stall. Live watching is with-me (Mo
    pushback allowed, you arbitrate). The review LOOPS until clean: fix ->
    same reviewer re-verifies and regenerates the record -> repeat, under the
    same stop condition as the plan loop (3 rounds, or two consecutive rounds of
-   the same defect class, per the AGENTS.md review-loop rule; a Critical is
+   the same defect class, per the ${CLAUDE_PLUGIN_ROOT}/AGENTS.md review-loop rule; a Critical is
    always reported); the user sees first -> final score, not two separate asks.
 
 ### B6. Present per story

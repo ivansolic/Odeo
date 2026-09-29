@@ -18,7 +18,7 @@ the same line the resolver reads; this command shows it and changes it.
   prose, never retro-translates.
 - Not for code, comments, filenames, branch names, commit types, or frontmatter
   fields. Those stay English, and `language-guard.sh` is the enforced gate for it
-  (see AGENTS.md).
+  (see ${CLAUDE_PLUGIN_ROOT}/AGENTS.md).
 - Supported codes: `en`, `de`, `hr`, `fr`. Anything else is refused by the script.
   Relay its refusal message unchanged, whatever it is; never pick a code for the user.
 
@@ -108,5 +108,5 @@ global default of `de`:
   That file is `/odeo:setup-project`'s artifact.
 - A `--global` change refuses a symlinked global config (a `--link` install points
   it at a tracked repo file). Relay the refusal and offer project scope instead.
-- Machine surfaces stay English whatever the code is; the guardrails in AGENTS.md
+- Machine surfaces stay English whatever the code is; the guardrails in ${CLAUDE_PLUGIN_ROOT}/AGENTS.md
   hold as written (referenced here, not restated).
