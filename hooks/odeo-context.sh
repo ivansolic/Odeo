@@ -163,9 +163,11 @@ Odeo: an old install.sh installation is still in this home directory (~/.claude/
 EOF
 }
 
-# outdated_guards: prints one line per Odeo git guard that searches only bin/ (the Odeo
-# 0.2.x layout): the current repo's Odeo hooks (they define odeo_tool) and the ~/bin shims
-# (odeo-migrate-legacy.sh writes them, marker on line 2). Nothing when all are current.
+# outdated_guards: prints one line per outdated Odeo git guard: the current repo's Odeo
+# hooks (they define odeo_tool) that lack the current ODEO_HOOKS_VERSION line (0.2.x
+# searched only bin/, 0.3.0 still looked up PATH first), and the ~/bin shims
+# (odeo-migrate-legacy.sh writes them, marker on line 2) that search only bin/. Nothing
+# when all are current.
 outdated_guards() {
   local hooks f
   # --git-path honours core.hooksPath and worktrees; it prints a path relative to the repo
@@ -173,7 +175,7 @@ outdated_guards() {
               && cd "$f" 2>/dev/null && pwd)"; then
     for f in pre-commit pre-push; do
       [ -f "$hooks/$f" ] && grep -q '^odeo_tool()' "$hooks/$f" \
-        && ! grep -q 'odeo/\*/scripts' "$hooks/$f" && echo "hook:$f"
+        && ! grep -qx 'ODEO_HOOKS_VERSION=2' "$hooks/$f" && echo "hook:$f"
     done
   fi
   for f in secret-scan.sh publish-guard.sh; do
@@ -185,7 +187,7 @@ outdated_guards() {
 }
 
 guards_nudge() { # guards_nudge <outdated_guards output>
-  printf '%s' "Odeo: some git guards were written by an older Odeo and look for its programs only in bin/, which a later release removes. After that, an old git hook commits WITHOUT its secret scan (it only warns), and an old ~/bin shim blocks every commit and push of the projects that call it. Tell the user once and offer to refresh them, only after they say yes:"
+  printf '%s' "Odeo: some git guards were written by an older Odeo. Old git hooks may run a script named like Odeo's from PATH instead of Odeo's own, and once a later release removes bin/, 0.2.x hooks commit WITHOUT their secret scan (they only warn) while old ~/bin shims block every commit and push of the projects that call them. Tell the user once and offer to refresh them, only after they say yes:"
   case "$1" in *hook:*)
     printf ' in this repository run `"%s/scripts/install-git-guards.sh"` (it rewrites .git/hooks/pre-commit and pre-push);' "$ROOT" ;; esac
   case "$1" in *shim:*)

@@ -26,6 +26,7 @@
 #   M14 any hook counts as Odeo's                       -> 1 FAIL (case 4e, foreign hook)
 #   M15 ~/bin shims not checked                         -> 1 FAIL (case 4e, shim)
 #   M16 root passed with awk -v instead of ENVIRON       -> 1 FAIL (case 1a)
+#   M17 outdated = "no scripts/ glob" instead of "no ODEO_HOOKS_VERSION=2" -> 1 FAIL (case 4e, 0.3.0 hook)
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 HOOK="$ROOT/hooks/odeo-context.sh"
@@ -186,6 +187,10 @@ assert_contains "a 0.2.x hook -> refresh nudge" "$ROOT/scripts/install-git-guard
 assert_absent "no shim advice without an old shim" "--apply" "$out"
 assert_contains "found from a subdirectory of the project" "install-git-guards.sh" \
   "$(mkdir -p "$gr/src/deep" && ctx "$(legacy "$ch" "$gr/src/deep")")"
+# a 0.3.0 hook already searches scripts/ but still looks up PATH first and has no version
+# marker: it is outdated too
+printf '#!/usr/bin/env bash\nodeo_tool() {\n  c="$(command -v "$1")"\n  ls -1td "$HOME"/.claude/plugins/cache/*/odeo/*/scripts\n}\n' > "$gr/.git/hooks/pre-commit"
+assert_contains "a 0.3.0 hook (PATH first, no marker) -> refresh nudge" "install-git-guards.sh" "$(ctx "$(legacy "$ch" "$gr")")"
 printf '#!/bin/sh\necho my own hook\n' > "$gr/.git/hooks/pre-commit"
 assert_empty "a hook that is not Odeo's -> silent" "$(legacy "$ch" "$gr")"
 sh="$TMP/shim-home"; mkdir -p "$sh/bin"

@@ -28,14 +28,15 @@ runs whenever everything before it misses.
 ## Solution
 Look up only locations the guard's owner controls: the cache, the directory the hooks
 were installed from (baked in with %q), the checker shipped next to the gate. Nothing
-relative to the repo or cwd. When all miss: warn loudly or block, never "find something".
+relative to the repo or cwd, and nothing from PATH. When all miss: warn loudly or block, never "find something".
 
 ## Why it works
 The guarded project is the party the guard checks; any path it controls can replace the
 check. Removing the repo- and cwd-relative paths makes THAT substitution impossible.
-Residual, still open: PATH is looked up first (odeo_tool's `command -v`, merge-gate's
-fallback), and a project can put itself on PATH (direnv `PATH_add`, `node_modules/.bin`,
-a `.` entry). So the same question applies to PATH, and it answers yes.
+The same question applied to PATH, and it answered yes: a project can put itself on PATH
+(direnv `PATH_add`, `node_modules/.bin`, a `.` entry), and 0.3.0 still looked there first
+in odeo_tool and as merge-gate's fallback. 0.3.1 dropped PATH from both, since it held
+nothing the cache did not (tests/git-guards.plugin.test.sh case 11, merge-gate's PATH case).
 
 ## Prevention
 For every lookup chain in a guard ask: "can the thing being checked put a file here?"
