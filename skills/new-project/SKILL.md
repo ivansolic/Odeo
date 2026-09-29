@@ -45,14 +45,15 @@ the plugin's `bin/` is on the PATH of Claude's shell.
      exists`, that folder is the user's own and was not touched. Otherwise, if `<name>/`
      now exists, it is an incomplete scaffold: say so, and do not delete it yourself.
    - The script prints its own "Next steps", including `gh repo create ... --push`. Do
-     not run them; step 7 is the only way to a remote.
+     not run them; step 8 is the only way to a remote.
 7. **Hand over.** Say what was created and the next two steps: open the folder in Claude
    (terminal: `cd <name> && claude`; desktop app: open the folder as the project), then
    run `/odeo:setup-project` there to set the stack and commands.
 8. **Remote, only if asked.** Creating a GitHub repository sends the project outward, so
-   offer it and run `gh repo create '<name>' --private --source='<path>' --remote=origin`
+   offer it and run `gh repo create '<name>' --private --source='<path>' --remote=origin --push`
    only after an explicit yes (`${CLAUDE_PLUGIN_ROOT}/AGENTS.md` Guardrails 1, human
-   floor). Never push `main`.
+   floor). That `--push` is the one push to `main` the guard allows: it CREATES `main` on
+   the empty repository. Every later change goes through a branch and `/odeo:merge`.
 
 ## Worked example
 "/odeo:new-project invoice-tracker"

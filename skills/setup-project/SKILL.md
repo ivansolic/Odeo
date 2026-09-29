@@ -132,7 +132,7 @@ and builder read it.
 Resolve the CURRENT model lineup live (ask the harness/session what tiers and
 prices exist right now, never recite from this file), then ask:
 > "On which model should the thinking run, planning, discovery, reviews?
->  (Code execution rides the builder's pinned execution tier, see AGENTS.md
+>  (Code execution rides the builder's pinned execution tier, see ${CLAUDE_PLUGIN_ROOT}/AGENTS.md
 >  Model policy; this choice is for judgment.)
 >  - **strongest**, the top tier that exists (name + price as resolved now)
 >  - **strong-default**, the strongest standard-price tier (name it now)

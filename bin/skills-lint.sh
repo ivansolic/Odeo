@@ -218,6 +218,18 @@ if [ -n "$names" ]; then
              "${PUBLIC_TEXT[@]:+${PUBLIC_TEXT[@]}}" /dev/null 2>/dev/null | cut -c1-200)
 fi
 
+# C15. Skills and agents cite the rules file as ${CLAUDE_PLUGIN_ROOT}/AGENTS.md.
+#      In a plugin install a user's project has no AGENTS.md; Odeo's lives in the plugin, and
+#      Claude Code substitutes ${CLAUDE_PLUGIN_ROOT} in skill and agent text. A line that
+#      means the PROJECT's own context files says so with the exact phrase
+#      "(project + global)" and is left alone; a looser "project" would also exempt a line
+#      that merely mentions "the project's CLAUDE.md" next to Odeo's rules file.
+while IFS= read -r hit; do
+  [ -n "$hit" ] && viol C15 "$hit (cite it as \${CLAUDE_PLUGIN_ROOT}/AGENTS.md, or mark the project's own file with (project + global))"
+done < <(grep -n 'AGENTS\.md' "$ROOT"/skills/*/*.md "${AGENTS[@]:+${AGENTS[@]}}" /dev/null 2>/dev/null \
+           | awk '{ line = $0; gsub(/\$\{CLAUDE_PLUGIN_ROOT\}\/AGENTS\.md/, "", line)
+                    if (line ~ /AGENTS\.md/ && index(line, "(project + global)") == 0) print }' | cut -c1-200)
+
 # C9. Every SKILL.md declares a non-empty description
 for f in "${SKILLS[@]:+${SKILLS[@]}}"; do
   grep -qE '^description: .+' "$f" \

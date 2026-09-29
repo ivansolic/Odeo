@@ -44,10 +44,12 @@ fake_root() {
 }
 # bounded <cmd...>: runs a command that must not hang (a shim that execs itself would). A
 # watchdog kills it by PID after 10s (an exec chain keeps the PID), giving exit 143. Not
-# perl's alarm: bash drops an inherited alarm on exec, so that version never fired.
+# perl's alarm: on macOS each exec restarts the alarm countdown, so a loop that re-execs
+# faster than the timeout never fires (measured; the alarm itself survives exec). The
+# watchdog's output goes to /dev/null so it never holds a caller's pipe open for 10s.
 bounded() {
   "$@" & local pid=$!
-  ( sleep 10; kill "$pid" 2>/dev/null ) & local dog=$!
+  ( sleep 10; kill "$pid" 2>/dev/null ) >/dev/null 2>&1 & local dog=$!
   wait "$pid"; local rc=$?
   kill "$dog" 2>/dev/null; wait "$dog" 2>/dev/null
   return "$rc"

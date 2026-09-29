@@ -8,7 +8,7 @@ disable-model-invocation: true
 Limit this session's edits to one directory until you lift it. It is the ephemeral
 complement to the permanent DO-NOT-TOUCH boundaries: those protect forever, `/odeo:focus`
 keeps the work on one module for now. Enforced by the `focus-check.sh` PreToolUse
-hook (the `[E]` guardrail in AGENTS.md); it only ever refuses, never grants, and it
+hook (the `[E]` guardrail in ${CLAUDE_PLUGIN_ROOT}/AGENTS.md); it only ever refuses, never grants, and it
 fails open, so it can never trap you.
 
 ## When to use (and when not)

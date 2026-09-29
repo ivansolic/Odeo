@@ -45,6 +45,26 @@ snap2="$(build 2>/dev/null)"; rc=$?
 assert_exit "re-run clean -> 0" 0 "$rc"
 assert_true "second snapshot is a different dir" "[ \"$snap\" != \"$snap2\" ]"
 
+# Observed failing (2026-09-28), each mutant checked to differ AND to parse: no cd to the
+# repo root -> 4 FAIL (3b, 3c); the script's root resolved after the cd -> 2 FAIL (3c); a
+# relative output dir not resolved -> 1 FAIL (3c). (Deleting that line outright leaves an
+# empty `then ... fi`, a syntax error that fails everything for the wrong reason.)
+# 3b) run from a SUBDIRECTORY of the repo: same clean snapshot (git archive HEAD is relative
+#     to the current directory, the list entries to the repo root; before the fix this
+#     exited 1 with no snapshot)
+snap3b="$( cd "$repo/skills/x" && CLAUDE_INTERNAL_PATHS="$deny" CLAUDE_PUBLIC_PATHS="$allow" "$SCRIPT" 2>/dev/null )"; rc=$?
+assert_true "subdirectory run -> exit 0 (got $rc)" "[ \"$rc\" = 0 ]"
+assert_true "subdirectory snapshot has the whole tree's public file" "[ -f \"$snap3b/README.md\" ] && [ -f \"$snap3b/skills/x/SKILL.md\" ]"
+assert_true "subdirectory snapshot still lacks the internal files" "[ ! -e \"$snap3b/docs/plans/p.md\" ] && [ ! -e \"$snap3b/.claude\" ]"
+[ -n "$snap3b" ] && rm -rf "$snap3b"
+# 3c) invoked by a RELATIVE path from a subdirectory, with a RELATIVE output dir: the script
+#     finds its own guard, and the snapshot lands where the caller meant
+mkdir -p "$repo/tools/bin"; cp "$SCRIPT" "$(dirname "$SCRIPT")/publish-guard.sh" "$(dirname "$SCRIPT")/privacy-scan.sh" "$repo/tools/bin/"
+out3c="$( cd "$repo/skills/x" && CLAUDE_INTERNAL_PATHS="$deny" CLAUDE_PUBLIC_PATHS="$allow" ../../tools/bin/publish-snapshot.sh rel-out 2>/dev/null )"; rc=$?
+assert_true "relative invocation from a subdirectory -> exit 0 (got $rc)" "[ \"$rc\" = 0 ]"
+assert_true "relative output dir lands in the caller's directory" "[ -f \"$repo/skills/x/rel-out/README.md\" ]"
+rm -rf "$repo/skills/x/rel-out" "$repo/tools"
+
 # 2) a private datum in a public file -> exit 3 (advisory), snapshot KEPT
 ( cd "$repo" && printf 'contact alice@corp.example see /Users/alice/x.txt\n' >> README.md && git add README.md && git commit -q -m secret )
 snap3="$(build 2>/dev/null)"; rc=$?

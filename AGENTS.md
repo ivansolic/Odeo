@@ -210,7 +210,10 @@ these rules; they do not restate them. A rule that is not written here (or in th
 baseline above) does not exist.
 
 ### 1. Human floor (irreversible or outward = a human decides)
-- [E] No direct push to main/master (pre-push hook, `install-git-guards.sh`).
+- [E] No direct push to main/master (pre-push hook, `install-git-guards.sh`). One exception:
+  the push that CREATES main (or master) on a remote that does not have that branch yet, so a
+  new project can seed its empty repository; every later push to it, and deleting it, is
+  refused. It is per branch: creating master on a remote that already has main is allowed.
 - [E] `/odeo:merge` preconditions (`merge-gate.sh`): story branch, clean tree, boundaries
   clean, and **EVERY** review record carrying this branch approves, not just one. A
   record's frontmatter `verdict:` is the only thing read (body prose never flips the
@@ -257,7 +260,11 @@ baseline above) does not exist.
   stories, research, dogfood/audit checklists, `.claude/`) never reach the public
   repo. It is published ONLY via `publish-snapshot.sh` (clean snapshot, verified by
   `publish-guard.sh`), and the pre-push hook (contract A) refuses every other push to the
-  public remote.
+  public remote. Contract A applies to a REPOSITORY that publishes this way:
+  `install-git-guards.sh` marks one that carries `docs/internal-paths.txt` in its git config
+  (`odeo.publishesSnapshot`), so no checkout state can switch it off; the file, or
+  `CLAUDE_PUBLIC_REMOTE`, can only switch it on. Every other project pushes to its own
+  `origin` normally.
   Fail-closed: any committed path on NEITHER `docs/internal-paths.txt` nor
   `docs/public-paths.txt` blocks the publish until a human classifies it.
 - [E] Public tunnels are time-boxed: `share-tunnel.sh` shuts itself down at the

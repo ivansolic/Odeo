@@ -87,6 +87,6 @@ when the Context section rests on assumptions ("shall I back this with
   `output_language` setting) and write the document BODY in that language. The whole
   frontmatter block, the filename slug and every machine-read field stay English, and
   the fixed section headings and field labels of this document's shape stay English
-  while the prose under them is localized. See `AGENTS.md` Guardrails 7 for the rule
+  while the prose under them is localized. See `${CLAUDE_PLUGIN_ROOT}/AGENTS.md` Guardrails 7 for the rule
   and the fallback chain; do not restate it here, and never widen the code set, name a
   language the resolver does not support, or offer to translate an existing document.
