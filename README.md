@@ -59,8 +59,9 @@ Odeo is a Claude Code plugin. Nothing to clone, nothing to copy into your home f
 
 **Claude desktop app:** use the **Code** tab. Add the marketplace once in a terminal
 (`claude plugin marketplace add ivansolic/Odeo`), then in a local Code session choose
-**+ → Plugins → Add plugin → odeo**. The terminal and the desktop app share the same plugins,
-so a plugin installed in one is there in the other. **Customize → Plugins → Add marketplace**
+**+ → Plugins → Add plugin → odeo** and pick **your user account** as the scope. At user scope
+the terminal and the desktop app's local sessions share it, so it is installed in both (a
+project or local-only scope stays in that one folder). **Customize → Plugins → Add marketplace**
 does not work for Odeo: that path syncs through claude.ai (and Cowork), and claude.ai does not
 install a plugin that ships a top-level `bin/` folder, which is where Odeo's guards live.
 
