@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # Integration (USR-004 acceptance): the output language can be CHANGED at any time,
 # at either scope, with no duplicate line, and the resolver reflects it immediately.
-# Composes bin/{set-project-language,set-global-language,language-status,resolve-language}.sh.
+# Composes scripts/{set-project-language,set-global-language,language-status,resolve-language}.sh.
 set -uo pipefail
-BIN="$(cd "$(dirname "$0")/.." && pwd)/bin"
+BIN="$(cd "$(dirname "$0")/.." && pwd)/scripts"
 fail=0
 assert_exit() { if [ "$2" = "$3" ]; then echo "ok: $1"; else echo "FAIL: $1 (expected exit $2, got $3)"; fail=1; fi; }
 assert_eq() { if [ "$2" = "$3" ]; then echo "ok: $1"; else echo "FAIL: $1 (expected '$2', got '$3')"; fail=1; fi; }

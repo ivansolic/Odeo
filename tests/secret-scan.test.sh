@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Tests for bin/secret-scan.sh, the commit-time secret gate.
+# Tests for scripts/secret-scan.sh, the commit-time secret gate.
 # Scans STAGED content for secrets only (narrower than privacy-scan: code commits
 # legitimately contain emails/paths; secrets never). Run: bash tests/secret-scan.test.sh
 set -uo pipefail
 TEST_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SCAN="$TEST_DIR/../bin/secret-scan.sh"
+SCAN="$TEST_DIR/../scripts/secret-scan.sh"
 pass=0; fail=0
 
 # Helper: make a temp git repo, stage given file content, run the scan there.

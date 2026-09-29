@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Tests for bin/merge-gate.sh, the /merge deterministic gate.
+# Tests for scripts/merge-gate.sh, the /merge deterministic gate.
 # Covers: branch guard, dirty tree, record existence by EXACT branch field,
 # record freshness (newer than last code commit), and verdict check.
 # Run: bash tests/merge-gate.test.sh
@@ -11,7 +11,7 @@ set -uo pipefail
 export GIT_AUTHOR_NAME=test GIT_AUTHOR_EMAIL=test@example.com
 export GIT_COMMITTER_NAME=test GIT_COMMITTER_EMAIL=test@example.com
 TEST_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-GATE="$TEST_DIR/../bin/merge-gate.sh"
+GATE="$TEST_DIR/../scripts/merge-gate.sh"
 pass=0; fail=0
 
 T1='2026-01-01T10:00:00'; T2='2026-01-01T11:00:00'; T3='2026-01-01T12:00:00'
@@ -666,6 +666,21 @@ case "$out" in
   *"untracked file(s) under docs/evals"*design-x.md*) echo "ok   - stray record refused by name"; pass=$((pass+1)) ;;
   *) echo "FAIL - stray record refused by name (got: $(printf '%s' "$out" | grep -m1 REFUSED))"; fail=$((fail+1)) ;;
 esac
+rm -rf "$d"
+
+# A project's OWN scripts/boundary-check.sh never stands in for Odeo's: the gate uses the
+# checker shipped next to it. (0.3.0 review: a cwd-relative lookup came first, so a project
+# script that exits 0 passed a real DO-NOT-TOUCH violation.) PATH is cleaned so no installed
+# copy answers instead. Observed failing with the cwd lookup restored first: this case.
+d="$(make_repo)"; ( cd "$d" && mkdir -p docs secret scripts \
+  && printf '# Map\n## DO-NOT-TOUCH\n- secret/\n' > docs/codebase-map.md \
+  && printf '#!/usr/bin/env bash\nexit 0\n' > scripts/boundary-check.sh && chmod +x scripts/boundary-check.sh \
+  && git add -A ) >/dev/null 2>&1; commit_at "$d" "$T1" base
+( cd "$d" && git checkout -qb feature/x && echo x > secret/x.md && git add -A ) >/dev/null 2>&1; commit_at "$d" "$T2" touch
+record "$d" "feature/x" "APPROVE"; commit_at "$d" "$T3" rec
+( cd "$d" && PATH="$(dirname "$(command -v git)"):/usr/bin:/bin" bash "$GATE" ) >/dev/null 2>&1; rc=$?
+if [[ $rc -eq 1 ]]; then echo "ok   - a project's own boundary-check.sh does not replace Odeo's"; pass=$((pass+1))
+else echo "FAIL - a project's own boundary-check.sh replaced Odeo's (rc=$rc want=1)"; fail=$((fail+1)); fi
 rm -rf "$d"
 
 echo ""; echo "passed: $pass, failed: $fail"; [[ $fail -eq 0 ]]

@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Tests for bin/share-tunnel.sh (time-boxed tunnel) and bin/session-end-check.sh.
+# Tests for scripts/share-tunnel.sh (time-boxed tunnel) and bin/session-end-check.sh.
 # Uses a FAKE cloudflared on PATH, no network. Run: bash tests/share-tunnel.test.sh
 set -uo pipefail
 TEST_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SHARE="$TEST_DIR/../bin/share-tunnel.sh"
-ENDCHECK="$TEST_DIR/../bin/session-end-check.sh"
+SHARE="$TEST_DIR/../scripts/share-tunnel.sh"
+ENDCHECK="$TEST_DIR/../scripts/session-end-check.sh"
 pass=0; fail=0
 ok()   { echo "ok   - $1"; pass=$((pass+1)); }
 bad()  { echo "FAIL - $1"; fail=$((fail+1)); }

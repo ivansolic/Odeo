@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Tests for bin/docs-claims-check.sh, the anchor against MEASUREMENT DECAY.
+# Tests for scripts/docs-claims-check.sh, the anchor against MEASUREMENT DECAY.
 #
 # WHY THIS EXISTS. Documents drift from the system they describe, silently, because
 # nothing re-derives their claims. Measured in this repo: README claimed "31 assertions"
@@ -15,7 +15,7 @@
 # Run: bash tests/docs-claims-check.test.sh
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-CHECK="$ROOT/bin/docs-claims-check.sh"
+CHECK="$ROOT/scripts/docs-claims-check.sh"
 pass=0; fail=0
 ok()  { echo "ok   - $1"; pass=$((pass+1)); }
 bad() { echo "FAIL - $1"; fail=$((fail+1)); }
@@ -31,7 +31,7 @@ bad() { echo "FAIL - $1"; fail=$((fail+1)); }
 # 2. A stale count must FAIL, and name the claim. This is the whole point: the README
 #    number that went wrong in this repo was a count, and it drifted unnoticed for weeks.
 tmp="$(mktemp -d)"; trap 'rm -rf "$tmp"' EXIT
-cp -R "$ROOT"/{bin,tests,skills,agents} "$tmp"/ 2>/dev/null
+cp -R "$ROOT"/{scripts,tests,skills,agents} "$tmp"/ 2>/dev/null
 cp "$ROOT/README.md" "$tmp"/
 # bend the executables claim to a number that is certainly wrong
 perl -pi -e 's/← \d+ executables/← 999 executables/' "$tmp/README.md"
@@ -45,7 +45,7 @@ case "$out" in *999*|*executable*) ok "and the failure names the claim that drif
 #    carrying a claim, the check must SAY so rather than silently verify nothing, which is
 #    how a green check becomes meaningless.
 tmp2="$(mktemp -d)"
-cp -R "$ROOT"/{bin,tests,skills,agents} "$tmp2"/ 2>/dev/null
+cp -R "$ROOT"/{scripts,tests,skills,agents} "$tmp2"/ 2>/dev/null
 printf '# Odeo\n\nNo countable claims here at all.\n' > "$tmp2/README.md"
 out2="$( cd "$tmp2" && bash "$CHECK" 2>&1 )"; rc2=$?
 [[ "$rc2" -ne 0 ]] && ok "a README carrying none of the expected claims FAILS (exit $rc2)" \
@@ -60,12 +60,12 @@ rm -rf "$tmp2"
 #    Run against a miniature tree rather than this repo: the real --assertions pass runs
 #    every suite and takes minutes, and a slow test gets skipped, which is how this whole
 #    class of check rots.
-mini="$(mktemp -d)"; mkdir -p "$mini/bin" "$mini/tests"
-printf '#!/usr/bin/env bash\necho hi\n' > "$mini/bin/foo.sh"; chmod +x "$mini/bin/foo.sh"
+mini="$(mktemp -d)"; mkdir -p "$mini/scripts" "$mini/tests"
+printf '#!/usr/bin/env bash\necho hi\n' > "$mini/scripts/foo.sh"; chmod +x "$mini/scripts/foo.sh"
 printf '#!/usr/bin/env bash\necho "ok   - a"\n' > "$mini/tests/foo.test.sh"
 printf '#!/usr/bin/env bash\necho "SKIP - b"\necho "ok   - c"\n' > "$mini/tests/skippy.test.sh"
 cat > "$mini/README.md" <<'MINI'
-├── bin/   ← 1 executables
+├── scripts/   ← 1 executables
 │   └── *.test.sh   ← 2 suites, 2 assertions. 1 of the 1 programs have their own suite
 MINI
 out4="$( cd "$mini" && bash "$CHECK" --assertions 2>&1 )"; rc4=$?
@@ -92,8 +92,8 @@ rm -rf "$mini"
 #    does NOT fail, while the claims this run CAN measure completely stay fatal. The assertion
 #    is on the OUTCOME (exit code and word), not on the note's prose, which is what let the
 #    previous version pass while the harm was live.
-mini5="$(mktemp -d)"; mkdir -p "$mini5/bin" "$mini5/tests"
-printf '#!/usr/bin/env bash\necho hi\n' > "$mini5/bin/foo.sh"; chmod +x "$mini5/bin/foo.sh"
+mini5="$(mktemp -d)"; mkdir -p "$mini5/scripts" "$mini5/tests"
+printf '#!/usr/bin/env bash\necho hi\n' > "$mini5/scripts/foo.sh"; chmod +x "$mini5/scripts/foo.sh"
 printf '#!/usr/bin/env bash\necho "ok   - a"\n' > "$mini5/tests/foo.test.sh"
 printf '#!/usr/bin/env bash\necho "SKIP - b"\necho "ok   - c"\n' > "$mini5/tests/skippy.test.sh"
 # The README claims 2. This run measures 2, so the count itself is honest; the rows below bend
@@ -104,7 +104,7 @@ for direction in high low; do
     low)  documented=3 ;;   # a machine that ran LESS: measured < documented
   esac
   cat > "$mini5/README.md" <<MINI5
-├── bin/   ← 1 executables
+├── scripts/   ← 1 executables
 │   └── *.test.sh   ← 2 suites, $documented assertions. 1 of the 1 programs have their own suite
 MINI5
   out="$( cd "$mini5" && bash "$CHECK" --assertions 2>&1 )"; rc=$?
@@ -119,7 +119,7 @@ done
 # The exemption is SCOPED. A claim this run measures completely is still fatal, skip or no skip,
 # because otherwise one skipped case would switch the whole document off.
 cat > "$mini5/README.md" <<'MINI5'
-├── bin/   ← 999 executables
+├── scripts/   ← 999 executables
 │   └── *.test.sh   ← 2 suites, 2 assertions. 1 of the 1 programs have their own suite
 MINI5
 out="$( cd "$mini5" && bash "$CHECK" --assertions 2>&1 )"; rc=$?
@@ -136,13 +136,13 @@ rm -rf "$mini5"
 #    it removed it for is the worst one: a suite that ERRORS now reports fewer assertions, the
 #    mismatch is excused as unverified, and the run ends GREEN on every machine that skips
 #    anything, which here is every machine. A broken instrument must never read as a clean bill.
-mini6="$(mktemp -d)"; mkdir -p "$mini6/bin" "$mini6/tests"
-printf '#!/usr/bin/env bash\necho hi\n' > "$mini6/bin/foo.sh"; chmod +x "$mini6/bin/foo.sh"
+mini6="$(mktemp -d)"; mkdir -p "$mini6/scripts" "$mini6/tests"
+printf '#!/usr/bin/env bash\necho hi\n' > "$mini6/scripts/foo.sh"; chmod +x "$mini6/scripts/foo.sh"
 printf '#!/usr/bin/env bash\necho "ok   - a"\n' > "$mini6/tests/foo.test.sh"
 printf '#!/usr/bin/env bash\necho "SKIP - b"\necho "ok   - c"\n' > "$mini6/tests/skippy.test.sh"
 printf '#!/usr/bin/env bash\necho "FAIL - d"\nexit 1\n' > "$mini6/tests/broken.test.sh"
 cat > "$mini6/README.md" <<'MINI6'
-├── bin/   ← 1 executables
+├── scripts/   ← 1 executables
 │   └── *.test.sh   ← 3 suites, 2 assertions. 1 of the 1 programs have their own suite
 MINI6
 out6="$( cd "$mini6" && bash "$CHECK" --assertions 2>&1 )"; rc6=$?
@@ -156,12 +156,12 @@ rm -rf "$mini6"
 #    still read "every countable claim matches the tree", which is the exact shape of claim this
 #    program exists to catch, printed by the program itself. A reader who scrolls to the end,
 #    which is what a summary is for, gets the opposite of what happened.
-mini7="$(mktemp -d)"; mkdir -p "$mini7/bin" "$mini7/tests"
-printf '#!/usr/bin/env bash\necho hi\n' > "$mini7/bin/foo.sh"; chmod +x "$mini7/bin/foo.sh"
+mini7="$(mktemp -d)"; mkdir -p "$mini7/scripts" "$mini7/tests"
+printf '#!/usr/bin/env bash\necho hi\n' > "$mini7/scripts/foo.sh"; chmod +x "$mini7/scripts/foo.sh"
 printf '#!/usr/bin/env bash\necho "ok   - a"\n' > "$mini7/tests/foo.test.sh"
 printf '#!/usr/bin/env bash\necho "SKIP - b"\necho "ok   - c"\n' > "$mini7/tests/skippy.test.sh"
 cat > "$mini7/README.md" <<'MINI7'
-├── bin/   ← 1 executables
+├── scripts/   ← 1 executables
 │   └── *.test.sh   ← 2 suites, 7 assertions. 1 of the 1 programs have their own suite
 MINI7
 out7="$( cd "$mini7" && bash "$CHECK" --assertions 2>&1 )"; rc7=$?
@@ -175,7 +175,7 @@ case "$last7" in *"every countable claim matches"*)
 #    becomes noise that a reader learns to skip.
 printf '#!/usr/bin/env bash\necho "ok   - b"\necho "ok   - c"\n' > "$mini7/tests/skippy.test.sh"
 cat > "$mini7/README.md" <<'MINI7'
-├── bin/   ← 1 executables
+├── scripts/   ← 1 executables
 │   └── *.test.sh   ← 2 suites, 3 assertions. 1 of the 1 programs have their own suite
 MINI7
 out8="$( cd "$mini7" && bash "$CHECK" --assertions 2>&1 )"; rc8=$?

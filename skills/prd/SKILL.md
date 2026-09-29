@@ -53,7 +53,7 @@ cycles); show first -> final score. Then `/odeo:critique`, then `/odeo:stories`.
 - Scope to a thin slice that tests the outcome; name non-goals.
 - Security pre-mortem is mandatory for sensitive features (ties to the security baseline).
 - **Write the body in the project's output language; mechanics stay English.** Before
-  writing, resolve it with `resolve-language.sh <project-dir>` (the project's
+  writing, resolve it with `"${CLAUDE_PLUGIN_ROOT}/scripts/resolve-language.sh" <project-dir>` (the project's
   `output_language` setting) and write the document BODY in that language. The whole
   frontmatter block, the filename slug and every machine-read field stay English, and
   the fixed section headings and field labels of this document's shape stay English

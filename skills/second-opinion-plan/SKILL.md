@@ -29,8 +29,8 @@ our review still governs. The shared mechanism and rules live in
 3. **Resolve the vendor and announce the model as a QUESTION**: the vendor is an
    argument (default from the protocol's matrix); state the model and let the
    human confirm, pick another, or stop.
-4. **Run the wrapper**: `second-opinion.sh plan <payload-file> [--vendor NAME]
-   [--model ID]` (on PATH through the Odeo plugin). It runs `privacy-scan.sh` before sending
+4. **Run the wrapper**: `"${CLAUDE_PLUGIN_ROOT}/scripts/second-opinion.sh" plan <payload-file> [--vendor NAME]
+   [--model ID]`. It runs `"${CLAUDE_PLUGIN_ROOT}/scripts/privacy-scan.sh"` before sending
    and stops on exit 1; a missing vendor CLI is exit 3 (it never simulates).
 5. **Compare, THE WRINKLE for plans:** `architecture-reviewer` returns advice and
    writes NO record (its verdict lives in the plan's `arch_review:` line, written
@@ -49,7 +49,7 @@ our review still governs. The shared mechanism and rules live in
 - Payload: `docs/plans/2026-07-19-sync-engine.md` + the inherited architecture note.
 - "Send the sync-engine plan to the vendor on its strongest available model? ok /
   pick / stop." The human says ok.
-- `second-opinion.sh plan docs/plans/2026-07-19-sync-engine.md`
+- `"${CLAUDE_PLUGIN_ROOT}/scripts/second-opinion.sh" plan docs/plans/2026-07-19-sync-engine.md`
 - The pre-send scan passes; the vendor returns findings; architecture-reviewer
   advises; the orchestrator records: overlap = the retry path can double-write;
   only-vendor = no backpressure when the queue fills; only-ours = a naming drift.

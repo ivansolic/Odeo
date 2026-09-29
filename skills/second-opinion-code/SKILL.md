@@ -28,9 +28,9 @@ live in `${CLAUDE_PLUGIN_ROOT}/docs/second-opinion-protocol.md` (read it; not re
 3. **Resolve the vendor and announce the model as a QUESTION**: the vendor is an
    argument (default from the protocol's matrix); state the model it will run on
    and let the human confirm, pick another, or stop.
-4. **Run the wrapper**: `second-opinion.sh code <payload-file> [--vendor NAME]
-   [--model ID] [--mode review|adversarial]` (on PATH through the Odeo plugin). It runs
-   `privacy-scan.sh` before sending and stops on exit 1; a missing vendor CLI is
+4. **Run the wrapper**: `"${CLAUDE_PLUGIN_ROOT}/scripts/second-opinion.sh" code <payload-file> [--vendor NAME]
+   [--model ID] [--mode review|adversarial]`. It runs
+   `"${CLAUDE_PLUGIN_ROOT}/scripts/privacy-scan.sh"` before sending and stops on exit 1; a missing vendor CLI is
    exit 3 (it never simulates). Use `--mode adversarial` for security-shaped reads.
 5. **OUR code-reviewer authors the comparison**: hand it the vendor's structured
    findings; it writes the second-opinion record (overlap / only-ours /
@@ -45,7 +45,7 @@ live in `${CLAUDE_PLUGIN_ROOT}/docs/second-opinion-protocol.md` (read it; not re
 - `git diff main... > /tmp/auth.diff` (the change touches login, a risky path).
 - "Send /tmp/auth.diff to the vendor on its strongest available model? ok / pick
   another / stop." The human says ok.
-- `second-opinion.sh code /tmp/auth.diff --mode adversarial`
+- `"${CLAUDE_PLUGIN_ROOT}/scripts/second-opinion.sh" code /tmp/auth.diff --mode adversarial`
 - The pre-send scan passes; the vendor returns findings; `code-reviewer` records:
   overlap = a missing rate-limit; only-vendor = a session-fixation risk we missed;
   only-ours = a naming nit. Recommendation: fix the session-fixation (verify

@@ -28,7 +28,7 @@ assert_contains() { case "$3" in *"$2"*) echo "ok: $1";; *) echo "FAIL: $1 (miss
 
 TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT
 tmpglobal="$TMP/global-CLAUDE.md"
-GUARD="$ROOT/bin/language-guard.sh"
+GUARD="$ROOT/scripts/language-guard.sh"
 FIXTURE="$ROOT/tests/fixtures/language-de-project"
 PRD="$FIXTURE/docs/prds/PRD-901-login.md"
 
@@ -37,7 +37,7 @@ PRD="$FIXTURE/docs/prds/PRD-901-login.md"
 # ---------------------------------------------------------------------------
 for code in de hr fr; do
   printf '# G\noutput_language: %s\n' "$code" > "$tmpglobal"
-  got="$(CLAUDE_GLOBAL_CONFIG="$tmpglobal" bash "$ROOT/bin/resolve-language.sh" "$ROOT" 2>&1)"
+  got="$(CLAUDE_GLOBAL_CONFIG="$tmpglobal" bash "$ROOT/scripts/resolve-language.sh" "$ROOT" 2>&1)"
   assert_eq "global '$code' loses to this repo's own override (resolve)" "en" "$got"
 done
 
@@ -46,13 +46,13 @@ done
 #    fallback coinciding. `en default` would also carry the code `en`.
 # ---------------------------------------------------------------------------
 printf '# G\noutput_language: de\n' > "$tmpglobal"
-got="$(CLAUDE_GLOBAL_CONFIG="$tmpglobal" bash "$ROOT/bin/language-status.sh" "$ROOT" 2>&1)"
+got="$(CLAUDE_GLOBAL_CONFIG="$tmpglobal" bash "$ROOT/scripts/language-status.sh" "$ROOT" 2>&1)"
 assert_eq "global 'de': scope is project, not default" "en project" "$got"
 printf '# G\noutput_language: hr\n' > "$tmpglobal"
-got="$(CLAUDE_GLOBAL_CONFIG="$tmpglobal" bash "$ROOT/bin/language-status.sh" "$ROOT" 2>&1)"
+got="$(CLAUDE_GLOBAL_CONFIG="$tmpglobal" bash "$ROOT/scripts/language-status.sh" "$ROOT" 2>&1)"
 assert_eq "global 'hr': scope is project, not default" "en project" "$got"
 printf '# G\noutput_language: fr\n' > "$tmpglobal"
-got="$(CLAUDE_GLOBAL_CONFIG="$tmpglobal" bash "$ROOT/bin/language-status.sh" "$ROOT" 2>&1)"
+got="$(CLAUDE_GLOBAL_CONFIG="$tmpglobal" bash "$ROOT/scripts/language-status.sh" "$ROOT" 2>&1)"
 assert_eq "global 'fr': scope is project, not default" "en project" "$got"
 
 # ---------------------------------------------------------------------------
@@ -63,7 +63,7 @@ assert_eq "global 'fr': scope is project, not default" "en project" "$got"
 #     this case ever prints `en default`, cases 1 and 2 are proving nothing.
 # ---------------------------------------------------------------------------
 printf '# G\noutput_language: de\n' > "$tmpglobal"
-got="$(CLAUDE_GLOBAL_CONFIG="$tmpglobal" bash "$ROOT/bin/language-status.sh" "$TMP" 2>&1)"
+got="$(CLAUDE_GLOBAL_CONFIG="$tmpglobal" bash "$ROOT/scripts/language-status.sh" "$TMP" 2>&1)"
 assert_eq "control: the temp global IS read where no project override exists" "de global" "$got"
 
 # ---------------------------------------------------------------------------
@@ -218,7 +218,7 @@ done
 assert_contains "the global baseline carries the rule" "output_language" "$(cat "$ROOT/global/CLAUDE.md")"
 assert_eq "the global baseline carries NO setting line (USR-003's one-time ask must survive)" \
   "0" "$(grep -c '^output_language:' "$ROOT/global/CLAUDE.md" | tr -d ' ')"
-bash "$ROOT/bin/skills-lint.sh" "$ROOT" >/dev/null 2>&1
+bash "$ROOT/scripts/skills-lint.sh" "$ROOT" >/dev/null 2>&1
 assert_exit "skills-lint C13 confirms the per-file wiring" 0 "$?"
 
 echo ""

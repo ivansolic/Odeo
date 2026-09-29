@@ -32,8 +32,8 @@ rules live in `${CLAUDE_PLUGIN_ROOT}/docs/second-opinion-protocol.md` (read it; 
 3. **Resolve the vendor and announce the model as a QUESTION**: the vendor is an
    argument (multimodal default from the protocol's matrix); state the model and
    let the human confirm, pick another, or stop.
-4. **Run the wrapper**: `second-opinion.sh design <payload-file> [--vendor NAME]
-   [--model ID]` (on PATH through the Odeo plugin). It runs `privacy-scan.sh` before sending
+4. **Run the wrapper**: `"${CLAUDE_PLUGIN_ROOT}/scripts/second-opinion.sh" design <payload-file> [--vendor NAME]
+   [--model ID]`. It runs `"${CLAUDE_PLUGIN_ROOT}/scripts/privacy-scan.sh"` before sending
    and stops on exit 1; a missing vendor CLI is exit 3 (it never simulates).
 5. **OUR design-reviewer authors the comparison**: hand it the vendor's structured
    findings; it writes the second-opinion record (overlap / only-ours /
@@ -47,7 +47,7 @@ rules live in `${CLAUDE_PLUGIN_ROOT}/docs/second-opinion-protocol.md` (read it; 
 - Payload: the screen's component code plus a screenshot of the rendered state.
 - "Send the checkout screen to the vendor on its strongest multimodal model? ok /
   pick / stop." The human says ok.
-- `second-opinion.sh design /tmp/checkout-bundle.md`
+- `"${CLAUDE_PLUGIN_ROOT}/scripts/second-opinion.sh" design /tmp/checkout-bundle.md`
 - The pre-send scan passes; the vendor returns findings; `design-reviewer` records:
   overlap = the primary button lacks a visible focus ring; only-vendor = the error
   state has no recovery affordance; only-ours = a spacing-scale slip. Recommendation:

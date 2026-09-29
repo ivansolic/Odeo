@@ -47,7 +47,7 @@ written down. If the PRD was revised, open the revised file in the editor
 - Name the **one assumption** that would sink it; that's where to focus.
 - Every failure mode gets a **leading signal** you could detect early.
 - **Write the body in the project's output language; mechanics stay English.** Before
-  writing, resolve it with `resolve-language.sh <project-dir>` (the project's
+  writing, resolve it with `"${CLAUDE_PLUGIN_ROOT}/scripts/resolve-language.sh" <project-dir>` (the project's
   `output_language` setting) and write the document BODY in that language. The whole
   frontmatter block, the filename slug and every machine-read field stay English, and
   the fixed section headings and field labels of this document's shape stay English

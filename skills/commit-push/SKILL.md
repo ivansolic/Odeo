@@ -24,7 +24,7 @@ Briefly summarize to the user:
 
 ## 3. Secret gate (ENFORCED, a script decides, not judgment)
 After staging (or on what's about to be staged), run the deterministic scanner:
-`secret-scan.sh` (on PATH through the Odeo plugin).
+`"${CLAUDE_PLUGIN_ROOT}/scripts/secret-scan.sh"`.
 - **Exit 0:** clean, continue.
 - **Exit 1: BLOCKED.** Show the findings verbatim. The user must remove the
   secret (env var / secrets manager) or unstage the file; if the value was real,

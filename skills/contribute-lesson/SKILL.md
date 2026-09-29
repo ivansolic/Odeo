@@ -40,8 +40,7 @@ Only for **generalizable** content (universal patterns), never project-specific.
    - Keep: the technical pattern, problem to solution, the reasoning, and a **generic** illustrative code example (not their proprietary code).
    - Result: a universal, reusable lesson with a generic example. Concrete, not vague.
 3. **Run the deterministic privacy scan (hard gate, do not skip):**
-   - Write the sanitized draft to a temp file and run `privacy-scan.sh <file>`
-     (on PATH through the Odeo plugin's `bin/`).
+   - Write the sanitized draft to a temp file and run `"${CLAUDE_PLUGIN_ROOT}/scripts/privacy-scan.sh" <file>`.
    - **Exit 0:** clean, continue.
    - **Exit 1 (BLOCK):** it found emails, secrets/tokens, local paths, IPs, or the
      user's deny-list terms. Show the findings. For each, either **redact it** or
@@ -56,7 +55,7 @@ Only for **generalizable** content (universal patterns), never project-specific.
 
 ## Safety rules (non-negotiable)
 - **Opt-in only. Never auto-send.** Always the user's explicit approval before the PR.
-- **Run `privacy-scan.sh` and clear/override every finding before the PR.** The scan is a hard gate, not advisory.
+- **Run `"${CLAUDE_PLUGIN_ROOT}/scripts/privacy-scan.sh"` and clear/override every finding before the PR.** The scan is a hard gate, not advisory.
 - **Never share private specifics** (secrets, PII, proprietary code, internal names). Share the pattern, not the project.
 - Show the exact sanitized content before submitting.
 - Only generalizable lessons; project-specific ones stay local.

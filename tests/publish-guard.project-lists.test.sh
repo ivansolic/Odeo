@@ -3,7 +3,7 @@
 # itself is installed.
 #
 # The guard used to resolve docs/internal-paths.txt and docs/public-paths.txt next to its
-# own bin/. Run from a plugin install (or an old ~/bin copy), that is the plugin's lists
+# own scripts/. Run from a plugin install (or an old ~/bin copy), that is the plugin's lists
 # (or none), so a project's pre-push hook checked the push against Odeo's classification
 # instead of its own: an internal path of that project could pass, a public one could be
 # refused. Found because tests/install-git-guards.test.sh failed only on a machine with the
@@ -27,11 +27,11 @@ TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT
 unset CLAUDE_INTERNAL_PATHS CLAUDE_PUBLIC_PATHS
 
 # The guard installed somewhere else (a plugin root) with ITS OWN lists
-tool="$TMP/plugin-root"; mkdir -p "$tool/bin" "$tool/docs"
-cp "$ROOT/bin/publish-guard.sh" "$ROOT/bin/privacy-scan.sh" "$tool/bin/"
+tool="$TMP/plugin-root"; mkdir -p "$tool/scripts" "$tool/docs"
+cp "$ROOT/scripts/publish-guard.sh" "$ROOT/scripts/privacy-scan.sh" "$tool/scripts/"
 printf 'tool-internal/\n' > "$tool/docs/internal-paths.txt"
 printf 'README.md\ntool-internal/\nsecret/\ntool-only.md\n' > "$tool/docs/public-paths.txt"
-GUARD="$tool/bin/publish-guard.sh"
+GUARD="$tool/scripts/publish-guard.sh"
 
 # A project with DIFFERENT lists
 proj="$TMP/project"; mkdir -p "$proj/docs"; git init -q "$proj"
@@ -68,14 +68,14 @@ assert_exit "--print-lists names the project's allowlist" "$(real "$proj/docs/pu
 # 3e) publish-snapshot.sh run from the plugin copy in a project with its own lists: the
 #     project's internal path is STRIPPED by the same list the guard checks, so the snapshot
 #     is produced and the internal file is not in it
-cp "$ROOT/bin/publish-snapshot.sh" "$tool/bin/"
+cp "$ROOT/scripts/publish-snapshot.sh" "$tool/scripts/"
 snapproj="$TMP/snapproj"; mkdir -p "$snapproj/docs" "$snapproj/secret"; git init -q "$snapproj"
 printf 'secret/\n' > "$snapproj/docs/internal-paths.txt"
 printf 'README.md\ndocs/internal-paths.txt\ndocs/public-paths.txt\n' > "$snapproj/docs/public-paths.txt"
 echo hello > "$snapproj/README.md"; echo plan > "$snapproj/secret/x.md"
 ( cd "$snapproj" && git add -A && git -c user.name=t -c user.email=t@example.com commit -qm c )
 snapout="$TMP/snapout"
-( cd "$snapproj" && "$tool/bin/publish-snapshot.sh" "$snapout" >/dev/null 2>&1 ); rc=$?
+( cd "$snapproj" && "$tool/scripts/publish-snapshot.sh" "$snapout" >/dev/null 2>&1 ); rc=$?
 case "$rc" in 0|3) ok "snapshot from the plugin copy succeeds in a project with its own lists ($rc)";;
   *) bad "snapshot from the plugin copy failed ($rc)";; esac
 [ -f "$snapout/README.md" ] && [ ! -e "$snapout/secret/x.md" ] && ok "the project's internal file is stripped, the public one kept" \

@@ -54,7 +54,7 @@ docs/signals/2026-07-14.md
 - Comparison is the point: always read the previous memo when one exists.
 - Offer roadmap revisit on picture-changing findings; never rewrite plans yourself.
 - **Write the body in the project's output language; mechanics stay English.** Before
-  writing, resolve it with `resolve-language.sh <project-dir>` (the project's
+  writing, resolve it with `"${CLAUDE_PLUGIN_ROOT}/scripts/resolve-language.sh" <project-dir>` (the project's
   `output_language` setting) and write the document BODY in that language. The whole
   frontmatter block, the filename slug and every machine-read field stay English, and
   the fixed section headings and field labels of this document's shape stay English

@@ -27,9 +27,9 @@ printf '# old\n## Security Baseline (non-negotiable, applies to ALL code)\noutpu
 printf '# active\noutput_language: de\n' > "$CFG/CLAUDE.md"
 run() { env -u CLAUDE_GLOBAL_CONFIG HOME="$H" CLAUDE_CONFIG_DIR="$CFG" "$@"; }
 
-assert_eq "resolve-language reads the config dir" "de" "$(run "$ROOT/bin/resolve-language.sh" "$P" 2>/dev/null)"
-assert_eq "language-status reads the config dir" "de global" "$(run "$ROOT/bin/language-status.sh" "$P" 2>/dev/null)"
-run "$ROOT/bin/set-global-language.sh" hr --overwrite >/dev/null 2>&1
+assert_eq "resolve-language reads the config dir" "de" "$(run "$ROOT/scripts/resolve-language.sh" "$P" 2>/dev/null)"
+assert_eq "language-status reads the config dir" "de global" "$(run "$ROOT/scripts/language-status.sh" "$P" 2>/dev/null)"
+run "$ROOT/scripts/set-global-language.sh" hr --overwrite >/dev/null 2>&1
 assert_eq "set-global-language writes the config dir" "output_language: hr" "$(grep '^output_language:' "$CFG/CLAUDE.md")"
 assert_eq "set-global-language leaves ~/.claude alone" "output_language: fr" "$(grep '^output_language:' "$H/.claude/CLAUDE.md")"
 # the baseline hook: the ACTIVE global has no baseline heading, so the baseline is delivered
@@ -38,18 +38,18 @@ case "$out" in *"Odeo global baseline"*) ok "hook checks the active global for t
   *) bad "hook stayed silent because ~/.claude/CLAUDE.md has the heading";; esac
 # prose-language-check resolves through the same default (English prose vs expected hr)
 doc="$P/doc.md"; printf '# T\n\nThe team will review the plan and the user will see the result of the work in the app.\n' > "$doc"
-out="$(run "$ROOT/bin/prose-language-check.sh" "$P" "$doc" 2>&1)"
+out="$(run "$ROOT/scripts/prose-language-check.sh" "$P" "$doc" 2>&1)"
 case "$out" in *"expected=hr "*) ok "prose-language-check expects the config dir's language";;
   *) bad "prose-language-check did not use the config dir (${out:0:80})";; esac
 
 # the overwrite is an atomic rename beside the target: mode kept, no temp file left
 m="$TMP/mode.md"; printf '# G\noutput_language: en\n' > "$m"; chmod 644 "$m"   # not 600: mktemp itself creates 600, which would mask a lost mode
-CLAUDE_GLOBAL_CONFIG="$m" "$ROOT/bin/set-global-language.sh" de --overwrite >/dev/null 2>&1
+CLAUDE_GLOBAL_CONFIG="$m" "$ROOT/scripts/set-global-language.sh" de --overwrite >/dev/null 2>&1
 assert_eq "overwrite keeps the file mode" "644" "$(stat -f %Lp "$m" 2>/dev/null || stat -c %a "$m")"
 assert_eq "overwrite leaves no temp file" "0" "$(ls "$TMP" | grep -c '^mode\.md\.')"
 assert_eq "overwrite applied" "output_language: de" "$(grep '^output_language:' "$m")"
 
 # without CLAUDE_CONFIG_DIR, ~/.claude/CLAUDE.md is still the default
-assert_eq "no config dir -> ~/.claude" "fr" "$(env -u CLAUDE_GLOBAL_CONFIG -u CLAUDE_CONFIG_DIR HOME="$H" "$ROOT/bin/resolve-language.sh" "$P" 2>/dev/null)"
+assert_eq "no config dir -> ~/.claude" "fr" "$(env -u CLAUDE_GLOBAL_CONFIG -u CLAUDE_CONFIG_DIR HOME="$H" "$ROOT/scripts/resolve-language.sh" "$P" 2>/dev/null)"
 
 [ "$fail" -eq 0 ] && echo "ALL PASS" || { echo "SOME FAILED"; exit 1; }

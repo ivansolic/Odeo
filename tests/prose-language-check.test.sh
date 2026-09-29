@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Tests for bin/prose-language-check.sh, the SOFT prose-language check (USR-006).
+# Tests for scripts/prose-language-check.sh, the SOFT prose-language check (USR-006).
 #
 # THREE FILE-WIDE INVARIANTS. Each exists because a case would otherwise pass for the
 # wrong reason, and the third one is what makes every "red alone" mutation claim in the
@@ -30,7 +30,7 @@
 # distinct, so H followed by K is not a lost group.
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-SCRIPT="$ROOT/bin/prose-language-check.sh"
+SCRIPT="$ROOT/scripts/prose-language-check.sh"
 fail=0
 assert_eq()       { if [ "$2" = "$3" ]; then echo "ok: $1"; else echo "FAIL: $1 (expected '$2', got '$3')"; fail=1; fi; }
 assert_exit()     { if [ "$2" = "$3" ]; then echo "ok: $1"; else echo "FAIL: $1 (expected exit $2, got $3)"; fail=1; fi; }
@@ -411,7 +411,7 @@ assert_eq "AC and it is detected as en" "en" "$(field "$o" detected)"
 
 # The new fixtures must keep USR-001's [E] machine-surface gate green.
 for nf in "$P904" "$P905"; do
-  g_out="$(bash "$ROOT/bin/language-guard.sh" "$nf" 2>&1)"; g_rc=$?
+  g_out="$(bash "$ROOT/scripts/language-guard.sh" "$nf" 2>&1)"; g_rc=$?
   assert_exit "AC language-guard passes $(basename "$nf")" 0 "$g_rc"
   assert_contains "AC language-guard reports clean for $(basename "$nf")" "machine surfaces clean" "$g_out"
 done

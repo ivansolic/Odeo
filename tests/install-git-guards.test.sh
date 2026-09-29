@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
-# Tests for bin/install-git-guards.sh: the installed pre-push hook, PUSH CONTRACT A.
+# Tests for scripts/install-git-guards.sh: the installed pre-push hook, PUSH CONTRACT A.
 set -uo pipefail
-INSTALLER="$(cd "$(dirname "$0")/.." && pwd)/bin/install-git-guards.sh"
-GUARD="$(cd "$(dirname "$0")/.." && pwd)/bin/publish-guard.sh"
+INSTALLER="$(cd "$(dirname "$0")/.." && pwd)/scripts/install-git-guards.sh"
 fail=0
 assert_exit() { if [ "$2" = "$3" ]; then echo "ok: $1"; else echo "FAIL: $1 (expected exit $2, got $3)"; fail=1; fi; }
 assert_contains() { case "$3" in *"$2"*) echo "ok: $1";; *) echo "FAIL: $1 (missing '$2')"; fail=1;; esac; }
@@ -25,8 +24,7 @@ export CLAUDE_INTERNAL_PATHS="$deny"
 # applies to it; a plain project without that file is covered at the end.
 mkdir -p "$repo/docs"; cp "$deny" "$repo/docs/internal-paths.txt"
 
-# Make the guard findable from the repo (the hook looks for bin/publish-guard.sh).
-mkdir -p "$repo/bin"; cp "$GUARD" "$repo/bin/publish-guard.sh"; chmod +x "$repo/bin/publish-guard.sh"
+# The hook finds the guard next to the installer it was written by (ODEO_BIN_AT_INSTALL).
 
 # Install the hooks into the repo under test.
 ( cd "$repo" && bash "$INSTALLER" ) >/dev/null 2>&1
