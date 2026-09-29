@@ -27,6 +27,9 @@
 #   M15 ~/bin shims not checked                         -> 1 FAIL (case 4e, shim)
 #   M16 root passed with awk -v instead of ENVIRON       -> 1 FAIL (case 1a)
 #   M17 outdated = "no scripts/ glob" instead of "no ODEO_HOOKS_VERSION=2" -> 1 FAIL (case 4e, 0.3.0 hook)
+#   M18 a current hook's find check dropped            -> 1 FAIL (case 4e, moved clone)
+#   M19 exact version match instead of a number        -> 2 FAIL (case 4e, newer version)
+#   M20 baked values used without the plain-path filter -> 1 FAIL (case 4e, space in path)
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 HOOK="$ROOT/hooks/odeo-context.sh"
@@ -191,6 +194,22 @@ assert_contains "found from a subdirectory of the project" "install-git-guards.s
 # marker: it is outdated too
 printf '#!/usr/bin/env bash\nodeo_tool() {\n  c="$(command -v "$1")"\n  ls -1td "$HOME"/.claude/plugins/cache/*/odeo/*/scripts\n}\n' > "$gr/.git/hooks/pre-commit"
 assert_contains "a 0.3.0 hook (PATH first, no marker) -> refresh nudge" "install-git-guards.sh" "$(ctx "$(legacy "$ch" "$gr")")"
+# a CURRENT hook that can no longer find its program (the clone it was installed from moved,
+# no plugin cache) is outdated too: its version marker alone would read as fine
+mv_src="$TMP/moved-clone"; mkdir -p "$mv_src"; cp "$ROOT/scripts/install-git-guards.sh" "$mv_src/"
+gm="$TMP/guarded-moved"; git init -q "$gm"
+( cd "$gm" && HOME="$ch" bash "$mv_src/install-git-guards.sh" >/dev/null ); rm -rf "$mv_src"
+assert_contains "a current hook that finds nothing -> refresh nudge" "install-git-guards.sh" "$(ctx "$(legacy "$ch" "$gm")")"
+# an install directory %q had to quote (a space) is not a plain path: it is not second-
+# guessed (the hook itself finds it; reading it back would mean unquoting shell syntax)
+sp_src="$TMP/clone with space"; mkdir -p "$sp_src"; cp "$ROOT/scripts/install-git-guards.sh" "$sp_src/"
+gs="$TMP/guarded-space"; git init -q "$gs"
+( cd "$gs" && HOME="$ch" bash "$sp_src/install-git-guards.sh" >/dev/null )
+assert_empty "an install path that is not plain -> silent, no false alarm" "$(legacy "$ch" "$gs")"
+# a NEWER hook version is not called older (the nudge would offer a downgrade)
+sed 's/^ODEO_HOOKS_VERSION=2$/ODEO_HOOKS_VERSION=3/' "$gr/.git/hooks/pre-push" > "$TMP/v3" && cp "$TMP/v3" "$gr/.git/hooks/pre-commit"
+cp "$TMP/v3" "$gr/.git/hooks/pre-push"
+assert_empty "a newer hook version -> silent" "$(legacy "$ch" "$gr")"
 printf '#!/bin/sh\necho my own hook\n' > "$gr/.git/hooks/pre-commit"
 assert_empty "a hook that is not Odeo's -> silent" "$(legacy "$ch" "$gr")"
 sh="$TMP/shim-home"; mkdir -p "$sh/bin"

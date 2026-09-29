@@ -33,6 +33,7 @@ assert_eq() { if [ "$2" = "$3" ]; then ok "$1"; else bad "$1 (expected '$2', got
 assert_contains() { case "$3" in *"$2"*) ok "$1";; *) bad "$1 (missing '$2')";; esac; }
 
 TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT
+unset CLAUDE_CONFIG_DIR   # a real config dir with a cached Odeo would answer instead of the fixtures
 export GIT_AUTHOR_NAME=test GIT_AUTHOR_EMAIL=test@example.com
 export GIT_COMMITTER_NAME=test GIT_COMMITTER_EMAIL=test@example.com
 CLEAN_PATH="$(dirname "$(command -v git)"):/usr/bin:/bin"

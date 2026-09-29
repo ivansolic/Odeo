@@ -163,19 +163,53 @@ Odeo: an old install.sh installation is still in this home directory (~/.claude/
 EOF
 }
 
+# hook_version <hook>: the hook's ODEO_HOOKS_VERSION as a number, 0 when it has none
+hook_version() {
+  local v
+  v="$(sed -n 's/^ODEO_HOOKS_VERSION=\([0-9][0-9]*\)$/\1/p' "$1" | head -1)"
+  printf '%s' "${v:-0}"
+}
+
+# hook_value <hook> <NAME>: the value of a NAME=... line the installer baked in, printed
+# only when it is a plain path (%q leaves those unquoted); nothing otherwise. The hook is
+# READ, never run: core.hooksPath can point at a directory the project itself ships.
+hook_value() {
+  sed -n "s|^$2=||p" "$1" | head -1 | grep -xE '[A-Za-z0-9_./@+:~-]+'
+}
+
+# hook_finds <hook> <program>: whether that hook's odeo_tool would find <program>, checked
+# the same way it looks (cache scripts/ then bin/, then the install directory). A baked
+# value that is not a plain path counts as found: better silent than a false alarm.
+hook_finds() {
+  local bin cfg c
+  bin="$(hook_value "$1" ODEO_BIN_AT_INSTALL)" && cfg="$(hook_value "$1" ODEO_CONFIG_AT_INSTALL)" || return 0
+  for c in "$bin/$2" \
+           "${CLAUDE_CONFIG_DIR:-$HOME/.claude}"/plugins/cache/*/odeo/*/{scripts,bin}/"$2" \
+           "$cfg"/plugins/cache/*/odeo/*/{scripts,bin}/"$2" \
+           "$HOME"/.claude/plugins/cache/*/odeo/*/{scripts,bin}/"$2"; do
+    [ -x "$c" ] && return 0
+  done
+  return 1
+}
+
 # outdated_guards: prints one line per outdated Odeo git guard: the current repo's Odeo
-# hooks (they define odeo_tool) that lack the current ODEO_HOOKS_VERSION line (0.2.x
-# searched only bin/, 0.3.0 still looked up PATH first), and the ~/bin shims
+# hooks (they define odeo_tool) below ODEO_HOOKS_VERSION 2 (0.2.x searched only bin/,
+# 0.3.0 still looked up PATH first) or that can no longer find their program (the clone
+# they were installed from moved, the cache version was swept), and the ~/bin shims
 # (odeo-migrate-legacy.sh writes them, marker on line 2) that search only bin/. Nothing
 # when all are current.
 outdated_guards() {
-  local hooks f
+  local hooks f n
   # --git-path honours core.hooksPath and worktrees; it prints a path relative to the repo
   if hooks="$(cd "${CLAUDE_PROJECT_DIR:-$PWD}" 2>/dev/null && f="$(git rev-parse --git-path hooks 2>/dev/null)" \
               && cd "$f" 2>/dev/null && pwd)"; then
     for f in pre-commit pre-push; do
-      [ -f "$hooks/$f" ] && grep -q '^odeo_tool()' "$hooks/$f" \
-        && ! grep -qx 'ODEO_HOOKS_VERSION=2' "$hooks/$f" && echo "hook:$f"
+      [ -f "$hooks/$f" ] && grep -q '^odeo_tool()' "$hooks/$f" || continue
+      if [ "$(hook_version "$hooks/$f")" -lt 2 ]; then echo "hook:$f"
+      else
+        case "$f" in pre-commit) n=secret-scan.sh ;; *) n=publish-guard.sh ;; esac
+        hook_finds "$hooks/$f" "$n" || echo "hook:$f"
+      fi
     done
   fi
   for f in secret-scan.sh publish-guard.sh; do

@@ -158,10 +158,10 @@ git commit --allow-empty -m "chore: initial commit" -q
 git branch -M main
 
 echo "  → installing git guards (no direct push to main; secret scan on commit)"
+# Only the installer shipped next to this script, never one from PATH, where the user's
+# environment can hold a script of the same name.
 if [[ -x "$SCRIPT_DIR/install-git-guards.sh" ]]; then
   "$SCRIPT_DIR/install-git-guards.sh" >/dev/null
-elif command -v install-git-guards.sh >/dev/null 2>&1; then
-  install-git-guards.sh >/dev/null
 else
   echo "    ! install-git-guards.sh not found, hooks skipped (run it later)"
 fi

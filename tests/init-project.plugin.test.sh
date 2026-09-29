@@ -6,6 +6,7 @@
 # Observed failing (2026-09-23), each mutant checked to differ from the original:
 #   M1 templates default back to $HOME/.claude-templates   -> 4 FAIL (cases 1, 2, 4)
 #   M2 guard installer looked up in $HOME/bin, not beside   -> 2 FAIL (case 2)
+# Observed failing (2026-09-29): M3 the PATH fallback for the installer restored -> 2 FAIL (case 6)
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 fail=0
@@ -75,5 +76,16 @@ for name in "my-app" "App_2" "api.v2"; do
     bash "$plugin/scripts/init-project.sh" "$name" --no-ui </dev/null >/dev/null 2>&1 ); rc=$?
   assert_exit "accepts name '$name'" 0 "$rc"
 done
+
+# 6) an install-git-guards.sh on PATH is never taken for the plugin's own: with the sibling
+#    missing, the scaffold says the hooks were skipped instead of running a foreign script
+rm -f "$plugin/scripts/install-git-guards.sh"
+fp="$TMP/foreign-path"; mkdir -p "$fp"
+printf '#!/usr/bin/env bash\ntouch "%s/foreign-ran"\n' "$TMP" > "$fp/install-git-guards.sh"; chmod +x "$fp/install-git-guards.sh"
+run="$TMP/run6"; mkdir -p "$run"
+out="$(cd "$run" && env -u CLAUDE_TEMPLATES_DIR HOME="$home" PATH="$fp:$CLEAN_PATH" \
+  bash "$plugin/scripts/init-project.sh" app --no-ui </dev/null 2>&1)"
+[ ! -e "$TMP/foreign-ran" ] && ok "a PATH install-git-guards.sh is not run" || bad "a PATH install-git-guards.sh ran"
+assert_contains "the skipped hooks are announced" "hooks skipped" "$out"
 
 [ "$fail" -eq 0 ] && echo "ALL PASS" || { echo "SOME FAILED"; exit 1; }

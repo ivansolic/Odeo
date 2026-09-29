@@ -38,12 +38,15 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # path relative to the repo: both can hold a script of the same name that the user or the
 # project put there (direnv PATH_add, node_modules/.bin, "." in PATH, a project's own
 # scripts/), which would stand in for Odeo's gate and silence the missing-gate warning.
-# ODEO_HOOKS_VERSION marks this layout; the session-start hook names older Odeo hooks. Each cache is searched as scripts/ first and bin/
+# ODEO_HOOKS_VERSION marks this layout; the session-start hook names older Odeo hooks.
+# Each cache is searched as scripts/ first and bin/
 # second: bin/ is the 0.2.x layout, kept only so a hook written now still works against an
 # old cached version (so after a downgrade to 0.2.x, a newer cached scripts/ still wins).
 # Limit: with CLAUDE_CODE_SUBPROCESS_ENV_SCRUB set, CLAUDE_CONFIG_DIR may not reach this
 # installer, so the baked config dir falls back to ~/.claude; the install-time directory
-# still works until an update sweeps that version.
+# still works until an update sweeps that version. The same miss happens when a plugin
+# loaded in place from a clone is moved: the hook then warns (pre-commit) or refuses
+# (pre-push, contract A), and the session-start nudge names the hook for a refresh.
 hook_preamble() {
   echo '#!/usr/bin/env bash'
   echo 'ODEO_HOOKS_VERSION=2'
