@@ -133,9 +133,14 @@ Security Baseline heading, yours is used and nothing is duplicated.
 > **Updates:** third-party marketplaces do not auto-update by default. Turn it on once:
 > `/plugin` → **Marketplaces** → **odeo** → **Enable auto-update**. Or update by hand with
 > `/plugin marketplace update odeo` and `/plugin update odeo@odeo`.
+>
+> **Updating from 0.2.x:** the programs moved from `bin/` to `scripts/`. Git guards in
+> projects set up before 0.3.0 (and the `~/bin` shims below) still look in `bin/` and keep
+> working through forwarding wrappers until the next release removes them. Odeo names the
+> refresh command once per session in such a project and runs it only after you say yes.
 
-> **Coming from the old `install.sh` setup?** Ask Claude to run `odeo-migrate-legacy.sh`
-> (a dry run), then `odeo-migrate-legacy.sh --apply`. It moves the old copies aside into
+> **Coming from the old `install.sh` setup?** Ask Claude to run the plugin's
+> `scripts/odeo-migrate-legacy.sh` (a dry run), then the same with `--apply`. It moves the old copies aside into
 > `~/.claude/odeo-legacy-<date>/`, deletes nothing, and never touches your own
 > `~/.claude/CLAUDE.md`. Projects you created before the plugin keep their secret scan:
 > `~/bin/secret-scan.sh` becomes a small shim that runs the plugin's copy (and blocks if the

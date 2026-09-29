@@ -4,8 +4,8 @@
 # programs are NOT on PATH. Lookup order under test: PATH, then the newest version in
 # ~/.claude/plugins/cache/*/odeo/*/scripts (an update leaves the old version there for a
 # grace period), then the same caches' bin/ (the Odeo 0.2.x layout), then the directory
-# the hooks were installed from (a plugin loaded in place from a clone), then the repo's
-# own scripts/. Case 9 runs a hook written by the 0.2.x installer (bin/ lookups only)
+# the hooks were installed from (a plugin loaded in place from a clone), and never a path
+# relative to the repo (case 10: a project's own script is not Odeo's gate). Case 9 runs a hook written by the 0.2.x installer (bin/ lookups only)
 # against a current-layout cache, which reaches the program through the bin/ wrapper.
 #
 # Observed failing (2026-09-23), each mutant checked to differ from the original:
@@ -19,6 +19,8 @@
 #   M5 no scripts/ glob in the cache lookup -> 5 FAIL (cases 1, 2, 3, 4, 7)
 #   M6 no bin/ glob in the cache lookup     -> 1 FAIL (case 8)
 #   M7 bin/ wrapper does not forward        -> 2 FAIL (case 9)
+#   M8 repo-relative scripts/ and bin/ fallback restored (the 0.3.0 review's finding)
+#                                           -> 4 FAIL (case 10)
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 fail=0
@@ -164,5 +166,23 @@ assert_eq "old hook reaches scripts/ through the bin/ wrapper" "secret-scan.sh c
 stub "$v9/scripts" current-layout 1
 rc9="$( cd "$r9" && echo x >> f && git add f && HOME="$H9" PATH="$CLEAN_PATH" git commit -q -m c >/dev/null 2>&1; echo $? )"
 [ "$rc9" != 0 ] && ok "old hook: a blocking scan still blocks through the wrapper" || bad "old hook committed through a blocking scan"
+
+# 10) a project's OWN scripts/ or bin/ is never taken for Odeo's: with Odeo nowhere to be
+#     found, a project script named secret-scan.sh must not stand in as the secret gate (it
+#     would silence the warning and gate nothing); the hook warns instead
+H10="$TMP/home10"; mkdir -p "$H10"
+inst10="$TMP/inst10"; mkdir -p "$inst10"; cp "$ROOT/scripts/install-git-guards.sh" "$inst10/"
+for d in scripts bin; do
+  r10="$TMP/r10-$d"; git init -q "$r10" && git -C "$r10" commit -q --allow-empty -m init
+  stub "$r10/$d" "project-own-$d" 0
+  ( cd "$r10" && HOME="$H10" PATH="$CLEAN_PATH" bash "$inst10/install-git-guards.sh" >/dev/null )
+done
+rm -rf "$inst10"
+for d in scripts bin; do
+  r10="$TMP/r10-$d"; : > "$LOG"
+  ( cd "$r10" && echo x >> f && git add f && HOME="$H10" PATH="$CLEAN_PATH" git commit -q -m c >/dev/null 2>"$TMP/err10" )
+  assert_eq "a project's own $d/secret-scan.sh is not run as the gate" "" "$(cat "$LOG")"
+  assert_contains "the missing gate is still announced ($d/)" "WITHOUT the secret gate" "$(cat "$TMP/err10")"
+done
 
 [ "$fail" -eq 0 ] && echo "ALL PASS" || { echo "SOME FAILED"; exit 1; }

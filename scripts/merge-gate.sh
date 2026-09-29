@@ -316,9 +316,10 @@ if [[ "$rec_time" -lt "$last_code" ]]; then
 fi
 
 # 4. Boundaries (if the checker and a map exist)
-checker="$(command -v boundary-check.sh || true)"
-[[ -z "$checker" && -x "scripts/boundary-check.sh" ]] && checker="scripts/boundary-check.sh"
-[[ -z "$checker" && -x "$(dirname "${BASH_SOURCE[0]}")/boundary-check.sh" ]] && checker="$(dirname "${BASH_SOURCE[0]}")/boundary-check.sh"
+# The checker shipped next to this gate first, never one relative to the project: a
+# project's own scripts/boundary-check.sh would otherwise decide its own boundaries.
+checker="$(dirname "${BASH_SOURCE[0]}")/boundary-check.sh"
+[[ -x "$checker" ]] || checker="$(command -v boundary-check.sh || true)"
 if [[ -n "$checker" ]]; then
   if ! "$checker" "$BASE_REF"; then
     echo "merge-gate: REFUSED, do-not-touch boundary violated (see above)." >&2

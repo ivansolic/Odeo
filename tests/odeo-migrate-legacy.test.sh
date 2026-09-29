@@ -23,6 +23,8 @@
 #      listing, 550 bytes, instead of the pushed paths, and passed an internal path)
 #   M10 no refresh of outdated shims         -> 2 FAIL (case 15)
 #   M11 refresh overwrites without a copy    -> 1 FAIL (case 15, nothing is ever deleted)
+# Observed failing (2026-09-29), after the move to scripts/:
+#   M12 bin/publish-guard.sh wrapper exits 0 without forwarding -> 2 FAIL (case 16)
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SCRIPT="$ROOT/scripts/odeo-migrate-legacy.sh"
@@ -223,6 +225,47 @@ kept="$(grep -rl '^exec true$' "$H"/.claude/odeo-legacy-*/bin/secret-scan.sh 2>/
 [ -n "$kept" ] && ok "the replaced shim is kept in a legacy folder" || bad "the replaced shim was overwritten without a copy"
 out="$(HOME="$H" "$SCRIPT" --apply 2>&1)"
 assert_contains "a current shim is not refreshed again" "nothing to migrate" "$out"
+
+# 16) THE COMPATIBILITY PROMISE for shims: a ~/bin shim written by 0.2.2 (it only knows
+#     */odeo/*/bin), verbatim except the two baked paths, keeps its guard once the cache holds
+#     only a current-layout version (programs in scripts/, forwarding wrappers in bin/): the
+#     caller's stdin and the exit code pass through. With bin/ gone (the next release) it
+#     BLOCKS, which is the outcome the session-start nudge warns about. HOME is the fake home
+#     and CLAUDE_CONFIG_DIR is unset, so no real cache can answer instead.
+H16="$TMP/h16"; mkdir -p "$H16/bin"; v16="$H16/.claude/plugins/cache/odeo/odeo/0.3.0"
+mkdir -p "$v16/scripts" "$v16/bin"
+printf '#!/usr/bin/env bash\nwc -c | tr -d " "\nexit 5\n' > "$v16/scripts/publish-guard.sh"; chmod +x "$v16/scripts/publish-guard.sh"
+cp "$ROOT/bin/publish-guard.sh" "$v16/bin/"
+{ printf '#!/usr/bin/env bash\n'
+  printf '# odeo-migrate-legacy shim: a pre-plugin project'"'"'s git hook calls ~/bin/publish-guard.sh; this runs the\n'
+  printf '# newest Odeo plugin copy instead. Delete this file if you no longer use those projects.\n'
+  printf 'fallback=%q\nconfig_at_migration=%q\n' "$TMP/swept/bin" "$H16/.claude"
+  cat <<'OLDSHIM'
+name="$(basename "$0")"
+# run_if <path>: execs a candidate with the CALLER's stdin (publish-guard.sh reads the pushed
+# paths there) and never this shim itself (that would loop forever). fd 3 carries the cache
+# listing and is closed first: exec'ing inside a loop that reads the listing on stdin once
+# handed the guard the rest of the listing, so it checked 0 files and passed.
+run_if() { [ -x "$1" ] && ! [ "$1" -ef "$0" ] && exec "$1" "${@:2}" 3<&-; return 0; }
+while IFS= read -r d <&3; do
+  run_if "$d/$name" "$@"
+done 3< <(ls -1td "${CLAUDE_CONFIG_DIR:-$HOME/.claude}"/plugins/cache/*/odeo/*/bin \
+                "$config_at_migration"/plugins/cache/*/odeo/*/bin \
+                "$HOME"/.claude/plugins/cache/*/odeo/*/bin 2>/dev/null)
+run_if "$fallback/$name" "$@"
+echo "$name: the Odeo plugin was not found, so this guard cannot run and BLOCKS." >&2
+echo "Reinstall the Odeo plugin, or delete ~/bin/$name if you no longer need it." >&2
+exit 1
+OLDSHIM
+} > "$H16/bin/publish-guard.sh"; chmod +x "$H16/bin/publish-guard.sh"
+# not through bounded(): it backgrounds the command, and a background job's stdin is
+# /dev/null, which would read as a shim that swallowed the input
+got="$(unset CLAUDE_CONFIG_DIR; printf 'a\0b\0c' | HOME="$H16" "$H16/bin/publish-guard.sh" - 2>/dev/null)"; rc=$?
+assert_exit "0.2.2 shim reaches scripts/ through the bin/ wrapper with stdin intact" 5 "$got"
+assert_exit "0.2.2 shim passes the guard's exit code through" 5 "$rc"
+rm -rf "$v16/bin"
+( unset CLAUDE_CONFIG_DIR; printf 'a\0b\0c' | HOME="$H16" bounded "$H16/bin/publish-guard.sh" - >/dev/null 2>&1 ); rc=$?
+assert_exit "0.2.2 shim with bin/ gone blocks" 1 "$rc"
 
 # 6) unknown flag -> usage, exit 2, nothing moved
 H="$TMP/h6"; make_home "$H"; before="$(find "$H" | sort)"

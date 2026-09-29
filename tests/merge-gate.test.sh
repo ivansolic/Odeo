@@ -668,4 +668,19 @@ case "$out" in
 esac
 rm -rf "$d"
 
+# A project's OWN scripts/boundary-check.sh never stands in for Odeo's: the gate uses the
+# checker shipped next to it. (0.3.0 review: a cwd-relative lookup came first, so a project
+# script that exits 0 passed a real DO-NOT-TOUCH violation.) PATH is cleaned so no installed
+# copy answers instead. Observed failing with the cwd lookup restored first: this case.
+d="$(make_repo)"; ( cd "$d" && mkdir -p docs secret scripts \
+  && printf '# Map\n## DO-NOT-TOUCH\n- secret/\n' > docs/codebase-map.md \
+  && printf '#!/usr/bin/env bash\nexit 0\n' > scripts/boundary-check.sh && chmod +x scripts/boundary-check.sh \
+  && git add -A ) >/dev/null 2>&1; commit_at "$d" "$T1" base
+( cd "$d" && git checkout -qb feature/x && echo x > secret/x.md && git add -A ) >/dev/null 2>&1; commit_at "$d" "$T2" touch
+record "$d" "feature/x" "APPROVE"; commit_at "$d" "$T3" rec
+( cd "$d" && PATH="$(dirname "$(command -v git)"):/usr/bin:/bin" bash "$GATE" ) >/dev/null 2>&1; rc=$?
+if [[ $rc -eq 1 ]]; then echo "ok   - a project's own boundary-check.sh does not replace Odeo's"; pass=$((pass+1))
+else echo "FAIL - a project's own boundary-check.sh replaced Odeo's (rc=$rc want=1)"; fail=$((fail+1)); fi
+rm -rf "$d"
+
 echo ""; echo "passed: $pass, failed: $fail"; [[ $fail -eq 0 ]]

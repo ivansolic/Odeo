@@ -34,9 +34,11 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # looked up: PATH, then the newest cached Odeo version (in CLAUDE_CONFIG_DIR, the config
 # dir at install time, and ~/.claude, since a user may run Claude with CLAUDE_CONFIG_DIR
 # while git runs from a shell without it), then the directory these hooks were installed
-# from (baked in; stable for a plugin loaded in place from a clone), then the repo's own
-# scripts/. Each cache is searched as scripts/ first and bin/ second: bin/ is the 0.2.x
-# layout, kept only so a hook written now still works against an old cached version.
+# from (baked in; stable for a plugin loaded in place from a clone). Never a path relative
+# to the repo: a project's own scripts/secret-scan.sh would then stand in for Odeo's gate
+# and silence the missing-gate warning. Each cache is searched as scripts/ first and bin/
+# second: bin/ is the 0.2.x layout, kept only so a hook written now still works against an
+# old cached version (so after a downgrade to 0.2.x, a newer cached scripts/ still wins).
 # Limit: with CLAUDE_CODE_SUBPROCESS_ENV_SCRUB set, CLAUDE_CONFIG_DIR may not reach this
 # installer, so the baked config dir falls back to ~/.claude; the install-time directory
 # still works until an update sweeps that version.
@@ -59,9 +61,7 @@ odeo_tool() { # odeo_tool <name>: prints the path of an Odeo script, nothing if 
            ls -1td "${CLAUDE_CONFIG_DIR:-$HOME/.claude}"/plugins/cache/*/odeo/*/bin \
                    "$ODEO_CONFIG_AT_INSTALL"/plugins/cache/*/odeo/*/bin \
                    "$HOME"/.claude/plugins/cache/*/odeo/*/bin 2>/dev/null)
-  for c in "$ODEO_BIN_AT_INSTALL" "scripts" "bin"; do
-    [ -x "$c/$name" ] && { printf '%s' "$c/$name"; return 0; }
-  done
+  [ -x "$ODEO_BIN_AT_INSTALL/$name" ] && printf '%s' "$ODEO_BIN_AT_INSTALL/$name"
   return 0
 }
 PREAMBLE

@@ -231,33 +231,49 @@ done < <(grep -n 'AGENTS\.md' "$ROOT"/skills/*/*.md "${AGENTS[@]:+${AGENTS[@]}}"
                     if (line ~ /AGENTS\.md/ && index(line, "(project + global)") == 0) print }' | cut -c1-200)
 
 # C16. Programs are named by the path a plugin install can run.
-#      The programs live in scripts/ and are not on PATH on any host but Claude Code's Bash
-#      tool (and not there either once the bin/ compatibility wrappers go), so skill and
-#      agent text names each one as ${CLAUDE_PLUGIN_ROOT}/scripts/<name>, which Claude Code
-#      substitutes with the real plugin root. A bare name reads as runnable and is not.
-#      Anywhere in the published text, bin/<program> is the 0.2.x layout and is flagged,
-#      except the ~/bin copies of the old install (~/bin/, $HOME/bin/), which are real.
+#      The programs live in scripts/ and a plugin install puts them on no PATH that lasts
+#      (the bin/ compatibility wrappers go in the next release), so a SKILL.md or an agent
+#      names each one exactly as ${CLAUDE_PLUGIN_ROOT}/scripts/<name>, which Claude Code
+#      substitutes in those bodies only. Any other form is flagged: a bare name, a relative
+#      or absolute path, another variable. A skill's supporting file is read raw, where
+#      nothing is substituted, so it names no program at all. Anywhere in the published
+#      text, bin/<program> is the 0.2.x layout and is flagged, except the ~/bin/ and
+#      $HOME/bin/ copies of the old install, which are real. A name that is part of a longer
+#      name (my-x.sh, x.sh.bak, tests/x.test.sh) is not a program reference.
+#      The check runs in perl; if perl is missing or fails, C16 fails instead of passing.
+c16_scan() { # c16_scan <mode: body|public> <files...>: prints "file:line: reason" per hit
+  PROGRAMS="$PROGRAMS" MODE="$1" perl -ne '
+    BEGIN { @n = split " ", $ENV{PROGRAMS}; $re = join "|", map { quotemeta } @n; $re = "(?!)" unless @n }
+    my $support = ($ENV{MODE} eq "body" && $ARGV =~ m{/skills/[^/]+/} && $ARGV !~ m{/SKILL\.md$});
+    while (/($re)(?![\w\-]|\.\w)/g) {
+      my $n = $1; my $pre = substr($_, 0, $-[1]);
+      next if $pre =~ /[\w.\-]$/;    # part of a longer name; ./x ends in "/" and stays a hit
+      if ($ENV{MODE} eq "public") {
+        next unless $pre =~ /(^|[^\w.\-])(\S*)bin\/$/;
+        my $lead = $2;
+        next if $lead =~ /(^|[^\w])(~|\$HOME|\$\{HOME\})\/$/ || $lead =~ /^(~|\$HOME|\$\{HOME\})\/$/;
+        print "$ARGV:$.: bin/$n (the programs are in scripts/; bin/ is the 0.2.x layout)\n"; last;
+      }
+      if ($support) { print "$ARGV:$.: $n named in a supporting file (read raw; name programs in SKILL.md)\n"; last }
+      next if $pre =~ /\$\{CLAUDE_PLUGIN_ROOT\}\/scripts\/$/;
+      next if $pre =~ /(~|\$HOME|\$\{HOME\})\/bin\/$/;
+      print "$ARGV:$.: $n not named as \${CLAUDE_PLUGIN_ROOT}/scripts/$n\n"; last;
+    }
+    close ARGV if eof' "${@:2}" /dev/null
+}
 PROGRAMS="$(ls "$ROOT"/scripts 2>/dev/null | tr '\n' ' ')"
-if [[ -n "$PROGRAMS" ]]; then
-  while IFS= read -r hit; do
-    [ -n "$hit" ] && viol C16 "$hit (name it \${CLAUDE_PLUGIN_ROOT}/scripts/<name>)"
-  done < <(PROGRAMS="$PROGRAMS" perl -ne '
-      BEGIN { $re = join "|", map { quotemeta } split " ", $ENV{PROGRAMS} }
-      while (/(?:(\$\{CLAUDE_PLUGIN_ROOT\}\/scripts\/)|(?<![\w\/.\-]))($re)(?![\w\-]|\.\w)/g) {
-        next if defined $1;
-        print "$ARGV:$.: bare program name $2\n"; last;
-      }
-      close ARGV if eof' "$ROOT"/skills/*/*.md "${AGENTS[@]:+${AGENTS[@]}}" /dev/null 2>/dev/null | cut -c1-200)
-  while IFS= read -r hit; do
-    [ -n "$hit" ] && viol C16 "$hit (the programs are in scripts/; bin/ is the 0.2.x layout)"
-  done < <(PROGRAMS="$PROGRAMS" perl -ne '
-      BEGIN { $re = join "|", map { quotemeta } split " ", $ENV{PROGRAMS} }
-      while (/(^|[^\w.\-])(\S*?)bin\/($re)(?![\w\-]|\.\w)/g) {
-        my ($pre, $n) = ($2, $3);
-        next if $pre =~ /(^|[^\w])(~|\$HOME|\$\{HOME\}|HOME)\/$/;
-        print "$ARGV:$.: bin/$n\n"; last;
-      }
-      close ARGV if eof' "${PUBLIC_TEXT[@]:+${PUBLIC_TEXT[@]}}" /dev/null 2>/dev/null | cut -c1-200)
+if ! command -v perl >/dev/null 2>&1; then
+  viol C16 "perl not found; the program-name check cannot run"
+else
+  for mode in body public; do
+    if [[ $mode == body ]]; then files=("$ROOT"/skills/*/*.md "${AGENTS[@]:+${AGENTS[@]}}")
+    else files=("${PUBLIC_TEXT[@]:+${PUBLIC_TEXT[@]}}"); fi
+    hits="$(c16_scan "$mode" "${files[@]}" 2>&1)"; rc=$?
+    if [[ $rc -ne 0 ]]; then viol C16 "the program-name check failed to run (perl exit $rc): $(printf '%s' "$hits" | head -c 200)"; continue; fi
+    while IFS= read -r hit; do
+      [[ -n "$hit" ]] && viol C16 "$(printf '%s' "$hit" | cut -c1-240)"
+    done <<< "$hits"
+  done
 fi
 
 # C9. Every SKILL.md declares a non-empty description

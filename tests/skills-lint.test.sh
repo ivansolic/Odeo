@@ -235,12 +235,16 @@ check "C15 flags a bare citation in a skill's rubric.md" 1 "$d"; rm -rf "$d"
 d="$(clean_root)"; printf -- 'Write a PRD with /pm-execution:create-prd.\n' > "$d/BEGINNERS-GUIDE.md"
 check "C8 flags a third-party plugin in a public doc" 1 "$d"; rm -rf "$d"
 
-# C16: programs live in scripts/ and are not on PATH, so skills and agents name them by the
-# plugin-root path; bin/<program> anywhere public is the 0.2.x layout. Observed failing
-# (2026-09-29), each mutant checked to differ: MA the skill/agent pass never reports -> the
-# three bare-name cases (skill, supporting file, agent); MB the bin/ pass never reports ->
-# the README and script-comment cases; MC the ~/bin exemption dropped -> the home-copy case
-# and the real repo; MD the right-hand boundary dropped -> the longer-name case.
+# C16: programs live in scripts/ and are not on PATH, so a SKILL.md or an agent names them
+# exactly as ${CLAUDE_PLUGIN_ROOT}/scripts/<name>; a supporting file (read raw) names none;
+# bin/<program> anywhere public is the 0.2.x layout. Observed failing (2026-09-29, round 2
+# after the review), each mutant checked to differ: MA the body pass never reports -> the
+# bare-name and four path-form cases; MB the bin/ pass never reports -> the README and
+# script-comment cases; MC the ~/bin exemption dropped -> the home-copy case and the real
+# repo; MD the right-hand boundary dropped -> the longer-name case; ME the supporting-file
+# rule dropped -> the supporting-file case; MF any path accepted as the prefix -> the four
+# path-form cases; MG perl's exit status ignored -> the broken-perl case; MH a leading dot
+# read as a boundary -> the longer-name case.
 d="$(clean_root)"; mkskill "$d" gamma "disable-model-invocation: true\n" "Explicit." 'Run `privacy-scan.sh <file>` first.'
 check "C16 flags a bare program name in a skill" 1 "$d"; rm -rf "$d"
 d="$(clean_root)"; mkskill "$d" gamma "disable-model-invocation: true\n" "Explicit." 'Run `${CLAUDE_PLUGIN_ROOT}/scripts/privacy-scan.sh <file>` first.'
@@ -254,8 +258,8 @@ d="$(clean_root)"; agent16 "$d" 'Then run ${CLAUDE_PLUGIN_ROOT}/scripts/privacy-
 check "C16 control: the agent fixture with the path passes" 0 "$d"; rm -rf "$d"
 d="$(clean_root)"; agent16 "$d" 'Then run privacy-scan.sh.'
 check "C16 flags a bare program name in an agent" 1 "$d"; rm -rf "$d"
-d="$(clean_root)"; mkskill "$d" gamma "disable-model-invocation: true\n" "Explicit." 'Evidence: `tests/privacy-scan.test.sh`; unrelated: `my-privacy-scan.sh` and `privacy-scan.sh.bak`.'
-touch "$d/my-privacy-scan.sh"; mkdir -p "$d/tests"; touch "$d/tests/privacy-scan.test.sh"
+d="$(clean_root)"; mkskill "$d" gamma "disable-model-invocation: true\n" "Explicit." 'Evidence: `tests/privacy-scan.test.sh`; unrelated: `my-privacy-scan.sh`, `old.privacy-scan.sh` and `privacy-scan.sh.bak`.'
+touch "$d/my-privacy-scan.sh" "$d/old.privacy-scan.sh"; mkdir -p "$d/tests"; touch "$d/tests/privacy-scan.test.sh"
 check "C16 leaves test files and longer names alone" 0 "$d"; rm -rf "$d"
 d="$(clean_root)"; printf -- 'Publish via bin/privacy-scan.sh.\n' > "$d/README.md"
 check "C16 flags the 0.2.x bin/ path in the README" 1 "$d"; rm -rf "$d"
@@ -263,6 +267,20 @@ d="$(clean_root)"; printf -- '#!/usr/bin/env bash\n# see bin/privacy-scan.sh\n' 
 check "C16 flags the 0.2.x bin/ path in a script comment" 1 "$d"; rm -rf "$d"
 d="$(clean_root)"; printf -- 'The shim at ~/bin/privacy-scan.sh and $HOME/bin/privacy-scan.sh stays.\n' > "$d/README.md"
 check "C16 leaves the ~/bin copies of the old install alone" 0 "$d"; rm -rf "$d"
+# Path forms that point at nothing in a plugin install: only the exact plugin-root prefix counts
+for form in 'scripts/privacy-scan.sh' './privacy-scan.sh' '$ROOT/scripts/privacy-scan.sh' '/opt/odeo/scripts/privacy-scan.sh'; do
+  d="$(clean_root)"; mkskill "$d" gamma "disable-model-invocation: true\n" "Explicit." "Run \`$form <file>\` first."
+  check "C16 flags the path form $form in a skill" 1 "$d"; rm -rf "$d"
+done
+# A supporting file is read raw (no substitution), so it names no program at all
+d="$(clean_root)"; printf -- 'Run ${CLAUDE_PLUGIN_ROOT}/scripts/privacy-scan.sh before sending.\n' > "$d/skills/alpha/rubric.md"
+check "C16 flags a program named in a supporting file even in the plugin-root form" 1 "$d"; rm -rf "$d"
+# C16 must never pass because its own instrument broke: with perl unusable it fails loudly
+d="$(clean_root)"; fake="$(mktemp -d)"; printf '#!/bin/sh\nexit 127\n' > "$fake/perl"; chmod +x "$fake/perl"
+( PATH="$fake:$PATH" bash "$LINT" "$d" ) >/dev/null 2>&1; rc=$?
+if [[ $rc -eq 1 ]]; then echo "ok   - C16 fails when perl cannot run"; pass=$((pass+1))
+else echo "FAIL - C16 passed with a broken perl (rc=$rc want=1)"; fail=$((fail+1)); fi
+rm -rf "$d" "$fake"
 
 # FINAL: the real repo must pass its own lint
 check "the actual repo passes its own invariants" 0 "$TEST_DIR/.."

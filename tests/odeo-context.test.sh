@@ -25,6 +25,7 @@
 #   M13 no ${CLAUDE_PLUGIN_ROOT} substitution           -> 5 FAIL (cases 1, 4, 4b)
 #   M14 any hook counts as Odeo's                       -> 1 FAIL (case 4e, foreign hook)
 #   M15 ~/bin shims not checked                         -> 1 FAIL (case 4e, shim)
+#   M16 root passed with awk -v instead of ENVIRON       -> 1 FAIL (case 1a)
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 HOOK="$ROOT/hooks/odeo-context.sh"
@@ -90,6 +91,13 @@ grep -qF "$ROOT/scripts/resolve-language.sh" "$rejoined" && ok "the baseline nam
   || bad "the baseline does not name $ROOT/scripts/resolve-language.sh"
 if cmp -s "$expected" "$rejoined"; then ok "parts rejoin to exactly the whole file"
 else bad "parts do not rejoin to the whole file"; diff "$expected" "$rejoined" | head -5; fi
+# 1a) a root whose path holds a backslash sequence is placed literally (awk -v would turn
+#     \t into a tab; the 0.3.0 review measured it)
+odd="$TMP/odd\\troot"; mkdir -p "$odd/hooks" "$odd/global"; cp "$HOOK" "$odd/hooks/"
+printf 'run ${CLAUDE_PLUGIN_ROOT}/scripts/x.sh\n' > "$odd/global/CLAUDE.md"
+c="$(ctx "$(CLAUDE_GLOBAL_CONFIG="$TMP/absent.md" "$odd/hooks/odeo-context.sh" baseline 1 SessionStart)")"
+case "$c" in *"$odd/scripts/x.sh"*) ok "a backslash in the root path stays literal";;
+  *) bad "the root path was altered on the way into the context";; esac
 # 1b) the install-era header comment is not delivered
 first="$(ctx "$(CLAUDE_GLOBAL_CONFIG="$TMP/absent.md" "$HOOK" baseline 1 SessionStart)")"
 assert_absent "install-era header comment stripped" "copy it to ~/.claude/CLAUDE.md" "$first"

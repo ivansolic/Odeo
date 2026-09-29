@@ -118,9 +118,11 @@ print_part() {
 }
 
 # with_root: copies stdin to stdout with every literal ${CLAUDE_PLUGIN_ROOT} replaced by
-# this plugin's root (index-based, so no character in the path is special to it)
+# this plugin's root. The root comes in through ENVIRON, not -v (which turns \t in a path
+# into a tab), and is placed by index, so no character in the path is special.
 with_root() {
-  awk -v root="$ROOT" '{
+  ODEO_ROOT="$ROOT" awk '{
+    root = ENVIRON["ODEO_ROOT"]
     out = ""; line = $0; tok = "${CLAUDE_PLUGIN_ROOT}"
     while ((i = index(line, tok)) > 0) {
       out = out substr(line, 1, i - 1) root; line = substr(line, i + length(tok))
@@ -183,7 +185,7 @@ outdated_guards() {
 }
 
 guards_nudge() { # guards_nudge <outdated_guards output>
-  printf '%s' "Odeo: some git guards were written by an older Odeo and look for its programs only in bin/, which a later release removes; after that the secret scan they run would be skipped. Tell the user once and offer to refresh them, only after they say yes:"
+  printf '%s' "Odeo: some git guards were written by an older Odeo and look for its programs only in bin/, which a later release removes. After that, an old git hook commits WITHOUT its secret scan (it only warns), and an old ~/bin shim blocks every commit and push of the projects that call it. Tell the user once and offer to refresh them, only after they say yes:"
   case "$1" in *hook:*)
     printf ' in this repository run `"%s/scripts/install-git-guards.sh"` (it rewrites .git/hooks/pre-commit and pre-push);' "$ROOT" ;; esac
   case "$1" in *shim:*)

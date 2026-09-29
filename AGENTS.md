@@ -209,8 +209,10 @@ holds it, layered with verifiers and the human gate. Skills and agents REFERENCE
 these rules; they do not restate them. A rule that is not written here (or in the
 baseline above) does not exist.
 The programs named below (`merge-gate.sh`, `privacy-scan.sh` and the rest) ship in the
-plugin's `scripts/` directory and are not on PATH: run them as
-`"${CLAUDE_PLUGIN_ROOT}/scripts/<name>"`, as the skills do.
+`scripts/` directory next to this file: the plugin root is the directory that holds this
+AGENTS.md. Run them by that absolute path. Skills and agents write it as
+`${CLAUDE_PLUGIN_ROOT}/scripts/<name>`, which Claude Code fills in when it loads them; the
+variable is NOT set in the shell, so never type it into a command yourself.
 
 ### 1. Human floor (irreversible or outward = a human decides)
 - [E] No direct push to main/master (pre-push hook, `install-git-guards.sh`). One exception:
