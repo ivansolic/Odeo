@@ -30,6 +30,7 @@
 #   M18 a current hook's find check dropped            -> 1 FAIL (case 4e, moved clone)
 #   M19 exact version match instead of a number        -> 2 FAIL (case 4e, newer version)
 #   M20 baked values used without the plain-path filter -> 1 FAIL (case 4e, space in path)
+#   M21 recorded config root dropped from hook_finds (the round-3 bug) -> 1 FAIL (case 4e, config X)
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 HOOK="$ROOT/hooks/odeo-context.sh"
@@ -207,6 +208,17 @@ sp_src="$TMP/clone with space"; mkdir -p "$sp_src"; cp "$ROOT/scripts/install-gi
 gs="$TMP/guarded-space"; git init -q "$gs"
 ( cd "$gs" && HOME="$ch" bash "$sp_src/install-git-guards.sh" >/dev/null )
 assert_empty "an install path that is not plain -> silent, no false alarm" "$(legacy "$ch" "$gs")"
+# the config dir RECORDED at install time is searched too: hooks installed with
+# CLAUDE_CONFIG_DIR=X from X's cache, that version swept for a newer one in X, and the
+# session-start hook run without the variable still finds X's cache (no false alarm)
+X="$TMP/config-x"; xc="$X/plugins/cache/odeo/odeo"; mkdir -p "$xc/0.3.1/scripts"
+cp "$ROOT/scripts/install-git-guards.sh" "$xc/0.3.1/scripts/"
+gx="$TMP/guarded-x"; git init -q "$gx"
+( cd "$gx" && HOME="$ch" CLAUDE_CONFIG_DIR="$X" bash "$xc/0.3.1/scripts/install-git-guards.sh" >/dev/null )
+rm -rf "$xc/0.3.1"; mkdir -p "$xc/0.3.2/scripts"
+printf '#!/bin/sh\nexit 0\n' > "$xc/0.3.2/scripts/secret-scan.sh"; cp "$xc/0.3.2/scripts/secret-scan.sh" "$xc/0.3.2/scripts/publish-guard.sh"
+chmod +x "$xc/0.3.2/scripts/"*.sh
+assert_empty "a hook that finds its program in the recorded config dir -> silent" "$(legacy "$ch" "$gx")"
 # a NEWER hook version is not called older (the nudge would offer a downgrade)
 sed 's/^ODEO_HOOKS_VERSION=2$/ODEO_HOOKS_VERSION=3/' "$gr/.git/hooks/pre-push" > "$TMP/v3" && cp "$TMP/v3" "$gr/.git/hooks/pre-commit"
 cp "$TMP/v3" "$gr/.git/hooks/pre-push"

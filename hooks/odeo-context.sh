@@ -183,14 +183,18 @@ hook_value() {
 # plain path, that value could not be judged, so it counts as found: better silent than a
 # false alarm.
 hook_finds() {
-  local bin cfg c unknown=0
+  local bin cfg r c unknown=0
   bin="$(hook_value "$1" ODEO_BIN_AT_INSTALL)" || unknown=1
   cfg="$(hook_value "$1" ODEO_CONFIG_AT_INSTALL)" || unknown=1
-  for c in ${bin:+"$bin/$2"} \
-           "${CLAUDE_CONFIG_DIR:-$HOME/.claude}"/plugins/cache/*/odeo/*/{scripts,bin}/"$2" \
-           ${cfg:+"$cfg"/plugins/cache/*/odeo/*/{scripts,bin}/"$2"} \
-           "$HOME"/.claude/plugins/cache/*/odeo/*/{scripts,bin}/"$2"; do
-    [ -x "$c" ] && return 0
+  [ -n "$bin" ] && [ -x "$bin/$2" ] && return 0
+  # the roots are listed first and globbed per root: a brace list inside ${cfg:+...} is not
+  # expanded (the } closes the parameter), which once skipped the recorded config dir
+  local roots=("${CLAUDE_CONFIG_DIR:-$HOME/.claude}" "$HOME/.claude")
+  [ -n "$cfg" ] && roots+=("$cfg")
+  for r in "${roots[@]}"; do
+    for c in "$r"/plugins/cache/*/odeo/*/scripts/"$2" "$r"/plugins/cache/*/odeo/*/bin/"$2"; do
+      [ -x "$c" ] && return 0
+    done
   done
   [ "$unknown" = 1 ]
 }
