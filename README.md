@@ -50,12 +50,19 @@ PMs and builders who want to ship real software with Claude Code and don't want 
 
 Odeo is a Claude Code plugin. Nothing to clone, nothing to copy into your home folder.
 
-**Claude Code (terminal) and the Claude desktop app (Code tab):**
+**Claude Code (terminal):**
 
 ```
 /plugin marketplace add ivansolic/Odeo
 /plugin install odeo@odeo
 ```
+
+**Claude desktop app:** use the **Code** tab. Add the marketplace once in a terminal
+(`claude plugin marketplace add ivansolic/Odeo`), then in a local Code session choose
+**+ → Plugins → Add plugin → odeo**. The terminal and the desktop app share the same plugins,
+so a plugin installed in one is there in the other. **Customize → Plugins → Add marketplace**
+does not work for Odeo: that path syncs through claude.ai (and Cowork), and claude.ai does not
+install a plugin that ships a top-level `bin/` folder, which is where Odeo's guards live.
 
 When the plugin is enabled, Claude Code asks once which language Odeo writes your
 documents in (English, Deutsch, Hrvatski, Français). Code, filenames and commits always
@@ -72,8 +79,9 @@ Then start a project:
 Requires Claude Code 2.1.271 or later. The guards are bash scripts, so on Windows run Claude
 Code inside WSL or Git Bash; that path is **not yet verified** end to end.
 
-**Other agents** (Codex CLI and app, Antigravity, claude.ai): not yet. Each needs its own
-plugin manifest and a verified port of the hooks, and none ships until it is tested.
+**Other agents** (Codex CLI and app, Antigravity, claude.ai and Cowork): not yet. Each needs
+its own plugin manifest and a verified port of the hooks, and none ships until it is tested;
+claude.ai and Cowork additionally reject a plugin with a top-level `bin/` folder.
 
 **Coming from the old `install.sh` setup?** Its copies in your home folder would load
 every skill twice. After installing the plugin, ask Claude to run
