@@ -10,8 +10,8 @@ The vendor's findings INFORM; they never rule. OUR matching reviewer keeps its
 verdict, and the `merge-gate` reads only OUR reviewer's record. A second opinion
 can change what a human decides; it cannot change a gate.
 
-## The mechanism: `bin/second-opinion.sh`
-The ONLY sanctioned path to a vendor (on PATH through the Odeo plugin). It runs the vendor
+## The mechanism: `scripts/second-opinion.sh`
+The ONLY sanctioned path to a vendor (`${CLAUDE_PLUGIN_ROOT}/scripts/second-opinion.sh`). It runs the vendor
 CLI non-interactively and READ-ONLY over one payload file, and it:
 - refuses to send until `privacy-scan.sh` passes over the payload (fail-closed);
 - never simulates: a missing or broken vendor CLI stops the run (exit 3);
@@ -88,6 +88,6 @@ resumes cleanly after a reset.
 
 ## Vendor is an argument, never a name
 No `codex-*` / `gemini-*` skill or command family exists (lint C10). Per-vendor CLI
-differences live only inside `bin/second-opinion.sh`. Vendor names are legal only
+differences live only inside `scripts/second-opinion.sh`. Vendor names are legal only
 in records (`vendor_model:`) and spoken at send time, never in a file or command
 name.

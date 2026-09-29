@@ -208,6 +208,11 @@ Every rule below is tagged: **[E] enforced**, a mechanism physically stops it
 holds it, layered with verifiers and the human gate. Skills and agents REFERENCE
 these rules; they do not restate them. A rule that is not written here (or in the
 baseline above) does not exist.
+The programs named below (`merge-gate.sh`, `privacy-scan.sh` and the rest) ship in the
+`scripts/` directory next to this file: the plugin root is the directory that holds this
+AGENTS.md. Run them by that absolute path. Skills and agents write it as
+`${CLAUDE_PLUGIN_ROOT}/scripts/<name>`, which Claude Code fills in when it loads them; the
+variable is NOT set in the shell, so never type it into a command yourself.
 
 ### 1. Human floor (irreversible or outward = a human decides)
 - [E] No direct push to main/master (pre-push hook, `install-git-guards.sh`). One exception:
@@ -415,7 +420,7 @@ baseline above) does not exist.
 - [I] **Localized:** PRD, story, memo, plan and research BODIES, review findings, nudges,
   chat. Never retro-translated, and the questions that ESTABLISH the setting are English
   by construction, since no setting exists yet when they are asked.
-- [E] **`bin/language-guard.sh` refuses** non-ASCII or non-slug filenames, directory names,
+- [E] **`language-guard.sh` refuses** non-ASCII or non-slug filenames, directory names,
   frontmatter field names, branch names and commit scopes; a `model_tier` outside
   `fast strong strongest`; ANY non-ASCII frontmatter value; a commit type outside the eight
   allowlisted. It is STANDALONE, so invoking it is part of the work.

@@ -50,12 +50,22 @@ PMs and builders who want to ship real software with Claude Code and don't want 
 
 Odeo is a Claude Code plugin. Nothing to clone, nothing to copy into your home folder.
 
-**Claude Code (terminal) and the Claude desktop app (Code tab):**
+**Claude Code (terminal):**
 
 ```
 /plugin marketplace add ivansolic/Odeo
 /plugin install odeo@odeo
 ```
+
+**Claude desktop app:** use the **Code** tab. Add the marketplace once in a terminal
+(`claude plugin marketplace add ivansolic/Odeo`), then in a local Code session choose
+**+ → Plugins → Add plugin → odeo** and pick **your user account** as the scope. At user scope
+the terminal and the desktop app's local sessions share it, so it is installed in both (a
+project or local-only scope stays in that one folder). **Customize → Plugins → Add marketplace**
+does not work for Odeo yet: that path syncs through claude.ai (and Cowork), and claude.ai does
+not install a plugin that ships a top-level `bin/` folder. Odeo's programs now live in
+`scripts/`; `bin/` only holds forwarding wrappers for git guards written by older versions,
+and it goes in the next release.
 
 When the plugin is enabled, Claude Code asks once which language Odeo writes your
 documents in (English, Deutsch, Hrvatski, Français). Code, filenames and commits always
@@ -72,13 +82,15 @@ Then start a project:
 Requires Claude Code 2.1.271 or later. The guards are bash scripts, so on Windows run Claude
 Code inside WSL or Git Bash; that path is **not yet verified** end to end.
 
-**Other agents** (Codex CLI and app, Antigravity, claude.ai): not yet. Each needs its own
-plugin manifest and a verified port of the hooks, and none ships until it is tested.
+**Other agents** (Codex CLI and app, Antigravity, claude.ai and Cowork): not yet. Each needs
+its own plugin manifest and a verified port of the hooks, and none ships until it is tested;
+claude.ai and Cowork additionally reject a plugin with a top-level `bin/` folder, which Odeo
+drops in the next release.
 
 **Coming from the old `install.sh` setup?** Its copies in your home folder would load
-every skill twice. After installing the plugin, ask Claude to run
-`odeo-migrate-legacy.sh` (a dry run that lists what would move), then
-`odeo-migrate-legacy.sh --apply`. It moves the copies aside into
+every skill twice. After installing the plugin, ask Claude to run the plugin's
+`scripts/odeo-migrate-legacy.sh` (a dry run that lists what would move), then the same
+with `--apply`. It moves the copies aside into
 `~/.claude/odeo-legacy-<date>/` and deletes nothing. Odeo also reminds you once per
 session while they are still there.
 
@@ -99,9 +111,16 @@ What updates: every skill, agent, guard script, and the global baseline (it is d
 by the plugin at session start, not copied into your files). What never changes on an
 update: your own `~/.claude/CLAUDE.md`, your projects, and your language setting.
 
+**Updating from 0.2.x:** the programs moved from `bin/` to `scripts/`. The git guards in
+projects set up before 0.3.0 (and the `~/bin` shims of an old `install.sh` setup) still
+look in `bin/`, and they keep working through forwarding wrappers until the next release
+removes them. Refresh them once: in each such project Odeo names the command at session
+start (it rewrites `.git/hooks/pre-commit` and `pre-push`), and it only runs it after you
+say yes.
+
 **For maintainers:** users receive a new version only when `version` in
 `.claude-plugin/plugin.json` goes up, so bump it with every release, then publish through
-`bin/publish-snapshot.sh` (the only sanctioned path to the public repo).
+`scripts/publish-snapshot.sh` (the only sanctioned path to the public repo).
 
 **Working on Odeo itself:** clone the repo and run `claude --plugin-dir .` inside it. The
 plugin loads straight from your clone, so edits apply on the next session or
@@ -177,7 +196,7 @@ Odeo/
 │   ├── pm-reviewer.md        ← scores PM documents against rubrics
 │   ├── skill-reviewer.md     ← scores skills against the authoring standard
 │   └── agent-reviewer.md     ← scores agent definitions against the agent rubric (docs/agent-rubric.md)
-├── bin/                      ← 26 executables: deterministic guards + scaffolding
+├── scripts/                  ← 26 executables: deterministic guards + scaffolding
 │   ├── init-project.sh       ← scaffolds the project-specific parts of a new project
 │   ├── community-sync.sh     ← clones or refreshes the community knowledge mirror
 │   ├── odeo-migrate-legacy.sh ← moves an old install.sh install aside (never deletes)
@@ -207,6 +226,8 @@ Odeo/
 │   ├── second-opinion.sh     ← the sanctioned path for a paid cross-model review
 │   ├── ledger-backup.sh      ← backs up todo.md + lessons.md, which git deliberately ignores
 │   └── session-end-check.sh  ← advisory end-of-session sweep (incl. a stale ledger backup)
+├── bin/                      ← one forwarding wrapper per program, for git guards written by
+│                               Odeo 0.2.x (removed in the next release)
 ├── project-templates/        ← project-specific scaffolding only (not the tools)
 │   ├── CLAUDE.md             ← per-project config incl. a Security & Data section
 │   ├── knowledge/            ← README for the project knowledge base
@@ -217,7 +238,7 @@ Odeo/
 ├── global/
 │   └── CLAUDE.md             ← user-global baseline, delivered at session start by the plugin
 ├── tests/
-│   └── *.test.sh             ← 38 suites, 1295 assertions. 26 of the 26 programs have their
+│   └── *.test.sh             ← 39 suites, 1339 assertions. 26 of the 26 programs have their
 │                               own suite; the remaining suites are cross-cutting rather than
 │                               per-program. The number counts the `ok` lines one full run
 │                               reports, so it moves with the machine: a skipped case takes its

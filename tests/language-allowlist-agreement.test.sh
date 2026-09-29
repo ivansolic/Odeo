@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Invariant: every copy of the output-language allowlist agrees.
 #
-# The code set `en de hr fr` is a literal in bin/{resolve-language,set-global-language,
+# The code set `en de hr fr` is a literal in scripts/{resolve-language,set-global-language,
 # set-project-language,language-status}.sh, a `case` arm in bin/init-project.sh, and the
 # userConfig options in .claude-plugin/plugin.json. This test is the ONLY mechanical
 # defense against those six
@@ -19,7 +19,7 @@
 # false confidence.
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-BIN="$ROOT/bin"
+BIN="$ROOT/scripts"
 fail=0
 assert_eq() { if [ "$2" = "$3" ]; then echo "ok: $1"; else echo "FAIL: $1 (expected '$2', got '$3')"; fail=1; fi; }
 assert_true() { if eval "$2"; then echo "ok: $1"; else echo "FAIL: $1"; fail=1; fi; }

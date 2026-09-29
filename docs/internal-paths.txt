@@ -6,8 +6,8 @@
 #   - lines starting with "#" and blank lines are ignored
 #
 # These paths are internal build evidence and local config; they NEVER reach the
-# public repo. bin/publish-snapshot.sh strips them from the published tree and
-# bin/publish-guard.sh refuses any push or snapshot that still contains them.
+# public repo. scripts/publish-snapshot.sh strips them from the published tree and
+# scripts/publish-guard.sh refuses any push or snapshot that still contains them.
 # The complementary docs/public-paths.txt is the KEEP-PUBLIC allowlist: any
 # committed path in NEITHER list is unclassified and blocks the publish until a
 # human classifies it (fail-closed).

@@ -35,7 +35,7 @@ You are a senior staff engineer performing code review. You are skeptical, thoro
    - **Check the shipped code against the plan's CONTRACT**, the canonical binding
      list in `${CLAUDE_PLUGIN_ROOT}/docs/plan-format.md` (signatures, paths, behavior rules, invariants,
      named mechanisms, test cases, verify commands; boundaries are covered by
-     `boundary-check.sh`). Plans carry contracts, not implementations, so there is no
+     `"${CLAUDE_PLUGIN_ROOT}/scripts/boundary-check.sh"`). Plans carry contracts, not implementations, so there is no
      plan code to compare against. An invariant the plan states and the code does not
      hold is a finding EVEN WHEN EVERY TEST PASSES; an implementation that differs
      from a snippet labelled `illustrative-not-contract:` is NOT a finding.

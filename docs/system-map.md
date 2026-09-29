@@ -130,7 +130,7 @@ Recurring loops are reminded via nudges (max one, easy to decline); you always r
 | `codebase-analyst` | Maps an existing codebase (read-only). |
 Plus deterministic scorers (tests, `privacy-scan.sh`, and the gates below) and the human as the final gate.
 
-## Deterministic gates (in `bin/`, run directly; exit 0 = clean, exit 1 = violation, exit 2 = usage error)
+## Deterministic gates (in `scripts/`, run as `${CLAUDE_PLUGIN_ROOT}/scripts/<name>`; exit 0 = clean, exit 1 = violation, exit 2 = usage error)
 | Script | What it does |
 |---|---|
 | `coverage-check.sh` | PRD requirement coverage: every R<n> in a PRD must be claimed by a story `covers:` field. Standalone, invoked by `/odeo:build`. |
@@ -139,7 +139,7 @@ Plus deterministic scorers (tests, `privacy-scan.sh`, and the gates below) and t
 | `language-guard.sh` | No-leak gate for machine surfaces: checks that frontmatter field names and enum values, filenames, directory names, branch names, and commit type/scope are ASCII and allowlist-conforming, so enabling a non-English output language cannot corrupt project mechanics. Standalone, explicitly invoked; exit 0/1/2. |
 | `publish-guard.sh` | Publish leak gate. Refuses internal artifacts (denylist `docs/internal-paths.txt`) and, with `--require-allowlist`, any path not on the KEEP-PUBLIC allowlist `docs/public-paths.txt` (fail-closed: an unclassified committed path blocks the publish until a human classifies it). Privacy is advisory (exit 3, human reviews); denylist/allowlist are hard (exit 1). Reads paths NUL-delimited. Also runs inside the pre-push hook as the public-remote backstop. |
 
-## Utility scripts (in `bin/`, run directly)
+## Utility scripts (in `scripts/`, run as `${CLAUDE_PLUGIN_ROOT}/scripts/<name>`)
 | Script | What it does |
 |---|---|
 | `token-report.py` | Per-agent token (and optional cost) breakdown of a session transcript, so build economics are measured, not guessed. Prices passed as args, never hardcoded. |
@@ -158,7 +158,7 @@ never gates. Data leaves the machine and costs money, so a human starts every se
 | `/odeo:second-opinion-plan` | plan -> `architecture-reviewer` | Independent read of an implementation plan (the orchestrator writes the comparison, since architecture-reviewer writes no record). |
 | `/odeo:second-opinion-design` | design -> `design-reviewer` | Independent read of UI (look + code), via a multimodal vendor. |
 
-All four share `bin/second-opinion.sh` and `docs/second-opinion-protocol.md`; the
+All four share `scripts/second-opinion.sh` and `docs/second-opinion-protocol.md`; the
 vendor is always an argument, never a command name (lint C10).
 
 ## Key decision points (the /odeo:guide decision trees)

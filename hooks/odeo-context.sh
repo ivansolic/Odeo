@@ -26,6 +26,14 @@
 #       While an old install.sh install is still in the home directory (its markers:
 #       ~/.claude/odeo-docs, ~/.claude-templates, ~/bin/merge-gate.sh), points at
 #       odeo-migrate-legacy.sh, because those copies load every skill and agent twice.
+#       Also names git guards written before the programs moved to scripts/ (the current
+#       repo's pre-commit / pre-push hook, or a ~/bin shim, that searches only bin/): they
+#       keep working through the bin/ wrappers, which a later release removes, so the user
+#       is asked to refresh them once.
+#
+# Program paths: Claude Code does not substitute hook output, so every
+# ${CLAUDE_PLUGIN_ROOT} in the baseline and in the nudges below is replaced here with this
+# plugin's real root before it is printed.
 #
 # Output is the documented hookSpecificOutput JSON, or nothing. It never blocks a
 # session: every valid invocation exits 0, and a broken install is reported in the context
@@ -37,8 +45,8 @@ set -uo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BASELINE="$ROOT/global/CLAUDE.md"
-LANG_STATUS="$ROOT/bin/language-status.sh"
-SET_GLOBAL="$ROOT/bin/set-global-language.sh"
+LANG_STATUS="$ROOT/scripts/language-status.sh"
+SET_GLOBAL="$ROOT/scripts/set-global-language.sh"
 USER_GLOBAL="${CLAUDE_GLOBAL_CONFIG:-${CLAUDE_CONFIG_DIR:-$HOME/.claude}/CLAUDE.md}"
 MARKER='## Security Baseline (non-negotiable'
 BUDGET=9200    # content chars per part; the header line keeps each part under 9,500
@@ -106,7 +114,21 @@ print_part() {
       if (want > np) exit
       printf "Odeo global baseline, part %d of %d (delivered by the Odeo plugin; the user'"'"'s own ~/.claude/CLAUDE.md takes precedence where the two conflict).\n\n", want, np
       for (i = 1; i <= pc[want]; i++) print pl[want, i]
-    }' "$BASELINE"
+    }' "$BASELINE" | with_root
+}
+
+# with_root: copies stdin to stdout with every literal ${CLAUDE_PLUGIN_ROOT} replaced by
+# this plugin's root. The root comes in through ENVIRON, not -v (which turns \t in a path
+# into a tab), and is placed by index, so no character in the path is special.
+with_root() {
+  ODEO_ROOT="$ROOT" awk '{
+    root = ENVIRON["ODEO_ROOT"]
+    out = ""; line = $0; tok = "${CLAUDE_PLUGIN_ROOT}"
+    while ((i = index(line, tok)) > 0) {
+      out = out substr(line, 1, i - 1) root; line = substr(line, i + length(tok))
+    }
+    print out line
+  }'
 }
 
 # Prints the scope of the GLOBAL language setting (global | default), read through
@@ -124,27 +146,62 @@ global_language_scope() {
 global_language_code() {
   local empty code
   empty="$(mktemp -d)" || return 1
-  code="$(CLAUDE_GLOBAL_CONFIG="$USER_GLOBAL" "$ROOT/bin/resolve-language.sh" "$empty" 2>/dev/null)"
+  code="$(CLAUDE_GLOBAL_CONFIG="$USER_GLOBAL" "$ROOT/scripts/resolve-language.sh" "$empty" 2>/dev/null)"
   rmdir "$empty"
   printf '%s' "$code"
 }
 
 language_nudge() {
-  cat <<'EOF'
-Odeo output language is not set yet. Once, at the start of your first reply in this session, ask the user which language Odeo should write its documents in (PRDs, stories, plans, reviews): English, Deutsch, Hrvatski or Français. Offer them as selectable options (AskUserQuestion) where the host supports it. Then run `set-global-language.sh <en|de|hr|fr>`. If the user skips or declines, run `set-global-language.sh en` so they are not asked again. Code, comments, filenames and commit messages always stay English. They can change it any time with /odeo:language.
+  with_root <<'EOF'
+Odeo output language is not set yet. Once, at the start of your first reply in this session, ask the user which language Odeo should write its documents in (PRDs, stories, plans, reviews): English, Deutsch, Hrvatski or Français. Offer them as selectable options (AskUserQuestion) where the host supports it. Then run `"${CLAUDE_PLUGIN_ROOT}/scripts/set-global-language.sh" <en|de|hr|fr>`. If the user skips or declines, run `"${CLAUDE_PLUGIN_ROOT}/scripts/set-global-language.sh" en` so they are not asked again. Code, comments, filenames and commit messages always stay English. They can change it any time with /odeo:language.
 EOF
 }
 
 legacy_nudge() {
-  cat <<'EOF'
-Odeo: an old install.sh installation is still in this home directory (~/.claude/odeo-docs, ~/.claude-templates or ~/bin/merge-gate.sh), so Odeo's skills and agents load twice, once from the plugin and once from those copies. If their ~/.claude/CLAUDE.md is the old install.sh copy of the baseline, it also no longer updates; the plugin delivers the current one only when that file lacks the Security Baseline heading. Tell the user once, and offer to run `odeo-migrate-legacy.sh` (a dry run that lists what would move), then `odeo-migrate-legacy.sh --apply` only after they say yes. It moves the copies aside into ~/.claude/odeo-legacy-<timestamp>/ and deletes nothing.
+  with_root <<'EOF'
+Odeo: an old install.sh installation is still in this home directory (~/.claude/odeo-docs, ~/.claude-templates or ~/bin/merge-gate.sh), so Odeo's skills and agents load twice, once from the plugin and once from those copies. If their ~/.claude/CLAUDE.md is the old install.sh copy of the baseline, it also no longer updates; the plugin delivers the current one only when that file lacks the Security Baseline heading. Tell the user once, and offer to run `"${CLAUDE_PLUGIN_ROOT}/scripts/odeo-migrate-legacy.sh"` (a dry run that lists what would move), then the same with `--apply` only after they say yes. It moves the copies aside into ~/.claude/odeo-legacy-<timestamp>/ and deletes nothing.
 EOF
 }
 
-run_legacy() {
-  if [ -e "$HOME/.claude/odeo-docs" ] || [ -e "$HOME/.claude-templates" ] || [ -e "$HOME/bin/merge-gate.sh" ]; then
-    legacy_nudge | emit_json SessionStart
+# outdated_guards: prints one line per Odeo git guard that searches only bin/ (the Odeo
+# 0.2.x layout): the current repo's Odeo hooks (they define odeo_tool) and the ~/bin shims
+# (odeo-migrate-legacy.sh writes them, marker on line 2). Nothing when all are current.
+outdated_guards() {
+  local hooks f
+  # --git-path honours core.hooksPath and worktrees; it prints a path relative to the repo
+  if hooks="$(cd "${CLAUDE_PROJECT_DIR:-$PWD}" 2>/dev/null && f="$(git rev-parse --git-path hooks 2>/dev/null)" \
+              && cd "$f" 2>/dev/null && pwd)"; then
+    for f in pre-commit pre-push; do
+      [ -f "$hooks/$f" ] && grep -q '^odeo_tool()' "$hooks/$f" \
+        && ! grep -q 'odeo/\*/scripts' "$hooks/$f" && echo "hook:$f"
+    done
   fi
+  for f in secret-scan.sh publish-guard.sh; do
+    [ -f "$HOME/bin/$f" ] && [ ! -L "$HOME/bin/$f" ] \
+      && sed -n 2p "$HOME/bin/$f" | grep -q 'odeo-migrate-legacy shim' \
+      && ! grep -q 'odeo/\*/scripts' "$HOME/bin/$f" && echo "shim:$f"
+  done
+  return 0
+}
+
+guards_nudge() { # guards_nudge <outdated_guards output>
+  printf '%s' "Odeo: some git guards were written by an older Odeo and look for its programs only in bin/, which a later release removes. After that, an old git hook commits WITHOUT its secret scan (it only warns), and an old ~/bin shim blocks every commit and push of the projects that call it. Tell the user once and offer to refresh them, only after they say yes:"
+  case "$1" in *hook:*)
+    printf ' in this repository run `"%s/scripts/install-git-guards.sh"` (it rewrites .git/hooks/pre-commit and pre-push);' "$ROOT" ;; esac
+  case "$1" in *shim:*)
+    printf ' for the ~/bin shims run `"%s/scripts/odeo-migrate-legacy.sh" --apply` (the old shim is kept in ~/.claude/odeo-legacy-<timestamp>/);' "$ROOT" ;; esac
+  printf '\n'
+}
+
+run_legacy() {
+  local stale
+  stale="$(outdated_guards)"
+  {
+    if [ -e "$HOME/.claude/odeo-docs" ] || [ -e "$HOME/.claude-templates" ] || [ -e "$HOME/bin/merge-gate.sh" ]; then
+      legacy_nudge
+    fi
+    [ -z "$stale" ] || guards_nudge "$stale"
+  } | emit_json SessionStart
 }
 
 run_baseline() { # run_baseline <part> <event>

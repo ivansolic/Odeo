@@ -40,7 +40,7 @@ Run this **whether or not a lesson was written**: `todo.md` changes in almost ev
 and it is gitignored, so nothing else carries it.
 
 ```bash
-ledger-backup.sh              # on PATH through the Odeo plugin
+"${CLAUDE_PLUGIN_ROOT}/scripts/ledger-backup.sh"
 ```
 
 Report the result by its **exit code**, never by assumption:
@@ -82,13 +82,13 @@ Proposed lessons:
 You approve #1, decline #2 -> only #1 is written. Confirmed: 1 lesson saved.
 
 Backing up the ledger (gitignored, git does not carry it):
-  $ ledger-backup.sh
+  $ "${CLAUDE_PLUGIN_ROOT}/scripts/ledger-backup.sh"
   ledger-backup: refreshed (todo.md lessons.md -> backup/internal-files:internal-not-in-git/)
 ```
 
 And the same session where the backup does not work, which is the case this step exists for:
 ```
-  $ ledger-backup.sh
+  $ "${CLAUDE_PLUGIN_ROOT}/scripts/ledger-backup.sh"
   ledger-backup: PUSH REFUSED to backup/internal-files, so NOTHING was backed up.
   (exit 5)
 -> "Your lesson is saved in lessons.md. The backup did NOT happen: the push was refused,

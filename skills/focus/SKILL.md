@@ -7,7 +7,7 @@ disable-model-invocation: true
 
 Limit this session's edits to one directory until you lift it. It is the ephemeral
 complement to the permanent DO-NOT-TOUCH boundaries: those protect forever, `/odeo:focus`
-keeps the work on one module for now. Enforced by the `focus-check.sh` PreToolUse
+keeps the work on one module for now. Enforced by the `"${CLAUDE_PLUGIN_ROOT}/scripts/focus-check.sh"` PreToolUse
 hook (the `[E]` guardrail in ${CLAUDE_PLUGIN_ROOT}/AGENTS.md); it only ever refuses, never grants, and it
 fails open, so it can never trap you.
 
@@ -45,8 +45,8 @@ otherwise say focus is off.
 - "/odeo:focus off" clears `.claude/focus-zone`; edits are unrestricted again.
 
 ## Rules
-- The fence is enforced by `focus-check.sh` (referenced, not restated): it fails
+- The fence is enforced by `"${CLAUDE_PLUGIN_ROOT}/scripts/focus-check.sh"` (referenced, not restated): it fails
   open and only ever refuses, so it never overrides normal permissions.
 - The state file `.claude/focus-zone` is gitignored and session-scoped; `/odeo:focus
-  off` clears it, and `session-end-check.sh` warns if one is still active at
+  off` clears it, and `"${CLAUDE_PLUGIN_ROOT}/scripts/session-end-check.sh"` warns if one is still active at
   session end. It sits UNDER the permanent DO-NOT-TOUCH boundaries, never replaces them.

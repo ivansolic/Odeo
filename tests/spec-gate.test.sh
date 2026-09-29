@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Tests for bin/spec-gate.sh, the /build entry gate for spec artifacts.
+# Tests for scripts/spec-gate.sh, the /build entry gate for spec artifacts.
 # A story/PRD may enter the build only with a FRESH, PASSING eval record that
 # covers it. Run: bash tests/spec-gate.test.sh
 set -uo pipefail
@@ -10,7 +10,7 @@ set -uo pipefail
 export GIT_AUTHOR_NAME=test GIT_AUTHOR_EMAIL=test@example.com
 export GIT_COMMITTER_NAME=test GIT_COMMITTER_EMAIL=test@example.com
 TEST_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-GATE="$TEST_DIR/../bin/spec-gate.sh"
+GATE="$TEST_DIR/../scripts/spec-gate.sh"
 pass=0; fail=0
 
 T1='2026-01-01T10:00:00'; T2='2026-01-01T11:00:00'; T3='2026-01-01T12:00:00'

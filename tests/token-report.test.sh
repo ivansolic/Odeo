@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 #
-# Tests for bin/token-report.py, the per-agent token/cost reporter.
+# Tests for scripts/token-report.py, the per-agent token/cost reporter.
 # Feeds a synthetic transcript, asserts exit codes, per-agent rows, token math,
 # and that a cost column appears only when both prices are passed.
 # Run: bash tests/token-report.test.sh
 
 set -uo pipefail
 TEST_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-TOOL="$TEST_DIR/../bin/token-report.py"
+TOOL="$TEST_DIR/../scripts/token-report.py"
 pass=0
 fail=0
 

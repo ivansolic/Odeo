@@ -19,6 +19,13 @@
 #   M8 apply the dialog value every session             -> 2 FAIL (case 4c, clobbers /language)
 #   M9 no first-run keep of an existing language        -> 3 FAIL (case 4c)
 #   M10 no state on a refused write                     -> 1 FAIL (case 4d, repeats)
+# Observed failing (2026-09-29), after the move to scripts/:
+#   M11 no outdated-guard check                         -> 3 FAIL (case 4e)
+#   M12 an Odeo hook counts as outdated even with scripts/ -> 2 FAIL (case 4e)
+#   M13 no ${CLAUDE_PLUGIN_ROOT} substitution           -> 5 FAIL (cases 1, 4, 4b)
+#   M14 any hook counts as Odeo's                       -> 1 FAIL (case 4e, foreign hook)
+#   M15 ~/bin shims not checked                         -> 1 FAIL (case 4e, shim)
+#   M16 root passed with awk -v instead of ENVIRON       -> 1 FAIL (case 1a)
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 HOOK="$ROOT/hooks/odeo-context.sh"
@@ -55,7 +62,12 @@ except Exception:
 # 1) no user global: parts rejoin to EXACTLY global/CLAUDE.md minus its header comment,
 #    each part is within budget, carries the right event, and the part after the last is empty
 expected="$TMP/expected.md"
-awk 'NR==1 && /^<!--/{s=1} s{if(/-->/)s=0; next} {print}' "$ROOT/global/CLAUDE.md" > "$expected"
+# ... with every ${CLAUDE_PLUGIN_ROOT} replaced by the plugin root: hook output is not
+# substituted by Claude Code, so the hook does it (program paths in the baseline).
+awk 'NR==1 && /^<!--/{s=1} s{if(/-->/)s=0; next} {print}' "$ROOT/global/CLAUDE.md" \
+  | R="$ROOT" perl -pe 's/\$\{CLAUDE_PLUGIN_ROOT\}/$ENV{R}/g' > "$expected"
+grep -q 'CLAUDE_PLUGIN_ROOT' "$ROOT/global/CLAUDE.md" && ok "instrument: the baseline names a plugin-root path" \
+  || bad "instrument: the baseline has no \${CLAUDE_PLUGIN_ROOT} path, so the substitution below is untested"
 rejoined="$TMP/rejoined.md"; : > "$rejoined"
 n=0; over=0; wrong_event=0
 for part in 1 2 3 4 5 6; do
@@ -73,8 +85,19 @@ done
 [ "$n" -ge 2 ] && ok "baseline delivered in $n parts" || bad "expected at least 2 parts, got $n"
 [ "$over" = 0 ] && ok "every part within $BUDGET chars" || bad "a part exceeds $BUDGET chars"
 [ "$wrong_event" = 0 ] && ok "hookEventName echoes the event" || bad "wrong hookEventName"
+grep -q 'CLAUDE_PLUGIN_ROOT' "$rejoined" && bad "a literal \${CLAUDE_PLUGIN_ROOT} reached the context" \
+  || ok "no literal \${CLAUDE_PLUGIN_ROOT} reaches the context"
+grep -qF "$ROOT/scripts/resolve-language.sh" "$rejoined" && ok "the baseline names the real program path" \
+  || bad "the baseline does not name $ROOT/scripts/resolve-language.sh"
 if cmp -s "$expected" "$rejoined"; then ok "parts rejoin to exactly the whole file"
 else bad "parts do not rejoin to the whole file"; diff "$expected" "$rejoined" | head -5; fi
+# 1a) a root whose path holds a backslash sequence is placed literally (awk -v would turn
+#     \t into a tab; the 0.3.0 review measured it)
+odd="$TMP/odd\\troot"; mkdir -p "$odd/hooks" "$odd/global"; cp "$HOOK" "$odd/hooks/"
+printf 'run ${CLAUDE_PLUGIN_ROOT}/scripts/x.sh\n' > "$odd/global/CLAUDE.md"
+c="$(ctx "$(CLAUDE_GLOBAL_CONFIG="$TMP/absent.md" "$odd/hooks/odeo-context.sh" baseline 1 SessionStart)")"
+case "$c" in *"$odd/scripts/x.sh"*) ok "a backslash in the root path stays literal";;
+  *) bad "the root path was altered on the way into the context";; esac
 # 1b) the install-era header comment is not delivered
 first="$(ctx "$(CLAUDE_GLOBAL_CONFIG="$TMP/absent.md" "$HOOK" baseline 1 SessionStart)")"
 assert_absent "install-era header comment stripped" "copy it to ~/.claude/CLAUDE.md" "$first"
@@ -91,7 +114,7 @@ assert_contains "quoted marker still injects" "Global Instructions" "$(ctx "$(CL
 
 # 4) language: unset and invalid ask once, a valid global line stays silent
 assert_contains "no language -> nudge" "$NUDGE" "$(ctx "$(CLAUDE_GLOBAL_CONFIG="$TMP/absent.md" "$HOOK" language SessionStart)")"
-assert_contains "nudge names the writer" "set-global-language.sh" "$(ctx "$(CLAUDE_GLOBAL_CONFIG="$TMP/absent.md" "$HOOK" language SessionStart)")"
+assert_contains "nudge names the writer by its path" "$ROOT/scripts/set-global-language.sh" "$(ctx "$(CLAUDE_GLOBAL_CONFIG="$TMP/absent.md" "$HOOK" language SessionStart)")"
 cfg="$TMP/bad-lang.md"; printf '# Mine\noutput_language: klingon\n' > "$cfg"
 assert_contains "invalid language -> nudge" "$NUDGE" "$(ctx "$(CLAUDE_GLOBAL_CONFIG="$cfg" "$HOOK" language SessionStart)")"
 cfg="$TMP/lang.md"; printf '# Mine\noutput_language: de\n' > "$cfg"
@@ -140,13 +163,38 @@ assert_contains "names the per-project alternative" "/odeo:language de" "$out"
 assert_empty "the same refusal is not repeated next session" "$(CLAUDE_GLOBAL_CONFIG="$g" CLAUDE_PLUGIN_DATA="$d" CLAUDE_PLUGIN_OPTION_OUTPUT_LANGUAGE=de "$HOOK" language SessionStart)"
 [ -L "$g" ] && ok "symlinked global left a symlink" || bad "symlinked global was replaced"
 
-# 4b) legacy install.sh copies: a one-time pointer to the migration, silent otherwise
+# 4b) legacy install.sh copies: a one-time pointer to the migration, silent otherwise.
+#     The legacy check also reads the project's git hooks, so it runs outside any repo here.
+norepo="$TMP/no-repo"; mkdir -p "$norepo"
+legacy() { CLAUDE_PROJECT_DIR="${2:-$norepo}" GIT_CEILING_DIRECTORIES="$TMP" HOME="$1" "$HOOK" legacy SessionStart; }
 lh="$TMP/legacy-home"; mkdir -p "$lh/.claude/odeo-docs"
-assert_contains "legacy copies -> migration nudge" "odeo-migrate-legacy.sh" "$(ctx "$(HOME="$lh" "$HOOK" legacy SessionStart)")"
+assert_contains "legacy copies -> migration nudge" "$ROOT/scripts/odeo-migrate-legacy.sh" "$(ctx "$(legacy "$lh")")"
 lh="$TMP/legacy-bin"; mkdir -p "$lh/bin"; touch "$lh/bin/merge-gate.sh"
-assert_contains "legacy ~/bin script -> nudge" "odeo-migrate-legacy.sh" "$(ctx "$(HOME="$lh" "$HOOK" legacy SessionStart)")"
+assert_contains "legacy ~/bin script -> nudge" "odeo-migrate-legacy.sh" "$(ctx "$(legacy "$lh")")"
 ch="$TMP/clean-home"; mkdir -p "$ch/.claude"
-assert_empty "clean home -> silent" "$(HOME="$ch" "$HOOK" legacy SessionStart)"
+assert_empty "clean home -> silent" "$(legacy "$ch")"
+
+# 4e) git guards written before the move to scripts/ (they search only */odeo/*/bin) are
+#     named once, with the command that refreshes them; current or foreign ones are not
+gr="$TMP/guarded"; git init -q "$gr"
+( cd "$gr" && HOME="$ch" bash "$ROOT/scripts/install-git-guards.sh" >/dev/null )
+assert_empty "current hooks -> silent" "$(legacy "$ch" "$gr")"
+old_hook() { printf '#!/usr/bin/env bash\nodeo_tool() {\n  ls -1td "$HOME"/.claude/plugins/cache/*/odeo/*/bin\n}\n' > "$1"; }
+old_hook "$gr/.git/hooks/pre-commit"
+out="$(ctx "$(legacy "$ch" "$gr")")"
+assert_contains "a 0.2.x hook -> refresh nudge" "$ROOT/scripts/install-git-guards.sh" "$out"
+assert_absent "no shim advice without an old shim" "--apply" "$out"
+assert_contains "found from a subdirectory of the project" "install-git-guards.sh" \
+  "$(mkdir -p "$gr/src/deep" && ctx "$(legacy "$ch" "$gr/src/deep")")"
+printf '#!/bin/sh\necho my own hook\n' > "$gr/.git/hooks/pre-commit"
+assert_empty "a hook that is not Odeo's -> silent" "$(legacy "$ch" "$gr")"
+sh="$TMP/shim-home"; mkdir -p "$sh/bin"
+printf '#!/usr/bin/env bash\n# odeo-migrate-legacy shim: old\nls -1td "$HOME"/.claude/plugins/cache/*/odeo/*/bin\n' > "$sh/bin/secret-scan.sh"
+out="$(ctx "$(legacy "$sh")")"
+assert_contains "a 0.2.x ~/bin shim -> refresh nudge" "$ROOT/scripts/odeo-migrate-legacy.sh\" --apply" "$out"
+assert_absent "no hook advice without an old hook" "install-git-guards" "$out"
+printf '#!/usr/bin/env bash\n# odeo-migrate-legacy shim: current\nls -1td "$HOME"/.claude/plugins/cache/*/odeo/*/scripts\n' > "$sh/bin/secret-scan.sh"
+assert_empty "a current shim -> silent" "$(legacy "$sh")"
 
 # 5) broken install (no global/CLAUDE.md, no language scripts): says so, still exit 0
 fake="$TMP/fake-plugin"; mkdir -p "$fake/hooks"; cp "$HOOK" "$fake/hooks/"

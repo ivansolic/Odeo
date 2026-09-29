@@ -17,32 +17,32 @@ the same line the resolver reads; this command shows it and changes it.
 - Not for documents that already exist: the setting applies to newly generated
   prose, never retro-translates.
 - Not for code, comments, filenames, branch names, commit types, or frontmatter
-  fields. Those stay English, and `language-guard.sh` is the enforced gate for it
+  fields. Those stay English, and `"${CLAUDE_PLUGIN_ROOT}/scripts/language-guard.sh"` is the enforced gate for it
   (see ${CLAUDE_PLUGIN_ROOT}/AGENTS.md).
 - Supported codes: `en`, `de`, `hr`, `fr`. Anything else is refused by the script.
   Relay its refusal message unchanged, whatever it is; never pick a code for the user.
 
 ## Process
-The scripts are on PATH through the Odeo plugin. The project is the repo root:
+The scripts ship in the Odeo plugin's `scripts/` directory. The project is the repo root:
 `root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"`.
 
 **Show, `/odeo:language` with no argument:**
-1. Run `language-status.sh "$root"`. It prints one line, `<code> <scope>`, where
+1. Run `"${CLAUDE_PLUGIN_ROOT}/scripts/language-status.sh" "$root"`. It prints one line, `<code> <scope>`, where
    scope is `project`, `global`, or `default` (the built-in English fallback).
 2. Report it plainly: name the language and where it comes from, for example
    "German (de), set for this project", "Croatian (hr), inherited from your global
    default", or "English (en), the default, nothing is set".
 
 **Set for this project, `/odeo:language <code>` (the default scope):**
-1. Run `set-project-language.sh "$root" <code>`. A non-zero exit is a refusal:
+1. Run `"${CLAUDE_PLUGIN_ROOT}/scripts/set-project-language.sh" "$root" <code>`. A non-zero exit is a refusal:
    relay its message unchanged and stop.
-2. Re-run `language-status.sh "$root"` and report the new state.
+2. Re-run `"${CLAUDE_PLUGIN_ROOT}/scripts/language-status.sh" "$root"` and report the new state.
 
 **Set your global default, `/odeo:language <code> --global`:**
-1. Run `set-global-language.sh <code> --overwrite`. The flag is what allows a
+1. Run `"${CLAUDE_PLUGIN_ROOT}/scripts/set-global-language.sh" <code> --overwrite`. The flag is what allows a
    CHANGE; without it the writer deliberately leaves an existing value alone,
    which is what keeps the install-time question a one-time question.
-2. Re-run `language-status.sh "$root"`. If the scope still reads `project`, say
+2. Re-run `"${CLAUDE_PLUGIN_ROOT}/scripts/language-status.sh" "$root"`. If the scope still reads `project`, say
    so: this project's own line still wins, and offer `/odeo:language <code>` to change
    it here too.
 
@@ -69,16 +69,16 @@ That is not picking a code and never widens the set.
 Working in `~/code/shop`, whose CLAUDE.md carries `output_language: en`, with a
 global default of `de`:
 
-- "/odeo:language" -> `language-status.sh ~/code/shop` prints `en project` -> "English
+- "/odeo:language" -> `"${CLAUDE_PLUGIN_ROOT}/scripts/language-status.sh" ~/code/shop` prints `en project` -> "English
   (en), set for this project. Your global default is separate."
-- "/odeo:language hr" -> `set-project-language.sh ~/code/shop hr` prints "project
+- "/odeo:language hr" -> `"${CLAUDE_PLUGIN_ROOT}/scripts/set-project-language.sh" ~/code/shop hr` prints "project
   output language set to hr", status now prints `hr project` -> "Croatian (hr)
   from now on, in this project. Documents already written stay as they are."
 - "/odeo:language hr" again -> CLAUDE.md still has exactly one `output_language:` line;
   the value is replaced, never appended.
 - "/odeo:language klingon" -> the script exits 1 with "unknown language: klingon
   (allowed: en de hr fr)". Relay it; do not guess a code.
-- "/odeo:language fr --global" -> `set-global-language.sh fr --overwrite` changes the
+- "/odeo:language fr --global" -> `"${CLAUDE_PLUGIN_ROOT}/scripts/set-global-language.sh" fr --overwrite` changes the
   global default, and status still prints `hr project`, so: "Your default for new
   projects is French now. This project still has Croatian; run /odeo:language fr here
   if you want to change that too."
@@ -89,7 +89,7 @@ global default of `de`:
   rather not configure this project, /odeo:language de --global changes your default for
   all projects instead." Then wait for the answer.
 - "/odeo:language German everywhere" -> "everywhere" is a scope word, so this is
-  `set-global-language.sh de --overwrite`; only `de` reaches the script.
+  `"${CLAUDE_PLUGIN_ROOT}/scripts/set-global-language.sh" de --overwrite`; only `de` reaches the script.
 
 ## Output
 - No document. The change is one line: `output_language: <code>` in this project's

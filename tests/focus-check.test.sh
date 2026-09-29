@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Tests for bin/focus-check.sh (the /focus PreToolUse edit fence).
+# Tests for scripts/focus-check.sh (the /focus PreToolUse edit fence).
 # Feeds fake PreToolUse JSON on stdin; the hook always exits 0 and either prints
 # a deny decision (outside the zone) or nothing (neutral). Run:
 #   bash tests/focus-check.test.sh
 set -uo pipefail
 TEST_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-HOOK="$TEST_DIR/../bin/focus-check.sh"
+HOOK="$TEST_DIR/../scripts/focus-check.sh"
 pass=0; fail=0
 ok()  { echo "ok   - $1"; pass=$((pass+1)); }
 bad() { echo "FAIL - $1"; fail=$((fail+1)); }

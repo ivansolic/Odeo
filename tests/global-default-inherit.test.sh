@@ -4,8 +4,8 @@
 # Composes two already-unit-tested scripts; proves USR-003's acceptance end to end.
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-SETGL="$ROOT/bin/set-global-language.sh"
-RESOLVE="$ROOT/bin/resolve-language.sh"
+SETGL="$ROOT/scripts/set-global-language.sh"
+RESOLVE="$ROOT/scripts/resolve-language.sh"
 fail=0
 assert_exit() { if [ "$2" = "$3" ]; then echo "ok: $1"; else echo "FAIL: $1 (expected exit $2, got $3)"; fail=1; fi; }
 assert_eq() { if [ "$2" = "$3" ]; then echo "ok: $1"; else echo "FAIL: $1 (expected '$2', got '$3')"; fail=1; fi; }

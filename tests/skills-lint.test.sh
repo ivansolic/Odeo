@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Tests for bin/skills-lint.sh, the system's own consistency gate.
+# Tests for scripts/skills-lint.sh, the system's own consistency gate.
 # Each check gets one violating fixture (expect exit 1) and the clean fixture
 # passes; finally the REAL repo must pass. Run: bash tests/skills-lint.test.sh
 set -uo pipefail
 TEST_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-LINT="$TEST_DIR/../bin/skills-lint.sh"
+LINT="$TEST_DIR/../scripts/skills-lint.sh"
 pass=0; fail=0
 
 check() { # check <name> <want_rc> <root>
@@ -20,8 +20,8 @@ mkskill() { # mkskill <root> <name> <frontmatter-extra> <body>
 
 clean_root() { # a minimal root that passes every check
   local d; d="$(mktemp -d)"
-  mkdir -p "$d/bin" "$d/agents" "$d/global" "$d/docs"
-  touch "$d/bin/privacy-scan.sh"
+  mkdir -p "$d/scripts" "$d/agents" "$d/global" "$d/docs"
+  touch "$d/scripts/privacy-scan.sh"
   mkskill "$d" alpha "" "Use when the user wants alpha things."
   mkskill "$d" beta "disable-model-invocation: true\n" "Explicit command, any description."
   printf -- '---\nname: code-reviewer\neffort: high\n---\nOnly you write the verdict.\n## History\noutput_language: prose follows it, see ${CLAUDE_PLUGIN_ROOT}/AGENTS.md Guardrails 7.\n' > "$d/agents/code-reviewer.md"
@@ -69,7 +69,7 @@ check "C4 passes paired mode names" 0 "$d"; rm -rf "$d"
 # C5: referencing a script that doesn't exist -> fail
 d="$(clean_root)"; mkskill "$d" eps "disable-model-invocation: true\n" "Uses scripts." "Run ghost-script.sh first."
 check "C5 flags missing referenced script" 1 "$d"; rm -rf "$d"
-d="$(clean_root)"; mkskill "$d" eps "disable-model-invocation: true\n" "Uses scripts." "Run privacy-scan.sh first."
+d="$(clean_root)"; mkskill "$d" eps "disable-model-invocation: true\n" "Uses scripts." "Run \${CLAUDE_PLUGIN_ROOT}/scripts/privacy-scan.sh first."
 check "C5 passes existing script reference" 0 "$d"; rm -rf "$d"
 
 # C6: reviewer agent without the single-verdict contract -> fail
@@ -169,7 +169,7 @@ check "C5 catches a ghost script named only in the global baseline" 1 "$d"; rm -
 
 # The PHANTOM, and this case is a permanent positive control rather than a one-off. C5's
 # extraction is word-boundary based, so a reference to tests/x.test.sh yields the name
-# `test.sh` unless test-file names are consumed first. No bin/test.sh exists, so the naive
+# `test.sh` unless test-file names are consumed first. No scripts/test.sh exists, so the naive
 # widening turns the lint RED on the clean repo. This case must be GREEN both before and
 # after the change; if it ever goes red, the two-pass extraction has been undone.
 d="$(clean_root)"; mkdir -p "$d/tests"
@@ -178,10 +178,10 @@ printf -- 'placeholder\n' > "$d/tests/localized-prose.test.sh"
 check "C5 reads a .test.sh reference as a test file, not as test.sh" 0 "$d"; rm -rf "$d"
 
 # A DOTTED script name. Pass two used to match only the last dotted run, so a reference to
-# bin/init-project.language.sh yielded the phantom `language.sh`; this repo really contains
+# scripts/init-project.language.sh yielded the phantom `language.sh`; this repo really contains
 # tests/init-project.language.test.sh, so dotted names are not hypothetical here.
-d="$(clean_root)"; printf -- 'baseline\nrun bin/init-project.language.sh for setup\n' > "$d/AGENTS.md"
-printf -- 'placeholder\n' > "$d/bin/init-project.language.sh"
+d="$(clean_root)"; printf -- 'baseline\nrun scripts/init-project.language.sh for setup\n' > "$d/AGENTS.md"
+printf -- 'placeholder\n' > "$d/scripts/init-project.language.sh"
 check "C5 resolves a DOTTED script name without inventing a phantom" 0 "$d"; rm -rf "$d"
 
 # C14: a plugin install names every command /odeo:<skill>; a bare /<skill> is not typeable.
@@ -234,6 +234,53 @@ check "C15 flags a bare citation in a skill's rubric.md" 1 "$d"; rm -rf "$d"
 # C8 over ALL public docs: no third-party plugin names (pm-skills once lived in the beginners guide)
 d="$(clean_root)"; printf -- 'Write a PRD with /pm-execution:create-prd.\n' > "$d/BEGINNERS-GUIDE.md"
 check "C8 flags a third-party plugin in a public doc" 1 "$d"; rm -rf "$d"
+
+# C16: programs live in scripts/ and are not on PATH, so a SKILL.md or an agent names them
+# exactly as ${CLAUDE_PLUGIN_ROOT}/scripts/<name>; a supporting file (read raw) names none;
+# bin/<program> anywhere public is the 0.2.x layout. Observed failing (2026-09-29, round 2
+# after the review), each mutant checked to differ: MA the body pass never reports -> the
+# bare-name and four path-form cases; MB the bin/ pass never reports -> the README and
+# script-comment cases; MC the ~/bin exemption dropped -> the home-copy case and the real
+# repo; MD the right-hand boundary dropped -> the longer-name case; ME the supporting-file
+# rule dropped -> the supporting-file case; MF any path accepted as the prefix -> the four
+# path-form cases; MG perl's exit status ignored -> the broken-perl case; MH a leading dot
+# read as a boundary -> the longer-name case.
+d="$(clean_root)"; mkskill "$d" gamma "disable-model-invocation: true\n" "Explicit." 'Run `privacy-scan.sh <file>` first.'
+check "C16 flags a bare program name in a skill" 1 "$d"; rm -rf "$d"
+d="$(clean_root)"; mkskill "$d" gamma "disable-model-invocation: true\n" "Explicit." 'Run `${CLAUDE_PLUGIN_ROOT}/scripts/privacy-scan.sh <file>` first.'
+check "C16 passes the plugin-root path" 0 "$d"; rm -rf "$d"
+d="$(clean_root)"; printf -- 'Run privacy-scan.sh before sending.\n' > "$d/skills/alpha/rubric.md"
+check "C16 flags a bare name in a skill's supporting file" 1 "$d"; rm -rf "$d"
+agent16() { # agent16 <root> <body line>: an agent definition that passes every other check
+  printf -- '---\nname: debugger\neffort: high\n---\n%s\noutput_language: prose follows it, see ${CLAUDE_PLUGIN_ROOT}/AGENTS.md Guardrails 7.\n' "$2" > "$1/agents/debugger.md"
+}
+d="$(clean_root)"; agent16 "$d" 'Then run ${CLAUDE_PLUGIN_ROOT}/scripts/privacy-scan.sh.'
+check "C16 control: the agent fixture with the path passes" 0 "$d"; rm -rf "$d"
+d="$(clean_root)"; agent16 "$d" 'Then run privacy-scan.sh.'
+check "C16 flags a bare program name in an agent" 1 "$d"; rm -rf "$d"
+d="$(clean_root)"; mkskill "$d" gamma "disable-model-invocation: true\n" "Explicit." 'Evidence: `tests/privacy-scan.test.sh`; unrelated: `my-privacy-scan.sh`, `old.privacy-scan.sh` and `privacy-scan.sh.bak`.'
+touch "$d/my-privacy-scan.sh" "$d/old.privacy-scan.sh"; mkdir -p "$d/tests"; touch "$d/tests/privacy-scan.test.sh"
+check "C16 leaves test files and longer names alone" 0 "$d"; rm -rf "$d"
+d="$(clean_root)"; printf -- 'Publish via bin/privacy-scan.sh.\n' > "$d/README.md"
+check "C16 flags the 0.2.x bin/ path in the README" 1 "$d"; rm -rf "$d"
+d="$(clean_root)"; printf -- '#!/usr/bin/env bash\n# see bin/privacy-scan.sh\n' > "$d/scripts/other.sh"
+check "C16 flags the 0.2.x bin/ path in a script comment" 1 "$d"; rm -rf "$d"
+d="$(clean_root)"; printf -- 'The shim at ~/bin/privacy-scan.sh and $HOME/bin/privacy-scan.sh stays.\n' > "$d/README.md"
+check "C16 leaves the ~/bin copies of the old install alone" 0 "$d"; rm -rf "$d"
+# Path forms that point at nothing in a plugin install: only the exact plugin-root prefix counts
+for form in 'scripts/privacy-scan.sh' './privacy-scan.sh' '$ROOT/scripts/privacy-scan.sh' '/opt/odeo/scripts/privacy-scan.sh'; do
+  d="$(clean_root)"; mkskill "$d" gamma "disable-model-invocation: true\n" "Explicit." "Run \`$form <file>\` first."
+  check "C16 flags the path form $form in a skill" 1 "$d"; rm -rf "$d"
+done
+# A supporting file is read raw (no substitution), so it names no program at all
+d="$(clean_root)"; printf -- 'Run ${CLAUDE_PLUGIN_ROOT}/scripts/privacy-scan.sh before sending.\n' > "$d/skills/alpha/rubric.md"
+check "C16 flags a program named in a supporting file even in the plugin-root form" 1 "$d"; rm -rf "$d"
+# C16 must never pass because its own instrument broke: with perl unusable it fails loudly
+d="$(clean_root)"; fake="$(mktemp -d)"; printf '#!/bin/sh\nexit 127\n' > "$fake/perl"; chmod +x "$fake/perl"
+( PATH="$fake:$PATH" bash "$LINT" "$d" ) >/dev/null 2>&1; rc=$?
+if [[ $rc -eq 1 ]]; then echo "ok   - C16 fails when perl cannot run"; pass=$((pass+1))
+else echo "FAIL - C16 passed with a broken perl (rc=$rc want=1)"; fail=$((fail+1)); fi
+rm -rf "$d" "$fake"
 
 # FINAL: the real repo must pass its own lint
 check "the actual repo passes its own invariants" 0 "$TEST_DIR/.."

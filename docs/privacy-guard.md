@@ -14,7 +14,7 @@ model's judgment. Defense in depth: model generalizes, deterministic scan blocks
 leaks, human approves.
 
 ## Components
-- **`bin/privacy-scan.sh`**, a standalone scanner. Reads a file or stdin, scans for
+- **`scripts/privacy-scan.sh`**, a standalone scanner. Reads a file or stdin, scans for
   the categories below, prints findings, exits non-zero on any hit. No model
   involved; pure pattern matching, so it is deterministic and unit-testable.
 - **`tests/privacy-scan.test.sh`**, the test suite (clean passes; each leak class

@@ -23,8 +23,8 @@
 # Run: bash tests/init-project.ledger.test.sh
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-SCRIPT="$ROOT/bin/init-project.sh"
-LEDGER="$ROOT/bin/ledger-backup.sh"
+SCRIPT="$ROOT/scripts/init-project.sh"
+LEDGER="$ROOT/scripts/ledger-backup.sh"
 pass=0; fail=0
 ok()  { echo "ok   - $1"; pass=$((pass+1)); }
 bad() { echo "FAIL - $1"; fail=$((fail+1)); }
@@ -87,7 +87,7 @@ out="$(bash "$LEDGER" --check "$P" 2>&1)"; rc=$?
 # 5. And the same, through the hook that actually runs: silence. This is the property the
 #    whole design rests on, since a hook that warns in the default state gets muted, and then
 #    so does the warning that mattered.
-cp "$ROOT/bin/session-end-check.sh" "$ROOT/bin/ledger-backup.sh" "$P/" 2>/dev/null
+cp "$ROOT/scripts/session-end-check.sh" "$ROOT/scripts/ledger-backup.sh" "$P/" 2>/dev/null
 out="$( cd "$P" && bash ./session-end-check.sh 2>&1 )"; rc=$?
 [ "$rc" = 0 ] && ok "the end-of-session hook exits 0 in a fresh project" || bad "hook exit $rc"
 #    Only the LEDGER lines are examined. Matching the hook's whole output made this depend on
