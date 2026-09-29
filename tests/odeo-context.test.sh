@@ -44,6 +44,7 @@ assert_absent() { case "$3" in *"$2"*) bad "$1 (unexpected '$2')";; *) ok "$1";;
 assert_empty() { if [ -z "$2" ]; then ok "$1"; else bad "$1 (expected no output)"; fi; }
 
 TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT
+unset CLAUDE_CONFIG_DIR   # a real config dir with a cached Odeo would answer instead of the fixtures
 MARKER="## Security Baseline (non-negotiable, applies to ALL code)"
 NUDGE="output language is not set"
 

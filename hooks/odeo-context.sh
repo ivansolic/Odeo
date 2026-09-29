@@ -178,18 +178,21 @@ hook_value() {
 }
 
 # hook_finds <hook> <program>: whether that hook's odeo_tool would find <program>, checked
-# the same way it looks (cache scripts/ then bin/, then the install directory). A baked
-# value that is not a plain path counts as found: better silent than a false alarm.
+# the same way it looks (cache scripts/ then bin/, then the install directory). Every
+# candidate that can be read is checked; when nothing is found and a baked value was not a
+# plain path, that value could not be judged, so it counts as found: better silent than a
+# false alarm.
 hook_finds() {
-  local bin cfg c
-  bin="$(hook_value "$1" ODEO_BIN_AT_INSTALL)" && cfg="$(hook_value "$1" ODEO_CONFIG_AT_INSTALL)" || return 0
-  for c in "$bin/$2" \
+  local bin cfg c unknown=0
+  bin="$(hook_value "$1" ODEO_BIN_AT_INSTALL)" || unknown=1
+  cfg="$(hook_value "$1" ODEO_CONFIG_AT_INSTALL)" || unknown=1
+  for c in ${bin:+"$bin/$2"} \
            "${CLAUDE_CONFIG_DIR:-$HOME/.claude}"/plugins/cache/*/odeo/*/{scripts,bin}/"$2" \
-           "$cfg"/plugins/cache/*/odeo/*/{scripts,bin}/"$2" \
+           ${cfg:+"$cfg"/plugins/cache/*/odeo/*/{scripts,bin}/"$2"} \
            "$HOME"/.claude/plugins/cache/*/odeo/*/{scripts,bin}/"$2"; do
     [ -x "$c" ] && return 0
   done
-  return 1
+  [ "$unknown" = 1 ]
 }
 
 # outdated_guards: prints one line per outdated Odeo git guard: the current repo's Odeo

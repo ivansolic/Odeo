@@ -40,9 +40,11 @@ in odeo_tool and as merge-gate's fallback. 0.3.1 dropped PATH from both
 (tests/git-guards.plugin.test.sh case 11, merge-gate's PATH case). The price, named: PATH
 was the only source in two setups, a plugin loaded in place from a clone that was then
 moved, and CLAUDE_CODE_SUBPROCESS_ENV_SCRUB with a custom config dir once the cache
-version is swept. There the hook now warns (pre-commit) or refuses (pre-push) instead of
-scanning, and the session-start nudge names it for a refresh, because it checks that a
-current hook can still find its program, not only its version.
+version is swept. There the hook now warns (pre-commit) or refuses (pre-push, under
+contract A) instead of scanning. The session-start nudge checks that a current hook can
+still find its program, not only its version, so it names the moved clone; the scrub case
+only when the session-start hook also runs without CLAUDE_CONFIG_DIR (unverified whether
+Claude Code passes it to hooks under the scrub).
 
 ## Prevention
 For every lookup chain in a guard ask: "can the thing being checked put a file here?"
