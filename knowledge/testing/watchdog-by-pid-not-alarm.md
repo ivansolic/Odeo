@@ -1,6 +1,6 @@
 ---
 module: bash test harnesses (tests/*.test.sh)
-tags: [bash, exec, alarm, timeout, watchdog, infinite-loop, macos, test-harness]
+tags: [bash, exec, alarm, timeout, watchdog, infinite-loop, macos, test-harness, stdin, background-job]
 problem_type: bug
 provenance: odeo-migrate-legacy shim self-exec case (round 3 of the plugin-install review)
 reuse_count: 0
@@ -25,7 +25,7 @@ than the timeout therefore never fires.
 
 ## Solution
     bounded() {
-      "$@" & local pid=$!
+      "$@" <&0 & local pid=$!
       ( sleep 10; kill "$pid" 2>/dev/null ) >/dev/null 2>&1 & local dog=$!
       wait "$pid"; local rc=$?
       kill "$dog" 2>/dev/null; wait "$dog" 2>/dev/null
@@ -38,9 +38,20 @@ open: without that, `out="$(bounded echo hi)"` waits the full 10s.
 An exec chain keeps the PID, and the kill targets the PID, not a timer the kernel restarts
 on each exec, so it stops the loop at 10s whatever the loop does (exit 143).
 
+## Limit: the bounded command gets NO stdin unless it is redirected
+`"$@" &` in a non-interactive shell (no job control) gives the background command
+/dev/null as stdin, per the bash manual ("If a command is followed by a & and job control
+is not active, the default standard input for the command is the empty file /dev/null").
+So with the original helper `printf abc | bounded wc -c` printed 0. A test that pipes data
+through it then reads as "the program lost its input": in the 0.3.0 shim test it looked
+exactly like the stdin-swallowing bug the shim once had, and would have sent the fix to the
+wrong place. Fix, now in the helper above: redirect on the backgrounded command itself,
+`"$@" <&0 &` (measured: 3 bytes arrive).
+
 ## Prevention
 Prove the watchdog on a real infinite exec loop BEFORE trusting it
-(`printf '#!/usr/bin/env bash\nexec "$0"\n'`); expect rc=143 after ~10s.
+(`printf '#!/usr/bin/env bash\nexec "$0"\n'`); expect rc=143 after ~10s. And a positive control for input: `printf abc | bounded wc -c`
+must print 3.
 
 ## Example
 tests/odeo-migrate-legacy.test.sh case 8b: a shim whose fallback points at itself must
