@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Tests for bin/coverage-check.sh, deterministic PRD-requirement coverage gate.
+# Tests for scripts/coverage-check.sh, deterministic PRD-requirement coverage gate.
 set -uo pipefail
-SCRIPT="$(cd "$(dirname "$0")/.." && pwd)/bin/coverage-check.sh"
+SCRIPT="$(cd "$(dirname "$0")/.." && pwd)/scripts/coverage-check.sh"
 fail=0
 assert_exit() { # desc expected actual
   if [ "$2" = "$3" ]; then echo "ok: $1"; else echo "FAIL: $1 (expected exit $2, got $3)"; fail=1; fi

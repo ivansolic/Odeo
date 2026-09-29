@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Tests for bin/publish-guard.sh: deterministic guard against publishing internal artifacts.
+# Tests for scripts/publish-guard.sh: deterministic guard against publishing internal artifacts.
 set -uo pipefail
-SCRIPT="$(cd "$(dirname "$0")/.." && pwd)/bin/publish-guard.sh"
+SCRIPT="$(cd "$(dirname "$0")/.." && pwd)/scripts/publish-guard.sh"
 fail=0
 assert_exit() { if [ "$2" = "$3" ]; then echo "ok: $1"; else echo "FAIL: $1 (expected exit $2, got $3)"; fail=1; fi; }
 assert_contains() { case "$3" in *"$2"*) echo "ok: $1";; *) echo "FAIL: $1 (missing '$2')"; fail=1;; esac; }

@@ -54,8 +54,8 @@ assert_empty "no zone: neutral in any project" "$(run_hook "$cmd" "$ROOT" "$proj
 # 2) session-end-check: runs only in an Odeo project (stub root proves whether it ran)
 spec="$(hook_cmd Stop session-end-check.sh)" || { bad "Stop session-end-check not registered exactly once"; spec=$'\n'; }
 cmd="${spec#*$'\n'}"
-fake="$TMP/fake-root"; mkdir -p "$fake/bin"
-printf '#!/usr/bin/env bash\necho SWEEP-RAN\n' > "$fake/bin/session-end-check.sh"; chmod +x "$fake/bin/session-end-check.sh"
+fake="$TMP/fake-root"; mkdir -p "$fake/scripts"
+printf '#!/usr/bin/env bash\necho SWEEP-RAN\n' > "$fake/scripts/session-end-check.sh"; chmod +x "$fake/scripts/session-end-check.sh"
 plain="$TMP/plain"; mkdir -p "$plain"
 assert_empty "Stop sweep silent outside Odeo projects" "$(run_hook "$cmd" "$fake" "$plain")"
 odeo="$TMP/odeo"; mkdir -p "$odeo/.claude/tasks"; touch "$odeo/.claude/tasks/todo.md"

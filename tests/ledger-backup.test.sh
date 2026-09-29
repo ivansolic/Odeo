@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Tests for bin/ledger-backup.sh, the backup of the files git deliberately does not carry.
+# Tests for scripts/ledger-backup.sh, the backup of the files git deliberately does not carry.
 #
 # WHY THIS EXISTS. The step this program replaces was prose in /retro, and prose has one
 # failure mode no reader can see: it describes a success. The reviewed finding was exactly
@@ -18,7 +18,7 @@
 # Run: bash tests/ledger-backup.test.sh
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-SCRIPT="$ROOT/bin/ledger-backup.sh"
+SCRIPT="$ROOT/scripts/ledger-backup.sh"
 pass=0; fail=0
 ok()  { echo "ok   - $1"; pass=$((pass+1)); }
 bad() { echo "FAIL - $1"; fail=$((fail+1)); }

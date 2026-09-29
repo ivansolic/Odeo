@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Tests for bin/language-guard.sh, deterministic no-leak gate for machine surfaces.
+# Tests for scripts/language-guard.sh, deterministic no-leak gate for machine surfaces.
 # All 14 cases mirror the plan's Task 1 spec exactly. TDD: run this FIRST (RED),
 # then implement language-guard.sh until all cases are GREEN.
 set -uo pipefail
-SCRIPT="$(cd "$(dirname "$0")/.." && pwd)/bin/language-guard.sh"
+SCRIPT="$(cd "$(dirname "$0")/.." && pwd)/scripts/language-guard.sh"
 fail=0
 assert_exit() { # desc expected actual
   if [ "$2" = "$3" ]; then echo "ok: $1"; else echo "FAIL: $1 (expected exit $2, got $3)"; fail=1; fi

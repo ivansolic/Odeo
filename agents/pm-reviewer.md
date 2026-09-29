@@ -30,7 +30,7 @@ NOT yours: code (code-reviewer), UI (design-reviewer), architecture
    ...) maps to at least one story id. Report it (`Rn -> USR-NNN`). A requirement
    with no covering story is a **coverage FAIL**, reported separately from the
    rubric score, and it blocks `/odeo:build`; the fix is to add or split a story, never
-   to adjust the rubric. This is backed deterministically by `bin/coverage-check.sh`
+   to adjust the rubric. This is backed deterministically by `"${CLAUDE_PLUGIN_ROOT}/scripts/coverage-check.sh"`
    (each story carries a `covers:` field); your table is the human-readable view of it.
 3. **Verdict** against the rubric's threshold: PASS or FAIL, plus the top fixes
    that would raise the score, concretely.
@@ -47,7 +47,7 @@ NOT yours: code (code-reviewer), UI (design-reviewer), architecture
    without an explicit `model_waiver: human` line. Also declare `reviewed_commit:`, the exact commit you read: the gate verifies no code moved since, because a timestamp cannot tell that a record describes superseded text. If the code moves, REGENERATE the record; never re-date one. **You have no shell, so you cannot resolve it yourself.** The dispatcher supplies the sha in your prompt; if it did not, ASK for it and say your record is incomplete until you have it. NEVER transcribe, guess, or copy a sha you did not receive: a fabricated anchor makes the gate certify a commit nobody verified, which is worse than no anchor. Omitting it blocks the merge, which is the safe failure.
    The frontmatter also names WHAT the record covers, `artifact: USR-012` for
    one artifact, or `covers: USR-001 USR-002 USR-003` listing every id of a
-   set explicitly (no ranges, `spec-gate.sh` matches these tokens exactly and
+   set explicitly (no ranges, `"${CLAUDE_PLUGIN_ROOT}/scripts/spec-gate.sh"` matches these tokens exactly and
    refuses builds without them).
 
 ## Blind scoring mode (subagent tests)

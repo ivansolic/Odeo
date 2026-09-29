@@ -9,7 +9,7 @@ Invoke once. Replaces the old dev-handoff (its prep is the with-me mode here).
 ## 1. Identify the stories, then the spec gate (ENFORCED)
 Ask which stories to build (paths in `docs/stories/`), or use the ones named.
 For each, confirm it is ready: a description and testable acceptance criteria.
-Then run `spec-gate.sh <story paths...>` (on PATH through the Odeo plugin) and STOP on
+Then run `"${CLAUDE_PLUGIN_ROOT}/scripts/spec-gate.sh" <story paths...>` and STOP on
 non-zero: it refuses stories with no eval record, a non-passing verdict, or a
 record OLDER than the story (spec edited after review). The only way through
 is the review loop: fix -> pm-reviewer re-verifies -> fresh PASS. Never work
@@ -208,7 +208,7 @@ once so a still editor is not mistaken for a stall. Live watching is with-me (Mo
    `${CLAUDE_PLUGIN_ROOT}/docs/plan-format.md` format; save each to `docs/plans/<date>-<slug>.md` with
    `approved: no`. If the architect escalates (a story would change product-level
    architecture), stop and resolve that with the user first (ADR).
-   **Hand it the language:** resolve the story's project with `resolve-language.sh
+   **Hand it the language:** resolve the story's project with `"${CLAUDE_PLUGIN_ROOT}/scripts/resolve-language.sh"
    <project-dir>` and include the line `output_language: <code>` in the dispatch prompt.
    The architect holds no `Bash`, so this is the only way it can know; same reason you
    supply the commit sha (`${CLAUDE_PLUGIN_ROOT}/AGENTS.md` Guardrails 7 carries the rule and the fallback).
@@ -245,7 +245,7 @@ once so a still editor is not mistaken for a stall. Live watching is with-me (Mo
    just the first: the review loop REGENERATES the record, so a later round would drop
    the field and the record the merge gate reads is the surviving one. No gate reads this
    field, so it is best-effort provenance: its absence is never evidence that a build ran
-   on the default. Do NOT write it back into the plan: `merge-gate.sh`
+   on the default. Do NOT write it back into the plan: `"${CLAUDE_PLUGIN_ROOT}/scripts/merge-gate.sh"`
    compares every non-evals path against `reviewed_commit:`, so a post-review plan edit
    refuses the merge and would force a full code re-review for a provenance line, which
    nobody will pay twice. Eval records are excluded from that comparison by construction,
@@ -268,7 +268,7 @@ once so a still editor is not mistaken for a stall. Live watching is with-me (Mo
    always reported); the user sees first -> final score, not two separate asks.
 
 ### B6. Present per story
-Before presenting, run `boundary-check.sh` in the story's worktree (ENFORCED): if
+Before presenting, run `"${CLAUDE_PLUGIN_ROOT}/scripts/boundary-check.sh"` in the story's worktree (ENFORCED): if
 the builder touched a DO-NOT-TOUCH path, the result is blocked and goes back to
 the builder, it never reaches you dirty. Then present: summary + diff,
 success-signal checklist (pass/fail each), contract adherence (any deviations

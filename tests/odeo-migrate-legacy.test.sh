@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Tests for bin/odeo-migrate-legacy.sh: moves the copies an install.sh install left in the
+# Tests for scripts/odeo-migrate-legacy.sh: moves the copies an install.sh install left in the
 # home directory out of the way of the plugin, so nothing loads twice.
 #
 # The guarantees are OUTCOMES, checked on a fake HOME: a dry run (the default) changes
@@ -25,7 +25,7 @@
 #   M11 refresh overwrites without a copy    -> 1 FAIL (case 15, nothing is ever deleted)
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-SCRIPT="$ROOT/bin/odeo-migrate-legacy.sh"
+SCRIPT="$ROOT/scripts/odeo-migrate-legacy.sh"
 fail=0
 ok() { echo "ok: $1"; }
 bad() { echo "FAIL: $1"; fail=1; }
@@ -36,10 +36,10 @@ gone() { if [ -e "$2" ] || [ -L "$2" ]; then bad "$1 ($2 still there)"; else ok 
 
 TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT
 count_files() { find "$1" \( -type f -o -type l \) | wc -l | tr -d ' '; }
-# fake_root <dir>: a removable copy of the plugin root (manifest, bin, skills, agents), so
+# fake_root <dir>: a removable copy of the plugin root (manifest, scripts, skills, agents), so
 # a shim's baked fallback can be taken away the way an uninstall or cache sweep would
 fake_root() {
-  mkdir -p "$1/docs"; cp -R "$ROOT/.claude-plugin" "$ROOT/bin" "$ROOT/skills" "$ROOT/agents" "$1/"
+  mkdir -p "$1/docs"; cp -R "$ROOT/.claude-plugin" "$ROOT/scripts" "$ROOT/skills" "$ROOT/agents" "$1/"
   cp "$ROOT/docs/agent-rubric.md" "$1/docs/"; printf '%s' "$1"
 }
 # bounded <cmd...>: runs a command that must not hang (a shim that execs itself would). A
@@ -124,6 +124,7 @@ shim="$H/bin/secret-scan.sh"
 grep -q "odeo-migrate-legacy shim" "$shim" && ok "secret-scan.sh replaced by a shim" || bad "no shim at ~/bin/secret-scan.sh"
 [ -x "$shim" ] && ok "shim is executable" || bad "shim is not executable"
 [ -e "$H/bin/publish-guard.sh" ] && bad "shim written for a script the user never had" || ok "no shim for an absent script"
+# an Odeo 0.2.x cache entry keeps its programs in bin/; the shim still finds them there
 c="$H/.claude/plugins/cache/odeo/odeo/0.9.0/bin"; mkdir -p "$c"
 printf '#!/usr/bin/env bash\necho PLUGIN-SCAN\nexit 1\n' > "$c/secret-scan.sh"; chmod +x "$c/secret-scan.sh"
 out="$(HOME="$H" "$shim" 2>&1)"; rc=$?
@@ -131,7 +132,7 @@ assert_contains "shim runs the plugin's copy" "PLUGIN-SCAN" "$out"
 assert_exit "shim passes a blocking exit through" 1 "$rc"
 # 8) no plugin anywhere (no cache, the plugin root it was migrated from is gone): BLOCKS
 H8="$TMP/h8"; make_home "$H8"; R8="$(fake_root "$TMP/root8")"
-HOME="$H8" "$R8/bin/odeo-migrate-legacy.sh" --apply >/dev/null 2>&1; rm -rf "$R8"
+HOME="$H8" "$R8/scripts/odeo-migrate-legacy.sh" --apply >/dev/null 2>&1; rm -rf "$R8"
 out="$(HOME="$H8" bounded "$H8/bin/secret-scan.sh" 2>&1)"; rc=$?
 assert_exit "shim without a plugin blocks" 1 "$rc"
 assert_contains "shim says how to fix it" "Odeo plugin" "$out"
@@ -150,7 +151,7 @@ assert_contains "second apply still has nothing to migrate" "nothing to migrate"
 export GIT_AUTHOR_NAME=t GIT_AUTHOR_EMAIL=t@example.com GIT_COMMITTER_NAME=t GIT_COMMITTER_EMAIL=t@example.com
 H="$TMP/h10"; make_home "$H"
 printf '#!/usr/bin/env bash\nexit 0\n' > "$H/bin/secret-scan.sh"            # the old copy passes
-c="$H/.claude/plugins/cache/odeo/odeo/1.0.0/bin"; mkdir -p "$c"
+c="$H/.claude/plugins/cache/odeo/odeo/1.0.0/scripts"; mkdir -p "$c"
 printf '#!/usr/bin/env bash\necho PLUGIN-BLOCKED >&2\nexit 1\n' > "$c/secret-scan.sh"; chmod +x "$c/secret-scan.sh"
 old="$TMP/old-project"; git init -q "$old"; git -C "$old" commit -q --allow-empty -m init
 cat > "$old/.git/hooks/pre-commit" <<'OLDHOOK'
@@ -189,9 +190,9 @@ assert_contains "stale migrate copy is a candidate" "bin/odeo-migrate-legacy.sh"
 #     the pushed paths on stdin; a shim that exec'd from inside a loop reading `ls` output
 #     handed it the rest of that listing instead, so the guard checked 0 files and passed.
 H="$TMP/h13"; make_home "$H"; HOME="$H" "$SCRIPT" --apply >/dev/null 2>&1
-c="$H/.claude/plugins/cache/odeo/odeo/2.0.0/bin"; mkdir -p "$c" "$H/.claude/plugins/cache/odeo/odeo/1.9.0/bin"
+c="$H/.claude/plugins/cache/odeo/odeo/2.0.0/scripts"; mkdir -p "$c" "$H/.claude/plugins/cache/odeo/odeo/1.9.0/scripts"
 printf '#!/usr/bin/env bash\nwc -c | tr -d " "\n' > "$c/secret-scan.sh"; chmod +x "$c/secret-scan.sh"
-touch -t 202001010000 "$H/.claude/plugins/cache/odeo/odeo/1.9.0/bin"   # a second, older cache entry
+touch -t 202001010000 "$H/.claude/plugins/cache/odeo/odeo/1.9.0/scripts"   # a second, older cache entry
 got="$(printf 'docs/plans/x.md\0README.md\0' | HOME="$H" "$H/bin/secret-scan.sh" 2>/dev/null)"
 assert_exit "shim passes stdin through byte for byte" "$(printf "docs/plans/x.md\0README.md\0" | wc -c | tr -d " ")" "$got"
 
@@ -199,8 +200,8 @@ assert_exit "shim passes stdin through byte for byte" "$(printf "docs/plans/x.md
 #     shim reaches the plugin's real guard and is refused
 H="$TMP/h14"; make_home "$H"; printf '#!/bin/sh\n' > "$H/bin/publish-guard.sh"
 HOME="$H" "$SCRIPT" --apply >/dev/null 2>&1
-real="$H/.claude/plugins/cache/odeo/odeo/3.0.0"; mkdir -p "$real/bin" "$real/docs"
-cp "$ROOT/bin/publish-guard.sh" "$ROOT/bin/privacy-scan.sh" "$real/bin/"
+real="$H/.claude/plugins/cache/odeo/odeo/3.0.0"; mkdir -p "$real/scripts" "$real/docs"
+cp "$ROOT/scripts/publish-guard.sh" "$ROOT/scripts/privacy-scan.sh" "$real/scripts/"
 printf 'docs/plans/\n' > "$real/docs/internal-paths.txt"; printf 'README.md\n' > "$real/docs/public-paths.txt"
 plain="$TMP/plain14"; mkdir -p "$plain"
 rc="$(cd "$plain" && printf 'docs/plans/secret.md\0' | env -u CLAUDE_INTERNAL_PATHS -u CLAUDE_PUBLIC_PATHS \

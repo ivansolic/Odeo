@@ -29,8 +29,8 @@ live in `${CLAUDE_PLUGIN_ROOT}/docs/second-opinion-protocol.md` (read it; not re
 3. **Resolve the vendor and announce the model as a QUESTION**: the vendor is an
    argument (default from the protocol's matrix); state the model and let the
    human confirm, pick another, or stop.
-4. **Run the wrapper**: `second-opinion.sh pm <payload-file> [--vendor NAME]
-   [--model ID]` (on PATH through the Odeo plugin). It runs `privacy-scan.sh` before sending
+4. **Run the wrapper**: `"${CLAUDE_PLUGIN_ROOT}/scripts/second-opinion.sh" pm <payload-file> [--vendor NAME]
+   [--model ID]`. It runs `"${CLAUDE_PLUGIN_ROOT}/scripts/privacy-scan.sh"` before sending
    and stops on exit 1; a missing vendor CLI is exit 3 (it never simulates).
 5. **OUR pm-reviewer authors the comparison**: hand it the vendor's structured
    findings; it writes the second-opinion record (overlap / only-ours /
@@ -44,7 +44,7 @@ live in `${CLAUDE_PLUGIN_ROOT}/docs/second-opinion-protocol.md` (read it; not re
 - Payload: `docs/prds/PRD-007-*.md`.
 - "Send PRD-007 to the vendor on its strongest available model? ok / pick / stop."
   The human says ok.
-- `second-opinion.sh pm docs/prds/PRD-007-password-reset.md`
+- `"${CLAUDE_PLUGIN_ROOT}/scripts/second-opinion.sh" pm docs/prds/PRD-007-password-reset.md`
 - The pre-send scan passes; the vendor returns findings; `pm-reviewer` records:
   overlap = the outcome metric has no target; only-vendor = the riskiest
   assumption (adoption) has no experiment; only-ours = a scope nit. Recommendation:

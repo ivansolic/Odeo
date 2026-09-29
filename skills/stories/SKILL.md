@@ -66,7 +66,7 @@ adding or splitting a story. Coverage is separate from the rubric (which grades 
 stories are written); a set can score 8/8 and still fail coverage.
 
 Make it deterministic: each story declares a `covers:` frontmatter field listing the
-requirement IDs it satisfies (e.g. `covers: R1 R5`), and `bin/coverage-check.sh <prd-file>
+requirement IDs it satisfies (e.g. `covers: R1 R5`), and `"${CLAUDE_PLUGIN_ROOT}/scripts/coverage-check.sh" <prd-file>
 docs/stories` verifies every requirement is covered, exit 1 on any gap. That is the `[E]`
 enforced backstop for the map above.
 
@@ -83,7 +83,7 @@ rule, max 3 cycles); show first -> final score.
 - Slice by value, never by technical layer.
 - Fold UI states into ACs; keep them behavioral, not visual (look comes from design tokens).
 - **Write the body in the project's output language; mechanics stay English.** Before
-  writing, resolve it with `resolve-language.sh <project-dir>` (the project's
+  writing, resolve it with `"${CLAUDE_PLUGIN_ROOT}/scripts/resolve-language.sh" <project-dir>` (the project's
   `output_language` setting) and write the document BODY in that language. The whole
   frontmatter block, the filename slug and every machine-read field stay English, and
   the fixed section headings and field labels of this document's shape stay English

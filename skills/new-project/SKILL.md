@@ -6,8 +6,8 @@ disable-model-invocation: true
 # New project (scaffold a project from the plugin)
 
 Creates a new project folder from the templates that ship inside the Odeo plugin, by
-running the plugin's `init-project.sh`. Nothing needs to be cloned or installed first:
-the plugin's `bin/` is on the PATH of Claude's shell.
+running `"${CLAUDE_PLUGIN_ROOT}/scripts/init-project.sh"`, which ships with the plugin. Nothing
+needs to be cloned or installed first.
 
 ## When to use (and when not)
 - Starting a NEW product or repo that should follow the Odeo workflow.
@@ -18,7 +18,7 @@ the plugin's `bin/` is on the PATH of Claude's shell.
 1. **Name.** Take it from the argument, or ask once. Before anything reaches a shell,
    check it yourself: it must match `^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$` (a letter or
    digit first, then letters, digits, `.`, `_`, `-`). If it does not, say why and ask
-   again; never quote or escape your way around it. `init-project.sh` enforces the same
+   again; never quote or escape your way around it. `"${CLAUDE_PLUGIN_ROOT}/scripts/init-project.sh"` enforces the same
    rule, but only after the shell has parsed the command, so it cannot protect the
    command you write.
 2. **Where.** The project goes inside a parent folder, by default the current one. Say
@@ -30,11 +30,11 @@ the plugin's `bin/` is on the PATH of Claude's shell.
    over an existing folder.
 3. **UI or not.** Ask: "Will this project have a user interface?" Yes means `--ui`
    (adds the design layer), no means `--no-ui`.
-4. **Language.** `resolve-language.sh '<parent>'` prints the language to pass: the
+4. **Language.** `"${CLAUDE_PLUGIN_ROOT}/scripts/resolve-language.sh" '<parent>'` prints the language to pass: the
    parent folder's own `CLAUDE.md` setting if it has one, otherwise the global default.
    Do not ask again; the user changes it later with `/odeo:language`.
 5. **Run in ONE call**, so the folder created is the folder confirmed:
-   `cd -- '<parent>' && pwd -P && init-project.sh '<name>' --ui|--no-ui --language <code>`
+   `cd -- '<parent>' && pwd -P && "${CLAUDE_PLUGIN_ROOT}/scripts/init-project.sh" '<name>' --ui|--no-ui --language <code>`
    The first output line is the real parent path; report `<that path>/<name>`, never
    the path you assumed.
 6. **Read the result.**
@@ -60,8 +60,8 @@ the plugin's `bin/` is on the PATH of Claude's shell.
 - `invoice-tracker` matches the name rule. The current folder is `/Users/ana/code`, not
   inside a repository: "I'll create `/Users/ana/code/invoice-tracker`, OK?" Yes.
 - "Will this project have a user interface?" Yes, so `--ui`.
-- `resolve-language.sh '/Users/ana/code'` prints `de`.
-- Runs `cd -- '/Users/ana/code' && pwd -P && init-project.sh 'invoice-tracker' --ui
+- `"${CLAUDE_PLUGIN_ROOT}/scripts/resolve-language.sh" '/Users/ana/code'` prints `de`.
+- Runs `cd -- '/Users/ana/code' && pwd -P && "${CLAUDE_PLUGIN_ROOT}/scripts/init-project.sh" 'invoice-tracker' --ui
   --language de`. First line `/Users/ana/code`, exit 0, no `hooks skipped` line.
 - "Created `/Users/ana/code/invoice-tracker` with git on `main` and the guards installed
   (no direct push to main, secret scan on commit). Next: open it (`cd invoice-tracker &&
@@ -77,7 +77,7 @@ pre-commit guards unless the output said `hooks skipped`. No remote unless the u
 said yes in step 8.
 
 ## Rules
-- The scaffolding is the deterministic `init-project.sh`; never recreate its files by
+- The scaffolding is the deterministic `"${CLAUDE_PLUGIN_ROOT}/scripts/init-project.sh"`; never recreate its files by
   hand, because the guards and the ledger ignore rules come from it.
 - Outward actions (a GitHub repo, a push) follow `${CLAUDE_PLUGIN_ROOT}/AGENTS.md`
   Guardrails 1: offered, never assumed.

@@ -160,7 +160,7 @@ they describe.
 >  always stay English. English (default), German, Croatian, or French?"
 Record it in the CLAUDE.md Conventions section as the single canonical line
 `output_language: <code>` where <code> is one of en|de|hr|fr (default en if
-skipped). Same line `bin/init-project.sh` writes at scaffold time;
+skipped). Same line `"${CLAUDE_PLUGIN_ROOT}/scripts/init-project.sh"` writes at scaffold time;
 re-running setup updates it. Do not add a change-anytime command here.
 
 **J. Security & Data** (do not skip, fills the Security & Data section):

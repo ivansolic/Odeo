@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Tests that bin/init-project.sh works from a plugin install: no ~/.claude-templates, no
+# Tests that scripts/init-project.sh works from a plugin install: no ~/.claude-templates, no
 # ~/bin, nothing on PATH. It must find project-templates/ and install-git-guards.sh next to
 # itself, which is the layout Claude Code copies into the plugin cache.
 #
@@ -20,11 +20,11 @@ export GIT_COMMITTER_NAME=test GIT_COMMITTER_EMAIL=test@example.com
 
 # A fake plugin root: the real script and templates, and a stub guard installer that
 # records where it ran (the real one is covered by install-git-guards.test.sh).
-plugin="$TMP/cache/odeo/0.2.0"; mkdir -p "$plugin/bin"
-cp "$ROOT/bin/init-project.sh" "$plugin/bin/"
+plugin="$TMP/cache/odeo/0.2.0"; mkdir -p "$plugin/scripts"
+cp "$ROOT/scripts/init-project.sh" "$plugin/scripts/"
 cp -R "$ROOT/project-templates" "$plugin/project-templates"
-printf '#!/usr/bin/env bash\npwd -P > "%s/guards-ran-in"\n' "$TMP" > "$plugin/bin/install-git-guards.sh"
-chmod +x "$plugin/bin/"*.sh
+printf '#!/usr/bin/env bash\npwd -P > "%s/guards-ran-in"\n' "$TMP" > "$plugin/scripts/install-git-guards.sh"
+chmod +x "$plugin/scripts/"*.sh
 GIT_DIR_BIN="$(dirname "$(command -v git)")"
 CLEAN_PATH="$GIT_DIR_BIN:/usr/bin:/bin"          # no ~/bin, no plugin bin on PATH
 home="$TMP/home"; mkdir -p "$home"               # no ~/.claude-templates
@@ -32,7 +32,7 @@ home="$TMP/home"; mkdir -p "$home"               # no ~/.claude-templates
 # 1) no CLAUDE_TEMPLATES_DIR: templates come from the plugin's own project-templates/
 run="$TMP/run1"; mkdir -p "$run"
 out="$(cd "$run" && env -u CLAUDE_TEMPLATES_DIR HOME="$home" PATH="$CLEAN_PATH" \
-  bash "$plugin/bin/init-project.sh" app --no-ui </dev/null 2>&1)"; rc=$?
+  bash "$plugin/scripts/init-project.sh" app --no-ui </dev/null 2>&1)"; rc=$?
 assert_exit "scaffolds from the plugin root" 0 "$rc"
 if [ -f "$run/app/CLAUDE.md" ]; then ok "project CLAUDE.md written"; else bad "project CLAUDE.md missing"; fi
 # 2) the sibling guard installer ran inside the new project
@@ -46,7 +46,7 @@ case "$out" in *"hooks skipped"*) bad "guards reported as skipped";; *) ok "guar
 alt="$TMP/alt-templates"; cp -R "$ROOT/project-templates" "$alt"; echo "# ALT MARKER" >> "$alt/CLAUDE.md"
 run="$TMP/run3"; mkdir -p "$run"
 ( cd "$run" && CLAUDE_TEMPLATES_DIR="$alt" HOME="$home" PATH="$CLEAN_PATH" \
-  bash "$plugin/bin/init-project.sh" app --no-ui </dev/null >/dev/null 2>&1 ); rc=$?
+  bash "$plugin/scripts/init-project.sh" app --no-ui </dev/null >/dev/null 2>&1 ); rc=$?
 assert_exit "override run succeeds" 0 "$rc"
 assert_contains "override templates used" "ALT MARKER" "$(cat "$run/app/CLAUDE.md" 2>/dev/null)"
 
@@ -54,7 +54,7 @@ assert_contains "override templates used" "ALT MARKER" "$(cat "$run/app/CLAUDE.m
 rm -rf "$plugin/project-templates"
 run="$TMP/run4"; mkdir -p "$run"
 out="$(cd "$run" && env -u CLAUDE_TEMPLATES_DIR HOME="$home" PATH="$CLEAN_PATH" \
-  bash "$plugin/bin/init-project.sh" app --no-ui </dev/null 2>&1)"; rc=$?
+  bash "$plugin/scripts/init-project.sh" app --no-ui </dev/null 2>&1)"; rc=$?
 assert_exit "missing templates -> 1" 1 "$rc"
 assert_contains "names the plugin as the fix" "Odeo plugin" "$out"
 
@@ -63,7 +63,7 @@ cp -R "$ROOT/project-templates" "$plugin/project-templates"
 run="$TMP/run5"; mkdir -p "$run/inner"
 for name in "../escape" "/tmp/abs-$$" "a/b" "." ".." "has space" '$(touch pwned)' ".hidden"; do
   out="$(cd "$run/inner" && env -u CLAUDE_TEMPLATES_DIR HOME="$home" PATH="$CLEAN_PATH" \
-    bash "$plugin/bin/init-project.sh" "$name" --no-ui </dev/null 2>&1)"; rc=$?
+    bash "$plugin/scripts/init-project.sh" "$name" --no-ui </dev/null 2>&1)"; rc=$?
   assert_exit "rejects name '$name'" 1 "$rc"
   assert_contains "says why for '$name'" "project name" "$out"
 done
@@ -72,7 +72,7 @@ done
 [ ! -e "/tmp/abs-$$" ] && ok "absolute path not created" || { bad "absolute path created"; rm -rf "/tmp/abs-$$"; }
 for name in "my-app" "App_2" "api.v2"; do
   ( cd "$run/inner" && env -u CLAUDE_TEMPLATES_DIR HOME="$home" PATH="$CLEAN_PATH" \
-    bash "$plugin/bin/init-project.sh" "$name" --no-ui </dev/null >/dev/null 2>&1 ); rc=$?
+    bash "$plugin/scripts/init-project.sh" "$name" --no-ui </dev/null >/dev/null 2>&1 ); rc=$?
   assert_exit "accepts name '$name'" 0 "$rc"
 done
 

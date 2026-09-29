@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Tests for bin/set-project-language.sh: the PROJECT-level output-language writer.
+# Tests for scripts/set-project-language.sh: the PROJECT-level output-language writer.
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-SCRIPT="$ROOT/bin/set-project-language.sh"
-RESOLVER="$ROOT/bin/resolve-language.sh"
+SCRIPT="$ROOT/scripts/set-project-language.sh"
+RESOLVER="$ROOT/scripts/resolve-language.sh"
 fail=0
 assert_exit() { if [ "$2" = "$3" ]; then echo "ok: $1"; else echo "FAIL: $1 (expected exit $2, got $3)"; fail=1; fi; }
 assert_eq() { if [ "$2" = "$3" ]; then echo "ok: $1"; else echo "FAIL: $1 (expected '$2', got '$3')"; fail=1; fi; }

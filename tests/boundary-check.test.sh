@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Tests for bin/boundary-check.sh, the DO-NOT-TOUCH path gate.
+# Tests for scripts/boundary-check.sh, the DO-NOT-TOUCH path gate.
 # Reads boundaries from docs/codebase-map.md (lines "- <path>" under the
 # "## DO-NOT-TOUCH" heading) and fails if the branch's changed files touch them.
 # Run: bash tests/boundary-check.test.sh
@@ -11,7 +11,7 @@ set -uo pipefail
 export GIT_AUTHOR_NAME=test GIT_AUTHOR_EMAIL=test@example.com
 export GIT_COMMITTER_NAME=test GIT_COMMITTER_EMAIL=test@example.com
 TEST_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CHECK="$TEST_DIR/../bin/boundary-check.sh"
+CHECK="$TEST_DIR/../scripts/boundary-check.sh"
 pass=0; fail=0
 
 make_repo() { # make_repo <boundaries-block or empty> -> echoes repo dir

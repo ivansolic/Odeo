@@ -13,7 +13,7 @@ users. A quick git pull; it does NOT touch the tooling (for that, plugin users r
 - The session-start freshness nudge says the base looks stale, or you just want the latest. Often.
 
 ## What it does
-1. Run `community-sync.sh`. It clones `~/.claude/community-knowledge` on first use and
+1. Run `"${CLAUDE_PLUGIN_ROOT}/scripts/community-sync.sh"`. It clones `~/.claude/community-knowledge` on first use and
    fast-forwards it afterwards. When the mirror cannot be fast-forwarded, for any reason,
    it moves the old copy aside and clones a fresh one, never deleting anything, and says
    where the old copy went. Do NOT diagnose or repair the mirror by hand, and never

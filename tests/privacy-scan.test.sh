@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 #
-# Tests for bin/privacy-scan.sh, the deterministic privacy guard.
+# Tests for scripts/privacy-scan.sh, the deterministic privacy guard.
 # Feeds known-clean and known-dirty content, asserts exit codes (0 clean, 1 block)
 # and that findings name the right category. Run: bash tests/privacy-scan.test.sh
 
 set -uo pipefail
 TEST_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SCAN="$TEST_DIR/../bin/privacy-scan.sh"
+SCAN="$TEST_DIR/../scripts/privacy-scan.sh"
 
 pass=0
 fail=0

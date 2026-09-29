@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Tests for bin/publish-snapshot.sh: the clean-snapshot builder (the real publish path).
+# Tests for scripts/publish-snapshot.sh: the clean-snapshot builder (the real publish path).
 set -uo pipefail
-SCRIPT="$(cd "$(dirname "$0")/.." && pwd)/bin/publish-snapshot.sh"
+SCRIPT="$(cd "$(dirname "$0")/.." && pwd)/scripts/publish-snapshot.sh"
 fail=0
 assert_exit() { if [ "$2" = "$3" ]; then echo "ok: $1"; else echo "FAIL: $1 (expected exit $2, got $3)"; fail=1; fi; }
 assert_true() { if eval "$2"; then echo "ok: $1"; else echo "FAIL: $1"; fail=1; fi; }
@@ -59,8 +59,8 @@ assert_true "subdirectory snapshot still lacks the internal files" "[ ! -e \"$sn
 [ -n "$snap3b" ] && rm -rf "$snap3b"
 # 3c) invoked by a RELATIVE path from a subdirectory, with a RELATIVE output dir: the script
 #     finds its own guard, and the snapshot lands where the caller meant
-mkdir -p "$repo/tools/bin"; cp "$SCRIPT" "$(dirname "$SCRIPT")/publish-guard.sh" "$(dirname "$SCRIPT")/privacy-scan.sh" "$repo/tools/bin/"
-out3c="$( cd "$repo/skills/x" && CLAUDE_INTERNAL_PATHS="$deny" CLAUDE_PUBLIC_PATHS="$allow" ../../tools/bin/publish-snapshot.sh rel-out 2>/dev/null )"; rc=$?
+mkdir -p "$repo/tools/scripts"; cp "$SCRIPT" "$(dirname "$SCRIPT")/publish-guard.sh" "$(dirname "$SCRIPT")/privacy-scan.sh" "$repo/tools/scripts/"
+out3c="$( cd "$repo/skills/x" && CLAUDE_INTERNAL_PATHS="$deny" CLAUDE_PUBLIC_PATHS="$allow" ../../tools/scripts/publish-snapshot.sh rel-out 2>/dev/null )"; rc=$?
 assert_true "relative invocation from a subdirectory -> exit 0 (got $rc)" "[ \"$rc\" = 0 ]"
 assert_true "relative output dir lands in the caller's directory" "[ -f \"$repo/skills/x/rel-out/README.md\" ]"
 rm -rf "$repo/skills/x/rel-out" "$repo/tools"

@@ -94,7 +94,7 @@ Constraints: <copied verbatim from the spec/story. Boundaries live in the
 
 ## File map (before any tasks)
 <every file this plan creates or modifies, with its responsibility>
-- bin/language-status.sh        CREATE: prints the effective language and its scope
+- scripts/language-status.sh        CREATE: prints the effective language and its scope
 - tests/language-status.test.sh CREATE: tests for language-status.sh
 - skills/language/SKILL.md      CREATE: the /odeo:language command surface
 

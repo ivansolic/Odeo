@@ -45,7 +45,7 @@ comes later, through the real build pipeline.
    the reuse-never-multiply ladder: code -> cursor -> graceful skip). Then the
    user clicks through and compares the real thing side by side.
 5. **Share (optional, always your call, outward = gated)**:
-   - quick, no account: `share-tunnel.sh <port> [minutes]` (on PATH through the Odeo plugin), a
+   - quick, no account: `"${CLAUDE_PLUGIN_ROOT}/scripts/share-tunnel.sh" <port> [minutes]`, a
      cloudflared quick tunnel that SHUTS ITSELF DOWN when the TTL expires
      (default 60 min; ask how long, extend by re-running). It announces the
      expiry up front and records the share in `docs/prototypes/.shares`;
@@ -54,9 +54,8 @@ comes later, through the real build pipeline.
      code PUBLIC (e.g. GitHub Pages needs a public repo), say so plainly and
      get an explicit go.
    - **Never real or personal data in a shared prototype**, seed/fake only, and
-     run `privacy-scan.sh` over the prototype's seed/env before exposing it
-     (it is on PATH through the Odeo plugin;
-     only if truly absent, do a manual equivalent scan and show the results).
+     run `"${CLAUDE_PLUGIN_ROOT}/scripts/privacy-scan.sh"` over the prototype's seed/env before exposing it
+     (only if it is truly absent, do a manual equivalent scan and show the results).
    - **Own the exposure lifecycle.** Tunnels expire on their own (the TTL is
      the enforced floor); still say what is public and until when, offer
      teardown at any natural end of the conversation, and on "stop sharing"

@@ -69,7 +69,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}/bin/focus-check.sh\"",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/scripts/focus-check.sh\"",
             "timeout": 10
           }
         ]
@@ -80,7 +80,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "[ -f \"$CLAUDE_PROJECT_DIR/.claude/tasks/todo.md\" ] || exit 0; \"${CLAUDE_PLUGIN_ROOT}/bin/session-end-check.sh\"",
+            "command": "[ -f \"$CLAUDE_PROJECT_DIR/.claude/tasks/todo.md\" ] || exit 0; \"${CLAUDE_PLUGIN_ROOT}/scripts/session-end-check.sh\"",
             "timeout": 30
           }
         ]

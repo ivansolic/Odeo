@@ -44,7 +44,7 @@ The proven shape (adapt, don't pad):
 - No time-sensitive facts (versions, dates, "currently") that rot.
 - Pre-written scripts over agent-generated code for critical operations
   (the `privacy-scan.sh` principle). This is about SHIPPED artifacts: a critical
-  operation lives in a deterministic script in `bin/`, not in agent improvisation.
+  operation lives in a deterministic script in `scripts/`, not in agent improvisation.
   It is not a licence to pre-write implementations inside plan documents, which
   carry contracts, not implementations; different domains, both single-source.
 - Explanation template where teaching is needed: WHAT, EXAMPLE, WHY, WHERE IT

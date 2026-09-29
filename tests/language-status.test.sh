@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Tests for bin/language-status.sh: the effective output language AND its scope.
+# Tests for scripts/language-status.sh: the effective output language AND its scope.
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-SCRIPT="$ROOT/bin/language-status.sh"
-RESOLVER="$ROOT/bin/resolve-language.sh"
+SCRIPT="$ROOT/scripts/language-status.sh"
+RESOLVER="$ROOT/scripts/resolve-language.sh"
 fail=0
 assert_exit() { if [ "$2" = "$3" ]; then echo "ok: $1"; else echo "FAIL: $1 (expected exit $2, got $3)"; fail=1; fi; }
 assert_eq() { if [ "$2" = "$3" ]; then echo "ok: $1"; else echo "FAIL: $1 (expected '$2', got '$3')"; fail=1; fi; }

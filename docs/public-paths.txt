@@ -7,13 +7,15 @@
 #
 # Only paths listed here may appear in the published snapshot. Any committed path
 # that matches neither this allowlist nor docs/internal-paths.txt is UNCLASSIFIED,
-# and bin/publish-guard.sh --require-allowlist refuses the publish until a human
+# and scripts/publish-guard.sh --require-allowlist refuses the publish until a human
 # classifies it. NEVER add a bare "docs/" line: docs/ is the mixed zone, so each
 # public docs entry is listed explicitly and any new docs path must be classified.
 
 # wholly-public top-level directories
 skills/
 agents/
+scripts/
+# compatibility wrappers for Odeo 0.2.x hooks and shims; removed in the next release
 bin/
 tests/
 project-templates/

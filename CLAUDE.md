@@ -8,7 +8,7 @@
   claim. RED-first applies to invariant guards too: the mutation IS the RED. A guard never
   seen failing is false confidence.
 - Develop with the plugin loaded from this clone: `claude --plugin-dir .` from the repo
-  root. Edits under `skills/`, `agents/`, `bin/`, `hooks/` or `project-templates/` apply
+  root. Edits under `skills/`, `agents/`, `scripts/`, `hooks/` or `project-templates/` apply
   at the next session or `/reload-plugins`, with no version bump. That is also how this
   repo dogfoods its own tools: there are no project-level copies of the skills or agents.
 - Solved, reusable problems are banked in `knowledge/` via `/odeo:learn`, one file per

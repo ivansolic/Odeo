@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Tests for bin/merge-gate.sh, the /merge deterministic gate.
+# Tests for scripts/merge-gate.sh, the /merge deterministic gate.
 # Covers: branch guard, dirty tree, record existence by EXACT branch field,
 # record freshness (newer than last code commit), and verdict check.
 # Run: bash tests/merge-gate.test.sh
@@ -11,7 +11,7 @@ set -uo pipefail
 export GIT_AUTHOR_NAME=test GIT_AUTHOR_EMAIL=test@example.com
 export GIT_COMMITTER_NAME=test GIT_COMMITTER_EMAIL=test@example.com
 TEST_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-GATE="$TEST_DIR/../bin/merge-gate.sh"
+GATE="$TEST_DIR/../scripts/merge-gate.sh"
 pass=0; fail=0
 
 T1='2026-01-01T10:00:00'; T2='2026-01-01T11:00:00'; T3='2026-01-01T12:00:00'

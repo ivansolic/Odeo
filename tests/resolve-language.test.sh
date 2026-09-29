@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Tests for bin/resolve-language.sh, the deterministic effective-language resolver.
+# Tests for scripts/resolve-language.sh, the deterministic effective-language resolver.
 # Covers all 12 cases from the plan: precedence, fallback, normalization,
 # invalid-value degrade, duplicate lines, usage errors, and directory errors.
 # TDD: run this FIRST (RED while the script is absent), then implement to GREEN.
 set -uo pipefail
-SCRIPT="$(cd "$(dirname "$0")/.." && pwd)/bin/resolve-language.sh"
+SCRIPT="$(cd "$(dirname "$0")/.." && pwd)/scripts/resolve-language.sh"
 fail=0
 assert_exit() { # desc expected actual
   if [ "$2" = "$3" ]; then echo "ok: $1"; else echo "FAIL: $1 (expected exit $2, got $3)"; fail=1; fi

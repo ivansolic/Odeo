@@ -3,7 +3,7 @@
 # Covers the non-interactive flag path only (no TTY harness available).
 # TDD: run this FIRST (RED), then implement to GREEN.
 set -uo pipefail
-SCRIPT="$(cd "$(dirname "$0")/.." && pwd)/bin/init-project.sh"
+SCRIPT="$(cd "$(dirname "$0")/.." && pwd)/scripts/init-project.sh"
 fail=0
 assert_exit() { # desc expected actual
   if [ "$2" = "$3" ]; then echo "ok: $1"; else echo "FAIL: $1 (expected exit $2, got $3)"; fail=1; fi

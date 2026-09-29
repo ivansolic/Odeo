@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Tests for bin/set-global-language.sh: idempotent writer of the GLOBAL output-language default.
+# Tests for scripts/set-global-language.sh: idempotent writer of the GLOBAL output-language default.
 set -uo pipefail
-SCRIPT="$(cd "$(dirname "$0")/.." && pwd)/bin/set-global-language.sh"
+SCRIPT="$(cd "$(dirname "$0")/.." && pwd)/scripts/set-global-language.sh"
 fail=0
 assert_exit() { if [ "$2" = "$3" ]; then echo "ok: $1"; else echo "FAIL: $1 (expected exit $2, got $3)"; fail=1; fi; }
 assert_eq() { if [ "$2" = "$3" ]; then echo "ok: $1"; else echo "FAIL: $1 (expected '$2', got '$3')"; fail=1; fi; }

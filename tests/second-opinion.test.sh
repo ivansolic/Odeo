@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Tests for bin/second-opinion.sh (the paid cross-model review wrapper).
+# Tests for scripts/second-opinion.sh (the paid cross-model review wrapper).
 # Uses a FAKE vendor CLI on PATH, no network, no real vendor needed.
 # Run: bash tests/second-opinion.test.sh
 set -uo pipefail
 TEST_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SO="$TEST_DIR/../bin/second-opinion.sh"
+SO="$TEST_DIR/../scripts/second-opinion.sh"
 pass=0; fail=0
 ok()  { echo "ok   - $1"; pass=$((pass+1)); }
 bad() { echo "FAIL - $1"; fail=$((fail+1)); }
