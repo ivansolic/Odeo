@@ -1,6 +1,7 @@
 ---
 module: bash test harnesses (tests/*.test.sh)
-tags: [bash, exec, alarm, timeout, watchdog, infinite-loop, macos, test-harness, stdin, background-job]
+tags: [bash, exec, alarm, timeout, watchdog, infinite-loop, macos, test-harness, stdin,
+  background-job]
 problem_type: bug
 provenance: odeo-migrate-legacy shim self-exec case (round 3 of the plugin-install review)
 reuse_count: 0
@@ -50,8 +51,8 @@ wrong place. Fix, now in the helper above: redirect on the backgrounded command 
 
 ## Prevention
 Prove the watchdog on a real infinite exec loop BEFORE trusting it
-(`printf '#!/usr/bin/env bash\nexec "$0"\n'`); expect rc=143 after ~10s. And a positive control for input: `printf abc | bounded wc -c`
-must print 3.
+(`printf '#!/usr/bin/env bash\nexec "$0"\n'`); expect rc=143 after ~10s. And a positive
+control for input: `printf abc | bounded wc -c` must print 3.
 
 ## Example
 tests/odeo-migrate-legacy.test.sh case 8b: a shim whose fallback points at itself must

@@ -32,13 +32,17 @@ relative to the repo or cwd. When all miss: warn loudly or block, never "find so
 
 ## Why it works
 The guarded project is the party the guard checks; any path it controls can replace the
-check. Removing those paths makes substitution impossible instead of unlikely.
+check. Removing the repo- and cwd-relative paths makes THAT substitution impossible.
+Residual, still open: PATH is looked up first (odeo_tool's `command -v`, merge-gate's
+fallback), and a project can put itself on PATH (direnv `PATH_add`, `node_modules/.bin`,
+a `.` entry). So the same question applies to PATH, and it answers yes.
 
 ## Prevention
 For every lookup chain in a guard ask: "can the thing being checked put a file here?"
-Test it: plant a project script with the guard's name that exits 0, and assert it did
-not run AND the missing-guard warning still prints (tests/git-guards.plugin.test.sh
-case 10, tests/merge-gate.test.sh last case).
+Test it: plant a project script with the guard's name that exits 0. For a lookup whose
+miss only warns, assert it did not run AND the warning still prints
+(tests/git-guards.plugin.test.sh case 10); for a gate, assert the real check still
+refuses (tests/merge-gate.test.sh, last case: rc 1 on a real DO-NOT-TOUCH violation).
 
 ## Example
     for c in "$ODEO_BIN_AT_INSTALL" "scripts" "bin"; do ...   # before: project can win
