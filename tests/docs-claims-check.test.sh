@@ -158,17 +158,34 @@ case "$out6" in *broken.test.sh*) ok "and the failure names the suite that broke
 #    And the LAST WORD fits the cause. Only a suite broke and the README is correct, so the
 #    footer must send the reader to the suite, not tell them to "Fix the NUMBER in the document".
 #    Observed failing (2026-09-30) before the footer counted suite failures: both checks below.
-case "$out6" in *"a suite failed to run"*) ok "and the footer says a suite failed, not the document";;
+case "$out6" in *"exited non-zero"*) ok "and the footer says a suite failed, not the document";;
   *) bad "the footer does not name the failed suite as the cause: ${out6:-<empty>}";; esac
 case "$out6" in *"Fix the NUMBER"*) bad "the footer tells the reader to edit a correct README";;
   *) ok "and it does not tell the reader to edit the README";; esac
+#    6c. THE SAME WITH NOTHING SKIPPED, which is the ordinary machine. A broken suite reports
+#    fewer `ok` lines, so the total misses a README that is RIGHT, and with no skip to excuse it
+#    the count used to be judged DRIFTED, adding "Fix the NUMBER" under the suite's own remedy.
+#    A total from a run where a suite failed is not a measurement, so it is not judged at all.
+#    Observed failing (2026-09-30, round-1 review) with only the skip able to excuse the total.
+printf '#!/usr/bin/env bash\necho "ok   - b"\n' > "$mini6/tests/skippy.test.sh"
+printf '#!/usr/bin/env bash\necho "ok   - d"\nexit 1\n' > "$mini6/tests/broken.test.sh"
+# README at the HEALTHY count: foo 1 + skippy 1 + broken's 2 when it works = 4; broken now
+# reports 1, so the run measures 3. A README equal to the broken total would prove nothing.
+printf '├── scripts/   ← 1 executables\n│   └── *.test.sh   ← 3 suites, 4 assertions. 1 of the 1 programs have their own suite\n' > "$mini6/README.md"
+out6c="$( cd "$mini6" && bash "$CHECK" --assertions 2>&1 )"; rc6c=$?
+[[ "$rc6c" -ne 0 ]] && ok "6c: a failed suite with nothing skipped is still red (exit $rc6c)" \
+  || bad "6c: a failed suite with nothing skipped passed"
+case "$out6c" in *"exited non-zero"*) ok "6c: and the footer sends the reader to the suite";;
+  *) bad "6c: the footer does not name the suite: ${out6c:-<empty>}";; esac
+case "$out6c" in *"Fix the NUMBER"*|*DRIFTED*) bad "6c: a correct README is called drifted: ${out6c:-<empty>}";;
+  *) ok "6c: and a correct README is not called drifted";; esac
 #    Control: with a README that really drifted and every suite green, the drift footer stays.
 printf '#!/usr/bin/env bash\necho "ok   - b"\n' > "$mini6/tests/skippy.test.sh"; rm "$mini6/tests/broken.test.sh"
 printf '├── scripts/   ← 7 executables\n│   └── *.test.sh   ← 2 suites, 2 assertions. 1 of the 1 programs have their own suite\n' > "$mini6/README.md"
 out6b="$( cd "$mini6" && bash "$CHECK" --assertions 2>&1 )"
 case "$out6b" in *"Fix the NUMBER"*) ok "a real drift still gets the fix-the-document footer";;
   *) bad "a real drift lost its footer: ${out6b:-<empty>}";; esac
-case "$out6b" in *"a suite failed to run"*) bad "a drift with green suites blames a suite";;
+case "$out6b" in *"exited non-zero"*) bad "a drift with green suites blames a suite";;
   *) ok "and it does not blame a suite";; esac
 rm -rf "$mini6"
 

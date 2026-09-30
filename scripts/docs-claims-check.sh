@@ -69,8 +69,8 @@ claim() {
     n_unverified=$((n_unverified+1))
     echo "UNVERIFIED: $label , README says $documented, this run measured $measured"
     echo "            $unverifiable"
-    echo "            Not a failure: this machine did not run the whole suite, so its number"
-    echo "            is not evidence about the README. Do not edit either one from this run."
+    echo "            Not judged: this run did not measure it completely, so its number is not"
+    echo "            evidence about the README. Do not edit either one from this run."
   else
     echo "DRIFTED: $label , README says $documented, the tree has $measured"
     fail=1; claim_fail=1
@@ -137,7 +137,15 @@ if [[ "$WITH_ASSERTIONS" -eq 1 ]]; then
     echo "note: $skip_reason"
     echo "      So the count below can read LOW or HIGH on this machine without the README being wrong."
   fi
-  claim "assertions" "$total" '[0-9]+ assertions' "$skip_reason"
+  # A FAILED SUITE MAKES THE TOTAL NO MEASUREMENT, skip or no skip. It reports fewer `ok` lines,
+  # so judging the total would call a correct README drifted and bury the suite's own remedy
+  # under "Fix the NUMBER". The run stays red through the suite (fail=1 above); only the number
+  # is withheld. Before this, only a skip could excuse it, which is not the ordinary machine.
+  count_reason="$skip_reason"
+  if [[ "$suite_fail" -gt 0 ]]; then
+    count_reason="$suite_fail suite(s) exited non-zero, so this total is not a measurement."
+  fi
+  claim "assertions" "$total" '[0-9]+ assertions' "$count_reason"
 else
   echo "skipped: assertion count (re-run with --assertions; it runs every suite)"
 fi
@@ -154,7 +162,7 @@ fi
 if [[ "$fail" -ne 0 ]]; then
   echo ""
   if [[ "$suite_fail" -gt 0 ]]; then
-    echo "docs-claims-check: $suite_fail suite(s) failed; a suite failed to run, so fix the suite, not the document." >&2
+    echo "docs-claims-check: $suite_fail suite(s) exited non-zero, so fix the suite, not the document." >&2
   fi
   if [[ "$claim_fail" -ne 0 ]]; then
     echo "docs-claims-check: a documented claim no longer matches the tree." >&2
