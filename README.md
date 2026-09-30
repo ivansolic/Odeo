@@ -162,7 +162,7 @@ Odeo/
 │   └── marketplace.json      ← makes this repo its own marketplace
 ├── hooks/
 │   ├── hooks.json            ← session start (baseline, language, old-install and outdated-guard notices, community reminder), /odeo:focus fence, end-of-turn sweep
-│   └── odeo-context.sh       ← delivers the global baseline to the session and to subagents
+│   └── odeo-context.sh       ← delivers the global baseline to the session and to subagents, plus the session-start notices
 ├── skills/                   ← slash commands (you type /name); each is a SKILL.md
 │   ├── build/                ← /odeo:build stories: human-first, or architect->builder agents (you approve)
 │   ├── merge/                ← /odeo:merge rebase onto main, test, merge PR, cleanup
