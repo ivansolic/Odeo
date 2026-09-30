@@ -32,6 +32,8 @@ done
 [[ -f README.md ]] || { echo "docs-claims-check: run from the repo root (no README.md here)" >&2; exit 2; }
 
 fail=0
+claim_fail=0      # a claim DRIFTED or went MISSING: the document (or this check) needs fixing
+suite_fail=0      # a suite exited non-zero: the suite needs fixing, the README may be right
 found_any=0
 n_unverified=0
 
@@ -57,7 +59,7 @@ claim() {
   if [[ -z "$documented" ]]; then
     echo "MISSING: README no longer carries a '$label' claim this check knows how to read."
     echo "         Either restore the claim, or delete this check line so the gap is explicit."
-    fail=1
+    fail=1; claim_fail=1
     return
   fi
   found_any=1
@@ -71,7 +73,7 @@ claim() {
     echo "            is not evidence about the README. Do not edit either one from this run."
   else
     echo "DRIFTED: $label , README says $documented, the tree has $measured"
-    fail=1
+    fail=1; claim_fail=1
   fi
 }
 
@@ -111,7 +113,7 @@ if [[ "$WITH_ASSERTIONS" -eq 1 ]]; then
     n_skipped=$((n_skipped+s))
     if [[ "$rc" -ne 0 ]]; then
       echo "SUITE FAILED: $f exited $rc, so the assertion count below is not a measurement."
-      fail=1
+      fail=1; suite_fail=$((suite_fail+1))
     fi
   done
   # A suite may SKIP checks, so this total is environment-dependent in a way the other claims
@@ -132,9 +134,8 @@ if [[ "$WITH_ASSERTIONS" -eq 1 ]]; then
   skip_reason=""
   if [[ "$n_skipped" -gt 0 ]]; then
     skip_reason="$n_skipped check(s) were SKIPPED here (the case cannot run as this user, or this shell refuses what it needs)."
-    echo "note: $n_skipped check(s) were SKIPPED here (the case cannot run as this user, or"
-    echo "      this shell refuses what it needs), so the count"
-    echo "      below can read LOW or HIGH on this machine without the README being wrong."
+    echo "note: $skip_reason"
+    echo "      So the count below can read LOW or HIGH on this machine without the README being wrong."
   fi
   claim "assertions" "$total" '[0-9]+ assertions' "$skip_reason"
 else
@@ -147,10 +148,18 @@ if [[ "$found_any" -eq 0 ]]; then
   exit 1
 fi
 
+# The footer names the cause that actually occurred. A broken suite with a correct README used
+# to end on "Fix the NUMBER in the document", sending the reader to edit the one file that was
+# right; each cause now gets its own remedy, and both print when both occurred.
 if [[ "$fail" -ne 0 ]]; then
   echo ""
-  echo "docs-claims-check: a documented claim no longer matches the tree." >&2
-  echo "Fix the NUMBER in the document, never this check, unless the check is what is wrong." >&2
+  if [[ "$suite_fail" -gt 0 ]]; then
+    echo "docs-claims-check: $suite_fail suite(s) failed; a suite failed to run, so fix the suite, not the document." >&2
+  fi
+  if [[ "$claim_fail" -ne 0 ]]; then
+    echo "docs-claims-check: a documented claim no longer matches the tree." >&2
+    echo "Fix the NUMBER in the document, never this check, unless the check is what is wrong." >&2
+  fi
   exit 1
 fi
 echo ""
