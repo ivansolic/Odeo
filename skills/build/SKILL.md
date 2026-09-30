@@ -237,8 +237,8 @@ once so a still editor is not mistaken for a stall. Live watching is with-me (Mo
    contract preconditions (`agents/builder.md` has the authoritative list).
    If you revise a plan after it was approved, every other plan in the batch that references
    its contracts loses its approval and returns to this gate (`${CLAUDE_PLUGIN_ROOT}/AGENTS.md`
-   Guardrails 1). You hold that half: `architecture-reviewer` sees one plan at a time and
-   cannot see a revision to another.
+   Guardrails 1). You hold that half: whether a declaring plan was revised after approval is a
+   git fact `architecture-reviewer` cannot see (it checks only what the plans themselves show).
 4. **Dispatch one `builder` per approved story**, each in its own git worktree +
    branch (built-in isolation; parallel = background agents), **on the model the
    user chose in the model-plan step**, passed at dispatch and recorded in the
@@ -269,7 +269,7 @@ once so a still editor is not mistaken for a stall. Live watching is with-me (Mo
    (its rubric's threshold, no criterion at 0): fix -> same reviewer re-verifies and
    regenerates the record -> repeat, under the stop condition declared in
    `${CLAUDE_PLUGIN_ROOT}/docs/eval-framework.md` (approve, 3 rounds, or two consecutive rounds
-   of the same defect class; a Critical is always reported); the user sees first -> final
+   of the same defect class, whichever comes first; a Critical is always reported); the user sees first -> final
    score, not two separate asks.
 
 ### B6. Present per story

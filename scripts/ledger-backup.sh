@@ -49,8 +49,8 @@
 #   5  the copy was made but PUSH WAS REFUSED, so nothing was backed up
 #   6  nothing to back up (neither ledger file exists)
 set -uo pipefail
-# TWO FAMILIES OF THE GIT ENVIRONMENT ARE DROPPED, the variables that LOCATE a repository and
-# the ones that INJECT config; not only the two that name a repository, and not all of it.
+# TWO FAMILIES OF THE GIT ENVIRONMENT ARE DROPPED, the variables that NAME a repository and
+# the ones that INJECT config; not only GIT_DIR and GIT_WORK_TREE, and not all of it.
 # Deliberately KEPT: GIT_SSH_COMMAND and GIT_SSH (the caller's own ssh transport; dropping
 # them breaks a key or proxy setup, and measured at round 10 an inherited one routes the push,
 # at exit 0, exactly as the caller's own `git push` would), GIT_AUTHOR_* and GIT_COMMITTER_*

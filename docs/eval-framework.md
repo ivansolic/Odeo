@@ -183,8 +183,8 @@ The review loop is an autonomous loop, so it needs a declared stop, not a human 
    no Critical. The normal exit.
 
    The number lives in the rubric and only there. It is not repeated in this file on
-   purpose: the totals differ by type (code and UI are scored out of 12, skills, agent
-   definitions and plans out of 10), and a second copy of a number is the exact shape of
+   purpose: the totals differ by type (code and UI are scored out of 12, skills and agent
+   definitions out of 10; the plan loop publishes no score), and a second copy of a number is the exact shape of
    drift this framework exists to prevent. Read it where it is declared:
 
    | Artifact | Rubric that declares the threshold |
