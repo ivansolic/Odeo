@@ -34,8 +34,9 @@
 #       When the shared community knowledge (~/.claude/community-knowledge, the copy
 #       /odeo:sync-community keeps) is missing, or its last successful sync is 14 days old,
 #       asks Claude to offer /odeo:sync-community once, never to run it. The last sync is the
-#       stamp community-sync.sh writes on success, else the clone time (.git/HEAD). After a
-#       reminder it stays silent for 14 days, synced or not (state in CLAUDE_PLUGIN_DATA),
+#       stamp community-sync.sh writes on success, else the last fetch (.git/FETCH_HEAD), else
+#       the clone time (.git/HEAD). After a reminder it stays silent for 14 days, synced or
+#       not (state in CLAUDE_PLUGIN_DATA),
 #       so ignoring it is declining it; with no CLAUDE_PLUGIN_DATA it cannot remember and
 #       stays silent rather than repeat every session.
 #
@@ -269,6 +270,9 @@ older_than_days() {
 community_state() {
   local last="$COMMUNITY_DIR/.git/odeo-last-sync"
   [ -d "$COMMUNITY_DIR/.git" ] || { echo missing; return 0; }
+  # no stamp (synced before it existed): the last fetch, else the clone. A fast-forward never
+  # rewrites HEAD, so HEAD alone would date a copy synced yesterday to its clone.
+  [ -f "$last" ] || last="$COMMUNITY_DIR/.git/FETCH_HEAD"
   [ -f "$last" ] || last="$COMMUNITY_DIR/.git/HEAD"
   # neither can be dated: remind rather than stay silent forever about a copy that
   # community-sync.sh may not be able to refresh either

@@ -40,6 +40,8 @@
 #   M29 no .git/HEAD fallback without a stamp           -> 1 FAIL (case 4f, old clone)
 #   M30 reminder shown although it could not be recorded -> 1 FAIL (case 4f, read-only data)
 #   M31 a copy with no stamp and no HEAD stays silent   -> 1 FAIL (case 4f, no HEAD)
+#   M32 no FETCH_HEAD fallback (HEAD dates the copy)    -> 2 FAIL (case 4f, fetched copy)
+#   M33 HEAD tried before FETCH_HEAD                    -> 2 FAIL (case 4f, fetched copy)
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 HOOK="$ROOT/hooks/odeo-context.sh"
@@ -280,6 +282,13 @@ h="$(fresh_case nostamp)"; rm "$h/.claude/community-knowledge/.git/odeo-last-syn
 assert_empty "community: no stamp, cloned now (HEAD) -> silent" "$(community "$h" "$h/data")"
 age "$h/.claude/community-knowledge/.git/HEAD" 15
 assert_contains "community: no stamp, cloned 15 days ago -> reminder" "$REMIND" "$(ctx "$(community "$h" "$h/data")")"
+# a copy synced before the stamp existed: the last fetch (FETCH_HEAD, written by every
+# successful fetch) dates it, not the clone (HEAD, which a fast-forward never rewrites)
+h="$(fresh_case fetchhead)"; rm "$h/.claude/community-knowledge/.git/odeo-last-sync"
+age "$h/.claude/community-knowledge/.git/HEAD" 15; : > "$h/.claude/community-knowledge/.git/FETCH_HEAD"
+assert_empty "community: no stamp, fetched now, cloned 15 days ago -> silent" "$(community "$h" "$h/data")"
+age "$h/.claude/community-knowledge/.git/FETCH_HEAD" 15; touch "$h/.claude/community-knowledge/.git/HEAD"
+assert_contains "community: no stamp, fetched 15 days ago, HEAD newer -> reminder (the fetch decides)" "$REMIND" "$(ctx "$(community "$h" "$h/data")")"
 h="$TMP/cm-missing"; mkdir -p "$h/data" "$h/.claude"
 c="$(ctx "$(community "$h" "$h/data")")"
 assert_contains "community: no copy -> reminder" "$REMIND" "$c"
