@@ -266,8 +266,11 @@ got="$(unset CLAUDE_CONFIG_DIR; printf 'a\0b\0c' | HOME="$H16" bounded "$H16/bin
 assert_exit "0.2.2 shim reaches scripts/ through the bin/ wrapper with stdin intact" 5 "$got"
 assert_exit "0.2.2 shim passes the guard's exit code through" 5 "$rc"
 rm -rf "$v16/bin"
-( unset CLAUDE_CONFIG_DIR; printf 'a\0b\0c' | HOME="$H16" bounded "$H16/bin/publish-guard.sh" - >/dev/null 2>&1 ); rc=$?
+# matched by its message too: observed failing (2026-09-30) with bin/ kept and the guard
+# exiting 1, which the exit code alone could not tell from the block
+out="$( unset CLAUDE_CONFIG_DIR; printf 'a\0b\0c' | HOME="$H16" bounded "$H16/bin/publish-guard.sh" - 2>&1 >/dev/null )"; rc=$?
 assert_exit "0.2.2 shim with bin/ gone blocks" 1 "$rc"
+assert_contains "0.2.2 shim with bin/ gone says it cannot run" "cannot run and BLOCKS" "$out"
 
 # 6) unknown flag -> usage, exit 2, nothing moved
 H="$TMP/h6"; make_home "$H"; before="$(find "$H" | sort)"
