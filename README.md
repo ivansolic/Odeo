@@ -161,7 +161,7 @@ Odeo/
 │   ├── plugin.json           ← plugin manifest (version, language dialog)
 │   └── marketplace.json      ← makes this repo its own marketplace
 ├── hooks/
-│   ├── hooks.json            ← session start (baseline, language), /odeo:focus fence, end-of-turn sweep
+│   ├── hooks.json            ← session start (baseline, language, old-install and outdated-guard notices, community reminder), /odeo:focus fence, end-of-turn sweep
 │   └── odeo-context.sh       ← delivers the global baseline to the session and to subagents
 ├── skills/                   ← slash commands (you type /name); each is a SKILL.md
 │   ├── build/                ← /odeo:build stories: human-first, or architect->builder agents (you approve)
