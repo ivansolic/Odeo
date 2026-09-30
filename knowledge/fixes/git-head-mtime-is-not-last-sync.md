@@ -16,8 +16,8 @@ created: 2026-09-30
 - `.git/HEAD` holds `ref: refs/heads/main`. A `fetch` + `merge --ff-only` never rewrites it,
   so its date stays at clone time (measured: unchanged after fetch + ff; a branch switch
   DOES change it, which proves the probe works).
-- `.git/FETCH_HEAD` is written by every successful fetch, even an up-to-date one, but does
-  NOT exist right after a clone.
+- `.git/FETCH_HEAD` is written by every successful fetch, even an up-to-date one (not with
+  `--dry-run` or `--no-write-fetch-head`), but does NOT exist right after a clone.
 - The honest signal is your own stamp, written only on the success paths of the sync
   (Odeo: `.git/odeo-last-sync` via `stamp_sync`). Fall back to the file dates only for
   copies made before the stamp existed, and name that fallback as approximate.
@@ -31,5 +31,6 @@ Any staleness, freshness or "last updated" check on a git clone (mirrors, caches
 vendored repos).
 
 ## Examples
-Best available order for an old copy: own stamp -> FETCH_HEAD -> HEAD (clone time) ->
-"cannot be dated, say so".
+General recommendation for an old copy: own stamp -> FETCH_HEAD -> HEAD (clone time) ->
+"cannot be dated, say so". Odeo 0.3.2 ships stamp -> HEAD -> "cannot be dated"
+(hooks/odeo-context.sh community_state); FETCH_HEAD is an open decision.
