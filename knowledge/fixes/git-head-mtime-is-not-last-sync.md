@@ -18,6 +18,10 @@ created: 2026-09-30
   DOES change it, which proves the probe works).
 - `.git/FETCH_HEAD` is written by every successful fetch, even an up-to-date one (not with
   `--dry-run` or `--no-write-fetch-head`), but does NOT exist right after a clone.
+- A FAILED fetch also touches it: it empties FETCH_HEAD to 0 bytes and gives it a new date
+  (measured on git 2.50.1: unreachable remote, rc=128). So its date alone cannot tell a
+  failed fetch from a successful one; only a NON-EMPTY FETCH_HEAD dates a fetch (`[ -s ]`,
+  never `[ -f ]`). Even then it dates the fetch, not a completed sync.
 - The honest signal is your own stamp, written only on the success paths of the sync
   (Odeo: `.git/odeo-last-sync` via `stamp_sync`). Fall back to the file dates only for
   copies made before the stamp existed, and name that fallback as approximate.
@@ -31,6 +35,8 @@ Any staleness, freshness or "last updated" check on a git clone (mirrors, caches
 vendored repos).
 
 ## Examples
-General recommendation for an old copy: own stamp -> FETCH_HEAD -> HEAD (clone time) ->
-"cannot be dated, say so". Odeo 0.3.2 shipped stamp -> HEAD -> "cannot be dated"; the next
-release adds FETCH_HEAD between the stamp and HEAD (hooks/odeo-context.sh community_state).
+General recommendation for an old copy: own stamp -> non-empty FETCH_HEAD -> HEAD (clone
+time) -> "cannot be dated, say so". Odeo 0.3.2 shipped stamp -> HEAD -> "cannot be dated";
+the next release adds a non-empty FETCH_HEAD between the stamp and HEAD
+(hooks/odeo-context.sh community_state). The first draft of that change used `[ -f ]` and
+would have made every failed sync look fresh; review caught it by reproducing a failure.
