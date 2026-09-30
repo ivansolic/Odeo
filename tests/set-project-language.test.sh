@@ -9,8 +9,9 @@ assert_exit() { if [ "$2" = "$3" ]; then echo "ok: $1"; else echo "FAIL: $1 (exp
 assert_eq() { if [ "$2" = "$3" ]; then echo "ok: $1"; else echo "FAIL: $1 (expected '$2', got '$3')"; fail=1; fi; }
 assert_contains() { case "$3" in *"$2"*) echo "ok: $1";; *) echo "FAIL: $1 (missing '$2')"; fail=1;; esac; }
 assert_true() { if eval "$2"; then echo "ok: $1"; else echo "FAIL: $1"; fail=1; fi; }
-# GNU form first: on Linux `stat -f` is --file-system and SUCCEEDS, so a BSD-first chain
-# never falls through; BSD stat has no -c and fails cleanly, so this order works on both
+# GNU form first: on Linux `stat -f` is --file-system and prints a filesystem report before
+# failing on '%Lp', and $(...) keeps that output; BSD stat has no -c and fails with nothing
+# on stdout, so this order works on both
 file_mode() { stat -c '%a' "$1" 2>/dev/null || stat -f '%Lp' "$1" 2>/dev/null; }
 
 TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT

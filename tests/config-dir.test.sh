@@ -45,7 +45,7 @@ case "$out" in *"expected=hr "*) ok "prose-language-check expects the config dir
 # the overwrite is an atomic rename beside the target: mode kept, no temp file left
 m="$TMP/mode.md"; printf '# G\noutput_language: en\n' > "$m"; chmod 644 "$m"   # not 600: mktemp itself creates 600, which would mask a lost mode
 CLAUDE_GLOBAL_CONFIG="$m" "$ROOT/scripts/set-global-language.sh" de --overwrite >/dev/null 2>&1
-# GNU stat first: on Linux `stat -f` is --file-system and succeeds, so BSD-first never falls through
+# GNU stat first: on Linux `stat -f` prints a filesystem report before failing, and $(...) keeps it
 assert_eq "overwrite keeps the file mode" "644" "$(stat -c %a "$m" 2>/dev/null || stat -f %Lp "$m")"
 assert_eq "overwrite leaves no temp file" "0" "$(ls "$TMP" | grep -c '^mode\.md\.')"
 assert_eq "overwrite applied" "output_language: de" "$(grep '^output_language:' "$m")"
