@@ -49,7 +49,13 @@
 #   5  the copy was made but PUSH WAS REFUSED, so nothing was backed up
 #   6  nothing to back up (neither ledger file exists)
 set -uo pipefail
-# THE WHOLE GIT ENVIRONMENT IS DROPPED, not the two variables that name a repository.
+# TWO FAMILIES OF THE GIT ENVIRONMENT ARE DROPPED, the variables that LOCATE a repository and
+# the ones that INJECT config; not only the two that name a repository, and not all of it.
+# Deliberately KEPT: GIT_SSH_COMMAND and GIT_SSH (the caller's own ssh transport; dropping
+# them breaks a key or proxy setup, and measured at round 10 an inherited one routes the push,
+# at exit 0, exactly as the caller's own `git push` would), GIT_AUTHOR_* and GIT_COMMITTER_*
+# (the identity on the backup commit; the author pair is read below), GIT_EXEC_PATH and
+# GIT_TEMPLATE_DIR (git's own install).
 #
 # Every git call below is meant to be about the PROJECT DIRECTORY passed in. Inherited GIT_DIR
 # or GIT_WORK_TREE silently redirect all of them at whatever repository the caller's environment
