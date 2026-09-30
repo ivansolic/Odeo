@@ -683,4 +683,22 @@ if [[ $rc -eq 1 ]]; then echo "ok   - a project's own boundary-check.sh does not
 else echo "FAIL - a project's own boundary-check.sh replaced Odeo's (rc=$rc want=1)"; fail=$((fail+1)); fi
 rm -rf "$d"
 
+# A boundary-check.sh on PATH is never run in place of the checker shipped with the gate.
+# The gate is copied without its sibling so the PATH fallback (0.3.0) would be the only
+# candidate; the foreign script logs that it ran. Observed failing with the PATH fallback
+# restored: this case. (With no checker at all the boundary step is still skipped, a
+# pre-existing residual this case does not change.)
+d="$(make_repo)"; lone="$(mktemp -d)"; cp "$GATE" "$lone/merge-gate.sh"
+fp="$(mktemp -d)"; printf '#!/usr/bin/env bash\necho ran > "%s/ran"\nexit 0\n' "$fp" > "$fp/boundary-check.sh"; chmod +x "$fp/boundary-check.sh"
+( cd "$d" && mkdir -p docs && printf '# Map\n## DO-NOT-TOUCH\n- secret/\n' > docs/codebase-map.md && git add -A ) >/dev/null 2>&1; commit_at "$d" "$T1" base
+( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1; commit_at "$d" "$T2" code
+record "$d" "feature/x" "APPROVE"; commit_at "$d" "$T3" rec
+out="$( cd "$d" && PATH="$fp:$(dirname "$(command -v git)"):/usr/bin:/bin" bash "$lone/merge-gate.sh" 2>&1 )"; rc=$?
+if [[ ! -e "$fp/ran" ]]; then echo "ok   - a boundary-check.sh on PATH is not run by the gate"; pass=$((pass+1))
+else echo "FAIL - the gate ran a boundary-check.sh from PATH"; fail=$((fail+1)); fi
+# and the gate reached its end on the clean branch (so the not-run above is not an early exit)
+if [[ $rc -eq 0 && "$out" == *"preconditions hold"* ]]; then echo "ok   - the lone gate still completes on a clean branch"; pass=$((pass+1))
+else echo "FAIL - the lone gate did not complete (rc=$rc): $out"; fail=$((fail+1)); fi
+rm -rf "$d" "$lone" "$fp"
+
 echo ""; echo "passed: $pass, failed: $fail"; [[ $fail -eq 0 ]]

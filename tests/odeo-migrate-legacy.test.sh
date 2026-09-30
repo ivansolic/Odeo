@@ -25,6 +25,7 @@
 #   M11 refresh overwrites without a copy    -> 1 FAIL (case 15, nothing is ever deleted)
 # Observed failing (2026-09-29), after the move to scripts/:
 #   M12 bin/publish-guard.sh wrapper exits 0 without forwarding -> 2 FAIL (case 16)
+#   M13 bounded() without the explicit <&0 (stdin becomes /dev/null) -> 1 FAIL (case 16)
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SCRIPT="$ROOT/scripts/odeo-migrate-legacy.sh"
@@ -49,8 +50,10 @@ fake_root() {
 # perl's alarm: on macOS each exec restarts the alarm countdown, so a loop that re-execs
 # faster than the timeout never fires (measured; the alarm itself survives exec). The
 # watchdog's output goes to /dev/null so it never holds a caller's pipe open for 10s.
+# The command's stdin is redirected explicitly: without job control, `cmd &` gets
+# /dev/null, so a piped input vanished and read as a program that swallowed it.
 bounded() {
-  "$@" & local pid=$!
+  "$@" <&0 & local pid=$!
   ( sleep 10; kill "$pid" 2>/dev/null ) >/dev/null 2>&1 & local dog=$!
   wait "$pid"; local rc=$?
   kill "$dog" 2>/dev/null; wait "$dog" 2>/dev/null
@@ -258,9 +261,8 @@ echo "Reinstall the Odeo plugin, or delete ~/bin/$name if you no longer need it.
 exit 1
 OLDSHIM
 } > "$H16/bin/publish-guard.sh"; chmod +x "$H16/bin/publish-guard.sh"
-# not through bounded(): it backgrounds the command, and a background job's stdin is
-# /dev/null, which would read as a shim that swallowed the input
-got="$(unset CLAUDE_CONFIG_DIR; printf 'a\0b\0c' | HOME="$H16" "$H16/bin/publish-guard.sh" - 2>/dev/null)"; rc=$?
+# through bounded(), which must hand the caller's stdin on: a background job gets /dev/null
+got="$(unset CLAUDE_CONFIG_DIR; printf 'a\0b\0c' | HOME="$H16" bounded "$H16/bin/publish-guard.sh" - 2>/dev/null)"; rc=$?
 assert_exit "0.2.2 shim reaches scripts/ through the bin/ wrapper with stdin intact" 5 "$got"
 assert_exit "0.2.2 shim passes the guard's exit code through" 5 "$rc"
 rm -rf "$v16/bin"

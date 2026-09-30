@@ -111,12 +111,12 @@ What updates: every skill, agent, guard script, and the global baseline (it is d
 by the plugin at session start, not copied into your files). What never changes on an
 update: your own `~/.claude/CLAUDE.md`, your projects, and your language setting.
 
-**Updating from 0.2.x:** the programs moved from `bin/` to `scripts/`. The git guards in
-projects set up before 0.3.0 (and the `~/bin` shims of an old `install.sh` setup) still
-look in `bin/`, and they keep working through forwarding wrappers until the next release
-removes them. Refresh them once: in each such project Odeo names the command at session
-start (it rewrites `.git/hooks/pre-commit` and `pre-push`), and it only runs it after you
-say yes.
+**Updating from 0.3.0 or earlier:** refresh the git guards of projects set up before 0.3.1
+once. Their hooks look up Odeo's programs on PATH first, where a script of the same name
+from your environment or the project could stand in for the secret scan, and 0.2.x hooks
+(and the `~/bin` shims of an old `install.sh` setup) look only in `bin/`, which the next
+release removes. In each such project Odeo names the command at session start (it
+rewrites `.git/hooks/pre-commit` and `pre-push`), and it only runs it after you say yes.
 
 **For maintainers:** users receive a new version only when `version` in
 `.claude-plugin/plugin.json` goes up, so bump it with every release, then publish through
@@ -238,7 +238,7 @@ Odeo/
 ├── global/
 │   └── CLAUDE.md             ← user-global baseline, delivered at session start by the plugin
 ├── tests/
-│   └── *.test.sh             ← 39 suites, 1339 assertions. 26 of the 26 programs have their
+│   └── *.test.sh             ← 39 suites, 1351 assertions. 26 of the 26 programs have their
 │                               own suite; the remaining suites are cross-cutting rather than
 │                               per-program. The number counts the `ok` lines one full run
 │                               reports, so it moves with the machine: a skipped case takes its
