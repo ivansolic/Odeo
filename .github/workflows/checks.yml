@@ -1,0 +1,41 @@
+# Odeo's checks: every test suite and the skills lint, on Linux and macOS.
+# Verify only, never deploy. It needs no secrets and reads the repository only.
+# Runs where Odeo's own scripts run: Linux (GNU tools) and macOS (BSD tools), because
+# the same command can differ between the two (find, sed, date, stat).
+# A private copy of the repository runs Linux only: its owner already runs every suite on
+# macOS locally, and GitHub bills private macOS minutes at a higher rate. The public
+# repository runs both.
+name: checks
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  checks:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ${{ fromJSON(github.event.repository.private && '["ubuntu-latest"]' || '["ubuntu-latest","macos-latest"]') }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: skills lint
+        run: bash scripts/skills-lint.sh
+      - name: test suites
+        # every suite runs, even after a failure, and the failures are named at the end
+        run: |
+          failed=""
+          for t in tests/*.test.sh; do
+            echo "::group::$t"
+            if bash "$t"; then echo "PASS $t"; else echo "FAIL $t"; failed="$failed $t"; fi
+            echo "::endgroup::"
+          done
+          if [ -n "$failed" ]; then echo "failed suites:$failed"; exit 1; fi
+          echo "all suites passed"
