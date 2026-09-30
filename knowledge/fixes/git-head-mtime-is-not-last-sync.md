@@ -2,7 +2,8 @@
 module: hooks/odeo-context.sh community reminder, scripts/community-sync.sh
 tags: [git, mtime, freshness, fetch, FETCH_HEAD, clone, staleness]
 problem_type: pattern
-provenance: feature/community-freshness-reminder (review round 1, 2026-09-30), measured 2026-09-30
+provenance: feature/community-freshness-reminder (review round 1, 2026-09-30), measured 2026-09-30;
+  feature/sync-no-write-fetch-head (2026-09-30)
 reuse_count: 0
 created: 2026-09-30
 ---
@@ -42,4 +43,5 @@ the next release adds a non-empty FETCH_HEAD between the stamp and HEAD
 would have made every failed sync look fresh; review caught it by reproducing a failure.
 Odeo's own sync then stopped writing FETCH_HEAD at all (`git fetch --no-write-fetch-head`,
 git 2.29.0+ per the official release notes, detected from `git fetch -h`, plain fetch on
-older git), so only a fetch run outside Odeo can still leave one.
+older git), so on git 2.29+ only a fetch run outside Odeo (or one made by an earlier Odeo
+release) can still leave one; on older git, Odeo's own plain fetch still writes it.

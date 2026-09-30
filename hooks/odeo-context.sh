@@ -37,9 +37,10 @@
 #       stamp community-sync.sh writes on success; a copy without one is dated approximately,
 #       by its last fetch (a non-empty .git/FETCH_HEAD), else its clone time (.git/HEAD).
 #       Known gap, bounded: community-sync.sh fetches with --no-write-fetch-head where git
-#       supports it (2.29+), so its own attempts never write FETCH_HEAD. On older git, or
-#       after a fetch run outside Odeo, a copy with no stamp can carry a non-empty
-#       FETCH_HEAD without a completed sync, and the reminder can stay quiet up to 14 days. After a reminder it stays
+#       supports it (2.29+), so its own attempts never write FETCH_HEAD. On older git, after
+#       a fetch run outside Odeo, or after a fetch by an earlier Odeo release, a copy with no
+#       stamp can carry a non-empty FETCH_HEAD without a completed sync, and the reminder can
+#       stay quiet up to 14 days. After a reminder it stays
 #       silent for 14 days, synced or not (state in CLAUDE_PLUGIN_DATA), so ignoring it is
 #       declining it; with no CLAUDE_PLUGIN_DATA it cannot remember and stays silent rather
 #       than repeat every session.
