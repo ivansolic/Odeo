@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 # Tests that the git hooks written by scripts/install-git-guards.sh find Odeo's scripts in a
 # plugin install, including when git runs in the user's own terminal, where the plugin's
-# programs are NOT on PATH. Lookup order under test: PATH, then the newest version in
+# programs are NOT on PATH. Lookup order under test: the newest version in
 # ~/.claude/plugins/cache/*/odeo/*/scripts (an update leaves the old version there for a
 # grace period), then the same caches' bin/ (the Odeo 0.2.x layout), then the directory
-# the hooks were installed from (a plugin loaded in place from a clone), and never a path
-# relative to the repo (case 10: a project's own script is not Odeo's gate). Case 9 runs a hook written by the 0.2.x installer (bin/ lookups only)
-# against a current-layout cache, which reaches the program through the bin/ wrapper.
+# the hooks were installed from (a plugin loaded in place from a clone). Never PATH (case
+# 11: a foreign script there is not Odeo's gate) and never a path relative to the repo
+# (case 10). Case 9 runs a hook written by the 0.2.x installer (bin/ lookups only) against
+# a current-layout cache, which reaches the program through the bin/ wrapper.
 #
 # Observed failing (2026-09-23), each mutant checked to differ from the original:
 #   M1 no cache lookup          -> 3 FAIL (cases 2, 3, 4). Case 1 stays green under M1 because
@@ -21,6 +22,8 @@
 #   M7 bin/ wrapper does not forward        -> 2 FAIL (case 9)
 #   M8 repo-relative scripts/ and bin/ fallback restored (the 0.3.0 review's finding)
 #                                           -> 4 FAIL (case 10)
+#   M9 PATH lookup (command -v) restored first, as in 0.3.0 (the RED of case 11)
+#                                           -> 3 FAIL (case 11)
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 fail=0
@@ -30,6 +33,7 @@ assert_eq() { if [ "$2" = "$3" ]; then ok "$1"; else bad "$1 (expected '$2', got
 assert_contains() { case "$3" in *"$2"*) ok "$1";; *) bad "$1 (missing '$2')";; esac; }
 
 TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT
+unset CLAUDE_CONFIG_DIR   # a real config dir with a cached Odeo would answer instead of the fixtures
 export GIT_AUTHOR_NAME=test GIT_AUTHOR_EMAIL=test@example.com
 export GIT_COMMITTER_NAME=test GIT_COMMITTER_EMAIL=test@example.com
 CLEAN_PATH="$(dirname "$(command -v git)"):/usr/bin:/bin"
@@ -184,5 +188,21 @@ for d in scripts bin; do
   assert_eq "a project's own $d/secret-scan.sh is not run as the gate" "" "$(cat "$LOG")"
   assert_contains "the missing gate is still announced ($d/)" "WITHOUT the secret gate" "$(cat "$TMP/err10")"
 done
+
+# 11) a FOREIGN secret-scan.sh on PATH is never taken for Odeo's: PATH belongs to the user's
+#     environment and sometimes to the project (direnv PATH_add, node_modules/.bin, "."), so
+#     a script there that exits 0 would gate nothing and silence the warning. Odeo's cached
+#     copy runs instead, and with no Odeo anywhere the warning still prints.
+H11="$TMP/home11"; c11="$H11/.claude/plugins/cache/odeo/odeo/0.3.1"
+stub "$c11/scripts" odeo-cache 0; cp "$ROOT/scripts/install-git-guards.sh" "$c11/scripts/"
+foreign="$TMP/foreign-path"; stub "$foreign" foreign-on-path 0
+r11="$TMP/r11"; git init -q "$r11" && git -C "$r11" commit -q --allow-empty -m init
+( cd "$r11" && HOME="$H11" PATH="$CLEAN_PATH" bash "$c11/scripts/install-git-guards.sh" >/dev/null )
+: > "$LOG"; ( cd "$r11" && echo x >> f && git add f && HOME="$H11" PATH="$foreign:$CLEAN_PATH" git commit -q -m c >/dev/null 2>&1 )
+assert_eq "a foreign secret-scan.sh on PATH does not replace Odeo's" "secret-scan.sh odeo-cache" "$(cat "$LOG")"
+rm -rf "$H11/.claude"
+: > "$LOG"; ( cd "$r11" && echo x >> f && git add f && HOME="$H11" PATH="$foreign:$CLEAN_PATH" git commit -q -m c >/dev/null 2>"$TMP/err11" )
+assert_eq "with no Odeo, the PATH script still does not run" "" "$(cat "$LOG")"
+assert_contains "with no Odeo, the missing gate is announced" "WITHOUT the secret gate" "$(cat "$TMP/err11")"
 
 [ "$fail" -eq 0 ] && echo "ALL PASS" || { echo "SOME FAILED"; exit 1; }

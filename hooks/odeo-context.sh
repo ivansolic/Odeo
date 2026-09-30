@@ -163,17 +163,60 @@ Odeo: an old install.sh installation is still in this home directory (~/.claude/
 EOF
 }
 
-# outdated_guards: prints one line per Odeo git guard that searches only bin/ (the Odeo
-# 0.2.x layout): the current repo's Odeo hooks (they define odeo_tool) and the ~/bin shims
-# (odeo-migrate-legacy.sh writes them, marker on line 2). Nothing when all are current.
+# hook_version <hook>: the hook's ODEO_HOOKS_VERSION as a number, 0 when it has none
+hook_version() {
+  local v
+  v="$(sed -n 's/^ODEO_HOOKS_VERSION=\([0-9][0-9]*\)$/\1/p' "$1" | head -1)"
+  printf '%s' "${v:-0}"
+}
+
+# hook_value <hook> <NAME>: the value of a NAME=... line the installer baked in, printed
+# only when it is a plain path (%q leaves those unquoted); nothing otherwise. The hook is
+# READ, never run: core.hooksPath can point at a directory the project itself ships.
+hook_value() {
+  sed -n "s|^$2=||p" "$1" | head -1 | grep -xE '[A-Za-z0-9_./@+:~-]+'
+}
+
+# hook_finds <hook> <program>: whether that hook's odeo_tool would find <program>, checked
+# the same way it looks (cache scripts/ then bin/, then the install directory). Every
+# candidate that can be read is checked; when nothing is found and a baked value was not a
+# plain path, that value could not be judged, so it counts as found: better silent than a
+# false alarm.
+hook_finds() {
+  local bin cfg r c unknown=0
+  bin="$(hook_value "$1" ODEO_BIN_AT_INSTALL)" || unknown=1
+  cfg="$(hook_value "$1" ODEO_CONFIG_AT_INSTALL)" || unknown=1
+  [ -n "$bin" ] && [ -x "$bin/$2" ] && return 0
+  # the roots are listed first and globbed per root: a brace list inside ${cfg:+...} is not
+  # expanded (the } closes the parameter), which once skipped the recorded config dir
+  local roots=("${CLAUDE_CONFIG_DIR:-$HOME/.claude}" "$HOME/.claude")
+  [ -n "$cfg" ] && roots+=("$cfg")
+  for r in "${roots[@]}"; do
+    for c in "$r"/plugins/cache/*/odeo/*/scripts/"$2" "$r"/plugins/cache/*/odeo/*/bin/"$2"; do
+      [ -x "$c" ] && return 0
+    done
+  done
+  [ "$unknown" = 1 ]
+}
+
+# outdated_guards: prints one line per outdated Odeo git guard: the current repo's Odeo
+# hooks (they define odeo_tool) below ODEO_HOOKS_VERSION 2 (0.2.x searched only bin/,
+# 0.3.0 still looked up PATH first) or that can no longer find their program (the clone
+# they were installed from moved, the cache version was swept), and the ~/bin shims
+# (odeo-migrate-legacy.sh writes them, marker on line 2) that search only bin/. Nothing
+# when all are current.
 outdated_guards() {
-  local hooks f
+  local hooks f n
   # --git-path honours core.hooksPath and worktrees; it prints a path relative to the repo
   if hooks="$(cd "${CLAUDE_PROJECT_DIR:-$PWD}" 2>/dev/null && f="$(git rev-parse --git-path hooks 2>/dev/null)" \
               && cd "$f" 2>/dev/null && pwd)"; then
     for f in pre-commit pre-push; do
-      [ -f "$hooks/$f" ] && grep -q '^odeo_tool()' "$hooks/$f" \
-        && ! grep -q 'odeo/\*/scripts' "$hooks/$f" && echo "hook:$f"
+      [ -f "$hooks/$f" ] && grep -q '^odeo_tool()' "$hooks/$f" || continue
+      if [ "$(hook_version "$hooks/$f")" -lt 2 ]; then echo "hook:$f"
+      else
+        case "$f" in pre-commit) n=secret-scan.sh ;; *) n=publish-guard.sh ;; esac
+        hook_finds "$hooks/$f" "$n" || echo "hook:$f"
+      fi
     done
   fi
   for f in secret-scan.sh publish-guard.sh; do
@@ -185,7 +228,7 @@ outdated_guards() {
 }
 
 guards_nudge() { # guards_nudge <outdated_guards output>
-  printf '%s' "Odeo: some git guards were written by an older Odeo and look for its programs only in bin/, which a later release removes. After that, an old git hook commits WITHOUT its secret scan (it only warns), and an old ~/bin shim blocks every commit and push of the projects that call it. Tell the user once and offer to refresh them, only after they say yes:"
+  printf '%s' "Odeo: some git guards were written by an older Odeo. Old git hooks may run a script named like Odeo's from PATH instead of Odeo's own, and once a later release removes bin/, 0.2.x hooks commit WITHOUT their secret scan (they only warn) while old ~/bin shims block every commit and push of the projects that call them. Tell the user once and offer to refresh them, only after they say yes:"
   case "$1" in *hook:*)
     printf ' in this repository run `"%s/scripts/install-git-guards.sh"` (it rewrites .git/hooks/pre-commit and pre-push);' "$ROOT" ;; esac
   case "$1" in *shim:*)

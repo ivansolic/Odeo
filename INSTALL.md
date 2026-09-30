@@ -134,10 +134,11 @@ Security Baseline heading, yours is used and nothing is duplicated.
 > `/plugin` → **Marketplaces** → **odeo** → **Enable auto-update**. Or update by hand with
 > `/plugin marketplace update odeo` and `/plugin update odeo@odeo`.
 >
-> **Updating from 0.2.x:** the programs moved from `bin/` to `scripts/`. Git guards in
-> projects set up before 0.3.0 (and the `~/bin` shims below) still look in `bin/` and keep
-> working through forwarding wrappers until the next release removes them. Odeo names the
-> refresh command once per session in such a project and runs it only after you say yes.
+> **Updating from 0.3.0 or earlier:** refresh the git guards of projects set up before
+> 0.3.1 once. Their hooks look up Odeo's programs on PATH first (a same-named script there
+> could stand in for the secret scan), and 0.2.x hooks and the `~/bin` shims below look only
+> in `bin/`, which the next release removes. Odeo names the refresh command once per
+> session in such a project and runs it only after you say yes.
 
 > **Coming from the old `install.sh` setup?** Ask Claude to run the plugin's
 > `scripts/odeo-migrate-legacy.sh` (a dry run), then the same with `--apply`. It moves the old copies aside into
