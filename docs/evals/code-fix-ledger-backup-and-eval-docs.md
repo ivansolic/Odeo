@@ -2,7 +2,7 @@
 artifact: scripts/ledger-backup.sh + tests/ledger-backup.test.sh + scripts/docs-claims-check.sh + tests/docs-claims-check.test.sh + docs/system-map.md row 146
 type: code
 branch: fix/ledger-backup-and-eval-docs
-reviewed_commit: 6873887
+reviewed_commit: 88e96c7
 artifact_version: 2
 date: 2026-09-30
 scorer: code-reviewer
@@ -15,11 +15,27 @@ verdict: APPROVE
 previous_total: 10/12
 ---
 
-# Code review: fix/ledger-backup-and-eval-docs, round 2
+# Code review: fix/ledger-backup-and-eval-docs, round 2 (re-anchored after rebase)
 
 ## Artifact
 
-Commits `f2a7d39`, `830b72d`, `1695501`, `2c789ac` at `6873887`, against local `main` `3cf2fe1`.
+The branch is at `88e96c7`, rebased onto local `main` `8dd9ec6`. It was reviewed in round 2 at
+`6873887` on `main` `3cf2fe1`. The re-anchor was verified here, not taken on trust:
+
+- `git range-diff 3cf2fe1..b735066 main..HEAD` shows `=` on all 8 commits (`f2a7d39`->`11dde04`,
+  `830b72d`->`8dcee01`, `1695501`->`a5dab72`, `2b772ab`->`687107a`, `7e0034c`->`d2d3e80`,
+  `2c789ac`->`815e1b9`, `6873887`->`f65a2ad`, `b735066`->`88e96c7`).
+- `git diff 6873887 88e96c7` over every file this record judges (`scripts/ledger-backup.sh`,
+  `scripts/docs-claims-check.sh`, both test files, `docs/system-map.md`, plus the out-of-scope
+  wording files `AGENTS.md`, `docs/eval-framework.md`, `skills/build/SKILL.md`) is empty.
+- `main` gained only `scripts/community-sync.sh`, `hooks/odeo-context.sh`,
+  `tests/community-sync.test.sh`, one `knowledge/` file and one eval record, and
+  `git diff 3cf2fe1 6873887` over those paths is empty, so the branch touches none of them.
+
+Nothing below was re-judged. The content of round 2 applies unchanged to `88e96c7`. The main-side
+commits belong to their own review record, not this one. The suites were not re-run here; the
+author reports all 39 green at `88e96c7`.
+
 Round 2 read the code delta `2b772ab..6873887` (`scripts/docs-claims-check.sh`,
 `tests/docs-claims-check.test.sh`, `scripts/ledger-backup.sh` header). The wording in
 `docs/eval-framework.md` and `skills/build/SKILL.md` is skill-reviewer's scope, and
@@ -111,3 +127,7 @@ remain open.
   and the `$HOME` one was declined with a valid reason. Trajectory: 10/12 -> 12/12; correctness
   and testing each went from 1 to 2 on the same fix. One new nitpick (an equal total prints `ok`
   under a failed suite), non-blocking.
+- Re-anchor (`88e96c7`, 2026-09-30): the branch was rebased onto local `main` `8dd9ec6`, with no
+  content change. Verified by range-diff (`=` on all 8 commits), by an empty diff of every judged
+  file between `6873887` and `88e96c7`, and by an empty diff of main's new paths over the
+  branch's own range. Verdict and scores carried unchanged, no re-judgment.
