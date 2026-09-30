@@ -47,6 +47,10 @@ smarter.
   be asked to change.
 - Conventional Commits for messages: `type(scope): description` (`feat`, `fix`,
   `docs`, `chore`, `refactor`, `test`).
+- Version numbers (while Odeo is 0.x): a **minor** bump (0.3 -> 0.4) for breaking or
+  structural changes, such as moving files users depend on; a **patch** bump
+  (0.3.1 -> 0.3.2) for fixes and small additive features. Maintainers bump the version
+  at release time, so a PR does not need to.
 - Keep the beginner in mind. Much of the audience is PMs and non-developers;
   prefer plain language and explain jargon.
 - Never commit secrets, `.env` files, or anything private.
