@@ -40,3 +40,6 @@ time) -> "cannot be dated, say so". Odeo 0.3.2 shipped stamp -> HEAD -> "cannot 
 the next release adds a non-empty FETCH_HEAD between the stamp and HEAD
 (hooks/odeo-context.sh community_state). The first draft of that change used `[ -f ]` and
 would have made every failed sync look fresh; review caught it by reproducing a failure.
+Odeo's own sync then stopped writing FETCH_HEAD at all (`git fetch --no-write-fetch-head`,
+git 2.29.0+ per the official release notes, detected from `git fetch -h`, plain fetch on
+older git), so only a fetch run outside Odeo can still leave one.
