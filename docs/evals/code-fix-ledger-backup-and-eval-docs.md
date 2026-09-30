@@ -2,35 +2,65 @@
 artifact: scripts/ledger-backup.sh + tests/ledger-backup.test.sh + scripts/docs-claims-check.sh + tests/docs-claims-check.test.sh + docs/system-map.md row 146
 type: code
 branch: fix/ledger-backup-and-eval-docs
-reviewed_commit: 2b772ab
-artifact_version: 1
+reviewed_commit: 6873887
+artifact_version: 2
 date: 2026-09-30
 scorer: code-reviewer
 model: claude-opus-5-5[1m]
 model_tier: strongest
 effort: high
-scores: { correctness: 1, security: 2, performance: 2, readability: 2, testing: 1, conventions: 2 }
-total: 10/12
-verdict: REQUEST CHANGES
+scores: { correctness: 2, security: 2, performance: 2, readability: 2, testing: 2, conventions: 2 }
+total: 12/12
+verdict: APPROVE
+previous_total: 10/12
 ---
 
-# Code review: fix/ledger-backup-and-eval-docs
+# Code review: fix/ledger-backup-and-eval-docs, round 2
 
 ## Artifact
 
-Commits `f2a7d39`, `830b72d`, `1695501` at `2b772ab`, against local `main` `3cf2fe1`. Commit
-`2b772ab` itself (AGENTS.md, docs/eval-framework.md, skills/build/SKILL.md) is skill-reviewer's
-scope; glanced at for claims about code only, none wrong.
-
-These commits close the carried-deferred items of `docs/evals/code-ledger-backup.md` (branch
-`feature/windows-powershell-entry`, `15b168f`) and two docs-claims-check findings.
+Commits `f2a7d39`, `830b72d`, `1695501`, `2c789ac` at `6873887`, against local `main` `3cf2fe1`.
+Round 2 read the code delta `2b772ab..6873887` (`scripts/docs-claims-check.sh`,
+`tests/docs-claims-check.test.sh`, `scripts/ledger-backup.sh` header). The wording in
+`docs/eval-framework.md` and `skills/build/SKILL.md` is skill-reviewer's scope, and
+`docs/evals/skill-build.md` is that reviewer's record; neither was judged here.
 
 ## Verdict
 
-REQUEST CHANGES. The rubric total clears the threshold (10/12, no zero), but the one Important
-finding falsifies the headline claim of `1695501` ("the footer names the cause that occurred") in
-the shape a machine with zero skips produces, the fix is a few lines plus one test, and an APPROVE
-would end the review loop with it open.
+APPROVE. The round-1 Important is closed at its cause, pinned by a case with the correct
+fixture, and every round-1 nitpick taken is correct. No new finding above nitpick.
+
+## Round-1 findings, verified
+
+**I1 (closed).** `scripts/docs-claims-check.sh:140-148`: when `suite_fail > 0` the assertions
+claim is handed a reason, so `claim()` takes the UNVERIFIED branch (`:67-72`), which never sets
+`claim_fail`. `fail` is already 1 from `:116`, so the run stays red and the footer prints only the
+suite remedy. MISSING still sets `claim_fail` before the reason is consulted (`:59-63`), which is
+right, because a vanished claim is a real document defect whatever the suites did. Case 6c uses
+the shape round 1 measured: no skips, one broken suite, README at the HEALTHY count (4 against a
+measured 3). It asserts red, the suite remedy, and no `DRIFTED` or "Fix the NUMBER". I ran
+`tests/docs-claims-check.test.sh` once at `6873887`: exit 0, 29 `ok`, all three 6c rows green.
+The builder reports seeing 6c RED on the old code, and the round-1 probe independently saw that
+code print `DRIFTED` plus "Fix the NUMBER" for this exact shape, so the RED is corroborated. Not
+re-run.
+
+The reworded UNVERIFIED line ("Not judged: this run did not measure it completely") is correct
+for both of its callers now; the old "Not a failure" would have been false next to a failed suite.
+No test or document still greps the old wording (checked).
+
+**Nitpick, footer wording (taken).** `:165` now reads "N suite(s) exited non-zero, so fix the
+suite, not the document." The case-6 greps and the case-6b control follow it.
+
+**Nitpick, NAME vs LOCATE (taken).** `scripts/ledger-backup.sh:52-53` now matches `:78` and what
+the unset list actually covers.
+
+**Nitpick, relative `$HOME` (not taken, accepted).** It predates this branch for the no-colon
+spelling, it is unmeasured, and header residual 7 already states that `~` expansion uses this
+process's `$HOME`. Leaving it is fine; it does not need closing on this branch.
+
+**Carried from `code-ledger-backup.md`, still open, not claimed:** that record's I1
+(`tests/ledger-backup.test.sh:1049` asserts `!= 0`, not `= 4`) and the case-40 four-spelling
+regex. Tracked by the author, not a finding against this branch.
 
 ## Findings
 
@@ -40,100 +70,44 @@ None.
 
 ### Important
 
-**I1. `scripts/docs-claims-check.sh:59-77,116,154-163`: a broken suite on a machine with no skips
-still ends on "Fix the NUMBER in the document", next to "fix the suite, not the document".**
-When a suite exits non-zero it reports fewer `ok` lines, so the assertions total no longer matches
-the README. With no SKIP lines the mismatch is not excused as unverified, `claim()` prints DRIFTED
-and sets `claim_fail=1`, and the footer prints BOTH remedies, contradicting each other and the
-script's own `SUITE FAILED ... the assertion count below is not a measurement` line. Measured at
-`2b772ab` from a script file (README correct at the healthy count of 3, one suite printing one `ok`
-then `exit 1`, no skips):
-
-```
-SUITE FAILED: tests/broken.test.sh exited 1, so the assertion count below is not a measurement.
-DRIFTED: assertions , README says 3, the tree has 2
-docs-claims-check: 1 suite(s) failed; a suite failed to run, so fix the suite, not the document.
-docs-claims-check: a documented claim no longer matches the tree.
-Fix the NUMBER in the document, never this check, unless the check is what is wrong.
-```
-
-Case 6 misses this because its README already matches the broken total (2), and its skip would
-excuse the mismatch anyway. The zero-skip shape is the ordinary one off this machine (the recorded
-skip causes are running as root and bash 3.2). *Fix:* when `suite_fail > 0`, do not judge the
-assertions claim at all. Pass `claim()` a reason ("a suite failed, so this total is not a
-measurement") so it takes the UNVERIFIED branch (which never sets `claim_fail`), and `fail` stays
-1 through the suite. Add a case 6c: no skips, one broken suite, README at the healthy count. It
-must show "a suite failed to run" and must not show "Fix the NUMBER". Watch it fail at `2b772ab`
-first.
+None.
 
 ### Nitpicks
 
-- `scripts/docs-claims-check.sh:157`: "failed; a suite failed to run" says the same thing twice,
-  and "failed to run" is wrong for a suite that ran and had a failing assertion. Suggest
-  "$suite_fail suite(s) exited non-zero, so fix the suite, not the document." (update the case-6
-  grep with it).
-- `scripts/ledger-backup.sh:52-53`: "the variables that LOCATE a repository" are said to be
-  dropped, yet `GIT_CEILING_DIRECTORIES` and `GIT_DISCOVERY_ACROSS_FILESYSTEM`, both part of
-  repository discovery, are kept. Not exploitable here: LOCATION is decided by on-disk markers,
-  and git's discovery from the remote's own directory checks that directory whatever the ceiling
-  says. Say "NAME a repository" (the wording `:78` already uses), or add both to the KEPT list.
-- `scripts/ledger-backup.sh:394-411`: with a RELATIVE `$HOME`, `~/x/y:z` now converts to nothing
-  (before, to `rel/x/y:z`, which failed closed at exit 4), and `url_is_relative` calls it
-  absolute, so the containment guard is skipped. `~/x` with no colon already behaved this way
-  before this branch, and header residual 7 covers `$HOME`. Exotic and unmeasured (the probe was
-  refused by the worktree sandbox). If you care, have `url_is_relative` treat a `~` whose
-  expansion is not absolute as relative.
-- Still open from the `code-ledger-backup.md` batch and not claimed by this branch: I1 there
-  (`tests/ledger-backup.test.sh:1049` asserts `!= 0`, not `= 4`) and case 40's four-spelling
-  regex. Track them so they are not lost with that record.
-
-## Verification of the claimed closes
-
-1. **`local_url_path` arm dropped (f2a7d39):** correct. The removed arm matched only inputs that
-   `url_is_relative` classifies as relative (no scheme, no leading `/`, slash before the first
-   colon; a `~` is expanded to an absolute `$HOME` before the case). The relative refusal at
-   `:458` runs before the only other call site (`:548`), so no input reaching `:548` could have
-   used the arm. Test 42b's arrangement (a symlink from the caller's directory to the publish
-   remote) is exactly the one that made the old arm's `pwd -P` resolve to the publish remote. The
-   RED is consistent with the code as read; not re-run.
-2. **Header narrowed (830b72d):** accurate apart from the LOCATE nitpick. **Keeping
-   `GIT_SSH_COMMAND`: agreed.** The dropped families are ones git itself exports to hooks
-   (`GIT_INDEX_FILE`, `GIT_CONFIG_PARAMETERS`); `GIT_SSH_COMMAND` comes from the caller's own
-   shell, like `core.sshCommand` in their config, which unsetting would not touch. Dropping it
-   would not close record residual 1 either: `git@localhost:<in-tree bare>` over a real sshd lands
-   the same way. It would break real key and proxy setups for no closed hole.
-3. **Footer split (1695501):** holds in the shapes tested; fails in the zero-skip shape (I1).
-4. **Skip note dedup + causes pinned:** correct. `skip_reason` is now the single source for both
-   the note and `claim()`.
-5. **system-map row:** the fourth refusal matches `:548-555` (exit 4 only when a path converts and
-   is not a directory, nothing-converts is not refused, as stated), `-ef` matches `:575`, and the
-   env sentence matches the header.
-
-No em or en dashes in added lines (checked with a planted positive control first). skills-lint and
-the suites were not re-run here; the author reports 39 green at `2b772ab`.
+- `scripts/docs-claims-check.sh:66-67`: when a suite failed and the total happens to EQUAL the
+  README, the equality test runs before the reason is consulted, so the output reads
+  `SUITE FAILED ... the assertion count below is not a measurement` followed by
+  `ok: assertions = N`. The run is still red and the footer is still right, so nothing misleads
+  the reader about what to fix. It does contradict case 6c's comment ("not judged at all"). If
+  you want the two to agree, test `suite_fail` first in the assertions call (for example print
+  `UNVERIFIED` whenever a suite failed). Do not reorder `claim()` globally: that would also change
+  the skip case, where a matching total is correctly reported as `ok`.
 
 ## Scores
 
-correctness 1/2 · security 2/2 · performance 2/2 · readability 2/2 · testing 1/2 · conventions 2/2
--> total 10/12 (threshold: >=9, no zero)
+correctness 2/2 · security 2/2 · performance 2/2 · readability 2/2 · testing 2/2 · conventions 2/2
+-> total 12/12 (threshold: >=9, no zero)
 
 ## Ceiling
 
-12/12 is reachable. Correctness and testing each lose a point to I1 alone; the nitpicks do not cap
-anything.
+12/12, reached. Nothing structural caps this change.
 
 ## Relation to docs/evals/code-ledger-backup.md
 
-That record gates branch `feature/windows-powershell-entry` at `15b168f` (merge-gate enrols by
-exact `branch:` match), so it neither gates nor blocks this branch. It can stay as the history of
-its own branch; it does not need to be regenerated. Its "must be regenerated at the new head"
-note was meant to stop anyone passing it off as covering new ledger code, and this record is what
-covers that code for this branch. Its carried-deferred items 1 and 2 are closed here, see above.
-Its I1 and case-40 items remain open.
+Unchanged from round 1. That record gates `feature/windows-powershell-entry` at `15b168f`
+(merge-gate enrols by exact `branch:`), so it neither gates nor blocks this branch. It stays as
+its own branch's history and does not need to be regenerated. This record covers the ledger
+code changed here. Its deferred items 1 and 2 are closed by this branch; its I1 and case-40 items
+remain open.
 
 ## History
 
-- Round 1 (`2b772ab`, 2026-09-30): REQUEST CHANGES, 10/12. First record for this branch, so there
-  is no regression baseline. Compared to the last ledger record (9/12 at `15b168f`), readability
-  and conventions go from 1 to 2 because the two deferred comment edits landed. Correctness drops
-  to 1 on a new docs-claims-check defect in this branch's own footer fix.
+- Round 1 (`2b772ab`, 2026-09-30): REQUEST CHANGES, 10/12. The docs-claims-check footer still
+  told the reader to "Fix the NUMBER in the document" when a suite failed on a machine with no
+  skips (measured). Nitpicks: doubled footer wording, LOCATE overclaim, relative `$HOME`, and the
+  carried ledger items.
+- Round 2 (`6873887`, 2026-09-30): APPROVE, 12/12. The failed-suite total is withheld rather than
+  judged, and it is pinned by case 6c at a healthy-count README. Both wording nitpicks were taken
+  and the `$HOME` one was declined with a valid reason. Trajectory: 10/12 -> 12/12; correctness
+  and testing each went from 1 to 2 on the same fix. One new nitpick (an equal total prints `ok`
+  under a failed suite), non-blocking.

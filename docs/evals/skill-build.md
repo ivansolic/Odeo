@@ -2,8 +2,8 @@
 artifact: skills/build/SKILL.md
 type: skill
 branch: fix/ledger-backup-and-eval-docs
-reviewed_commit: 2b772ab
-artifact_version: 23
+reviewed_commit: 6873887
+artifact_version: 24
 date: 2026-09-30
 scorer: skill-reviewer
 model: claude-opus-5-5[1m]
@@ -15,174 +15,110 @@ verdict: PASS
 previous_total: 10/10
 ---
 
-Scope: the whole `skills/build/SKILL.md` (335 lines, no supporting files) at `2b772ab`, read
-against `docs/skill-authoring-standard.md`, plus the two neighbour files that commit touched
-(`docs/eval-framework.md`, `AGENTS.md`) as far as they carry the five findings this record
-deferred in round 22. This record REPLACES round 22's (`15b168f`). Unlike rounds 20-22, this is
-NOT a re-anchor: the artifact changed. `effort: high` is the value declared in this agent's
-frontmatter, not an observed runtime value.
+Scope: the whole `skills/build/SKILL.md` (335 lines, no supporting files) at `6873887`, read
+against `docs/skill-authoring-standard.md`, plus `docs/eval-framework.md:176-205` for finding (f).
+This record REPLACES round 23's (`2b772ab`, committed at `7e0034c`). It is round 2 of this
+review loop on this batch. `effort: high` is the value declared in this agent's frontmatter,
+not an observed runtime value.
 
-Method, stated with its limit: I hold no shell, so I cannot run `git show 2b772ab`. I read all
-335 lines of the skill and the edited regions of both neighbours at this worktree, and located
-each change by the round-22 anchors: everything above `:238` is unmoved (the model-plan block is
-still `:37-111`, B5.2 still opens at `:215`), four lines were added at `:238-241`, the code-loop
-paragraph grew by one line (was `:264-268`, now `:268-273`), and everything below shifted by
-five (worked example `:295-317`, safety rules `:326-334`). 330 + 5 = 335, consistent. Lint
-C15/C16 passing at `2b772ab` is the dispatcher's statement; I did not run `skills-lint.sh`, and
-what I checked by reading is below.
+Method, stated with its limit: I hold no shell, so I cannot run `git diff 2b772ab..6873887`. The
+dispatcher described the diff as SKILL.md B5.3's last two lines, B5.4's stop-condition clause,
+`docs/eval-framework.md:186-187`, and a `scripts/ledger-backup.sh` header this skill does not
+reference. I re-read `skills/build/SKILL.md:205-335` and `docs/eval-framework.md:176-205` in
+full. The file is still 335 lines, B5.3's edit replaces two lines with two (`:240-241`), and
+B5.4's edit lengthens `:272` without adding a line. So every round-23 anchor holds, and the
+model-plan block (`:37-111`) is untouched. The lint pass and the 39 green suites are the
+dispatcher's statements; I did not run them.
 
 ## Skill: build  (explicit command)
 
 ## Scores
-- trigger clarity **2**. Unchanged: `disable-model-invocation: true` `:3` with the plain
-  what-you-get description the standard requires for explicit commands ("Build one or more ready
-  user stories. Two modes you choose..." `:2`), including the non-obvious parallel invocation
-  (`"/odeo:build USR-001 USR-002 in parallel"`).
-- structure **2**. The round-15 trigger (model-plan block over 75 lines OR 25% of the file, or a
-  subsection not tied to a named finding) did not fire: `:37-111` is still exactly 75 lines, now
-  22.4% of 335. The two additions sit where the findings put them (B5.3 and B5.4), add no
-  subsection, and are each tied to a named finding (e) and (d). 335 of 500 lines, no supporting
-  files. The block remains ON the edge, ninth round.
-- worked example **2**. Unchanged `:296-317`: real story id, real plan path
-  (`docs/plans/2026-07-14-usr-012-timer.md`), real frontmatter keys, real worktree path, real
-  verdict shape ("code-reviewer 12/12 APPROVE -> docs/evals/code-USR-012.md") and the explicit end
-  of authority (`<- ENDS here`). `<session model>` at `:307` is the never-fabricate rule applied,
-  not a placeholder failure.
-- precision **2**, and improved. Finding (d) closed: `:268-269` "The review LOOPS until the
-  reviewer APPROVES (its rubric's threshold, no criterion at 0)" now names the code loop's real
-  exit (`agents/code-reviewer.md:91` "no dimension at 0, total >= 9/12"), and `:271` cites
-  `${CLAUDE_PLUGIN_ROOT}/docs/eval-framework.md` directly, so both of this file's citations of
-  the stop condition (`:219`, `:271`) now point at the same canonical file. "clean" now appears
-  only where it belongs, the plan loop (`:215`, `:220`, `:224`, `:226`; `:143` is "cleanup"). One
-  low seam in the new B5.3 sentence's rationale (see finding g); it does not move the score
-  because the rule itself is exact and matches its source.
-- safety integration **2**, and the round-18 gap closed. Finding (e): `:238-241` "If you revise a
-  plan after it was approved, every other plan in the batch that references its contracts loses
-  its approval and returns to this gate (`${CLAUDE_PLUGIN_ROOT}/AGENTS.md` Guardrails 1). You hold
-  that half". That matches `AGENTS.md:243-247` ("revising a declaring plan after approval
-  invalidates its consumers' approval and they return to the gate. Holder: the orchestrating
-  session at gate 1") and references the guardrail rather than restating its whole text. All
-  other references unchanged and landing (Guardrail 3 + C11 `:88`, Guardrails 7 `:214`, `:231`,
-  `:263`, plan-format binding list `:154`, enforced gates `:12-16`, `:276`, merge non-permissions
-  `:286-291`).
+- trigger clarity **2**. Unchanged: `disable-model-invocation: true` `:3` and the plain
+  what-you-get description with the parallel invocation spelled out (`:2`).
+- structure **2**. The model-plan block `:37-111` is still exactly 75 lines, 22.4% of 335. The
+  round-15 trigger did not fire (ninth round on the edge). No line or subsection was added.
+- worked example **2**. Unchanged `:296-317`, real values end to end, `<- ENDS here`.
+- precision **2**. Finding (g) closed: `:240-241` "You hold that half: whether a declaring plan
+  was revised after approval is a git fact `architecture-reviewer` cannot see (it checks only
+  what the plans themselves show)." This now matches `agents/architecture-reviewer.md:27-32`
+  ("flag what is READABLE from the plans... Whether a declaring plan was revised after approval
+  is a git fact you cannot see; that half stays with the holder") in both halves, and no
+  longer borrows the builder's "sees one plan" limit from `AGENTS.md:246`.
+- safety integration **2**. Guardrails 1 at `:238-241` and every other reference unchanged and
+  landing. The two in-skill copies of the stop condition now carry identical clauses:
+  `:219-221` "clean, 3 rounds, or two consecutive rounds of the same defect class, whichever
+  comes first; a Critical is always reported" and `:271-272` "approve, 3 rounds, or two
+  consecutive rounds of the same defect class, whichever comes first; a Critical is always
+  reported". They differ only in the clearing word, which is correct per
+  `docs/eval-framework.md:196-201`.
 
 ## Total: 10/10   ## Verdict: PASS (threshold 8/10, no zero)
 
 ## Ceiling
-10/10, reached. Nothing structurally caps a criterion: explicit command (trigger clarity reaches
-2 on the what-you-get form), real guardrails and enforced scripts to reference, a concrete
-end-to-end example.
+10/10, reached. No criterion is structurally capped.
 
-## The five deferred findings, each checked against its wording
-| Finding | Where at `2b772ab` | Status |
+## Round-23 findings, checked against their proposed wording
+| Item | Where at `6873887` | Status |
 |---|---|---|
-| (a) plan row under "declares the threshold" | `docs/eval-framework.md:196` "no number: the loop clears on **clean** (see the note below)" | CLOSED, verbatim to the proposed cell |
-| (b) rubric definition assumes a threshold | `docs/eval-framework.md:26-28` "...with one deliberate exception, the plan rubric, which declares none (see the stop-condition section)." | CLOSED, verbatim; the pointer lands on `### The review loop's STOP CONDITION` `:176` |
-| (c) "a few lines above" locator | `AGENTS.md:302-304` "is the one stated in the Agent-first workflow section near the top of this file" | CLOSED; it lands on `AGENTS.md:39-42`, which states approve / three rounds / same class / Critical overrides |
-| (d) code loop "until clean", second-hand citation | `skills/build/SKILL.md:268-273` | CLOSED, verbatim; see precision |
-| (e) Guardrails 1 holder half missing | `skills/build/SKILL.md:238-241` | CLOSED; wording expanded beyond the proposed sentence, see (g) |
+| (f) "plans out of 10" | `docs/eval-framework.md:186-187` "(code and UI are scored out of 12, skills and agent definitions out of 10; the plan loop publishes no score)" | CLOSED, verbatim |
+| (g) B5.3 rationale | `skills/build/SKILL.md:240-241` | CLOSED, verbatim |
+| Top fix 3, "whichever comes first" | `skills/build/SKILL.md:272` | CLOSED; the stop-condition-copies seam carried since round 22 is gone |
 
-Cross-checks asked for:
-- **Nothing in the skill still says the code loop runs "until clean".** Grep for `clean` returns
-  only the plan loop and `:143` "cleanup". With-me step 7 `:142` names no loop word.
-- **No new contradiction between (d) and the framework.** `:268-273` lead-in (APPROVES) and
-  parenthesis (approve, 3 rounds, same class, Critical reported) both agree with
-  `docs/eval-framework.md:179-237`. "criterion" vs code-reviewer's "dimension" is the framework's
-  own generic word (`:182`), not a finding.
-- **`docs/eval-framework.md:202` still resolves** ("per `skills/build/SKILL.md`, mode B5 step 2"):
-  B5.2 at `:215-226` still records `arch_review: clean (v<N>, <date>)`.
-- **House style:** grep for em and en dashes returns zero in `skills/build/SKILL.md`,
-  `docs/eval-framework.md` and `AGENTS.md`.
-- **C15/C16 by reading:** the new `AGENTS.md` mention at `:239` is written
-  `${CLAUDE_PLUGIN_ROOT}/AGENTS.md`, the new framework citation at `:271` uses the plugin-root
-  form, and neither addition names a program from `scripts/`. Consistent with the stated lint
-  pass; not independently run.
+Cross-checks:
+- **No further instance of the (a)/(b)/(f) class in live instruction files.** A grep over
+  `AGENTS.md`, `docs/*.md`, `agents/*.md` and `skills/**/*.md` for "plans out of 10" and for the
+  plan rubric next to a threshold returns zero. The class is empty for now. The lint rule is what
+  would keep it empty.
+- **"clean" still appears only for the plan loop** (`:215`, `:220`, `:224`, `:226`; `:143` is
+  "cleanup").
+- **House style:** zero em or en dashes in `skills/build/SKILL.md` and `docs/eval-framework.md`.
+- **C15/C16 by reading:** neither edit adds an `AGENTS.md` mention or a program name.
+- **Cosmetic, not a finding:** both edits were made without reflowing, so `:272` and
+  `docs/eval-framework.md:187` run to about 115 characters where their neighbours wrap near 90.
+  The standard sets no line width. It would only matter to a future anchor-based review, and
+  only if someone reflows later.
 
-## New findings
-
-**(f) LOW, outside the skill, same class as (a) and (b): `docs/eval-framework.md:186-187` still
-says plans are scored out of 10.** "the totals differ by type (code and UI are scored out of 12,
-skills, agent definitions and plans out of 10)". Ten lines below, `:199-200` says
-`architecture-reviewer` "publishes no score", `:26-28` now says the plan rubric declares no
-threshold, and `docs/plan-format.md:230` says "No threshold, and no score is published". The
-sentence sits in the paragraph that introduces the very table row (a) fixed. **Fix (one clause):**
-"(code and UI are scored out of 12, skills and agent definitions out of 10; the plan loop
-publishes no score)".
-
-This is worth naming beyond its size: (a), (b) and (f) are three findings closed by the SAME KIND
-of fix, another sentence that still implies the plan rubric carries a number, and fixing (f)
-leaves the next instance possible. That is the "same class" test in
-`docs/eval-framework.md:217-223`. It is not a stop for this loop (one round on this version), but
-it is evidence for the structural answer, the anti-drift lint rule (Top fix 8, out of scope and
-still open), widened to a second claim.
-
-**(g) LOW, inside the skill: the rationale in `:240-241` is not the one the sources give.**
-"`architecture-reviewer` sees one plan at a time and cannot see a revision to another."
-`AGENTS.md:246` gives "a builder sees one plan" as the builder's limit, not the reviewer's, and
-`agents/architecture-reviewer.md:27-32` says the reviewer DOES flag what is readable across the
-batch ("a reference into a plan outside this batch, one whose `approved:` is not yes...") and
-that the half it cannot see is that "a declaring plan was revised after approval is a git fact".
-The rule the sentence states is correct; the reason attached to it partly is not, and a reader
-could infer the reviewer ignores cross-plan references. **Fix (one sentence):** "You hold that
-half: whether a declaring plan was revised after approval is a git fact
-`architecture-reviewer` cannot see (it checks only what the plans themselves show)."
-
-## Seams carried (none block, none move a score)
+## Seams carried (human-deferred for this batch, tracked; none block, none move a score)
 - **Ninth round: the model-plan block sits exactly on the 75-line structure trigger** (`:37-111`).
-- **Narrowed: the two in-skill stop-condition copies are closer but not verbatim.** (d) moved the
-  clearing exit into the parenthesis (`:271-272` "approve, 3 rounds, or two consecutive rounds of
-  the same defect class"), so both now read as three exits. `:271-272` still omits "whichever
-  comes first", which `:221` and `AGENTS.md:41` carry.
-- **Carried: the B5.2 heading still says "to clean, max 3"** (`:215`).
-- **Carried: B5.4 does not say what to hand the human on stop** (`:272-273` ends at "first ->
-  final score"; `docs/eval-framework.md:209-211` asks for what is open, what moved, what did not).
-- **Carried, low: the `arch_review: waived (human)` path has no step in this skill** (`:235-237`).
-- **Context, not a finding:** historical plan records model the retired scored practice
-  (`docs/plans/2026-08-13-usr-006-prose-language-warning.md`); correct as history.
+- **The B5.2 heading still says "to clean, max 3"** (`:215`).
+- **B5.4 does not say what to hand the human on stop** (`:272-273`).
+- **Low: the `arch_review: waived (human)` path has no step in this skill** (`:235-237`).
+- **Context, not a finding:** historical plan records model the retired scored practice.
 
 ## Integrity
-No sign of text copied from another project. Voice is this system's throughout; every
-cross-reference resolves inside this repo.
+No sign of text copied from another project.
 
 ## Map duty
-Satisfied, nothing to update: `2b772ab` adds and alters no command surface, and
-`docs/system-map.md` is not touched by it. Not a finding.
+Satisfied, nothing to update: no command surface added or altered.
 
-## Top fixes
-1. **(f)** `docs/eval-framework.md:187` -> "(code and UI are scored out of 12, skills and agent
-   definitions out of 10; the plan loop publishes no score)".
-2. **(g)** `skills/build/SKILL.md:240-241` -> "You hold that half: whether a declaring plan was
-   revised after approval is a git fact `architecture-reviewer` cannot see (it checks only what
-   the plans themselves show)."
-3. **Make the two in-skill stop-condition copies identical**: at `:271-272` add "whichever comes
-   first" after "of the same defect class".
-4. **Structure, overdue since round 15**: lift `:37-111` into its own `## 3. Model plan` section,
-   or move the resolution mechanics (model precedence, effort precedence, source-tagging duty)
-   into a supporting file one level deep.
-5. **B5.4 stop handoff**: "On stop, present what is still open, what moved between rounds and
+## Top fixes (all deferred by the human for this batch; restated so they stay concrete)
+1. **Structure, overdue since round 15**: lift `:37-111` into its own `## 3. Model plan` section,
+   or move the resolution mechanics into a supporting file one level deep.
+2. **B5.4 stop handoff**: "On stop, present what is still open, what moved between rounds and
    what did not, and name the class in one phrase; the human arbitrates."
-6. **`:215` heading** -> "to clean, max 3 rounds or a repeated class".
-7. **Optional**: one line in the worked example showing a STOPPED loop.
-8. **Out of scope for this commit, stays open: the anti-drift `skills-lint.sh` rule** for the
-   stop condition. (a), (b) and (f) now show the same need for a second claim ("the plan rubric
-   has a number"), which is the argument for making the rule check both.
+3. **`:215` heading** -> "to clean, max 3 rounds or a repeated class".
+4. **Optional**: one line in the worked example showing a STOPPED loop.
+5. **Still open, out of scope: the anti-drift `skills-lint.sh` rule** for the stop condition.
+   Per round 23 it should also cover the claim "the plan rubric has a number".
+
+## Loop status (per `docs/eval-framework.md:179-183`)
+Stopped on exit 1 (PASS, no criterion at 0, no Critical) at round 2. Trajectory for this batch:
+round 1 (`2b772ab`) 10/10 with 2 new LOW findings (f, g) and 1 narrowed seam -> round 2
+(`6873887`) 10/10 with all three closed and no new findings. Residuals are the four seams above
+plus the lint rule. The human deferred all of them out of this batch; the decision stays with
+the human.
 
 ## Behavioral confirmation still owed
-Form only. Whether an orchestrator actually returns a batch's consuming plans to the gate after
-revising a declaring plan (the new `:238-241` step) is behavior, not form: an `/odeo:improve`
-subagent test with two plans where plan B cites plan A's contract, A revised after both are
-approved, expecting B's `approved:` to be reset and presented again. The two earlier cases stand:
-stop at round two on a repeated class, and stop at an APPROVE below max while handing over the
-residual.
+Form only. The Guardrails 1 holder step (`:238-241`) still wants an `/odeo:improve` subagent test.
+Set up two approved plans, B citing A's contract, then revise A. B's `approved:` should be reset
+and B presented again. The two earlier cases stand: stop at round two on a repeated class, and
+stop at an APPROVE below max while handing over the residual.
 
 ## Vs previous version
-Round 22 (`15b168f`) -> round 23 (`2b772ab`), per criterion: trigger clarity 2 -> 2, structure
-2 -> 2, worked example 2 -> 2, precision 2 -> 2, safety integration 2 -> 2. Total 10 -> 10. The
-score was already at max, so the movement is in the findings: all five deferred findings (a)-(e)
-CLOSED, each checked against its proposed wording ((a)-(d) verbatim, (e) expanded). Two new LOW
-findings: (f) outside the skill, the same class as (a) and (b); (g) inside the skill, a rationale
-in the new (e) sentence that does not match `agents/architecture-reviewer.md`. The
-stop-condition-copies seam narrowed. No regression. Nothing blocks merge.
+Round 23 (`2b772ab`) -> round 24 (`6873887`), per criterion: trigger clarity 2 -> 2, structure
+2 -> 2, worked example 2 -> 2, precision 2 -> 2, safety integration 2 -> 2. Total 10 -> 10.
+Findings (f) and (g) and Top fix 3 were applied verbatim and verified. The stop-condition-copies
+seam closed. No new findings, no regression. Nothing blocks merge.
 
 ## History
 - Round 1 (2026-07-24, Opus 4.8, strongest): 9/10 PASS.
@@ -297,7 +233,7 @@ stop-condition-copies seam narrowed. No regression. Nothing blocks merge.
   findings STOOD with exact one-line fixes restated for the human's post-merge batch, (a)-(c)
   outside the skill, (d)-(e) inside it. Round 15's structure fix carried an eighth time.
 - Round 23 (2026-09-30, Opus 5.5 [1M], strongest, 2b772ab, branch
-  fix/ledger-backup-and-eval-docs): 10/10 PASS. This record REPLACES round 22's. NOT a
+  fix/ledger-backup-and-eval-docs): 10/10 PASS. This record REPLACED round 22's. NOT a
   re-anchor: `2b772ab` edits the skill (`:238-241` added, `:268-273` rewritten; 330 -> 335
   lines), `docs/eval-framework.md` and `AGENTS.md` to apply the five deferred findings. All
   five CLOSED, checked against their proposed wording ((a)-(d) verbatim, (e) expanded); no
@@ -307,3 +243,13 @@ stop-condition-copies seam narrowed. No regression. Nothing blocks merge.
   after (a) and (b), and evidence for the still-open anti-drift lint rule; (g) the new B5.3
   sentence's rationale ("sees one plan at a time") does not match
   `agents/architecture-reviewer.md:27-32`. Model-plan block still exactly 75 lines, ninth round.
+- Round 24 (2026-09-30, Opus 5.5 [1M], strongest, 6873887, branch
+  fix/ledger-backup-and-eval-docs): 10/10 PASS. This record REPLACES round 23's (committed at
+  `7e0034c`). Round 2 of this batch's review loop. `6873887` applies (f)
+  (`docs/eval-framework.md:186-187`), (g) (`skills/build/SKILL.md:240-241`) and Top fix 3
+  (`:272` "whichever comes first"), all verbatim and verified by reading. File length is still
+  335 and the round-23 anchors hold (no shell, so no diff). The stop-condition-copies seam
+  closed. A grep across the live instruction files finds no further "plan rubric has a number"
+  instance. No new findings. The loop stopped on PASS. The human deferred the residuals
+  (model-plan block on the 75-line edge, B5.4 stop handoff, `:215` heading, the stopped-loop
+  example, the anti-drift lint rule) out of this batch.
