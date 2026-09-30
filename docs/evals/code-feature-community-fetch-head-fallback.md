@@ -2,7 +2,7 @@
 artifact: community-fetch-head-fallback
 type: code
 branch: feature/community-fetch-head-fallback
-reviewed_commit: eaffbef
+reviewed_commit: d586ff3
 date: 2026-09-30
 scorer: code-reviewer
 model: claude-opus-5-5[1m] (Opus 5.5, 1M context)
@@ -10,15 +10,25 @@ model_tier: strong
 effort: high
 scores: { correctness: 2, security: 2, performance: 2, readability: 2, testing: 2, conventions: 2 }
 total: 12/12
-previous_total: 9/12
+previous_total: 12/12
 verdict: APPROVE
 ---
 
-# Code review: community reminder dates an unstamped copy by FETCH_HEAD (round 2)
+# Code review: community reminder dates an unstamped copy by FETCH_HEAD (round 3, re-anchor)
 
 ## Scope reviewed
 
-Round 2 is anchored at `eaffbef`. It reads the fix delta `git diff 1449b61..eaffbef` (three
+Round 3 re-anchors this record on `d586ff3`, which is `eaffbef` rebased onto local main
+`0f4c6ae` after the C16 branch merged. I checked myself that the rebase changed no content:
+`git range-diff b855870..eaffbef main..d586ff3` shows all six commits as `=`. The only
+difference between `eaffbef` and `d586ff3` is the C16 merge, and it touched none of this
+branch's files (`scripts/skills-lint.sh`, `tests/merge-gate.test.sh`,
+`tests/odeo-migrate-legacy.test.sh`, `tests/skills-lint.test.sh`, and its own eval record).
+On the new base I ran a live check: `tests/odeo-context.test.sh` gave ALL PASS and
+`scripts/skills-lint.sh` gave "all invariants hold". The review below is round 2's,
+unchanged, because the code it reviewed is unchanged.
+
+Round 2 was anchored at `eaffbef`. It reads the fix delta `git diff 1449b61..eaffbef` (three
 commits: f28bc21, 87a0d2f, eaffbef; four files: `hooks/odeo-context.sh`,
 `tests/odeo-context.test.sh`, `knowledge/fixes/git-head-mtime-is-not-last-sync.md`,
 `CONTRIBUTING.md`), on top of the full round-1 review of `git diff main...1449b61`. No plan
@@ -92,3 +102,7 @@ conventions 2/2 -> total 12/12 (threshold: >=9, no zero). PASS.
   inline comment, and where the versioning rule sat in CONTRIBUTING.md.
 - Round 2, `eaffbef`, 12/12, APPROVE. Every round-1 finding fixed as proposed; one
   optional wording nitpick left. Correctness went from 0 to 2 and testing from 1 to 2.
+- Round 3, `d586ff3`, 12/12, APPROVE. Re-anchor after a rebase onto local main `0f4c6ae`
+  only: range-diff shows all six commits `=`, the C16 merge touched none of this branch's
+  files, and `tests/odeo-context.test.sh` plus lint pass on the new base. Findings, scores
+  and verdict are unchanged.
