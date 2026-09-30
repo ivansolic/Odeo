@@ -298,6 +298,7 @@ rm -rf "$d" "$fake"
 d="$(clean_root)"; noperl="$(mktemp -d)"
 IFS=: read -ra path_dirs <<< "$PATH"
 for pdir in "${path_dirs[@]}"; do
+  [[ $pdir == /* ]] || continue # an empty or relative entry would glob / or link to nowhere
   for prog in "$pdir"/*; do
     name="${prog##*/}"
     [[ -x "$prog" && ! -d "$prog" && "$name" != perl* && ! -e "$noperl/$name" ]] && ln -s "$prog" "$noperl/$name"
