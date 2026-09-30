@@ -32,5 +32,5 @@ vendored repos).
 
 ## Examples
 General recommendation for an old copy: own stamp -> FETCH_HEAD -> HEAD (clone time) ->
-"cannot be dated, say so". Odeo 0.3.2 ships stamp -> HEAD -> "cannot be dated"
-(hooks/odeo-context.sh community_state); FETCH_HEAD is an open decision.
+"cannot be dated, say so". Odeo 0.3.2 shipped stamp -> HEAD -> "cannot be dated"; the next
+release adds FETCH_HEAD between the stamp and HEAD (hooks/odeo-context.sh community_state).
