@@ -1,5 +1,5 @@
 ---
-description: Pull the latest shared community knowledge into ~/.claude/community-knowledge so you get other contributors' curated lessons. Run when the session-start freshness nudge suggests it, or anytime. Quick; does not reinstall the system.
+description: Pull the latest shared community knowledge into ~/.claude/community-knowledge so you get other contributors' curated lessons. Run when the session-start freshness reminder suggests it, or anytime. Quick; does not reinstall the system.
 disable-model-invocation: true
 ---
 
@@ -10,7 +10,8 @@ users. A quick git pull; it does NOT touch the tooling (for that, plugin users r
 `/plugin update`).
 
 ## When to use
-- The session-start freshness nudge says the base looks stale, or you just want the latest. Often.
+- The session-start freshness reminder says the copy is missing or was last synced 14 or more
+  days ago (it shows at most once per 14 days), or you just want the latest. Often.
 
 ## What it does
 1. Run `"${CLAUDE_PLUGIN_ROOT}/scripts/community-sync.sh"`. It clones `~/.claude/community-knowledge` on first use and
@@ -48,4 +49,4 @@ api/pagination-cursors. 1 overlaps this project's knowledge/auth/, run
 
 ## Safety rules
 - Pull only (`--ff-only`); never push or edit the community base here (contribute via `/odeo:contribute-lesson`).
-- Don't auto-run; the user invokes it (or accepts the freshness nudge).
+- Don't auto-run; the user invokes it (or accepts the freshness reminder).

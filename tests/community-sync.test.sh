@@ -23,6 +23,10 @@
 # A mutation recipe that can silently become a no-op is the same vacuity class this suite
 # exists to catch, one level further out: in the instrument doing the checking.
 #
+# The last-sync stamp (case 5b), observed failing 2026-09-30: dropping stamp_sync from the
+# "refreshed." arm -> 1 FAIL (M22); from the first-clone arm -> 1 FAIL (M23); from the
+# re-clone after move-aside -> 1 FAIL (M23b).
+#
 # Run: bash tests/community-sync.test.sh
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -181,6 +185,29 @@ h=$(run "$m")
   && grep -q 'offline' "$TMP/out" \
   && ok "offline keeps the existing copy in place and says so" \
   || bad "offline did not keep the copy untouched: $(cat "$TMP/out")"
+
+# 5b. THE LAST-SYNC STAMP (.git/odeo-last-sync) the session-start reminder reads
+#     (hooks/odeo-context.sh community): written on every SUCCESSFUL path, never on a failed
+#     one, so "refreshed recently" means a sync that worked.
+STAMP=.git/odeo-last-sync
+h=$(run "$(mkmirror s1)")
+[[ -f "$h/.claude/community-knowledge/$STAMP" ]] && ok "stamp: a refresh writes it" || bad "stamp: missing after a refresh"
+m=$(mkmirror s2); echo "my edit" >> "$m/f.md"; h=$(run "$m")
+[[ -f "$h/.claude/community-knowledge/$STAMP" ]] && ok "stamp: a re-clone after move-aside writes it" \
+  || bad "stamp: missing after the move-aside re-clone"
+m=$(mkmirror s3); git -C "$m" remote set-url origin /nonexistent-remote; h=$(run "$m")
+[[ -d "$h/.claude/community-knowledge/.git" && ! -e "$h/.claude/community-knowledge/$STAMP" ]] \
+  && ok "stamp: an unreachable remote does not write it" || bad "stamp: written (or copy gone) although the fetch failed"
+# first use: no copy at all, so run() (which moves a mirror in) is not used
+home="$(mktemp -d "$TMP/fresh-XXXXXX")"; mkdir -p "$home/.claude"
+( set +e; HOME="$home"; COMMUNITY_KNOWLEDGE_REPO="$UP"; COMMUNITY_DIR="$home/.claude/community-knowledge"
+  eval "$block" ) >"$TMP/out" 2>&1
+[[ -f "$home/.claude/community-knowledge/$STAMP" ]] && ok "stamp: a first clone writes it" || bad "stamp: missing after a first clone"
+home="$(mktemp -d "$TMP/fresh-XXXXXX")"; mkdir -p "$home/.claude"
+( set +e; HOME="$home"; COMMUNITY_KNOWLEDGE_REPO=/nonexistent-remote; COMMUNITY_DIR="$home/.claude/community-knowledge"
+  eval "$block" ) >"$TMP/out" 2>&1
+[[ ! -e "$home/.claude/community-knowledge/$STAMP" ]] && ok "stamp: a failed first clone does not write it" \
+  || bad "stamp: written although the first clone failed"
 
 # 6. THE INVARIANT, asserted independently of every classification above: no path deletes
 #    the user's copy. If a future state is misclassified, this is what keeps it survivable.

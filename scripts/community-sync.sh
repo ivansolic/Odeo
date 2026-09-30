@@ -18,6 +18,10 @@ export GIT_TERMINAL_PROMPT=0   # never block on a credential prompt (clone path 
 mkdir -p "$HOME/.claude"
 echo "  → community knowledge → $COMMUNITY_DIR"
 # BEGIN community-refresh  (tests/community-sync.test.sh extracts this block; keep both markers)
+# stamp_sync: records a SUCCESSFUL sync for the session-start reminder
+# (hooks/odeo-context.sh community), inside .git so it is never a tracked file. Called on
+# success paths only, so "synced recently" means a sync that worked.
+stamp_sync() { : > "$COMMUNITY_DIR/.git/odeo-last-sync"; }
 if [[ -d "$COMMUNITY_DIR/.git" ]]; then
   # THE CLASS THIS ELIMINATES. Two rounds of review found the same shape here: a diagnosis
   # that can be wrong, paired with a remedy that destroys data. Patching one more branch
@@ -47,7 +51,7 @@ if [[ -d "$COMMUNITY_DIR/.git" ]]; then
     refresh_note="it is not on a branch that tracks the remote"
   elif git -C "$COMMUNITY_DIR" merge --ff-only -q "$upstream" 2>/dev/null \
        && [[ "$(git -C "$COMMUNITY_DIR" rev-parse HEAD)" == "$upstream" ]]; then
-    echo "    refreshed."
+    stamp_sync; echo "    refreshed."
   else
     # Name the likeliest cause for the message only. Every branch here has the same,
     # non-destructive outcome, so a wrong guess costs nothing.
@@ -61,6 +65,7 @@ if [[ -d "$COMMUNITY_DIR/.git" ]]; then
     stale="$COMMUNITY_DIR.stale-$(date +%Y%m%d%H%M%S)"
     if mv "$COMMUNITY_DIR" "$stale" 2>/dev/null \
        && git clone -q "$COMMUNITY_KNOWLEDGE_REPO" "$COMMUNITY_DIR" 2>/dev/null; then
+      stamp_sync
       echo "    ! this copy could not be refreshed ($refresh_note)." >&2
       echo "      It is a read-only mirror, so a fresh one was cloned and NOTHING was deleted." >&2
       echo "      Your previous copy is kept at: $stale" >&2
@@ -85,7 +90,7 @@ else
     fi
   fi
   if git clone -q "$COMMUNITY_KNOWLEDGE_REPO" "$COMMUNITY_DIR" 2>/dev/null; then
-    echo "    cloned."
+    stamp_sync; echo "    cloned."
   else
     echo "    ! community knowledge repo not reachable, skipped for now." >&2
     echo "      Run /odeo:sync-community again once the remote is reachable." >&2
