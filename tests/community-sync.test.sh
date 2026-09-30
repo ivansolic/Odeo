@@ -24,7 +24,8 @@
 # exists to catch, one level further out: in the instrument doing the checking.
 #
 # The last-sync stamp (case 5b), observed failing 2026-09-30: dropping stamp_sync from the
-# "refreshed." arm -> 1 FAIL (M22); from the first-clone arm -> 1 FAIL (M23).
+# "refreshed." arm -> 1 FAIL (M22); from the first-clone arm -> 1 FAIL (M23); from the
+# re-clone after move-aside -> 1 FAIL (M23b).
 #
 # Run: bash tests/community-sync.test.sh
 set -uo pipefail

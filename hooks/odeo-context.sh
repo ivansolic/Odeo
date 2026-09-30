@@ -258,7 +258,8 @@ run_legacy() {
 }
 
 # older_than_days <file> <days>: whether the file exists and was modified <days> or more ago
-# (find -mmin, the same on BSD and GNU, where stat flags differ)
+# (find -mmin: both BSD and GNU support it, where stat flags differ; the one-minute-early
+# offset below was measured to fire at exactly <days> on BSD find, GNU was not measured)
 older_than_days() {
   [ -n "$(find "$1" -prune -mmin +"$(( $2 * 1440 - 1 ))" 2>/dev/null)" ]
 }
@@ -269,6 +270,9 @@ community_state() {
   local last="$COMMUNITY_DIR/.git/odeo-last-sync"
   [ -d "$COMMUNITY_DIR/.git" ] || { echo missing; return 0; }
   [ -f "$last" ] || last="$COMMUNITY_DIR/.git/HEAD"
+  # neither can be dated: remind rather than stay silent forever about a copy that
+  # community-sync.sh may not be able to refresh either
+  [ -e "$last" ] || { echo stale; return 0; }
   older_than_days "$last" "$COMMUNITY_DAYS" && echo stale
   return 0
 }

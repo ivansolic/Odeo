@@ -38,6 +38,8 @@
 #   M27 no guard for a missing CLAUDE_PLUGIN_DATA        -> 1 FAIL (case 4f, no data dir)
 #   M28 community also registered on SubagentStart      -> 1 FAIL (case 7)
 #   M29 no .git/HEAD fallback without a stamp           -> 1 FAIL (case 4f, old clone)
+#   M30 reminder shown although it could not be recorded -> 1 FAIL (case 4f, read-only data)
+#   M31 a copy with no stamp and no HEAD stays silent   -> 1 FAIL (case 4f, no HEAD)
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 HOOK="$ROOT/hooks/odeo-context.sh"
@@ -288,6 +290,23 @@ h="$(fresh_case nodata)"; age "$h/.claude/community-knowledge/.git/odeo-last-syn
 out="$(community "$h")"; rc=$?
 assert_exit "community: no plugin data dir -> still 0" 0 "$rc"
 assert_empty "community: no plugin data dir -> silent (it could not rate-limit)" "$out"
+# a data dir the hook cannot write to is the same case: a reminder it cannot record would
+# repeat every session, so it is skipped (root ignores the permission, so the case is too)
+if [ "$(id -u)" != 0 ]; then
+  h="$(fresh_case rodata)"; age "$h/.claude/community-knowledge/.git/odeo-last-sync" 15
+  chmod 500 "$h/data"; out="$(community "$h" "$h/data/sub" 2>/dev/null)"; rc=$?; chmod 700 "$h/data"
+  assert_exit "community: a data dir it cannot write -> still 0" 0 "$rc"
+  assert_empty "community: a data dir it cannot write -> silent (it could not rate-limit)" "$out"
+fi
+# a clone with neither a stamp nor a HEAD cannot be dated: a reminder, not silence forever
+h="$(fresh_case nohead)"; rm "$h/.claude/community-knowledge/.git/odeo-last-sync" "$h/.claude/community-knowledge/.git/HEAD"
+assert_contains "community: no stamp and no HEAD -> reminder" "$REMIND" "$(ctx "$(community "$h" "$h/data")")"
+# the hook and community-sync.sh must name the same copy, or the reminder watches one
+# directory while the sync fills another
+cpath='$HOME/.claude/community-knowledge'
+grep -qF "COMMUNITY_DIR=\"$cpath\"" "$HOOK" && grep -qF "COMMUNITY_DIR=\"$cpath\"" "$ROOT/scripts/community-sync.sh" \
+  && ok "community: the hook and community-sync.sh name the same copy" \
+  || bad "community: the hook and community-sync.sh name different copies"
 
 # 5) broken install (no global/CLAUDE.md, no language scripts): says so, still exit 0
 fake="$TMP/fake-plugin"; mkdir -p "$fake/hooks"; cp "$HOOK" "$fake/hooks/"
