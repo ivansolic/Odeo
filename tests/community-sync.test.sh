@@ -26,6 +26,10 @@
 # The last-sync stamp (case 5b), observed failing 2026-09-30: dropping stamp_sync from the
 # "refreshed." arm -> 1 FAIL (M22); from the first-clone arm -> 1 FAIL (M23); from the
 # re-clone after move-aside -> 1 FAIL (M23b).
+# No FETCH_HEAD from Odeo's sync (case 5c), observed failing 2026-09-30: flag never passed
+# -> 2 FAIL (M35); detection always true -> 1 FAIL, the old-git refresh reads as offline
+# (M36); detection always false -> 2 FAIL (M37). The old-git case also caught a real bug in
+# the first draft: bash 3.2 (macOS) calls an empty array unbound under set -u.
 #
 # Run: bash tests/community-sync.test.sh
 set -uo pipefail
@@ -208,6 +212,30 @@ home="$(mktemp -d "$TMP/fresh-XXXXXX")"; mkdir -p "$home/.claude"
   eval "$block" ) >"$TMP/out" 2>&1
 [[ ! -e "$home/.claude/community-knowledge/$STAMP" ]] && ok "stamp: a failed first clone does not write it" \
   || bad "stamp: written although the first clone failed"
+
+# 5c. NO FETCH_HEAD FROM ODEO'S OWN SYNC. The session-start reminder dates a copy without a
+#     stamp by a non-empty FETCH_HEAD, and a fetch that succeeds before a failed refresh would
+#     leave one without a real sync. So the sync fetches with --no-write-fetch-head wherever
+#     git supports it (2.29+), and falls back to a plain fetch on older git.
+h=$(run "$(mkmirror f1)")
+grep -qE '^ *refreshed\.$' "$TMP/out" && [[ ! -e "$h/.claude/community-knowledge/.git/FETCH_HEAD" ]] \
+  && ok "fetch: a refresh leaves no FETCH_HEAD" || bad "fetch: FETCH_HEAD written by a refresh (or no refresh): $(cat "$TMP/out")"
+m=$(mkmirror f2); git -C "$m" remote set-url origin /nonexistent-remote; h=$(run "$m")
+[[ ! -e "$h/.claude/community-knowledge/.git/FETCH_HEAD" ]] \
+  && ok "fetch: an unreachable remote leaves no FETCH_HEAD" || bad "fetch: FETCH_HEAD written by a failed fetch"
+# older git, simulated: its fetch help omits the flag and it rejects the flag as unknown
+real_git="$(command -v git)"; shim="$TMP/old-git"; mkdir -p "$shim"
+cat > "$shim/git" <<EOF
+#!/usr/bin/env bash
+for a in "\$@"; do [ "\$a" = --no-write-fetch-head ] && { echo "error: unknown option" >&2; exit 129; }; done
+if [ "\${1:-}" = fetch ] && [ "\${2:-}" = -h ]; then "$real_git" fetch -h 2>&1 | grep -v write-fetch-head; exit 129; fi
+exec "$real_git" "\$@"
+EOF
+chmod +x "$shim/git"
+m=$(mkmirror f3); up_tip="$(git -C "$UP" rev-parse HEAD)"; h=$(PATH="$shim:$PATH" run "$m")
+grep -qE '^ *refreshed\.$' "$TMP/out" && [[ "$(git -C "$h/.claude/community-knowledge" rev-parse HEAD)" == "$up_tip" ]] \
+  && ok "fetch: git without --no-write-fetch-head still refreshes (plain fetch)" \
+  || bad "fetch: older git broke the refresh: $(cat "$TMP/out")"
 
 # 6. THE INVARIANT, asserted independently of every classification above: no path deletes
 #    the user's copy. If a future state is misclassified, this is what keeps it survivable.
