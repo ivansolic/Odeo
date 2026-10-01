@@ -329,8 +329,10 @@ check "C17 control: the same list with other spacing passes" 0 "$d"; rm -rf "$d"
 d="$(clean_root)"; printf -- '# Plan format\nPlan layers: Summary, Why, Technical\nPlan layers: Summary, Technical\n' > "$d/docs/plan-format.md"
 check "C17 flags a second 'Plan layers:' line in one file" 1 "$d"; rm -rf "$d"
 d="$(clean_root)"; printf -- 'baseline\nPlan layers:\n' > "$d/global/CLAUDE.md"
-out="$( bash "$LINT" "$d" 2>&1 )"
-case "$out" in *"empty 'Plan layers:'"*) echo "ok   - C17 calls an empty list empty, not absent"; pass=$((pass+1));;
+out="$( bash "$LINT" "$d" 2>&1 )"; rc=$?
+[[ $rc -eq 1 ]] || out="(exit $rc, want 1) $out"
+case "$out" in "(exit"*) echo "FAIL - C17 passed an empty list: $out"; fail=$((fail+1));;
+  *"empty 'Plan layers:'"*) echo "ok   - C17 calls an empty list empty, not absent"; pass=$((pass+1));;
   *) echo "FAIL - C17 did not report the empty list as empty"; fail=$((fail+1));; esac
 rm -rf "$d"
 

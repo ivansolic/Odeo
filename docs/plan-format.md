@@ -24,8 +24,8 @@ A plan has two readers: the human at the gate, who may not be a developer, and t
 who executes it as a contract. So it leads with a HUMAN LAYER (Summary, Why, Explanation, in
 plain language, `AGENTS.md` "Talking to the user"), then the TECHNICAL layer (Header through
 Risks / open questions), then Review Focus, VERIFICATION (the Success signal) and Out of
-scope, in the order of the template below. The
-same list shapes session plans in `global/CLAUDE.md`; lint C17 keeps the two lists equal.
+scope, in the order of the template below. The same list shapes session plans in
+`global/CLAUDE.md`; lint C17 keeps the two lists equal.
 The human layer is NOT contract: where it and the technical layer disagree, the technical
 layer wins and the disagreement is a finding for the plan review.
 
@@ -70,18 +70,21 @@ arch_review: pending    # set by the /odeo:build pipeline after the plan-review 
 - What changes for users: <what a user notices, or "nothing visible">
 - Biggest risk: <the one most likely way this disappoints, plainly>
 - What you decide: <the approval itself, plus EVERY open choice and EVERY deviation from
-  the story this plan carries, each named. A choice or deviation that appears in Design
-  decisions or Risks below appears here too; none lives only in the technical layer.>
+  the story this plan carries, each named. That class is: every open question in Risks,
+  and every Design decision that changes what the user gets or departs from the story's
+  wording. Each appears here too; none lives only in the technical layer. A purely
+  technical decision (how, not what) stays in Design decisions alone.>
 - How we will know it works: <the observable check, plainly>
 <For example:>
 - What you get: one command that tells you which language Odeo writes your documents in,
   and where that choice comes from.
-- What changes for users: a new `/odeo:language` command; nothing else changes.
+- What changes for users: a new `/odeo:language` command, and a language you already set
+  is replaced only when you ask for it.
 - Biggest risk: it names a language your documents do not actually use.
 - What you decide: approve the plan, and one choice: a setting you already have is
   replaced only when you ask for it explicitly (the `--overwrite` design decision below).
-- How we will know it works: in a project set to German it answers "German, set for this
-  project", and the tests check every other case.
+- How we will know it works: in a project set to German it answers that German is set
+  for this project, and the tests check every other case.
 
 ## Why
 <The reason only: the problem, for whom, and why now, in two or three plain sentences. Do
@@ -141,6 +144,8 @@ Constraints: <copied verbatim from the spec/story. Boundaries live in the
 - scripts/language-status.sh        CREATE: prints the effective language and its scope
 - tests/language-status.test.sh CREATE: tests for language-status.sh
 - skills/language/SKILL.md      CREATE: the /odeo:language command surface
+- scripts/set-global-language.sh MODIFY: `--overwrite` replaces an existing value; without it
+                                  the file is unchanged
 
 ## Tasks
 <the smallest independently testable units, in dependency order; each task:>
@@ -182,7 +187,8 @@ Constraints: <copied verbatim from the spec/story. Boundaries live in the
 <3 to 5 ways this could fail that the tasks do NOT test, each one line, so the reviewers
 know where to look hardest. Not a restatement of the tasks or of the Risks. `none` plus one
 line of why when the story is too small to fail in an untested way.>
-- An invalid project value could still be reported with scope `project`.
+- Run from a subfolder, `/odeo:language` may find a different project than the document
+  writer does, so both pass their own tests and still disagree.
 
 ## Success signal (every acceptance criterion mapped to a concrete check)
 <ONE ROW PER acceptance criterion in the story, quoted short and attributed, so the
