@@ -2,7 +2,7 @@
 artifact: architecture-reviewer
 type: agent-definition
 branch: feature/plan-human-layer
-reviewed_commit: babe300
+reviewed_commit: 2859827
 artifact_version: 6
 date: 2026-10-01
 scorer: agent-reviewer
@@ -15,26 +15,25 @@ verdict: PASS
 previous_total: 10/10
 ---
 
-# Agent: architecture-reviewer (round 6, re-anchor at babe300)
+# Agent: architecture-reviewer (round 7, re-anchor at 2859827)
 
-Re-anchor only. The dispatcher states that `agents/architecture-reviewer.md` is untouched
-since e5dbea0. I re-read the whole file at babe300 and it matches, line for line, the text
-scored in round 5. `artifact_version` stays 6.
+Re-anchor only, after the branch was rebased onto released main 95d17e3. The dispatcher
+states the upstream change (0.3.3: plugin.json bump, README wording, two eval records) touches
+neither `agents/` nor `docs/plan-format.md`, and that range-diff shows "=" on all 11 branch
+commits. I re-read `agents/architecture-reviewer.md` in full at 2859827, and it matches, line
+for line, the text scored in rounds 5 and 6. `artifact_version` stays 6.
 
-The canonical text this agent echoes, re-checked in `docs/plan-format.md` at babe300: the
-`What you decide` class (`:72-76`, "every open question in Risks, and every Design decision
-that changes what the user gets or departs from the story's wording") is unchanged, so the
-agent's echo at `:29-31` still matches it word for word. Criterion 6 is unchanged in
-substance (now at `:293`). The success-signal row-count rule the agent checks (`:194-195`, one
-row per acceptance criterion) is unchanged too. The changed example row (`:198`) is
-illustrative template content; nothing in this agent depends on it.
+I re-checked the canonical text this agent echoes in `docs/plan-format.md` at 2859827. The
+`What you decide` class (`:72-76`) still matches the agent's echo at `:29-31`. Criterion 6
+(`:293`) and the success-signal row-count rule (`:193-195`) are as at babe300.
 
-Method note: this reviewer holds no Bash. The sha `babe300` was supplied by the dispatcher.
-"Untouched" is the dispatcher's claim, which I confirmed by reading, not by diffing. The tier
-is the one my context reports (Opus class), not re-resolved against a live lineup in this run
-(no web tool).
+Method note: this reviewer holds no Bash. The sha `2859827` was supplied by the dispatcher.
+The range-diff result and the scope of the upstream release are the dispatcher's claims. I
+confirmed only what reading can confirm: this file is unchanged, and so is the plan-format text
+it relies on. The tier is the one my context reports (Opus class), not re-resolved against a
+live lineup in this run (no web tool).
 
-## Scores (all carried, evidence re-checked at babe300)
+## Scores (all carried, evidence re-checked at 2859827)
 
 - **trigger/description clarity: 2**, `:3` names the plan-review mode, the Guardrails-1
   detector duty, and the not-for lane.
@@ -66,12 +65,13 @@ Round 2 (f4e295a): 9/10, 1 Minor + 2 Nits.
 Round 3 (93536c7): 9/10 PASS, ceiling blocked by `:3`.
 Round 4 (4f001fa): 10/10 PASS, 2 Minor + 2 Nits.
 Round 5 (e5dbea0): 10/10 PASS, both Minors closed; 3 cosmetic Nits open.
-Round 6 (babe300): 10/10 PASS, re-anchor; artifact unchanged, nothing moved.
+Round 6 (babe300): 10/10, re-anchor; artifact unchanged.
+Round 7 (2859827): 10/10 PASS, re-anchor after rebase onto 95d17e3; artifact unchanged.
 Stop condition (eval-framework): PASS at max with nothing actionable above Nit; the loop for
 this artifact is done.
 
 ## Vs previous version
-Identical artifact, identical score. Only `reviewed_commit:` moved (e5dbea0 -> babe300).
+Identical artifact, identical score. Only `reviewed_commit:` moved (babe300 -> 2859827).
 
 ## History
 - 2026-08-04 v2 (f8f8da6): first per-file review, after the plan-review mode gained the
@@ -87,5 +87,8 @@ Identical artifact, identical score. Only `reviewed_commit:` moved (e5dbea0 -> b
   plan-format and echoed exactly; paragraph separated by blank lines. Round 5 = 10/10 PASS,
   held; both Minors closed; three cosmetic Nits open, none ceiling-blocking.
 - 2026-10-01 v6 re-anchored (babe300): artifact unchanged, re-read in full; the canonical
-  class, criterion 6 and the row-count rule re-checked in plan-format, unchanged; the changed
-  example row is outside anything this agent depends on. Round 6 = 10/10 PASS, held.
+  class, criterion 6 and the row-count rule re-checked in plan-format, unchanged. Round 6 =
+  10/10 PASS, held.
+- 2026-10-01 v6 re-anchored (2859827): branch rebased onto released main 95d17e3; artifact
+  re-read in full, unchanged; the plan-format text it relies on re-checked, unchanged.
+  Round 7 = 10/10 PASS, held.

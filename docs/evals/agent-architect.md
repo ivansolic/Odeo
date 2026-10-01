@@ -2,7 +2,7 @@
 artifact: architect
 type: agent-definition
 branch: feature/plan-human-layer
-reviewed_commit: babe300
+reviewed_commit: 2859827
 artifact_version: 7
 date: 2026-10-01
 scorer: agent-reviewer
@@ -15,27 +15,26 @@ verdict: PASS
 previous_total: 10/10
 ---
 
-# Agent: architect (round 8, re-anchor at babe300)
+# Agent: architect (round 9, re-anchor at 2859827)
 
-Re-anchor only. The dispatcher states that babe300 changes one example table row in
-`docs/plan-format.md` and worked-example text in `skills/build/SKILL.md`, and that
-`agents/architect.md` is untouched since e5dbea0. I re-read the whole file at babe300 and it
-matches, line for line, the text scored in rounds 6 and 7. `artifact_version` stays 7.
+Re-anchor only, after the branch was rebased onto released main 95d17e3. The dispatcher
+states the upstream change (0.3.3: plugin.json bump, README wording, two eval records) touches
+neither `agents/` nor `docs/plan-format.md`, and that range-diff shows "=" on all 11 branch
+commits. I re-read `agents/architect.md` in full at 2859827, and it matches, line for line,
+the text scored in rounds 6 to 8. `artifact_version` stays 7.
 
-What this agent depends on in `docs/plan-format.md` I re-checked at babe300. The template's
-section order is unchanged (Summary for humans `:68`, ..., Do-not-touch `:177`, Risks `:183`,
-Review Focus `:186`, Success signal `:193`, Out of scope `:200`), so the step-3 list (`:37-44`)
-still matches it. The `What you decide` class is unchanged (`:72-76`), so step 5 (`:69-72`)
-still fits it. The changed example row (`:198`, now citing `tests/language-status.test.sh`)
-is illustrative content inside the template and touches nothing this agent cites.
+I re-checked the parts of `docs/plan-format.md` this agent depends on at 2859827. Template
+order: Summary for humans `:68`, ..., Do-not-touch `:177`, Risks `:183`, Review Focus `:186`,
+Success signal `:193`, Out of scope `:200`. The `What you decide` class is at `:72-76`. Both
+are as at babe300, so the step-3 list (`:37-44`) and step 5 (`:69-72`) still match.
 
-Method note: this reviewer holds no Bash. The sha `babe300` was supplied by the dispatcher.
-"Untouched" and "only two places changed" are the dispatcher's claims. I confirmed the first
-by reading, not by diffing, and I relied on the second only as far as I re-read the parts of
-plan-format this agent depends on. The tier is the one my context reports (Opus class), not
-re-resolved against a live lineup in this run (no web tool).
+Method note: this reviewer holds no Bash. The sha `2859827` was supplied by the dispatcher.
+The range-diff result and the scope of the upstream release are the dispatcher's claims. I
+confirmed only what reading can confirm: this file is unchanged, and so are the plan-format
+sections it relies on. The tier is the one my context reports (Opus class), not re-resolved
+against a live lineup in this run (no web tool).
 
-## Scores (all carried, evidence re-checked at babe300)
+## Scores (all carried, evidence re-checked at 2859827)
 
 - **trigger/description clarity: 2**, `:3` unchanged.
 - **tool least-privilege: 2**, `tools: Read, Grep, Glob` (`:4`); step 5 returns the plan
@@ -66,12 +65,13 @@ Round 4 (93536c7): 10/10, 1 Minor.
 Round 5 (d995419): 10/10, 2 Minor + 1 Nit, plus an out-of-scope plan-format mismatch.
 Round 6 (4f001fa): 10/10, 1 Minor + 1 Nit, mismatch resolved.
 Round 7 (e5dbea0): 10/10, re-anchor; artifact unchanged.
-Round 8 (babe300): 10/10 PASS, re-anchor; artifact unchanged, nothing moved.
+Round 8 (babe300): 10/10, re-anchor; artifact unchanged.
+Round 9 (2859827): 10/10 PASS, re-anchor after rebase onto 95d17e3; artifact unchanged.
 Stop condition (eval-framework): PASS at max with nothing actionable above Nit; the loop for
 this artifact is done.
 
 ## Vs previous version
-Identical artifact, identical score. Only `reviewed_commit:` moved (e5dbea0 -> babe300).
+Identical artifact, identical score. Only `reviewed_commit:` moved (babe300 -> 2859827).
 
 ## History
 - 2026-08-04 v2 (aee5ab1): Round 1 = 8/10 PASS, one Important open (detector attribution).
@@ -85,5 +85,7 @@ Identical artifact, identical score. Only `reviewed_commit:` moved (e5dbea0 -> b
 - 2026-10-01 v7 re-anchored (e5dbea0): artifact unchanged, re-read in full; plan-format's new
   `What you decide` class checked against step 5, consistent. Round 7 = 10/10 PASS, held.
 - 2026-10-01 v7 re-anchored (babe300): artifact unchanged, re-read in full; plan-format's
-  template order and `What you decide` class re-checked, unchanged; the changed example row is
-  outside anything this agent cites. Round 8 = 10/10 PASS, held.
+  template order and `What you decide` class re-checked, unchanged. Round 8 = 10/10 PASS, held.
+- 2026-10-01 v7 re-anchored (2859827): branch rebased onto released main 95d17e3; artifact
+  re-read in full, unchanged; the plan-format sections it relies on re-checked, unchanged.
+  Round 9 = 10/10 PASS, held.

@@ -2,7 +2,7 @@
 artifact: skills/build/SKILL.md
 type: skill
 branch: feature/plan-human-layer
-reviewed_commit: babe300
+reviewed_commit: 2859827
 artifact_version: 28
 date: 2026-10-01
 scorer: skill-reviewer
@@ -15,13 +15,29 @@ verdict: PASS
 previous_total: 10/10
 ---
 
-Scope: a human-approved confirmation pass on `skills/build/SKILL.md` at `babe300` (341 lines, no
-supporting files). Per the dispatcher, `babe300` changes only the worked example's gate,
-finding (j). I read the whole worked example (`:296-324`) and the safety rules (`:333-341`),
-and re-resolved the carried anchors (`:37-111`, `:141`, `:215`, `:232-242`, `:269-274`).
-I hold no shell, so I ran no diff; the lint and suite results are the dispatcher's statements.
-This record REPLACES round 27's (`e5dbea0`). `effort: high` is the value declared in this
-agent's frontmatter, not an observed runtime value.
+Scope: a RE-ANCHOR of `skills/build/SKILL.md` at `2859827`, not a new review round. Per the
+dispatcher, the branch was rebased onto the released main `95d17e3` (0.3.3: a plugin.json bump,
+README wording, two eval records), none of which touches this skill or its neighbours, and
+`git range-diff` shows "=" on all 11 branch commits. This record REPLACES the confirmation
+pass's (`babe300`).
+
+Checked, with its limit: I hold no shell, so I cannot run `git range-diff` or a diff. Instead I
+re-resolved the confirmation-pass anchors in this worktree, and every one holds at its
+`babe300` line:
+- the model-plan block opens at `:37` and closes at `:111` (75 lines), with "The build model
+  NAME never goes in the plan" at `:100`;
+- with-me step 6 "session-plan shape" `:141`;
+- the B5.2 heading "to clean, max 3" `:215`;
+- B5.3 "lead with each plan's `Summary for humans`" `:232`, and the Guardrails 1 holder "You
+  hold that half" `:241`;
+- the code-loop stop clause `:273`;
+- the worked example gate `:311-317` with all five Summary items and "follow." at `:317`;
+- the last safety bullet `:341` (341 lines).
+
+This proves the quoted lines and their positions, not every character between them. Together
+with the dispatcher's `range-diff` result, it is a strong equivalence argument. Scores and
+findings are carried unchanged. The lint and suite results are the dispatcher's statements.
+`effort: high` is the value declared in this agent's frontmatter, not an observed runtime value.
 
 ## Skill: build  (explicit command)
 
@@ -30,11 +46,9 @@ agent's frontmatter, not an observed runtime value.
   description with the parallel invocation spelled out (`:2`).
 - structure: 2, 341 of 500 lines, no supporting files. The model-plan block `:37-111` is still
   75 lines (carried).
-- worked example: 2. (j) is closed. `:311-317` shows all five Summary items "as written in the
-  plan", including "What changes for users: a Pause button next to Start; nothing else moves."
-  and "How we will know it works: pause, wait a minute, resume; the time left is unchanged.".
-  It ends "The file map and the plan-review trajectory follow." The example now matches B5.3
-  (`:232-234`) and the template's five items (`docs/plan-format.md:69-77`).
+- worked example: 2, `:311-317`, all five Summary items "as written in the plan", ending "The
+  file map and the plan-review trajectory follow." It matches B5.3 (`:232-234`) and
+  `docs/plan-format.md:69-77`.
 - precision: 2. B5.3 agrees with `docs/plan-format.md:72-76`. With-me step 6 `:141` points at
   the C17-checked `Plan layers:` line.
 - safety integration: 2. Guardrails 1 `:239-242`, Guardrail 3 + C11 `:88`, Guardrails 7
@@ -69,8 +83,8 @@ Form only. These want an `/odeo:improve` subagent test:
   `global/CLAUDE.md`.
 
 ## Vs previous version
-Round 27 (`e5dbea0`) -> confirmation pass (`babe300`): every criterion 2 -> 2, total 10 -> 10.
-(j) is closed. No regression. Nothing blocks merge.
+Confirmation pass (`babe300`) -> re-anchor (`2859827`): every criterion 2 -> 2, total 10 -> 10.
+The artifact reads as it did at `babe300`. No regression. Nothing blocks merge.
 
 ## History
 - Rounds 1-5 (2026-07-24 to 2026-07-30, Opus 4.8, strongest): 9, 10, 10, 10, 10 PASS.
@@ -90,6 +104,9 @@ Round 27 (`e5dbea0`) -> confirmation pass (`babe300`): every criterion 2 -> 2, t
   PASS. (h) and (i) closed; one new LOW finding (j).
 - Confirmation pass (2026-10-01, Opus 5.5 [1M], strongest, babe300, feature/plan-human-layer):
   10/10 PASS. This was a human-approved confirmation pass outside the capped loop (Ivan,
-  option b). It verified the (j) fix (all five Summary items in the worked example's gate). No
-  new findings.
+  option b). It verified the (j) fix. No new findings.
+- Re-anchor (2026-10-01, Opus 5.5 [1M], strongest, 2859827, feature/plan-human-layer): 10/10
+  PASS, unchanged. This was a re-anchor after the rebase onto the released main `95d17e3`
+  (0.3.3), not a review round. Every anchor holds by reading; `range-diff` "=" on 11 commits is
+  the dispatcher's statement.
   Git history holds the full text of earlier rounds.

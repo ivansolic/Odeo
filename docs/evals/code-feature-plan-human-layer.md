@@ -2,8 +2,8 @@
 artifact: scripts/skills-lint.sh C17 (plan_layers + comparison) + tests/skills-lint.test.sh C17 cases + docs/invariants.md C17 row
 type: code
 branch: feature/plan-human-layer
-reviewed_commit: babe300
-artifact_version: 4
+reviewed_commit: 2859827
+artifact_version: 5
 date: 2026-10-01
 scorer: code-reviewer
 model: claude-opus-5-5[1m]
@@ -17,30 +17,35 @@ previous_total: 12/12
 
 ## Artifact
 
-Branch `feature/plan-human-layer`, read at HEAD `babe300`, re-anchored from `e5dbea0`. Scope:
-lint C17 in `scripts/skills-lint.sh`, its test cases in `tests/skills-lint.test.sh`, and the C17
-row in `docs/invariants.md`. The prose files are out of scope.
+Branch `feature/plan-human-layer`, read at HEAD `2859827`. The branch was rebased onto main
+`95d17e3`, so this record is re-anchored from `4ffdc25`, the pre-rebase HEAD. Scope: lint C17
+in `scripts/skills-lint.sh`, its test cases in `tests/skills-lint.test.sh`, and the C17 row in
+`docs/invariants.md`. The prose files are out of scope.
 
-## Re-anchor check (babe300)
+## Re-anchor check (rebase, 2859827)
 
-- `git diff e5dbea0 babe300 -- scripts tests docs/invariants.md` is empty. Nothing in scope
-  changed.
-- Outside scope, the diff touches one example table row in `docs/plan-format.md` (around line
-  195, not the `Plan layers:` line at line 21) and worked-example text in
-  `skills/build/SKILL.md`. The rest of the diff is review records under `docs/evals/`.
-- skills-lint is clean on the worktree at babe300, so C17 still passes on the real files.
+- `git diff 4ffdc25 2859827 -- scripts tests docs/invariants.md` is empty. Nothing in scope
+  changed across the rebase.
+- Main brought in only `.claude-plugin/plugin.json`, `README.md` and
+  `docs/evals/code-chore-release-0-3-3.md` (`git diff --stat c97979d 95d17e3`). None of these
+  are in scope.
+- `95d17e3` is an ancestor of HEAD. `git range-diff c97979d..4ffdc25 95d17e3..HEAD` shows "=" on
+  all 11 commits, so every patch is unchanged, the C17 commit (`e5e1b49` -> `6b5e8f8`) and its
+  fix (`310d96a` -> `3528452`) included.
+- skills-lint is clean on the worktree at 2859827.
+
+## Earlier re-anchor (babe300, carried over)
+
+- `git diff e5dbea0 babe300 -- scripts tests docs/invariants.md` was empty. The only code-side
+  changes there were one example table row in `docs/plan-format.md` (not the `Plan layers:`
+  line) and worked-example text in `skills/build/SKILL.md`.
 
 ## Round-3 delta, verified (carried over, unchanged)
 
-- I ran `git diff 4f001fa e5dbea0 -- scripts tests docs/invariants.md`. Only
-  `tests/skills-lint.test.sh` changed. `scripts/skills-lint.sh` and `docs/invariants.md` are
-  identical to 4f001fa, so the round-2 analysis of the lint itself still holds.
-- The round-2 nitpick is fixed. The empty-list case (`tests/skills-lint.test.sh:331-337`)
-  now captures `rc=$?` straight after `out="$( bash "$LINT" "$d" 2>&1 )"`, which is the exit
-  status of the substitution. An exit code other than 1 prefixes `out` with `(exit N, want 1)`,
-  and the first `case` arm turns that into a FAIL that shows the code. The message is checked
-  only when the exit code is right. The logic is correct, and the case now fails on either a
-  wrong exit code or a wrong message.
+- Only `tests/skills-lint.test.sh` changed between 4f001fa and e5dbea0. The empty-list case
+  (`tests/skills-lint.test.sh:331-337`) captures `rc=$?` straight after the substitution. Any
+  exit code other than 1 fails and prints the code, and the message is checked only when the
+  exit code is right.
 
 ## Findings
 
@@ -80,3 +85,7 @@ APPROVE
 - Re-anchor (babe300): code in scope unchanged, verified by an empty
   `git diff e5dbea0 babe300 -- scripts tests docs/invariants.md`, and skills-lint is clean.
   Scores and verdict carry over: 12/12, APPROVE. Regression note: same.
+- Re-anchor after the rebase onto main 95d17e3 (2859827): an empty
+  `git diff 4ffdc25 2859827 -- scripts tests docs/invariants.md`, range-diff "=" on all 11
+  commits, and main touched nothing in scope. skills-lint is clean. Scores and verdict carry
+  over: 12/12, APPROVE. Regression note: same.
