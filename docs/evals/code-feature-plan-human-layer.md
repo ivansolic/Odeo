@@ -2,8 +2,8 @@
 artifact: scripts/skills-lint.sh C17 (plan_layers + comparison) + tests/skills-lint.test.sh C17 cases + docs/invariants.md C17 row
 type: code
 branch: feature/plan-human-layer
-reviewed_commit: e5dbea0
-artifact_version: 3
+reviewed_commit: babe300
+artifact_version: 4
 date: 2026-10-01
 scorer: code-reviewer
 model: claude-opus-5-5[1m]
@@ -17,11 +17,20 @@ previous_total: 12/12
 
 ## Artifact
 
-Branch `feature/plan-human-layer`, read at HEAD `e5dbea0` (clean tree). Scope: lint C17 in
-`scripts/skills-lint.sh`, its test cases in `tests/skills-lint.test.sh`, and the C17 row in
-`docs/invariants.md`. The prose files are out of scope.
+Branch `feature/plan-human-layer`, read at HEAD `babe300`, re-anchored from `e5dbea0`. Scope:
+lint C17 in `scripts/skills-lint.sh`, its test cases in `tests/skills-lint.test.sh`, and the C17
+row in `docs/invariants.md`. The prose files are out of scope.
 
-## Round-3 delta, verified
+## Re-anchor check (babe300)
+
+- `git diff e5dbea0 babe300 -- scripts tests docs/invariants.md` is empty. Nothing in scope
+  changed.
+- Outside scope, the diff touches one example table row in `docs/plan-format.md` (around line
+  195, not the `Plan layers:` line at line 21) and worked-example text in
+  `skills/build/SKILL.md`. The rest of the diff is review records under `docs/evals/`.
+- skills-lint is clean on the worktree at babe300, so C17 still passes on the real files.
+
+## Round-3 delta, verified (carried over, unchanged)
 
 - I ran `git diff 4f001fa e5dbea0 -- scripts tests docs/invariants.md`. Only
   `tests/skills-lint.test.sh` changed. `scripts/skills-lint.sh` and `docs/invariants.md` are
@@ -68,3 +77,6 @@ APPROVE
   the empty-list test did not check the exit code.
 - Round 3 (e5dbea0): 12/12, APPROVE. The nit is fixed, and the lint and invariants row are
   unchanged. Regression note: same (12 -> 12).
+- Re-anchor (babe300): code in scope unchanged, verified by an empty
+  `git diff e5dbea0 babe300 -- scripts tests docs/invariants.md`, and skills-lint is clean.
+  Scores and verdict carry over: 12/12, APPROVE. Regression note: same.
