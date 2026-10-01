@@ -68,15 +68,19 @@ arch_review: pending    # set by the /odeo:build pipeline after the plan-review 
 - What you get: <the outcome in one plain sentence, no file names, no jargon>
 - What changes for users: <what a user notices, or "nothing visible">
 - Biggest risk: <the one most likely way this disappoints, plainly>
-- What you decide: <the approval itself, plus any open choice the gate must settle>
+- What you decide: <the approval itself, plus EVERY open choice and EVERY deviation from
+  the story this plan carries, each named. A choice or deviation that appears in Design
+  decisions or Risks below appears here too; none lives only in the technical layer.>
 - How we will know it works: <the observable check, plainly>
 
 ## Why
-<The problem, for whom, and why now, in two or three plain sentences.>
+<The reason only: the problem, for whom, and why now, in two or three plain sentences. Do
+not restate the Summary.>
 
 ## Explanation
-<Per change, one line: before -> after -> who benefits. Plain words; a technical term
-gets its plain meaning first.>
+<Per change, one line: before -> after -> who benefits. This is what the Summary does not
+give: the difference each change makes and for whom. Plain words; a technical term gets its
+plain meaning first. Do not restate the Summary or the Why.>
 
 ## Header
 Goal: <the story's outcome, one sentence>
@@ -261,10 +265,13 @@ them as a gate.
                    do-not-touch respected, escalations flagged
 5. Honesty         0 hides ambiguity / 1 some / 2 risks and open questions listed for the
                    builder to ask, not guess
-6. Human layer     0 Summary, Why or Explanation missing / 1 present but in jargon, or
-                   disagreeing with the technical layer / 2 a non-developer can say from
-                   it alone what they get, the biggest risk and what they decide; Review
-                   Focus names failure modes the tasks do not already test
+6. Human layer     0 Summary, Why or Explanation missing / 1 present but in jargon,
+                   disagreeing with the technical layer, leaving a gate decision or story
+                   deviation only in the technical layer, or restating the Summary in Why
+                   or Explanation / 2 a non-developer can say from it alone what they get,
+                   the biggest risk and EVERY decision they make; Explanation adds the
+                   per-change difference; Review Focus names failure modes the tasks do
+                   not already test
 No threshold, and no score is published: the plan loop clears on CLEAN, meaning no real
 finding is left, and nothing downstream reads a number from here. The bar the reviewer
 works toward is every criterion at 2; anything below that is a finding to state, not a
