@@ -278,6 +278,24 @@ else
   done
 fi
 
+# C17. The plan layers are ONE list, written in two files that cannot point at each other:
+#      global/CLAUDE.md shapes session plans and is read where ${CLAUDE_PLUGIN_ROOT} is not
+#      substituted, docs/plan-format.md shapes /odeo:build plans. Each carries one
+#      `Plan layers:` line; a file without it, or two lists that differ (whitespace aside),
+#      is flagged. It checks the NAMES of the layers, not the prose under them.
+plan_layers() { # plan_layers <file>: the normalised list, or nothing
+  [[ -f "$1" ]] || return 0
+  grep -m1 '^Plan layers:' "$1" | sed -e 's/^Plan layers://' -e 's/[[:space:]]\{1,\}/ /g' -e 's/^ //' -e 's/ $//'
+}
+pl_global="$(plan_layers "$ROOT/global/CLAUDE.md")"
+pl_format="$(plan_layers "$ROOT/docs/plan-format.md")"
+if [[ -z "$pl_global" || -z "$pl_format" ]]; then
+  [[ -z "$pl_global" ]] && viol C17 "global/CLAUDE.md carries no 'Plan layers:' line"
+  [[ -z "$pl_format" ]] && viol C17 "docs/plan-format.md is missing or carries no 'Plan layers:' line"
+elif [[ "$pl_global" != "$pl_format" ]]; then
+  viol C17 "the plan layers differ: global/CLAUDE.md '$pl_global' vs docs/plan-format.md '$pl_format'"
+fi
+
 # C9. Every SKILL.md declares a non-empty description
 for f in "${SKILLS[@]:+${SKILLS[@]}}"; do
   grep -qE '^description: .+' "$f" \

@@ -25,7 +25,8 @@ clean_root() { # a minimal root that passes every check
   mkskill "$d" alpha "" "Use when the user wants alpha things."
   mkskill "$d" beta "disable-model-invocation: true\n" "Explicit command, any description."
   printf -- '---\nname: code-reviewer\neffort: high\n---\nOnly you write the verdict.\n## History\noutput_language: prose follows it, see ${CLAUDE_PLUGIN_ROOT}/AGENTS.md Guardrails 7.\n' > "$d/agents/code-reviewer.md"
-  printf -- 'baseline\n' > "$d/global/CLAUDE.md"
+  printf -- 'baseline\nPlan layers: Summary, Why, Technical\n' > "$d/global/CLAUDE.md"
+  printf -- '# Plan format\nPlan layers: Summary, Why, Technical\n' > "$d/docs/plan-format.md"
   printf -- 'baseline\n' > "$d/AGENTS.md"
   printf -- 'map\n' > "$d/docs/system-map.md"
   echo "$d"
@@ -309,6 +310,19 @@ if [[ $rc -eq 1 && "$out" == *"perl not found"* && "$out" != *"command not found
   echo "ok   - C16 fails when perl is not on PATH"; pass=$((pass+1))
 else echo "FAIL - C16 without perl (rc=$rc want=1, want 'perl not found' and no 'command not found')"; fail=$((fail+1)); fi
 rm -rf "$d" "$noperl"
+
+# C17: the plan layers are one list in two files. global/CLAUDE.md shapes session plans and
+# docs/plan-format.md shapes /odeo:build plans; CLAUDE.md cannot point into the plugin (no
+# substitution there), so the list is written twice and this is what keeps the copies equal.
+# Observed failing (2026-10-01) before C17 existed: the mismatch and both missing cases.
+d="$(clean_root)"; printf -- 'baseline\nPlan layers: Summary, Technical\n' > "$d/global/CLAUDE.md"
+check "C17 flags plan layers that differ between the two files" 1 "$d"; rm -rf "$d"
+d="$(clean_root)"; printf -- 'baseline\n' > "$d/global/CLAUDE.md"
+check "C17 flags global/CLAUDE.md without the plan layers line" 1 "$d"; rm -rf "$d"
+d="$(clean_root)"; rm "$d/docs/plan-format.md"
+check "C17 flags a missing docs/plan-format.md" 1 "$d"; rm -rf "$d"
+d="$(clean_root)"; printf -- 'baseline\nPlan layers:   Summary, Why, Technical  \n' > "$d/global/CLAUDE.md"
+check "C17 control: the same list with other spacing passes" 0 "$d"; rm -rf "$d"
 
 # FINAL: the real repo must pass its own lint
 check "the actual repo passes its own invariants" 0 "$TEST_DIR/.."
