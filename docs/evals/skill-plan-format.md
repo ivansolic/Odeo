@@ -2,8 +2,8 @@
 artifact: docs/plan-format.md
 type: skill
 branch: feature/plan-human-layer
-reviewed_commit: 4f001fa
-artifact_version: 2
+reviewed_commit: e5dbea0
+artifact_version: 3
 date: 2026-10-01
 scorer: skill-reviewer
 model: claude-opus-5-5[1m]
@@ -12,94 +12,92 @@ effort: high
 scores: { trigger_clarity: 2, structure: 2, worked_example: 2, precision: 1, safety_integration: 2 }
 total: 9/10
 verdict: PASS
-previous_total: 7/10
+previous_total: 9/10
 ---
 
-Scope: the human-layer change on `feature/plan-human-layer` at `4f001fa`, read as the format
-sources of `/odeo:build` B5 and the `architect`: `docs/plan-format.md` (all 299 lines),
-`global/CLAUDE.md:29-46` (`### Plan shape (human layer first)`) and `AGENTS.md:204-206`.
-Seams read: `skills/build/SKILL.md` B5.3 (`:232-242`), `agents/architect.md:37-44`,
-`agents/architecture-reviewer.md:27-31`, `scripts/set-global-language.sh` (where the template's
-running `--overwrite` example actually lives). This record REPLACES round 1's (`d995419`, 7/10
-FAIL). `effort: high` is the value declared in this agent's frontmatter, not an observed
-runtime value. The suite and lint results are the dispatcher's statements; I hold no shell and
-did not run them. These are format documents, not a SKILL.md with a description, so trigger
-clarity is scored as "does each file say when its rule applies".
+Scope: the human-layer change on `feature/plan-human-layer` at `e5dbea0`, read as the format
+sources of `/odeo:build` B5 and the `architect`: `docs/plan-format.md` (Structure `:19-30`,
+template `:68-203`, Rules, rubric criterion 6 `:293-299`), `global/CLAUDE.md:17` and `:29-46`,
+and `AGENTS.md:196-207`. Seams read: `agents/architecture-reviewer.md:28-32`,
+`skills/build/SKILL.md:141` and `:232-235`. This record REPLACES round 2's (`4f001fa`).
+`effort: high` is the value declared in this agent's frontmatter, not an observed runtime
+value. The suite and lint results are the dispatcher's statements; I hold no shell and did not
+run them. These are format documents, not a SKILL.md with a description, so trigger clarity is
+scored as "does each file say when its rule applies". This is round 3 on this artifact, the
+loop's cap.
 
 ## Skill: plan-format human layer  (format source for an explicit command, /odeo:build B5)
 
 ## Scores
 - trigger clarity: 2, `docs/plan-format.md:23` "A plan has two readers: the human at the
-  gate ... and the builder"; `AGENTS.md:205-206` says which file shapes which plan.
-- structure: 2. The order the text states now matches the template. `:25-27` "then the
-  TECHNICAL layer (Header through Risks / open questions), then Review Focus, VERIFICATION
-  (the Success signal) and Out of scope, in the order of the template below"; the template
-  runs Do-not-touch `:172`, Risks `:178`, Review Focus `:181`, Success signal `:187`, Out of
-  scope `:194`. `agents/architect.md:41-42` lists the same order. Both `Plan layers:` lines
-  (`plan-format.md:21`, `global/CLAUDE.md:30`) are unchanged and identical. 299 lines.
-- worked example: 2. Every new section has real values from the template's own running
-  example: Summary `:77-84`, Why `:89-90`, Explanation `:96-99`, Review Focus `:185`, Out of
-  scope `:196`. A reader can copy them directly.
-- precision: 1. The rules are now exact and agree across all three files (Review Focus may be
-  `none` at `plan-format.md:183-184`, `:202`, `:293` and `global/CLAUDE.md:39-40`; "five items,
-  each short" at `global/CLAUDE.md:31`). The point is lost inside the example, which breaks
-  two of this file's own rules:
-  (a) `:185` "An invalid project value could still be reported with scope `project`" restates
-  the C1 invariant at `:136-137` ("an invalid project value reports scope `global`, never
-  `project`"). An invariant in a contract is something the tasks test, and `:183` says Review
-  Focus is "Not a restatement of the tasks". So the one Review Focus example is the kind of
-  entry criterion 6 at 2 (`:292-293`) rules out.
-  (b) The human layer does not match its own technical layer, which criterion 6 scores 1
-  (`:288` "disagreeing with the technical layer"). Summary `:79` says "a new `/odeo:language`
-  command; nothing else changes". But `:81-82` and Explanation `:98-99` describe a changed
-  replace behavior (`--overwrite`), and the File map `:141-143` lists no file that carries it
-  (in this repo it is `scripts/set-global-language.sh`). Also, `:83-84` quotes the output as
-  "German, set for this project", while C1 `:125` says it prints exactly `<code> <scope>`, i.e.
-  `de project`. The quotation marks make the paraphrase look like real output.
-- safety integration: 2. `plan-format.md:29-30` "The human layer is NOT contract: where it
-  and the technical layer disagree, the technical layer wins and the disagreement is a finding
-  for the plan review". Session plans now get the same rule at `global/CLAUDE.md:43-44`. A
-  named reviewer holds it (`agents/architecture-reviewer.md:27-31`). Guardrails are cited,
-  not restated.
+  gate ... and the builder"; `AGENTS.md:206-207` says which file shapes which plan.
+- structure: 2, `:25-28` "TECHNICAL layer (Header through Risks / open questions), then
+  Review Focus, VERIFICATION (the Success signal) and Out of scope, in the order of the
+  template below". The template matches: Risks `:183`, Review Focus `:186`, Success signal
+  `:193`, Out of scope `:200`. Both `Plan layers:` lines are identical. `:27-28` is rewrapped.
+- worked example: 2, real values in every human-layer section (`:79-87`, `:92-93`,
+  `:99-102`, `:190-191`, `:202`).
+- precision: 1. Both round-2 slips are closed. The Review Focus example `:190-191` is now a
+  failure between parts that no single task tests. The Summary `:81-82`, the Explanation
+  `:101-102`, the Design decision `:118-119` and the new File map row `:147-148` now agree on
+  `--overwrite`. `:86` no longer quotes output that C1 does not print.
+  One more instance of the same class remains, which I missed in round 2. The Summary's "How
+  we will know it works" (`:86-87`, "in a project set to German it answers that German is set
+  for this project") does not match the Success signal, which is the VERIFICATION layer it
+  stands for in plain words. The only row there (`:198`) is `"a newly generated PRD body is in
+  German" | bash tests/localized-prose.test.sh`, a criterion and a test from a different story.
+  The File map's test for this plan is `tests/language-status.test.sh` (`:145`). So the
+  canonical example would score 1 on its own criterion 6 (`:294` "disagreeing with the
+  technical layer").
+  The new decision class (`:73-76`, "every open question in Risks, and every Design decision
+  that changes what the user gets or departs from the story's wording ... A purely technical
+  decision (how, not what) stays in Design decisions alone") is exact. It is defined once, and
+  `agents/architecture-reviewer.md:28-31` defers to it ("as written in ... plan-format.md,
+  which wins") without making it a second, competing definition.
+- safety integration: 2, `:29-30` "the technical layer wins and the disagreement is a finding
+  for the plan review", the session-plan copy at `global/CLAUDE.md:43-44`, and a named holder
+  (`agents/architecture-reviewer.md:28-32`). No guardrail restated.
 
 ## Total: 9/10   ## Verdict: PASS (threshold 8/10, no zero)
 
-## Ceiling: 10/10. Nothing caps a criterion; the lost point is two example edits.
+## Ceiling: 10/10. Nothing caps a criterion structurally; the missing point is one table row.
 
-## Round-1 fixes, verified
-1. Order: CLOSED (structure above).
-2. Worked example: CLOSED, but with the two slips scored under precision.
-3. Review Focus `none` and "five items": CLOSED in all three places, including criterion 6
-   "or is `none` with a reason the story bears out" (`:293`).
-4. B5.3 points at the Summary: CLOSED (`skills/build/SKILL.md:232-234`), scored in
-   `docs/evals/skill-build.md`.
-5. A reviewer that holds the rule, plus the session-plan precedence line: CLOSED
-   (`agents/architecture-reviewer.md:27-31`, `global/CLAUDE.md:43-44`). The agent text itself is
-   agent-reviewer's to score.
-6. AGENTS.md summary now names "the risk, every decision you make" (`:204`): CLOSED.
+## Round-2 fixes, verified
+1. Review Focus example: CLOSED (`:190-191`).
+2. Summary/File map/quote coherence on `--overwrite`: CLOSED (`:81-87`, `:147-148`).
+3. Rewraps: CLOSED (`plan-format.md:27-28`, `AGENTS.md:204-207`).
+4. Decision class defined once: verified, see precision.
+5. The `global/CLAUDE.md:17` "default on" decision: it now matches `AGENTS.md:203`. The
+   pre-existing contradiction is gone.
 
-## Top fixes
-1. Replace the Review Focus example at `:185` with a failure no task tests, for example:
-   "- Run from a subfolder, `/odeo:language` may find a different project than the document
-   writer does, so both pass their own tests and still disagree."
-2. Make the running example agree with itself:
-   - Add a File map row: `scripts/set-global-language.sh   MODIFY: --overwrite replaces an
-     existing value; without it the file is unchanged`.
-   - Change Summary `:79` to "a new `/odeo:language` command, and a language you already set is
-     replaced only when you ask for it".
-   - Change `:83` to drop the quotation marks: "in a project set to German it reports German,
-     set for this project".
-   This way the canonical example passes the criterion 6 it teaches.
-3. Cosmetic: `plan-format.md:27` breaks mid-sentence after "The"; `AGENTS.md:205` is unwrapped
-   at about 120 characters. Rewrap both.
+## Residual (the loop stops here)
+Why the ceiling is not reached: the running example's Success signal row (`:198`) belongs to
+another story. So the example's human layer and its verification layer disagree, the defect
+criterion 6 exists to catch.
+
+Two of the stop conditions in `docs/eval-framework.md` hold:
+- the cap: this is round 3;
+- a repeated class: round 2 and round 3 both found an "example's human layer disagrees with
+  its own technical layer" defect.
+
+The residual as it stands, LOW: one table row in an illustrative template; no rule is wrong.
+The fix, if wanted, is exact:
+`| "shows which language is in force and where it comes from" (USR-00X) | bash tests/language-status.test.sh |`
+It is not applied here. The decision is the human's:
+- (a) accept the residual and merge at 9/10 PASS;
+- (b) apply the one-row fix and have this reviewer regenerate the record, a confirmation pass
+  outside the capped loop;
+- (c) leave it for a later batch.
+
+Trajectory: `d995419` 7/10 FAIL -> `4f001fa` 9/10 PASS -> `e5dbea0` 9/10 PASS. Over the three
+rounds: the layer order was fixed, a human-layer example was added, Review Focus `none` was
+reconciled, B5.3 and the plan reviewer now point at the Summary, the example was made coherent
+on `--overwrite`, and the decision class is defined once.
 
 ## Behavioral follow-up
-Whether `architecture-reviewer` actually flags a story deviation left only in Design decisions
-(the round 2 A/B gap) is behavioral. Run `/odeo:improve` on `agents/architecture-reviewer.md`
-with a plan seeded that way.
-
-## Not scored (pre-existing, outside this change, raised with Ivan by the dispatcher)
-`global/CLAUDE.md:17` "default off" vs `AGENTS.md:203` "default on" for the technical aside.
+Whether `architecture-reviewer` flags a Design decision that changes what the user gets but is
+missing from `What you decide`, and leaves a purely technical one alone, is behavioral. Run
+`/odeo:improve` on `agents/architecture-reviewer.md` with one plan seeded with each case.
 
 ## Integrity
 No sign of text copied from another project.
@@ -108,14 +106,17 @@ No sign of text copied from another project.
 No command added; `docs/system-map.md` needs no change.
 
 ## Vs previous version
-Round 1 (`d995419`) 7/10 FAIL -> round 2 (`4f001fa`) 9/10 PASS. Structure 1 -> 2 (order fixed),
-worked example 1 -> 2 (examples added), precision 1 -> 1 (the cross-file Review Focus conflict
-closed, the new example's two slips opened), trigger and safety 2 -> 2. No regression.
+Round 2 (`4f001fa`) -> round 3 (`e5dbea0`): every criterion unchanged (2/2/2/1/2), total 9 -> 9.
+Both round-2 precision slips are closed. The remaining point is a third instance of the same
+class, present at `4f001fa` and missed then. No regression.
 
 ## History
-- Round 1 (2026-10-01, Opus 5.5 [1M], strongest, d995419): 7/10 FAIL. Layer order did not
+- Round 1 (2026-10-01, Opus 5.5 [1M], strongest, d995419): 7/10 FAIL. The layer order did not
   match the template, the human layer had no example, Review Focus `none` conflicted across
   files, and B5.3 and the plan reviewer did not point at the Summary.
 - Round 2 (2026-10-01, Opus 5.5 [1M], strongest, 4f001fa): 9/10 PASS. All six round-1 fixes
-  closed. Two LOW example slips remain (Review Focus restates an invariant; the Summary does
-  not match the technical layer on `--overwrite`).
+  closed. Two LOW example slips (Review Focus restated an invariant; the Summary did not match
+  the technical layer on `--overwrite`).
+- Round 3 (2026-10-01, Opus 5.5 [1M], strongest, e5dbea0): 9/10 PASS. Both slips closed. The
+  loop stopped at the cap with one LOW residual (the Success signal row belongs to another
+  story), handed to the human.
