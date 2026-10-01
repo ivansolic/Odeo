@@ -2,8 +2,8 @@
 artifact: architect
 type: agent-definition
 branch: feature/plan-human-layer
-reviewed_commit: d995419
-artifact_version: 6
+reviewed_commit: 4f001fa
+artifact_version: 7
 date: 2026-10-01
 scorer: agent-reviewer
 model: claude-opus-5-5[1m]
@@ -15,100 +15,69 @@ verdict: PASS
 previous_total: 10/10
 ---
 
-# Agent: architect (round 5, at d995419)
+# Agent: architect (round 6, at 4f001fa)
 
-Scoped re-review of the step-3 change on `feature/plan-human-layer`: the section list in
-"Write the plan" (`agents/architect.md:37-45`) now opens with the human layer and closes with
-review focus and out of scope. Everything outside step 3 was re-read at this commit and is
-unchanged in substance since round 4; it carries forward and is not re-argued.
+Scoped re-review of the fixes claimed for round 5 on `feature/plan-human-layer`: step 5 now
+presents the plan's own Summary for humans, and the step-3 list was rewrapped and reordered to
+the revised plan-format template. Everything else was re-read at this commit and is unchanged.
 
-Method note: this reviewer holds no Bash. The sha `d995419` was supplied by the dispatcher;
-the file was read in the worktree `ledger-backup-batch` at that branch state. The model tier is
-the one my context reports (Opus class); it was not re-resolved against a live lineup in this
-run (no web tool), so `strongest` is the tier of the model that ran, as reported to me.
+Method note: this reviewer holds no Bash. The sha `4f001fa` was supplied by the dispatcher;
+the file was read in the worktree `ledger-backup-batch`. The tier is the one my context reports
+(Opus class), not re-resolved against a live lineup in this run (no web tool).
 
 ## Scores
 
-- **trigger/description clarity: 2**, `:3` unchanged: "Plans ONE story (or a small batch)
-  ... Dispatched by /odeo:build's for-me mode (Mode B) ... Story-level planning only; product-level
-  architecture is inherited, never redecided here." What, when, and the not-for boundary.
+- **trigger/description clarity: 2**, `:3` unchanged: what, when (for-me mode or "plan this
+  for me"), and the not-for boundary ("product-level architecture is inherited, never
+  redecided here").
 - **tool least-privilege: 2**, `tools: Read, Grep, Glob` (`:4`), matching AGENTS.md
-  Guardrails 5 `[E]`. The change adds no write duty: the human layer is plan content returned
-  by step 5 ("You cannot write files; return the full plan content and the intended path",
-  `:73-74`).
-- **role boundary: 2**, the human layer is a description of the plan, not a decision: the
-  architect writes "summary for humans, why, explanation" (`:37-39`), and plan-format's
-  Summary field "What you decide" (`plan-format.md:71-73`) hands every open choice and
-  deviation TO the human. Nothing in the change lets the architect settle a product question;
-  the escalation rules at `:30-36` ("ask your questions BEFORE planning", "STOP and escalate:
-  that is a human decision recorded as an ADR") and `:91` ("you PLAN, the builder builds, the
-  human decides") still govern it.
-- **policy conformance: 2**, `effort: high` (`:5`), no `model:` line, C11 clean (no
-  version-pinned name anywhere in the file), no `isolation:` needed (cannot mutate). The
-  "plain language for a reader who may not be a developer" clause matches AGENTS.md "Talking
-  to the user"; the language bullet (`:97-103`) still routes human-layer prose through the
-  handed `output_language`.
-- **instruction quality: 2**, the enumeration matches the plan-format template order exactly
-  (see "List vs plan-format" below), keeps its precedence marker inside the sentence ("that
-  file is canonical; if this list differs, it wins", `:44`), and "Follow it for which sections
-  may be `none`" (`:44-45`) now correctly defers the new rule that the human layer is never
-  `none` (`plan-format.md:181-183`). Two Minors and one Nit below, none at the level of a
-  contradiction.
+  Guardrails 5 `[E]`. Step 5 still returns the plan for the orchestrator to save (`:73-74`).
+- **role boundary: 2**, step 5 now makes the boundary explicit at the gate: "its `What you
+  decide` is the list of what the gate must settle" (`:70-71`). The architect lists decisions
+  for the human; it settles none of them.
+- **policy conformance: 2**, `effort: high` (`:5`), no `model:` line, C11 clean, no
+  `isolation:` needed.
+- **instruction quality: 2**, the round-5 Minor is closed, and the list matches the
+  revised template (below).
 
 ## Total: 10/10   ## Verdict: PASS (threshold >= 8/10, no criterion at 0)
 
 ## Ceiling: 10/10, reached
-Every criterion is at its described top level. That is not a claim of flawlessness: the
-residuals below are open.
+Every criterion at its described top level. One Minor (author-declined) and one Nit remain.
 
-## List vs plan-format (checked at d995419)
-plan-format template headings, in order (`plan-format.md:67-177`): Summary for humans, Why,
+## List vs plan-format (checked at 4f001fa)
+plan-format template headings (`plan-format.md:68-195`): Summary for humans, Why,
 Explanation, Header, Design decisions, Contracts, File map, Tasks, Task order and parallelism,
-Success signal, Do-not-touch boundaries, Risks / open questions, Review Focus, Out of scope.
-architect.md `:37-43`: summary for humans, why, explanation, header, design decisions,
-contracts, file map, tasks, task order and parallelism, success signal, do-not-touch
-boundaries, risks and open questions, review focus, out of scope. Same set, same order.
+Do-not-touch boundaries, Risks / open questions, Review Focus, Success signal, Out of scope.
+architect.md `:37-42`: summary for humans, why, explanation, header, design decisions,
+contracts, file map, tasks, task order and parallelism, do-not-touch boundaries, risks and open
+questions, review focus, success signal, out of scope. Same set, same order. The template now
+also agrees with its own prose (`plan-format.md:25-27`, "the TECHNICAL layer (Header through
+Risks / open questions), then Review Focus, VERIFICATION (the Success signal) and Out of
+scope") and with the `Plan layers:` line (`:21`). The out-of-scope inconsistency I reported in
+round 5 is resolved at this commit.
 
-## The three checks asked for
-1. **Role boundary holds.** See the role-boundary score. The human layer translates the plan;
-   the "What you decide" field moves decisions toward the human, not away.
-2. **No contradiction with the read-only tools or the contract language.** None found. The
-   human layer is returned like the rest of the plan (`:73-74`); the contract language
-   (`:52-60`) still applies to tasks and Contracts, and the human layer never claims to bind.
-3. **"The human layer is not contract": repeat it or leave it?** Leave the rule in
-   plan-format (`plan-format.md:28-29`). The agent is told to write "in the exact format of"
-   that file (`:37`) and that the file "is canonical" (`:44`), and AGENTS.md says agents
-   reference rules rather than restate them; a second copy is how this repo got two
-   disagreeing stop conditions. It is not a score item. If the author wants a hook at the
-   point of use, the acceptable form is a pointer clause, not a copy, for example after "in
-   plain language ...": "(not contract: plan-format's precedence rule governs)". Optional.
+## Closure verified
+- **CLOSED (was Minor), second summary with a different shape**, `:69-72` now reads "present
+  the plan's `Summary for humans` as written (its `What you decide` is the list of what the gate
+  must settle; do not write a second summary that could drop an item)". One summary, and the
+  instruction names the reason. The old step-5 items are not lost: "what you chose NOT to do"
+  lives in the plan's Out of scope, "the riskiest part" in the Summary's Biggest risk.
+- **MOSTLY CLOSED (was Nit), ragged wrap**, `:37-42` is rewrapped to the file's measure. One
+  short line remains: `:43` "list differs, it wins). Follow it for which" breaks before
+  "sections may be `none` ..." on `:44`. Join `:43-44`.
 
-## Open findings
-- **Minor, `:70-72`, a second summary with a different shape.** Step 5 still asks the
-  architect to "present a short summary: approach, what it touches, the riskiest part, what you
-  chose NOT to do". The plan now carries its own "Summary for humans" whose gate-critical field
-  is "What you decide" (`plan-format.md:71-73`), which the step-5 list lacks. A human reading
-  only the returned chat summary can miss a decision the plan hands them, and the two summaries
-  can drift. Fix: change step 5 to "present the plan's Summary for humans (it already names the
-  risk and every decision), plus the intended path", or add "what you decide" to the step-5
-  list.
-- **Minor, carried from round 1, `:54-55`, no bindingness marker for a named mechanism.**
-  Unchanged; mitigated by `plan-format.md:6` and the builder's fail-safe. Optional fix as
-  before.
-- **Nit, `:37-43`, ragged wrap.** "then header, design" (`:39`) and "review focus, out of
-  scope" (`:43`) break mid-list on short lines. Rewrap the enumeration to the file's ~85-column
-  measure.
+## Open
+- **Minor, carried since round 1, author-declined, `:53-54`, no bindingness marker for a named
+  mechanism.** Unchanged; mitigated by `plan-format.md:6` (named mechanisms bind) and the
+  builder's fail-safe. Optional fix as before.
+- **Nit, `:43`**, the one remaining short line (above).
 
-## Out of scope for this reviewer (for the dispatcher)
-- **`docs/plan-format.md:21-27` disagrees with its own template.** The prose says "the
-  TECHNICAL layer (Header through Do-not-touch), then Review Focus, VERIFICATION (the Success
-  signal) and Out of scope", and the `Plan layers:` line puts Verification after Review Focus.
-  The template places Success signal BEFORE Do-not-touch (inside "Header through
-  Do-not-touch") and Risks / open questions after it, a section neither layer description
-  names. architect.md follows the template, which is the operative shape, so no score here
-  moves; but an architect that reads the prose literally could reorder. Owner: whoever reviews
-  plan-format (architecture-reviewer or pm-reviewer per the dispatcher's routing); note that
-  lint C17 keeps this line equal with `global/CLAUDE.md`, so a fix touches both.
+## On repeating "the human layer is not contract"
+My round-5 position stands: leave the rule in `plan-format.md:29-30`. Step 5 now leans on the
+Summary as the gate document, which makes the rule more relevant, but the canonical file says
+it, the agent is told to follow that file exactly (`:37`), and a pointer is the most this file
+should carry. Not a score item.
 
 ## Integrity
 House voice, consistent with the rest of `agents/`. Nothing reads as copied from another
@@ -118,25 +87,28 @@ project.
 Round 1 (aee5ab1): 8/10, 1 Important + 5 Minor + 1 out-of-scope blocker.
 Round 2 (f8f8da6): 10/10, 2 Minor.
 Round 3 (f4e295a): 10/10, 1 Minor + 1 Nit.
-Round 4 (93536c7): 10/10 PASS, Nit closed, 1 Minor open.
-Round 5 (d995419): 10/10 PASS. New content (human layer, review focus, out of scope) scored;
-no criterion moved. 2 Minor (1 new, 1 carried) + 1 Nit open.
+Round 4 (93536c7): 10/10, 1 Minor.
+Round 5 (d995419): 10/10, 2 Minor + 1 Nit, plus an out-of-scope plan-format inconsistency.
+Round 6 (4f001fa): 10/10 PASS. Step-5 Minor closed, wrap Nit mostly closed, plan-format
+inconsistency resolved; 1 Minor (declined) + 1 Nit open. No criterion moved (none could).
+Stop condition (eval-framework): the verdict is PASS at max; nothing actionable above Nit
+remains, so this artifact's loop can stop here.
 
 ## Vs previous version
-Held at 10/10. The list grew by five sections and still matches plan-format exactly; no
-regression in tools, boundary or policy. New residual: the step-5 summary now duplicates, in a
-different shape, the plan's Summary for humans.
+Held at 10/10, no regression. The list follows the reordered template, and the gate now gets
+one summary instead of two.
 
 ## History
 - 2026-08-04 v2 (aee5ab1): first per-file review after ADR-001 changes 7, 8, 14. Round 1 = 8/10
   PASS, one Important open (detector attribution).
-- 2026-08-04 v3 (f8f8da6): re-review after the first fix pass. Round 2 = 10/10 PASS; detector
-  attribution, precedence marker, section enumeration and rewrap closed; 2 Minors open.
-- 2026-08-04 v4 (f4e295a): scoped re-review of the enumeration precedence marker, confirmed.
-  Round 3 = 10/10 PASS, held; 1 Minor + 1 Nit open.
-- 2026-08-04 v5 (93536c7): narrow re-review of the marker's punctuation, confirmed closed.
-  Round 4 = 10/10 PASS, held.
-- 2026-10-01 v6 (d995419, branch feature/plan-human-layer): review of the step-3 list change
-  (human layer first; review focus and out of scope appended). Branch changed from
-  chore/adr-001-contracts-not-code; `reviewed_commit:` added. Round 5 = 10/10 PASS, held;
-  step-5 summary duplication (Minor) new, mechanism marker (Minor) carried, wrap Nit new.
+- 2026-08-04 v3 (f8f8da6): Round 2 = 10/10 PASS; detector attribution, precedence marker,
+  enumeration and rewrap closed; 2 Minors open.
+- 2026-08-04 v4 (f4e295a): Round 3 = 10/10 PASS, held; 1 Minor + 1 Nit open.
+- 2026-08-04 v5 (93536c7): Round 4 = 10/10 PASS, held; punctuation Nit closed.
+- 2026-10-01 v6 (d995419, branch feature/plan-human-layer): step-3 list change (human layer
+  first; review focus and out of scope appended). Round 5 = 10/10 PASS; step-5 summary
+  duplication (Minor) and wrap Nit new; plan-format's prose/template order mismatch reported
+  out of scope.
+- 2026-10-01 v7 (4f001fa): step 5 presents the plan's Summary for humans; list rewrapped and
+  reordered to the revised template (Success signal after Review Focus). Round 6 = 10/10 PASS,
+  held; summary Minor closed, plan-format mismatch resolved, one short line left.

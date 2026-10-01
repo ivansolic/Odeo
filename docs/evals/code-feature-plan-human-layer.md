@@ -1,81 +1,92 @@
 ---
-artifact: scripts/skills-lint.sh C17 (plan_layers + comparison) + tests/skills-lint.test.sh C17 cases + docs/invariants.md C17 row (commit e5e1b49)
+artifact: scripts/skills-lint.sh C17 (plan_layers + comparison) + tests/skills-lint.test.sh C17 cases + docs/invariants.md C17 row
 type: code
 branch: feature/plan-human-layer
-reviewed_commit: d995419
-artifact_version: 1
+reviewed_commit: 4f001fa
+artifact_version: 2
 date: 2026-10-01
 scorer: code-reviewer
 model: claude-opus-5-5[1m]
 model_tier: strongest
 effort: high
-scores: { correctness: 1, security: 2, performance: 2, readability: 2, testing: 2, conventions: 2 }
-total: 11/12
-verdict: APPROVE WITH COMMENTS
+scores: { correctness: 2, security: 2, performance: 2, readability: 2, testing: 2, conventions: 2 }
+total: 12/12
+verdict: APPROVE
+previous_total: 11/12
 ---
 
 ## Artifact
 
-Commit `e5e1b49` on `feature/plan-human-layer`, read at HEAD `d995419` (clean tree). Scope:
-lint C17 in `scripts/skills-lint.sh`, its four test cases and the `clean_root` fixture change
-in `tests/skills-lint.test.sh`, and the C17 row in `docs/invariants.md`. The prose commits
-(`dfb1946`, `d995419`) are out of scope except for the marker check below.
+Branch `feature/plan-human-layer`, read at HEAD `4f001fa` (clean tree). Scope: lint C17 in
+`scripts/skills-lint.sh`, its test cases and the `clean_root` fixture in
+`tests/skills-lint.test.sh`, and the C17 row in `docs/invariants.md`. Round 2 reviews the delta
+`d995419..4f001fa` in that scope. The prose files are out of scope.
 
-## Checks performed
+## Round-1 findings, verified
 
-- Marker lines: `global/CLAUDE.md:30` and `docs/plan-format.md:21` are byte-identical,
-  `Plan layers: Summary, Why, Explanation, Technical, Review Focus, Verification, Out of scope`.
-- `skills-lint.sh` on the worktree: "all invariants hold".
-- Both files are on `docs/public-paths.txt` (`global/`, `docs/plan-format.md`), so the
-  published snapshot that CI lints carries them; C17 cannot fail CI by absence.
-- `set -uo pipefail` without `-e`: a non-matching grep inside `$(plan_layers ...)` returns 1
-  harmlessly, so the missing cases reach `viol` instead of aborting the script.
-- Probed `plan_layers` on edge inputs: CRLF line -> `A, B` (the `\r` is `[[:space:]]`, stripped);
-  two different lines -> first only; `Plan layers:` with an empty or blank list -> empty;
-  indented line -> empty (fail-closed); `A,B` vs `A, B` -> differ.
-- Portability: `[[:space:]]`, `\{1,\}` are POSIX BRE; `grep -m` is supported by GNU and BSD grep.
-  No GNU-only or BSD-only construct.
+- **Important (one line not enforced): fixed.** `plan_layers` counts with
+  `grep -c '^Plan layers:'` and flags any count other than 1 (`scripts/skills-lint.sh:294-295`).
+  `grep -c` prints `0` on no match, so `n` is always numeric and `-ne 1` is well formed. The
+  missing file, a wrong count and an empty list each get their own `viol` and `return 1`. The
+  comparison runs only when both calls returned 0, so a broken file produces one message
+  instead of a misleading "differ" message on top. New test: a second, different line in
+  docs/plan-format.md wants rc 1.
+- **Nit (asymmetric missing wording): fixed.** Both files go through the same
+  "`<path>` is missing" message.
+- **Nit (empty reported as absent): fixed.** "carries an empty 'Plan layers:' line". A list of
+  only whitespace reduces to empty after the sed, so it is caught too. The test asserts the
+  message.
+- **Nit ("whitespace aside" loose): fixed.** The row now says runs are collapsed and that
+  `A,B` and `A, B` still differ.
+- **Nit (row order): fixed.** The C17 row sits after C16.
+
+## New code checked
+
+- The function sets a global and calls `viol` itself, which is the known
+  "helper that sets a variable cannot run in a command substitution" trap. Both call sites
+  (`:299-300`) call it bare and read `PL_LIST`/`$?` afterwards, and the definition carries a
+  comment at the point of use. The existing tests already act as a tripwire, which is the
+  mechanism the global rules ask for: if someone wraps a call in `$(...)`, `fail=1` is lost in
+  the subshell and "C17 flags a missing docs/plan-format.md" returns rc 0 against a wanted 1.
+  If someone redirects the output, the empty-list message test fails. This is reasoned from the
+  code, not run as a mutation in this round.
+- `set -uo pipefail` without `-e`: `PL_LIST` is set before any early return, so `set -u` cannot
+  trip at the call site. An `if` whose condition is false returns 0, so the success path
+  returns 0.
+- Portability is unchanged from round 1: POSIX basic regex, plus `grep -c`.
+- On the worktree at 4f001fa, skills-lint reports "all invariants hold". I did not re-run the
+  39 suites; the builder reports them green.
 
 ## Findings
 
+### Critical
+- None.
+
 ### Important
-- `scripts/skills-lint.sh:288` and `docs/invariants.md:25`: the invariant row and the code
-  comment both say each file carries ONE `Plan layers:` line, but `grep -m1` takes the first
-  and ignores any later one. A second, different line (a revised list added above or below the
-  old one, an example in a code fence) passes unnoticed, and the model reading that file then
-  sees two contradicting lists. Stated invariant not held. Fix: count first, e.g.
-  `n="$(grep -c '^Plan layers:' "$f")"`, and `viol C17 "<file> carries $n 'Plan layers:' lines, want 1"`
-  when `n` is not 1; add a test case with a duplicate line in `docs/plan-format.md`.
+- None.
 
 ### Nitpicks
-- `scripts/skills-lint.sh:293`: when `global/CLAUDE.md` is absent the message says it
-  "carries no 'Plan layers:' line"; the plan-format message says "is missing or carries no".
-  Use the same wording for both. Fail-closed on absence is the right behavior.
-- `scripts/skills-lint.sh:293-294`: an empty list (`Plan layers:` with nothing after it)
-  is reported as "carries no 'Plan layers:' line", which misdirects. Separate "absent" from
-  "empty" if the count check above is added.
-- `docs/invariants.md:25`: "equal (whitespace aside)" is slightly loose; runs are collapsed to
-  one space, so `A,B` and `A, B` still differ. Fail-closed direction, harmless; say "whitespace
-  runs collapsed" if precision matters.
-- `docs/invariants.md:25`: the C17 row sits between C15 and C16. Move it after C16.
-
-## Points the author asked to challenge
-
-- grep -m1: not acceptable as-is, because the invariant text promises "one". See Important.
-- sed normalisation, BSD vs GNU: portable, verified constructs are POSIX.
-- Names only, not prose: honestly stated in both the comment and invariants.md. Accepted limit.
-- global/CLAUDE.md absent: flagged (fail-closed), correct; only the wording is off.
+- `tests/skills-lint.test.sh:331-334`: the empty-list case asserts the message but not the
+  exit code. `viol` sets `fail=1`, so rc 1 follows today. Capturing `rc=$?` after the
+  `$( bash "$LINT" "$d" 2>&1 )` and requiring 1 as well would make that case independent of
+  the message. Optional.
 
 ## Scores
 
-correctness 1/2 · security 2/2 · performance 2/2 · readability 2/2 · testing 2/2 ·
-conventions 2/2 -> total 11/12 (threshold: >=9, no zero)
+correctness 2/2 · security 2/2 · performance 2/2 · readability 2/2 · testing 2/2 ·
+conventions 2/2 -> total 12/12 (threshold: >=9, no zero)
 
 ## Ceiling
 
-12/12 is reachable: enforcing the "one line" invariant with a count and a duplicate-line test
-closes the only correctness gap.
+12/12, reached.
 
 ## Verdict
 
-APPROVE WITH COMMENTS
+APPROVE
+
+## History
+
+- Round 1 (d995419): 11/12, APPROVE WITH COMMENTS. Important: `grep -m1` did not hold the
+  "one line" invariant. Four nitpicks on wording and row order.
+- Round 2 (4f001fa): 12/12, APPROVE. All five items fixed and verified, two new tests. One
+  optional nit on the empty-list test's exit code. Regression note: better (11 -> 12).

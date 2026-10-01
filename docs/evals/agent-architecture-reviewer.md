@@ -1,106 +1,114 @@
 ---
 artifact: architecture-reviewer
 type: agent-definition
-branch: chore/adr-001-contracts-not-code
-artifact_version: 4
-date: 2026-08-04
+branch: feature/plan-human-layer
+reviewed_commit: 4f001fa
+artifact_version: 5
+date: 2026-10-01
 scorer: agent-reviewer
-model: claude-opus-5[1m]
+model: claude-opus-5-5[1m]
 model_tier: strongest
 effort: high
-scores: { trigger_clarity: 1, tool_least_privilege: 2, role_boundary: 2, policy_conformance: 2, instruction_quality: 2 }
-total: 9/10
+scores: { trigger_clarity: 2, tool_least_privilege: 2, role_boundary: 2, policy_conformance: 2, instruction_quality: 2 }
+total: 10/10
 verdict: PASS
 previous_total: 9/10
 ---
 
-# Agent: architecture-reviewer (round 3, at HEAD 93536c7)
+# Agent: architecture-reviewer (round 4, at 4f001fa)
 
-Narrow re-review: verified ONLY the one edit claimed for this file (the story-file input
-clause on the success-signal row-count check). Everything cleared in rounds 1 and 2 carries
-forward, evidence re-checked at this HEAD, not re-argued.
+Review of the new criterion-6 paragraph in plan-review mode (`:27-31`) on
+`feature/plan-human-layer`, plus a full re-read of the file at this commit, because the
+description (`:3`) has changed since round 3 (93536c7).
 
-Version note: `artifact_version: 4` = the fourth reviewed state (v2 = f8f8da6, v3 = f4e295a,
-v4 = 93536c7). Numbering continued per the round-2 rationale.
+Method note: this reviewer holds no Bash. The sha `4f001fa` was supplied by the dispatcher.
+I cannot see which commit changed `:3`, only that it differs from the text round 3 recorded.
+The tier is the one my context reports (Opus class), not re-resolved against a live lineup in
+this run (no web tool).
 
-Method note: no Bash in this reviewer's grant; scored the file as it stands at HEAD.
+## Scores
 
-## Scores (all carried, none moved)
+- **trigger/description clarity: 2** (was 1), `:3` now reads "Also the PLAN reviewer: in
+  plan-review mode it checks an architect's plan (reference graph, labels, dropped acceptance
+  criteria) and is the detector for the rule that a plan approval covers only the plan as
+  approved ... Not for shipped code (code-reviewer), UI (design-reviewer), or PM documents
+  (pm-reviewer)." Both clauses the round-3 ceiling blocker asked for are present: the
+  plan-review mode, and a not-for lane naming where each excluded artifact goes.
+- **tool least-privilege: 2**, `tools: Read, Grep, Glob` (`:4`), matching AGENTS.md
+  Guardrails 5 `[E]` ("`architect` and `architecture-reviewer` cannot write or execute
+  anything"). The new check reads plan sections only; it needs nothing more. `:43-44` still
+  closes the loop ("You cannot write files; the orchestrating session records your verdict").
+- **role boundary: 2**, the new paragraph keeps the reviewer a detector: a choice found only
+  in the technical layer "is a finding: the human approves from the Summary and would never see
+  it" (`:30-31`). It surfaces decisions to the human; it does not settle them, and it does not
+  rewrite the plan. The readable-versus-holder split for the Guardrails-1 duty (`:32-37`) is
+  unchanged.
+- **policy conformance: 2**, `effort: high` (`:5`), no `model:` line, C11 clean, no
+  `isolation:` needed.
+- **instruction quality: 2**, the paragraph states what to check (three sources: Design
+  decisions, Risks open questions, story deviations), where it must appear (the Summary's
+  `What you decide`), the second check (no contradiction between layers), and why a miss
+  matters. It matches the canonical criterion 6 (`plan-format.md:287-293`, "leaving a gate
+  decision or story deviation only in the technical layer") and the template's rule
+  (`plan-format.md:72-74`). Two Minors below; neither is a contradiction.
 
-- **trigger/description clarity: 1** (unchanged, third round) , `:3` is byte-identical: no
-  mention of PLAN REVIEW (a first-class dispatched mode, `skills/build/SKILL.md:156`, and the
-  mode carrying a Guardrails-1 duty) and no not-for lane. Deliberately deferred by the author;
-  see the follow-up below. It is the only thing holding this file off 10.
-- **tool least-privilege: 2** , `tools: Read, Grep, Glob` (`:4`), loop closed at `:38-39`.
-  Re-verified against AGENTS.md:264-265, which after this commit still names this agent in the
-  `[E]` "cannot write or execute anything" bullet, accurately.
-- **role boundary: 2** , the readable-versus-holder split at `:27-32` unchanged.
-- **policy conformance: 2** , `effort: high`, no `model:` line, C11 clean, no `isolation:`
-  needed, tools match the guardrail.
-- **instruction quality: 2** , the round-2 Minor is closed, and placed better than what I
-  proposed: the input requirement now sits WITH the check it serves instead of as a separate
-  sentence that could read as general advice. No movement is possible from a Minor closure at
-  this level; the criterion was already at 2.
+## Total: 10/10   ## Verdict: PASS (threshold >= 8/10, no criterion at 0)
 
-## Total: 9/10   ## Verdict: PASS (threshold >= 8/10, no criterion at 0)
+## Ceiling: 10/10, reached
+Every criterion is at its described top level. The two Minors and two Nits below are open.
 
-## Ceiling: 10/10 reachable, blocked by criterion 1 only
-Two clauses in `:3`. No structural cap. Not closed in this round by the author's choice.
+## Open findings
+- **Minor, `:27`, the qualifier "the human must settle" narrows the canonical rule.**
+  plan-format says "A choice or deviation that appears in Design decisions or Risks below
+  appears here too; none lives only in the technical layer" (`plan-format.md:73-74`): every
+  Design decisions entry. The agent checks only "every Design decision the human must settle",
+  which leaves the reviewer to judge which decisions count, and lets it excuse one it rates as
+  builder-level. The narrowing is probably the right intent (a Summary listing every technical
+  choice stops being plain), but then the canonical file is the one that should say so. Fix:
+  pick one wording and use it in both files. Either drop "the human must settle" here, or (my
+  recommendation) define the class in `plan-format.md:72-74`, e.g. "every Design decision that
+  changes what the user gets or chose in the story", and keep the agent's wording as an
+  echo. Until then the "that file is canonical" marker at `:18` resolves it, but that marker is
+  scoped to criterion 3.
+- **Minor, `:27-31`, criterion 6 is checked only in part.** The paragraph covers decisions in
+  the Summary and layer agreement. Criterion 6 also fails a plan for jargon, for Why or
+  Explanation restating the Summary, and for a Review Focus that repeats the tasks
+  (`plan-format.md:287-293`). Nothing in this file tells the reviewer to apply the rest, and the
+  precedence marker (`:17-18`) names criterion 3 only, so a reviewer could read the paragraph as
+  the whole of criterion 6. Fix: open the paragraph with "Per criterion 6 (the human layer;
+  apply it in full as written in plan-format, which wins), in particular check that ...".
+- **Nit, carried and now larger, `:12-44`, the plan-review block is one 33-line paragraph
+  carrying six duties.** The new duty starts on its own line but with no blank line, so it
+  renders inside the same paragraph. That makes it easy to miss, the same failure the round-3
+  closure fixed. Fix unchanged: sub-bullets under the existing heading, no wording changes.
+- **Nit, carried, `:40-41`, rewrap artifact** ("... non-plan architectural review. On a /
+  re-review ..."). Cosmetic.
+
+## Integrity
+House voice; the new paragraph uses the vocabulary of `docs/plan-format.md` and
+`agents/architect.md` (`What you decide`, human layer, technical layer). Nothing reads as copied
+from another project.
 
 ## Round-by-round
 Round 1 (f8f8da6): 8/10, 2 Important + 1 Minor.
 Round 2 (f4e295a): 9/10, 1 Minor + 2 Nits.
-Round 3 (93536c7): 9/10 PASS. The Minor closed; no criterion moved (none could).
-
-## Closure verified
-- **CLOSED (was Minor), the row-count check named an input it never told the agent to get** ,
-  `:21-25` now reads "the SUCCESS-SIGNAL ROW COUNT against the story's criterion count (READ
-  the story file the plan's header names, you need its criterion count; you are the last line
-  for a dropped acceptance criterion, because the builder executes the tasks it was given and
-  will never notice one is missing)". The check is now self-sufficient: what to count, where to
-  get the counted thing, and why it matters, in one place.
-
-## Findability of the check (the failure mode this round was about)
-Judged deliberately, since a check nobody can find is the defect we just closed: **the
-parenthetical does NOT need breaking up.** The check's name carries the block's caps convention
-("SUCCESS-SIGNAL ROW COUNT") and the new instruction opens with an imperative in the same
-convention ("READ the story file"), so both the check and its input survive scanning even
-inside a four-line parenthetical. Two honest caveats, neither a finding:
-- The parenthetical now carries two kinds of content, a binding instruction and a rationale. An
-  instruction inside parentheses can read as an aside; the capitalised imperative is what
-  prevents that here, so do not lowercase it in a later cleanup.
-- If the declined structural Nit is ever taken, the natural split is to lift the input
-  requirement out of the parenthetical and leave the rationale inside it.
-
-## Open (carried, author-declined this round)
-- **Minor, `:3`, the description names neither the plan-review mode nor a not-for lane** , the
-  ceiling blocker. Assessed as low-risk rather than merely cosmetic: plan-review dispatch is
-  always by name (`skills/build/SKILL.md:151-156`), so no routing depends on `:3`. What the gap
-  costs is discoverability, a reader of the description alone cannot tell that this agent holds
-  a Guardrails-1 detector duty. Correctly deferred; worth carrying as an explicit follow-up
-  rather than being forgotten between branches.
-- **Nit, `:12-39`, the mode block is a 28-line single paragraph carrying five duties** ,
-  declined. Recorded because it is the same class of risk as the defect just fixed: each duty
-  is individually clear, but length is what makes a duty missable. Fix remains four sub-bullets
-  under the existing heading, no wording changes.
-- **Nit, `:35`** , the rewrap artifact ("... non-plan architectural review. On a /
-  re-review ...") is still present; declined, cosmetic.
-
-## Integrity
-House voice; the plan-review block matches the vocabulary in `agents/architect.md` and
-`docs/plan-format.md`. Nothing reads as copied from another project.
+Round 3 (93536c7): 9/10 PASS, ceiling blocked by `:3`.
+Round 4 (4f001fa): 10/10 PASS. Trigger clarity 1 -> 2 (`:3` now names plan-review mode and a
+not-for lane); new criterion-6 paragraph scored at 2; 2 Minor new + 2 Nits carried.
 
 ## Vs previous version
-Held at 9/10 with the last behavioural Minor closed. No regression. Baseline is the round-2
-per-file record (v3).
+Improved 9/10 -> 10/10, all from `:3`. The new paragraph adds a detector the human gate
+depends on, with no regression in tools or boundary.
 
 ## History
 - 2026-08-04 v2 (f8f8da6): first per-file review, after the plan-review mode gained the
   reference-graph and label checks and the Guardrails-1 detector duty. Round 1 = 8/10 PASS,
   two Important open.
-- 2026-08-04 v3 (f4e295a): scoped re-review, all three claimed closures confirmed. Round 2 =
-  9/10 PASS; instruction quality 1 -> 2; the `@vN` recommendation withdrawn; one Minor (story
+- 2026-08-04 v3 (f4e295a): Round 2 = 9/10 PASS; instruction quality 1 -> 2; one Minor (story
   input) + 2 Nits open.
-- 2026-08-04 v4 (93536c7): narrow re-review of the story-file input clause, confirmed closed
-  and well placed; findability judged adequate without breaking up the parenthetical. Round 3 =
-  9/10 PASS, held. `:3` and both Nits open by the author's choice.
+- 2026-08-04 v4 (93536c7): Round 3 = 9/10 PASS, held; story-input Minor closed; `:3` and both
+  Nits open by the author's choice.
+- 2026-10-01 v5 (4f001fa, branch feature/plan-human-layer): criterion-6 paragraph added in
+  plan-review mode; `:3` found revised. Branch changed from chore/adr-001-contracts-not-code;
+  `reviewed_commit:` added. Round 4 = 10/10 PASS; trigger clarity 1 -> 2; two Minors new (the
+  "must settle" qualifier, partial criterion-6 coverage).
