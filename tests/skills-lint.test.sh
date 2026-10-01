@@ -275,12 +275,40 @@ done
 # A supporting file is read raw (no substitution), so it names no program at all
 d="$(clean_root)"; printf -- 'Run ${CLAUDE_PLUGIN_ROOT}/scripts/privacy-scan.sh before sending.\n' > "$d/skills/alpha/rubric.md"
 check "C16 flags a program named in a supporting file even in the plugin-root form" 1 "$d"; rm -rf "$d"
+# A checkout that itself lives under a skills/<x>/ directory: only ROOT/skills/<x>/ makes a
+# supporting file, never a skills/ segment above ROOT. Observed failing (2026-09-30) with the
+# match on the whole path: the agent case, while both controls stayed red as they should.
+nested() { local b r; b="$(mktemp -d)"; r="$(clean_root)"; mkdir -p "$b/skills/nest"; mv "$r" "$b/skills/nest/odeo"; echo "$b/skills/nest/odeo"; }
+d="$(nested)"; agent16 "$d" 'Then run ${CLAUDE_PLUGIN_ROOT}/scripts/privacy-scan.sh.'
+check "C16 passes an agent's plugin-root path in a checkout under skills/<x>/" 0 "$d"; rm -rf "${d%/skills/nest/odeo}"
+d="$(nested)"; agent16 "$d" 'Then run privacy-scan.sh.'
+check "C16 control: a bare name in an agent under skills/<x>/ is still flagged" 1 "$d"; rm -rf "${d%/skills/nest/odeo}"
+d="$(nested)"; printf -- 'Run privacy-scan.sh before sending.\n' > "$d/skills/alpha/rubric.md"
+check "C16 control: a supporting file under skills/<x>/ is still flagged" 1 "$d"; rm -rf "${d%/skills/nest/odeo}"
 # C16 must never pass because its own instrument broke: with perl unusable it fails loudly
 d="$(clean_root)"; fake="$(mktemp -d)"; printf '#!/bin/sh\nexit 127\n' > "$fake/perl"; chmod +x "$fake/perl"
-( PATH="$fake:$PATH" bash "$LINT" "$d" ) >/dev/null 2>&1; rc=$?
-if [[ $rc -eq 1 ]]; then echo "ok   - C16 fails when perl cannot run"; pass=$((pass+1))
-else echo "FAIL - C16 passed with a broken perl (rc=$rc want=1)"; fail=$((fail+1)); fi
+out="$( PATH="$fake:$PATH" bash "$LINT" "$d" 2>&1 )"; rc=$?
+if [[ $rc -eq 1 && "$out" == *"failed to run (perl exit"* ]]; then echo "ok   - C16 fails when perl cannot run"; pass=$((pass+1))
+else echo "FAIL - C16 passed with a broken perl, or failed for another reason (rc=$rc want=1)"; fail=$((fail+1)); fi
 rm -rf "$d" "$fake"
+# With no perl on PATH at all, C16 says so instead of reaching the scan. PATH is a mirror of
+# every program on the real PATH except perl*, so nothing else goes missing (checked: no
+# "command not found"). Observed failing (2026-09-30) with the not-found violation replaced by
+# ":": the lint then passed with rc 0, C16 skipped in silence.
+d="$(clean_root)"; noperl="$(mktemp -d)"
+IFS=: read -ra path_dirs <<< "$PATH"
+for pdir in "${path_dirs[@]}"; do
+  [[ $pdir == /* ]] || continue # an empty or relative entry would glob / or link to nowhere
+  for prog in "$pdir"/*; do
+    name="${prog##*/}"
+    [[ -x "$prog" && ! -d "$prog" && "$name" != perl* && ! -e "$noperl/$name" ]] && ln -s "$prog" "$noperl/$name"
+  done
+done
+out="$( PATH="$noperl" "$(command -v bash)" "$LINT" "$d" 2>&1 )"; rc=$?
+if [[ $rc -eq 1 && "$out" == *"perl not found"* && "$out" != *"command not found"* ]]; then
+  echo "ok   - C16 fails when perl is not on PATH"; pass=$((pass+1))
+else echo "FAIL - C16 without perl (rc=$rc want=1, want 'perl not found' and no 'command not found')"; fail=$((fail+1)); fi
+rm -rf "$d" "$noperl"
 
 # FINAL: the real repo must pass its own lint
 check "the actual repo passes its own invariants" 0 "$TEST_DIR/.."

@@ -49,7 +49,13 @@
 #   5  the copy was made but PUSH WAS REFUSED, so nothing was backed up
 #   6  nothing to back up (neither ledger file exists)
 set -uo pipefail
-# THE WHOLE GIT ENVIRONMENT IS DROPPED, not the two variables that name a repository.
+# TWO FAMILIES OF THE GIT ENVIRONMENT ARE DROPPED, the variables that NAME a repository and
+# the ones that INJECT config; not only GIT_DIR and GIT_WORK_TREE, and not all of it.
+# Deliberately KEPT: GIT_SSH_COMMAND and GIT_SSH (the caller's own ssh transport; dropping
+# them breaks a key or proxy setup, and measured at round 10 an inherited one routes the push,
+# at exit 0, exactly as the caller's own `git push` would), GIT_AUTHOR_* and GIT_COMMITTER_*
+# (the identity on the backup commit; the author pair is read below), GIT_EXEC_PATH and
+# GIT_TEMPLATE_DIR (git's own install).
 #
 # Every git call below is meant to be about the PROJECT DIRECTORY passed in. Inherited GIT_DIR
 # or GIT_WORK_TREE silently redirect all of them at whatever repository the caller's environment
@@ -401,19 +407,16 @@ case "$KIND" in
           esac ;;
         *://*) : ;;                    # any other scheme: genuinely remote
         /*)    p="$u" ;;               # an absolute path, colons and @ included
-        *:*)   case "${u%%:*}" in
-                 */*) p="$u" ;;        # a slash before the colon: a relative path, not a host
-                 *)   : ;;             # host:path
-               esac ;;
+        *:*)   : ;;                    # host:path, or a relative path (a slash before the colon)
       esac
       printf '%s' "$p"
     }
 
-    # RELATIVE, asked separately from the conversion above. KNOWN, MEASURED DISAGREEMENT between
-    # the two, left open rather than papered over: `a/b:c` and `./a:b/c` are relative here and a
-    # path there, so the same line is refused with one reason or another depending on the
-    # caller's directory. Both outcomes are refusals at exit 2, so nothing leaks through the gap;
-    # it is the MESSAGE that can be the wrong one.
+    # RELATIVE, asked separately from the conversion above, and the two now agree: `a/b:c` and
+    # `./a:b/c` are relative here and yield no path there, like every other relative input. They
+    # used to be read as a path, so the publish check (which runs first) resolved them from the
+    # caller's directory and the refusal named the publish remote or the relative URL depending
+    # on where it was run (both exit 2). Case 42b pins the single answer.
     url_is_relative() {
       case "$1" in
         *://*|/*|'~'|'~'/*) return 1 ;;   # quoted `~`: an unquoted one is expanded, see above

@@ -970,6 +970,30 @@ for arrangement in branch-exists branch-missing; do
     || bad "the refusal does not tell the caller what to change ($arrangement): $out"
 done
 
+# 42b. ONE ANSWER FOR A RELATIVE URL, WHEREVER IT IS RUN FROM. A slash before the colon
+#      (`a/b:c`, `./a:b/c`) is relative to url_is_relative, and local_url_path used to read it
+#      as a path, so the publish check, which runs first, resolved it from the CALLER's directory.
+#      Run from a directory where that path leads to the publish remote, the refusal named the
+#      publish remote instead of the relative URL. Both exit 2, nothing leaked; the message was
+#      the wrong one. Observed failing (2026-09-30) with the `*/*) p="$u"` arm in place: both
+#      spellings reported the publish remote.
+for rel in 'a/b:c' './a:b/c'; do
+  w42="$(mktemp -d "$TMP/w42.XXXXXX")"
+  git init -q --bare "$w42/pub.git" >/dev/null 2>&1
+  p42b="$(mkproject "p42b" "ledger_backup: git backup internal-files")"
+  git -C "$p42b" remote add origin "$w42/pub.git" >/dev/null 2>&1
+  git -C "$p42b" remote add backup "$rel" >/dev/null 2>&1
+  mkdir -p "$w42/caller/$(dirname "$rel")"
+  ln -s "$w42/pub.git" "$w42/caller/$rel"
+  out="$( cd "$w42/caller" && "$SCRIPT" "$p42b" 2>&1 )"; rc=$?
+  [ "$rc" = 2 ] && ok "$rel next to a link to the publish remote is refused (exit 2)" \
+    || bad "$rel next to a link to the publish remote reached exit $rc: $out"
+  printf '%s' "$out" | grep -q 'is a relative URL' \
+    && ok "and it is refused as relative, not as the publish remote ($rel)" \
+    || bad "the refusal of $rel depends on the caller's directory: $out"
+  rm -rf "$p42b"
+done
+
 # 43. THE GUARD MAY NOT BE SKIPPED JUST BECAUSE THIS PROGRAM CANNOT SEE THE TARGET. Three rounds
 #     closed three ways of MODELLING what git does with a url, and each time git knew one more
 #     thing than the model: first the spelling list, then the file-url authority, then percent

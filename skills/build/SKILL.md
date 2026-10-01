@@ -235,6 +235,10 @@ once so a still editor is not mistaken for a stall. Live watching is with-me (Mo
    **No builder runs without an approved plan that carries an `arch_review:`
    line**, and a `builder_tier:` line in its `model_plan:`; all three are the builder's
    contract preconditions (`agents/builder.md` has the authoritative list).
+   If you revise a plan after it was approved, every other plan in the batch that references
+   its contracts loses its approval and returns to this gate (`${CLAUDE_PLUGIN_ROOT}/AGENTS.md`
+   Guardrails 1). You hold that half: whether a declaring plan was revised after approval is a
+   git fact `architecture-reviewer` cannot see (it checks only what the plans themselves show).
 4. **Dispatch one `builder` per approved story**, each in its own git worktree +
    branch (built-in isolation; parallel = background agents), **on the model the
    user chose in the model-plan step**, passed at dispatch and recorded in the
@@ -261,11 +265,12 @@ once so a still editor is not mistaken for a stall. Live watching is with-me (Mo
    order (dev-rigor style from CLAUDE.md), loop to the signal, stop-and-ask on
    any plan conflict. Then run `code-reviewer` (plus `design-reviewer` if UI) on
    each result; the builder verifies findings before fixing (evidence-based
-   pushback allowed, you arbitrate). The review LOOPS until clean: fix ->
-   same reviewer re-verifies and regenerates the record -> repeat, under the
-   same stop condition as the plan loop (3 rounds, or two consecutive rounds of
-   the same defect class, per the ${CLAUDE_PLUGIN_ROOT}/AGENTS.md review-loop rule; a Critical is
-   always reported); the user sees first -> final score, not two separate asks.
+   pushback allowed, you arbitrate). The review LOOPS until the reviewer APPROVES
+   (its rubric's threshold, no criterion at 0): fix -> same reviewer re-verifies and
+   regenerates the record -> repeat, under the stop condition declared in
+   `${CLAUDE_PLUGIN_ROOT}/docs/eval-framework.md` (approve, 3 rounds, or two consecutive rounds
+   of the same defect class, whichever comes first; a Critical is always reported); the user sees first -> final
+   score, not two separate asks.
 
 ### B6. Present per story
 Before presenting, run `"${CLAUDE_PLUGIN_ROOT}/scripts/boundary-check.sh"` in the story's worktree (ENFORCED): if

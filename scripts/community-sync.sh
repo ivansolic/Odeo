@@ -37,7 +37,15 @@ if [[ -d "$COMMUNITY_DIR/.git" ]]; then
   # succeeds without moving HEAD and the user is told "refreshed" forever), and "refreshed"
   # is asserted by HEAD actually equalling that tip, not by an exit code.
   refresh_note=""
-  if ! git -C "$COMMUNITY_DIR" fetch -q 2>/dev/null; then
+  # Never write FETCH_HEAD where git allows it (2.29+): the session-start reminder dates a
+  # copy without a stamp by a non-empty FETCH_HEAD, and a fetch that succeeds before a
+  # failed refresh would leave one without a real sync. Detected from `git fetch -h`
+  # (read into a variable first: it exits 129, and `| grep -q` under pipefail can SIGPIPE).
+  fetch_opts=()
+  fetch_help="$(git fetch -h 2>&1)"
+  [[ "$fetch_help" == *write-fetch-head* ]] && fetch_opts=(--no-write-fetch-head)
+  # ${a[@]+...}: bash 3.2 (macOS) calls an EMPTY array unbound under set -u
+  if ! git -C "$COMMUNITY_DIR" fetch -q ${fetch_opts[@]+"${fetch_opts[@]}"} 2>/dev/null; then
     # The one arm that never moves the copy aside, because an unreachable remote is no
     # reason to touch a good mirror. The bounded residual: fetch also fails on a corrupt
     # .git, an auth failure under GIT_TERMINAL_PROMPT=0, and a dead remote URL, and all of

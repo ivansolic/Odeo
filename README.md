@@ -161,8 +161,8 @@ Odeo/
 │   ├── plugin.json           ← plugin manifest (version, language dialog)
 │   └── marketplace.json      ← makes this repo its own marketplace
 ├── hooks/
-│   ├── hooks.json            ← session start (baseline, language), /odeo:focus fence, end-of-turn sweep
-│   └── odeo-context.sh       ← delivers the global baseline to the session and to subagents
+│   ├── hooks.json            ← session start (baseline, language, old-install and outdated-guard notices, community reminder), /odeo:focus fence, end-of-turn sweep
+│   └── odeo-context.sh       ← delivers the global baseline to the session and to subagents, plus the session-start notices
 ├── skills/                   ← slash commands (you type /name); each is a SKILL.md
 │   ├── build/                ← /odeo:build stories: human-first, or architect->builder agents (you approve)
 │   ├── merge/                ← /odeo:merge rebase onto main, test, merge PR, cleanup
@@ -238,15 +238,21 @@ Odeo/
 ├── global/
 │   └── CLAUDE.md             ← user-global baseline, delivered at session start by the plugin
 ├── tests/
-│   └── *.test.sh             ← 39 suites, 1351 assertions. 26 of the 26 programs have their
+│   └── *.test.sh             ← 39 suites, 1399 assertions. 26 of the 26 programs have their
 │                               own suite; the remaining suites are cross-cutting rather than
 │                               per-program. The number counts the `ok` lines one full run
 │                               reports, so it moves with the machine: a skipped case takes its
 │                               assertions with it (running as root, a shell that refuses what
-│                               a case needs), and a machine that
-│                               runs a case this one skips counts MORE. The suites name what they
-│                               skipped rather than pass quietly, and the claims check reports the
-│                               count as UNVERIFIED there instead of calling it drift
+│                               a case needs, a test locale that is not installed; measured:
+│                               1399 on macOS, 1383 on the Linux CI, each with one skipped
+│                               case), and a machine that runs a case this one skips counts
+│                               MORE. The suites name what they skipped rather than pass
+│                               quietly, except the language-guard locale cases, which run
+│                               only for installed locales and print no SKIP line. Where a
+│                               suite printed a SKIP line, the claims check reports the count
+│                               as UNVERIFIED instead of calling it drift; the locale cases
+│                               print none, so a machine that differs only in its locales
+│                               sees a mismatch
 └── docs/
     ├── system-map.md         ← the catalog: every command/agent/loop by phase
     ├── eval-framework.md     ← rubrics, scorers, eval records, regression

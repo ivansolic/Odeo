@@ -24,7 +24,8 @@ FEEDBACK LOOP          repeated failures become lessons/knowledge or an /odeo:im
 
 ## Rubrics
 - A rubric = named criteria, scoring levels (0 to 2 per criterion), and a pass
-  threshold (for example: total >= 8/10 AND no criterion at 0).
+  threshold (for example: total >= 8/10 AND no criterion at 0), with one deliberate
+  exception, the plan rubric, which declares none (see the stop-condition section).
 - Rubrics are DATA, not agents. Each lives next to the skill that produces the
   artifact it judges: `skills/prd/rubric.md`, `skills/stories/rubric.md`.
   The skill rubric lives in `docs/skill-authoring-standard.md` (it judges skills
@@ -182,8 +183,8 @@ The review loop is an autonomous loop, so it needs a declared stop, not a human 
    no Critical. The normal exit.
 
    The number lives in the rubric and only there. It is not repeated in this file on
-   purpose: the totals differ by type (code and UI are scored out of 12, skills, agent
-   definitions and plans out of 10), and a second copy of a number is the exact shape of
+   purpose: the totals differ by type (code and UI are scored out of 12, skills and agent
+   definitions out of 10; the plan loop publishes no score), and a second copy of a number is the exact shape of
    drift this framework exists to prevent. Read it where it is declared:
 
    | Artifact | Rubric that declares the threshold |
@@ -192,7 +193,7 @@ The review loop is an autonomous loop, so it needs a declared stop, not a human 
    | UI / design | `agents/design-reviewer.md`, Scoring |
    | Skill | `docs/skill-authoring-standard.md`, the rubric section |
    | Agent definition | `docs/agent-rubric.md` |
-   | Implementation plan | `docs/plan-format.md`, the plan rubric (see the note below) |
+   | Implementation plan | no number: the loop clears on **clean** (see the note below) |
    | PM document | the rubric shipped with the producing skill (`agents/pm-reviewer.md` step 1) |
 
    **The plan loop is the one exit without a number.** `architecture-reviewer` writes no
