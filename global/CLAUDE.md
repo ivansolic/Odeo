@@ -26,6 +26,20 @@ The first-person voice ("I want…") is intentional, when you adopt this file,
 - Use plan mode for verification and investigation steps too, not only for building
 - Write a detailed spec upfront; don't work from ambiguity
 
+### Plan shape (human layer first)
+Plan layers: Summary, Why, Explanation, Technical, Review Focus, Verification, Out of scope
+- **Summary** (max 5 lines, no jargon): what I get, what changes for users, the biggest
+  risk, what I decide, how we will know it works.
+- **Why**: the problem, for whom, and why now.
+- **Explanation**: per change, before -> after -> who benefits, in plain words.
+- **Technical**, for you and the reviewers: exact files, the tests that must fail first,
+  the commands that verify.
+- **Review Focus**: 3 to 5 ways this could fail that the tasks do not test.
+- **Verification**: which tests and which reviewer, what "done" is, when you stop and ask.
+- **Out of scope**, in plain words.
+- Iterate the plan until it is clear to me before executing. Reviewers judge the work
+  against the plan, not against a retelling of the request.
+
 ### Self-Improvement Loop
 - After ANY correction from me: append the pattern to `.claude/tasks/lessons.md` in the current project
 - Phrase each lesson as a rule for yourself that prevents the same mistake

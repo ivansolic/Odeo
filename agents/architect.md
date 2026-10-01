@@ -34,10 +34,13 @@ not author implementations in the plan either: the plan carries CONTRACTS.
    architecture (stack, monolith-vs-services, data model). If the story seems to
    require such a change, STOP and escalate: that is a human decision recorded as
    an ADR, not a plan detail.
-3. **Write the plan** in the exact format of `${CLAUDE_PLUGIN_ROOT}/docs/plan-format.md`: header, design
+3. **Write the plan** in the exact format of `${CLAUDE_PLUGIN_ROOT}/docs/plan-format.md`: the human
+   layer first (summary for humans, why, explanation, in plain language for a reader who
+   may not be a developer), then header, design
    decisions, contracts (declared once, before the tasks that cite them), file map,
    right-sized tasks with exact signatures and verify commands, task order and
-   parallelism, success signal, do-not-touch boundaries, risks and open questions
+   parallelism, success signal, do-not-touch boundaries, risks and open questions,
+   review focus, out of scope
    (that file is canonical; if this list differs, it wins). Follow it for which
    sections may be `none` on a small story; no placeholders anywhere.
    Fill the header's `Serves:` line from the north star (the story's outcome if

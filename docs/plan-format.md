@@ -18,6 +18,16 @@ without an approved plan file.
 
 ## Structure
 
+Plan layers: Summary, Why, Explanation, Technical, Review Focus, Verification, Out of scope
+
+A plan has two readers: the human at the gate, who may not be a developer, and the builder,
+who executes it as a contract. So it leads with a HUMAN LAYER (Summary, Why, Explanation, in
+plain language, `AGENTS.md` "Talking to the user"), then the TECHNICAL layer (Header through
+Do-not-touch), then Review Focus, VERIFICATION (the Success signal) and Out of scope. The
+same list shapes session plans in `global/CLAUDE.md`; lint C17 keeps the two lists equal.
+The human layer is NOT contract: where it and the technical layer disagree, the technical
+layer wins and the disagreement is a finding for the plan review.
+
 ```markdown
 # Plan: <story id + name>
 approved: no            # flipped to yes by the human at the gate
@@ -53,6 +63,20 @@ model_plan:             # the judgment model and effort AS OF when the plan is w
 arch_review: pending    # set by the /odeo:build pipeline after the plan-review loop:
                         # "clean (vN, YYYY-MM-DD)" or "waived (human)" for
                         # standalone human-supplied plans. The builder requires it.
+
+## Summary for humans
+- What you get: <the outcome in one plain sentence, no file names, no jargon>
+- What changes for users: <what a user notices, or "nothing visible">
+- Biggest risk: <the one most likely way this disappoints, plainly>
+- What you decide: <the approval itself, plus any open choice the gate must settle>
+- How we will know it works: <the observable check, plainly>
+
+## Why
+<The problem, for whom, and why now, in two or three plain sentences.>
+
+## Explanation
+<Per change, one line: before -> after -> who benefits. Plain words; a technical term
+gets its plain meaning first.>
 
 ## Header
 Goal: <the story's outcome, one sentence>
@@ -140,9 +164,19 @@ Constraints: <copied verbatim from the spec/story. Boundaries live in the
 
 ## Risks / open questions
 <anything ambiguous the builder must ASK about rather than decide alone>
+
+## Review Focus
+<3 to 5 ways this could fail that the tasks do NOT test, each one line, so the reviewers
+know where to look hardest. Not a restatement of the tasks or of the Risks.>
+
+## Out of scope
+<What this plan deliberately does not do, in plain words, so nobody reads it in.>
 ```
 
 ## Rules
+- **The human layer is never `none`.** Summary, Why and Explanation are written even on a
+  one-task story, because the gate is where the human reads the plan; a small story makes
+  them short, not absent. Review Focus and Out of scope may be `none` with a one-line reason.
 - **No placeholders.** "TBD", "add error handling", "improve X" are plan failures.
   Exact paths, names, signatures, commands. A deliberate `none` plus its one-line
   reason is NOT a placeholder: it is an answered question, and it is how a small
@@ -227,6 +261,10 @@ them as a gate.
                    do-not-touch respected, escalations flagged
 5. Honesty         0 hides ambiguity / 1 some / 2 risks and open questions listed for the
                    builder to ask, not guess
+6. Human layer     0 Summary, Why or Explanation missing / 1 present but in jargon, or
+                   disagreeing with the technical layer / 2 a non-developer can say from
+                   it alone what they get, the biggest risk and what they decide; Review
+                   Focus names failure modes the tasks do not already test
 No threshold, and no score is published: the plan loop clears on CLEAN, meaning no real
 finding is left, and nothing downstream reads a number from here. The bar the reviewer
 works toward is every criterion at 2; anything below that is a finding to state, not a
