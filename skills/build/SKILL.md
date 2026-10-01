@@ -310,9 +310,11 @@ architect -> docs/plans/2026-07-14-usr-012-timer.md (approved: no)
 architecture-reviewer on the plan: fits inherited architecture, 1 note (shown)
 "Summary for humans (as written in the plan):
    What you get: a pause button that keeps your place in the timer.
+   What changes for users: a Pause button next to Start; nothing else moves.
    Biggest risk: a paused timer drifts if the tab sleeps.
    What you decide: approve, and whether a pause survives a page reload (the plan says no).
- File map + the plan-review trajectory below. Approve, change, or reject?"
+   How we will know it works: pause, wait a minute, resume; the time left is unchanged.
+ The file map and the plan-review trajectory follow. Approve, change, or reject?"
 > approve                                   (flips approved: yes)
 (builder runs headless in its worktree; nothing changes in your editor, you review at the gate)
 builder in ../dogfood-usr-012 -> success-signal checklist all pass

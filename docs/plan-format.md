@@ -195,7 +195,7 @@ line of why when the story is too small to fail in an untested way.>
  mapping is provably complete: the row count MUST equal the story's criterion count.>
 | Criterion (short quote, USR-00X) | Proven by |
 |---|---|
-| "a newly generated PRD body is in German" | `bash tests/localized-prose.test.sh` |
+| "shows which language is in force and where it comes from" (USR-00X) | `bash tests/language-status.test.sh` |
 
 ## Out of scope
 <What this plan deliberately does not do, in plain words, so nobody reads it in.>
