@@ -39,6 +39,10 @@ smarter.
 4. **Test it.** If you touched `init-project.sh`, run a scaffold in
    a throwaway dir and confirm it works (both `--ui` and `--no-ui`).
 5. **Open a PR** using the template. Describe the what and the why.
+6. **Leave the version alone.** Maintainers bump it at release time (a bump in a PR only
+   causes merge conflicts). While Odeo is 0.x: a **minor** bump (0.3 -> 0.4) for breaking
+   or structural changes, such as moving files users depend on; a **patch** bump
+   (0.3.1 -> 0.3.2) for fixes and small additive features.
 
 ## House style (please follow)
 

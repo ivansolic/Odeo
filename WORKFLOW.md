@@ -735,6 +735,7 @@ brake on the system; they're where its best information enters.
 | Loop | Natural moment | Interval |
 |---|---|---|
 | `/odeo:knowledge-refresh` | session start (quiet, only if due) | every 2-4 weeks |
+| `/odeo:sync-community` | session start, once, when the community copy is missing or its last sync is 14+ days old | about every 2 weeks, or any time (reminded at most once per 14 days) |
 | `/odeo:improve` | when evals show repeated drops | after ~3-5 same-criterion drops |
 | `/odeo:product-signal` | first session after the interval | ~weekly |
 | `/odeo:learn` + `/odeo:retro` | after `/odeo:merge`, or when you say you're wrapping up | per story / session |

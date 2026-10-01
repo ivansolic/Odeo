@@ -236,15 +236,17 @@ done < <(grep -n 'AGENTS\.md' "$ROOT"/skills/*/*.md "${AGENTS[@]:+${AGENTS[@]}}"
 #      names each one exactly as ${CLAUDE_PLUGIN_ROOT}/scripts/<name>, which Claude Code
 #      substitutes in those bodies only. Any other form is flagged: a bare name, a relative
 #      or absolute path, another variable. A skill's supporting file is read raw, where
-#      nothing is substituted, so it names no program at all. Anywhere in the published
+#      nothing is substituted, so it names no program at all; a supporting file is one under
+#      ROOT/skills/<x>/, never under a skills/ directory above ROOT. Anywhere in the published
 #      text, bin/<program> is the 0.2.x layout and is flagged, except the ~/bin/ and
 #      $HOME/bin/ copies of the old install, which are real. A name that is part of a longer
 #      name (my-x.sh, x.sh.bak, tests/x.test.sh) is not a program reference.
 #      The check runs in perl; if perl is missing or fails, C16 fails instead of passing.
 c16_scan() { # c16_scan <mode: body|public> <files...>: prints "file:line: reason" per hit
-  PROGRAMS="$PROGRAMS" MODE="$1" perl -ne '
+  PROGRAMS="$PROGRAMS" MODE="$1" SKILLS_DIR="$ROOT/skills/" perl -ne '
     BEGIN { @n = split " ", $ENV{PROGRAMS}; $re = join "|", map { quotemeta } @n; $re = "(?!)" unless @n }
-    my $support = ($ENV{MODE} eq "body" && $ARGV =~ m{/skills/[^/]+/} && $ARGV !~ m{/SKILL\.md$});
+    my $support = ($ENV{MODE} eq "body" && index($ARGV, $ENV{SKILLS_DIR}) == 0
+                   && substr($ARGV, length $ENV{SKILLS_DIR}) =~ m{^[^/]+/} && $ARGV !~ m{/SKILL\.md$});
     while (/($re)(?![\w\-]|\.\w)/g) {
       my $n = $1; my $pre = substr($_, 0, $-[1]);
       next if $pre =~ /[\w.\-]$/;    # part of a longer name; ./x ends in "/" and stays a hit

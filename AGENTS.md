@@ -300,7 +300,8 @@ variable is NOT set in the shell, so never type it into a command yourself.
   apply the actionable fixes, re-dispatch the SAME reviewer to verify and
   regenerate the record, and repeat, WITHOUT the human having to ask twice.
   The stop condition is declared ONCE, in `docs/eval-framework.md`, and is the
-  one named a few lines above in this file; it is not restated here. A second
+  one stated in the Agent-first workflow section near the top of this file; it is
+  not restated here. A second
   copy said "max score reached, or no actionable fixes remain, or 3 cycles",
   which DISAGREED with the source at every verdict between the threshold and
   the max: at an APPROVE of 10/12 the framework stops and that copy continued.

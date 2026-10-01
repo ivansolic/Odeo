@@ -34,10 +34,16 @@
 #       When the shared community knowledge (~/.claude/community-knowledge, the copy
 #       /odeo:sync-community keeps) is missing, or its last successful sync is 14 days old,
 #       asks Claude to offer /odeo:sync-community once, never to run it. The last sync is the
-#       stamp community-sync.sh writes on success, else the clone time (.git/HEAD). After a
-#       reminder it stays silent for 14 days, synced or not (state in CLAUDE_PLUGIN_DATA),
-#       so ignoring it is declining it; with no CLAUDE_PLUGIN_DATA it cannot remember and
-#       stays silent rather than repeat every session.
+#       stamp community-sync.sh writes on success; a copy without one is dated approximately,
+#       by its last fetch (a non-empty .git/FETCH_HEAD), else its clone time (.git/HEAD).
+#       Known gap, bounded: community-sync.sh fetches with --no-write-fetch-head where git
+#       supports it (2.29+), so its own attempts never write FETCH_HEAD. On older git, after
+#       a fetch run outside Odeo, or after a fetch by an earlier Odeo release, a copy with no
+#       stamp can carry a non-empty FETCH_HEAD without a completed sync, and the reminder can
+#       stay quiet up to 14 days. After a reminder it stays
+#       silent for 14 days, synced or not (state in CLAUDE_PLUGIN_DATA), so ignoring it is
+#       declining it; with no CLAUDE_PLUGIN_DATA it cannot remember and stays silent rather
+#       than repeat every session.
 #
 # Program paths: Claude Code does not substitute hook output, so every
 # ${CLAUDE_PLUGIN_ROOT} in the baseline and in the nudges below is replaced here with this
@@ -269,7 +275,14 @@ older_than_days() {
 community_state() {
   local last="$COMMUNITY_DIR/.git/odeo-last-sync"
   [ -d "$COMMUNITY_DIR/.git" ] || { echo missing; return 0; }
-  [ -f "$last" ] || last="$COMMUNITY_DIR/.git/HEAD"
+  # No stamp (synced only before it existed, or every sync since failed): the last fetch,
+  # else the clone. A fast-forward never rewrites HEAD, so HEAD alone would date a copy
+  # synced yesterday to its clone. Only a NON-EMPTY FETCH_HEAD counts: a failed fetch
+  # empties it to 0 bytes with a new date, which would make a failed sync look fresh.
+  if [ ! -f "$last" ]; then
+    last="$COMMUNITY_DIR/.git/HEAD"
+    [ -s "$COMMUNITY_DIR/.git/FETCH_HEAD" ] && last="$COMMUNITY_DIR/.git/FETCH_HEAD"
+  fi
   # neither can be dated: remind rather than stay silent forever about a copy that
   # community-sync.sh may not be able to refresh either
   [ -e "$last" ] || { echo stale; return 0; }
