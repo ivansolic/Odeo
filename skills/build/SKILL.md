@@ -229,8 +229,9 @@ once so a still editor is not mistaken for a stall. Live watching is with-me (Mo
    `Bash`, and the loop REGENERATES the artifact, so a later round would otherwise drop
    the field and the surviving artifact is the one the gate reads (`${CLAUDE_PLUGIN_ROOT}/AGENTS.md`
    Guardrails 7).
-3. **Present the plans for approval**: approach, file map, riskiest part, open
-   questions, + the plan-review trajectory. The user approves (flip
+3. **Present the plans for approval**: lead with each plan's `Summary for humans` as
+   written (its `Biggest risk` and `What you decide` ARE the riskiest part and the open
+   questions; do not restate them), then the file map and the plan-review trajectory. The user approves (flip
    `approved: yes`), asks for changes (back to the architect), or rejects.
    **No builder runs without an approved plan that carries an `arch_review:`
    line**, and a `builder_tier:` line in its `model_plan:`; all three are the builder's

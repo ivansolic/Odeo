@@ -24,6 +24,11 @@ need its criterion count; you are the last line for a dropped acceptance criteri
 because the builder executes the tasks it was given and will never notice one is
 missing), any code block inside an `Implement:` field missing the
 `illustrative-not-contract:` label, and any interface with two definition sites.
+Per criterion 6 (the human layer), check that every Design decision the human must settle,
+every open question in Risks and every deviation from the story also appears under the
+Summary's `What you decide`, and that the human layer does not contradict the technical
+one. A choice that lives ONLY in the technical layer is a finding: the human approves from
+the Summary and would never see it.
 For the human-floor rule that a plan approval covers only the plan as approved
 (${CLAUDE_PLUGIN_ROOT}/AGENTS.md Guardrails 1), flag what is READABLE from the plans: a reference into a
 plan outside this batch, one whose `approved:` is not yes, or one whose

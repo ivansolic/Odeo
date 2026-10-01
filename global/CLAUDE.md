@@ -28,17 +28,20 @@ The first-person voice ("I want…") is intentional, when you adopt this file,
 
 ### Plan shape (human layer first)
 Plan layers: Summary, Why, Explanation, Technical, Review Focus, Verification, Out of scope
-- **Summary** (max 5 lines, no jargon): what I get, what changes for users, the biggest
-  risk, what I decide, how we will know it works. "What I decide" names EVERY open choice
-  and every deviation from my request; none lives only in the technical part.
+- **Summary** (five items, each short, no jargon): what I get, what changes for users, the
+  biggest risk, what I decide, how we will know it works. "What I decide" names EVERY open
+  choice and every deviation from my request; none lives only in the technical part.
 - **Why**: the reason only (the problem, for whom, why now), not a restatement of the Summary.
 - **Explanation**: per change, before -> after -> who benefits, in plain words. It adds the
   difference each change makes, which the Summary does not give; it does not repeat it.
 - **Technical**, for you and the reviewers: exact files, the tests that must fail first,
   the commands that verify.
-- **Review Focus**: 3 to 5 ways this could fail that the tasks do not test.
+- **Review Focus**: 3 to 5 ways this could fail that the tasks do not test, or `none`
+  with a reason when the task is too small to fail in an untested way.
 - **Verification**: which tests and which reviewer, what "done" is, when you stop and ask.
 - **Out of scope**, in plain words.
+- The human layer is not the contract: if the Summary and the Technical part disagree,
+  fix the Summary, because the Technical part is what gets built.
 - Iterate the plan until it is clear to me before executing. Reviewers judge the work
   against the plan, not against a retelling of the request.
 
