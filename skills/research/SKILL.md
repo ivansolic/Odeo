@@ -30,13 +30,23 @@ confident single figure.
    size <year>", regional variants). Fetch the promising sources, don't answer
    from search snippets alone.
 4. **Triangulate every claim**: 2+ INDEPENDENT sources (two articles citing the
-   same press release = one source). Conflicting numbers are reported AS a
-   conflict with both values, never silently averaged.
+   same press release = one source; two pages of one vendor's docs = one source).
+   Count sources PER CLAIM: a note that backs several claims verifies only those it
+   gives two sources for. Conflicting numbers are reported AS a conflict with both
+   values, never silently averaged.
+4b. **Cite as you write**: put each source in a numbered note under Findings, with
+   its page or file and a short verbatim quote. Every claim cites its note(s) and
+   carries its confidence in words: **verified** (two independent sources, both
+   cited), **one source**, or **unverified** (no source you can name). A claim with
+   no note you can name is unverified, however sure you feel; never restate a
+   source from memory.
 5. **Write the report** to `docs/research/RES-NNN-<slug>.md` (NNN = next number
    after the highest existing `RES-` file there):
    ```
-   ## Question · ## Answer (3 sentences, plain language)
-   ## Findings (each claim: source A + source B, with the data's date)
+   ## Question · ## Answer (3 sentences, plain language; each factual clause
+      cites its note or says "unverified")
+   ## Findings (each claim: its note numbers + its confidence word, with the
+      data's date; the numbered notes with quotes follow the claims)
    ## Numbers (ranges + the method that produced each)
    ## Unverified (single-source or contested, labeled honestly)
    ## Implications for us (what this changes in PRD/priorities, 3 bullets max)
@@ -51,6 +61,8 @@ confident single figure.
    `.claude/tasks/todo.md`.
 
 ## Where it sits in the process
+The report is scored by `pm-reviewer` against `${CLAUDE_PLUGIN_ROOT}/skills/research/rubric.md`.
+
 Discovery. `/odeo:discover` offers it as an optional evidence step; `/odeo:prd` offers it
 when the Context section rests on assumptions ("shall I back this with
 /odeo:research?"). Fully standalone too, any question, any time, no phase required.
@@ -78,6 +90,8 @@ when the Context section rests on assumptions ("shall I back this with
 
 ## Rules for yourself
 - Two independent sources or `unverified`, no exceptions, no silent averaging.
+- No sentence states something as fact without citing a note; "one source" and
+  "unverified" are said where the claim appears, not only in the Unverified section.
 - Never fabricate a number, a source, or a quote (honesty guardrail; a
   fabricated citation is worse than no report).
 - Ranges with methods over point estimates; conflicts reported as conflicts.
