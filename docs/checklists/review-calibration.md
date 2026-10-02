@@ -116,10 +116,13 @@ Each scenario is one record:
    (only those) to a fresh scratch directory, under neutral names, and give the reviewer that
    directory. No grading rule, earlier output or this checklist may be within its reach.
 2. Dispatch the reviewer under test on that seed. For a reviewer changed on a branch the
-   installed plugin does not carry yet, copy the branch's agent file and every doc it cites
-   (for `architecture-reviewer`: agents/architecture-reviewer.md and docs/plan-format.md) into
-   the scratch directory of step 1, point a fresh agent at those copies and never at the
-   worktree, and record that it was not the dispatched agent.
+   installed plugin does not carry yet, copy the branch's agent file AND EVERY FILE IT NAMES
+   BY PATH (a `${CLAUDE_PLUGIN_ROOT}/...` reference included) into the scratch directory of
+   step 1, keeping their relative paths, then point a fresh agent at those copies and never
+   at the worktree, and record that it was not the dispatched agent. Derive the set from the
+   agent file each time rather than from a list here: a hand list goes stale with the agent.
+   (For `architecture-reviewer` at the time of writing that is AGENTS.md, docs/plan-format.md
+   and the agent file itself; an example, not the rule.)
 3. Compare its verdict against the expected finding and severity above, by the rules written
    here before the run.
 4. Record PASS/FAIL as an eval note. A FAIL is a real regression in the
