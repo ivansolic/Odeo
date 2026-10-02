@@ -15,27 +15,47 @@ technical layer is a plan-review finding, and /odeo:build B5.3 says the gate sho
 Summary as written. Both were reviewed as text. This note measures whether agents behave so.
 
 ## Run 2, BLIND (2026-10-02, format at ff6ee09, after narrowing the Risks class)
+Every number below is recomputed by
+`python3 docs/evals/calibration-runs/2026-10-02-blind/recount.py`, which reads the archived
+outputs in that directory (with GRADING.md, the rules written before the runs) and prints
+the runs behind each count. Its sentence matching is a heuristic; the run names let a human
+open each one and confirm.
+
 Each of the 12 runs had its own fresh `mktemp` directory holding ONLY the seed (as plan.md),
 the story (story.md), the agent's instruction file and every file it names by path, derived
 by grep of `${CLAUDE_PLUGIN_ROOT}/...` (reviewer: AGENTS.md, docs/plan-format.md; build:
-AGENTS.md, eval-framework.md, plan-format.md and four scripts). The copy set was grepped for
-the answer (`due_date`, the seed and scenario names) and holds none. Grading rules were
-written to a separate file outside those directories before the runs. Agents were told to
-read nothing outside their directory; nothing enforces that, so "blind" means the answer was
-not within the directory they were given.
+AGENTS.md, eval-framework.md, plan-format.md and four scripts). The format copied was ff6ee09,
+which already carries the stop-rule exclusion. The copy set was grepped for the answer
+(`due_date`, the seed and scenario names) and holds none. Agents were told to read nothing
+outside their directory; nothing enforces that, so "blind" means the answer was not within
+the directory they were given.
 
 | Scenario | Result |
 |---|---|
-| 3. decision missing from Summary | 5/5 PASS (4 Important, 1 Blocking; every remedy names `What you decide`) |
-| 4. technical decision left alone | 5/5 PASS (one run named it, as a strength) |
-| B5.3 gate shows the Summary | 2/2 PASS, by script: 5/5 bullets verbatim AND before the file map |
-| Risks stop rule asked for in `What you decide` (recorded) | 0/10 (run 1: 7/10 Important); three runs said in so many words that it is a builder stop rule, correctly kept out |
+| 3. decision missing from Summary | 5/5 PASS (r-a1..r-a4 Important, r-a5 Blocking; every remedy names `What you decide`) |
+| 4. technical decision left alone | 5/5 PASS (none asked; r-b1 named it, as a strength) |
+| B5.3 gate shows the Summary | 2/2 PASS: 5/5 bullets verbatim, and the first "file map" text comes after the Summary |
+| Risks stop rule asked for in the Summary or `What you decide` (recorded) | 0/10 (run 1: 7/10 Important); 5/10 (r-a3, r-a4, r-b2, r-b4, r-b5) said it is correctly kept out |
 
-The B5.3 script was shown to fail both ways on copies of the outputs: a one-word paraphrase
-(4/5) and a file map moved above the Summary. The copies sat in the job's scratch space, which
-is not durable, so after this job that check is self-attested.
-The narrowing removed the false request entirely while the planted catch held at 5/5, which
-is the evidence for keeping it.
+The B5.3 order check is a HEURISTIC: it finds the first "file map" text anywhere. A gate that
+says "see the file map below" above the Summary would fail a correct output, and a map under
+another label ("Files touched") would pass unchecked. It was shown to react on copies of the
+outputs, a one-word paraphrase (4/5) and a "File map first." line added at the top; those
+copies were not archived, so that demonstration is self-attested.
+
+What this run can and cannot say: the stop-rule requests fell from 7/10 to 0/10, but run 2
+changed the format AND the blinding together, so it cannot separate the two causes, and 10
+runs is a small sample. The planted catch held at 5/5 under both. The narrowing is kept on
+that evidence and on the format's own reading (Risks is defined as the builder's questions),
+not on the drop alone.
+
+Limits that still apply to run 2:
+- Contamination: the runs were in a session whose user global CLAUDE.md carries the same
+  plan-shape rule.
+- Simulated, not dispatched: fresh general-purpose agents followed the copied agent files; the
+  installed plugin (0.3.2) would have run the old reviewer.
+- The with-me test (a plan for a user without that global) was not run; it needs an isolated
+  environment.
 
 ## Run 1, not blind (history, superseded by run 2)
 
@@ -87,4 +107,5 @@ is the evidence for keeping it.
   while :73 puts "every open question in Risks" under `What you decide`. Options for the
   human: narrow :73 to questions the human answers; move builder stop rules out of Risks
   (redefining :184); or keep both and say once in the Summary that "a question may come back
-  to you during the build". A format decision, recorded here, not changed.
+  to you during the build". Since decided (ff6ee09): line 73 narrowed to the questions the human answers, and the
+  Risks template (now :186) marks each item `stop rule:` or `gate:`.
