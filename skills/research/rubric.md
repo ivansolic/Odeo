@@ -7,8 +7,10 @@ Definitions the criteria use:
 - **Claim:** any statement of fact in the report, including a cell or sentence marked
   unverified. Marking a claim "?" or "unverified" does not make it traced; it makes it honest.
 - **Independent sources:** neither one derives from the other (two articles citing one
-  press release are ONE source). For a product's own behaviour, its documentation and its
-  shipped code, binary or changelog count as two, when each states the claim itself.
+  press release are ONE source; two pages of the same vendor's documentation are ONE
+  source). For a product's own behaviour, its documentation and its shipped code, binary or
+  changelog count as two, when each states the claim itself.
+- **Load-bearing claim:** a claim that the Answer or an Implication rests on.
 - **Verified:** a claim backed by two independent sources, counted PER CLAIM. A note that
   backs several claims verifies only those it gives two sources for.
 
@@ -26,11 +28,13 @@ Definitions the criteria use:
                           leads with jargon
                         2 plain language first, the best supported answer to every part of
                           the question, and every factual clause matches its Findings, with
-                          its confidence (verified, one source, unverified) said
+                          its confidence (verified, one source, unverified) said in words or
+                          by citing a note that carries that label
 
-3. Traceability         0 most claims cannot be traced to any named source
-                        1 some claims cannot be traced to a named source, or sources are
-                          counted ("two sources") without being named
+3. Traceability         0 a load-bearing claim cannot be traced to any named source, or fewer
+                          than half of all claims can
+                        1 every load-bearing claim is traced, but other claims are not, or
+                          sources are counted ("two sources") without being named
                         2 every claim, verified or not, names its source (page or file plus
                           a quote or locator), and verified claims name two independent ones
 
@@ -44,7 +48,8 @@ Definitions the criteria use:
                         (N/A only when the report contains no numbers and no dated facts;
                           then rescale)
 
-5. Unverified labelling 0 single-source or contested claims presented as facts
+5. Unverified labelling 0 no Unverified section, or a load-bearing one-source or contested
+                          claim presented as fact
                         1 an Unverified section exists, but some one-source claims,
                           inferences or conflicts are missing from it, a conflict lacks its
                           values, or a label points the wrong way (an "upper bound" that the
@@ -53,7 +58,8 @@ Definitions the criteria use:
                           appears and listed under Unverified, conflicts with both values,
                           and each label is justified
 
-6. Evidence fit         0 the evidence answers a different question than the one asked
+6. Evidence fit         0 no source was read, or the evidence answers a different question than
+                          the one asked
                         1 some findings use a stand-in the report does not justify (region
                           for language, one product for a market), some sub-question has no
                           findings, or sources were read only as search snippets
@@ -68,7 +74,7 @@ Definitions the criteria use:
                         2 at most three bullets, each follows from cited Findings, each gives
                           its reason, and any that rests on unverified evidence says so
 
-8. Sources list         0 missing
+8. Sources list         0 missing, or no source was read
                         1 present, but access dates, versions or the pages actually used are
                           incomplete, or it does not say what it leaves out
                         2 grouped, with access dates and versions, and one line saying what
@@ -80,6 +86,9 @@ With criterion 4 N/A: total >= 11/14 AND the same two conditions.
 
 Notes for the scorer:
 - Quote the line behind every score.
+- Count claims for criterion 3 by listing the load-bearing ones first (the Answer's and the
+  Implications' factual clauses), then estimating the share of all claims that are traced.
+- A "decide later" Implication with no cited finding scores 1 on criterion 7.
 - The Answer condition exists because a report that labels everything correctly but
   answers nothing would otherwise pass on its other criteria.
 - Judge the evidence the report shows, never the world: without web access, do not call a
