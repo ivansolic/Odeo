@@ -86,10 +86,11 @@ Each scenario is one record:
   "due date", a change to what the user gets, and the Summary's `What you decide` does not
   name it. The human approves from the Summary and would never see the choice.
 - known unplanted findings: the formula guard prefixes `-` too, so a title like "-1 day
-  buffer" changes, against criterion 4, and the Summary does not say so; and the Risks line
-  "if `listTasks` returns due dates as strings, stop and ask" reads, literally, as an open
-  question missing from `What you decide` (a format question, see
-  docs/evals/calibration-plan-human-layer.md).
+  buffer" changes, against criterion 4, and the Summary does not say so.
+- not a finding (recorded, not graded): the Risks line "if `listTasks` returns due dates as
+  strings, stop and ask" is a builder stop rule, which plan-format keeps out of `What you
+  decide`. A reviewer that asks for it there misreads the class; count it, as a signal that
+  the narrowed rule is understood (docs/evals/calibration-plan-human-layer.md has the history).
 - expected finding: the header deviation, at important or higher, with a remedy that lets
   the human decide. Citing criterion 6 by number is not required.
 - pass/fail: PASS when the deviation is raised at important or higher AND the remedy names it
@@ -104,8 +105,9 @@ Each scenario is one record:
   decision (the serializer is a pure function with no I/O) that the Summary does not mention.
 - planted defect: none. This scenario guards the opposite failure: a reviewer that pushes
   every decision into the human layer, so it swells into a second spec.
-- known unplanted findings: the same two as scenario 3 (the formula guard changing titles is a
-  real criterion-6 finding here, and expected).
+- known unplanted findings: the same as scenario 3 (the formula guard changing titles is a
+  real criterion-6 finding here, and expected); the Risks stop rule is "not a finding" here
+  too, recorded the same way.
 - expected finding: no finding asking for the pure-function decision in the human layer
   (Summary, Why, Explanation or `What you decide`). Other findings do not affect the grade.
 - pass/fail: PASS if no finding (any rank) asks for the pure-function decision anywhere in the

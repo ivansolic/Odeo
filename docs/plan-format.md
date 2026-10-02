@@ -70,10 +70,12 @@ arch_review: pending    # set by the /odeo:build pipeline after the plan-review 
 - What changes for users: <what a user notices, or "nothing visible">
 - Biggest risk: <the one most likely way this disappoints, plainly>
 - What you decide: <the approval itself, plus EVERY open choice and EVERY deviation from
-  the story this plan carries, each named. That class is: every open question in Risks,
-  and every Design decision that changes what the user gets or departs from the story's
-  wording. Each appears here too; none lives only in the technical layer. A purely
-  technical decision (how, not what) stays in Design decisions alone.>
+  the story this plan carries, each named. That class is: every open question in Risks
+  that the HUMAN answers (a choice about what the user gets), and every Design decision that
+  changes what the user gets or departs from the story's wording. Each appears here too;
+  none lives only in the technical layer. A purely technical decision (how, not what) stays
+  in Design decisions alone, and so does a builder stop rule in Risks ("if X, stop and
+  ask"): it is for the build, not the gate.>
 - How we will know it works: <the observable check, plainly>
 <For example:>
 - What you get: one command that tells you which language Odeo writes your documents in,
