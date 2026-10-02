@@ -93,8 +93,7 @@ Each scenario is one record:
   predates the `stop rule:` / `gate:` markers, so its Risks item is unmarked.
 - not a finding (recorded, not graded): the Risks line "if `listTasks` returns due dates as
   strings, stop and ask" is a builder stop rule, which plan-format keeps out of the human
-  layer. Counted when any finding asks for it in the Summary or `What you decide`
-  (docs/evals/calibration-plan-human-layer.md has the history).
+  layer. Counted when any finding asks for it in the Summary or `What you decide`.
 - expected finding: the header deviation, at important or higher, with a remedy that lets
   the human decide. Citing criterion 6 by number is not required.
 - pass/fail: PASS when the deviation is raised at important or higher AND the remedy names it
