@@ -21,7 +21,8 @@ jobs:
       matrix:
         os: ${{ fromJSON(github.event.repository.private && '["ubuntu-latest"]' || '["ubuntu-latest","macos-latest"]') }}
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 10
+    # the suites run twice (once for their output, once for the README count), hence 20
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -39,3 +40,7 @@ jobs:
           done
           if [ -n "$failed" ]; then echo "failed suites:$failed"; exit 1; fi
           echo "all suites passed"
+      - name: documented counts
+        # the README's numbers, the assertion total included: a skipped case declares its count,
+        # so the total must match on this runner exactly as on the machine that wrote it
+        run: bash scripts/docs-claims-check.sh --assertions
