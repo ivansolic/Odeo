@@ -9,7 +9,14 @@ Definitions the criteria use:
 - **Independent sources:** neither one derives from the other (two articles citing one
   press release are ONE source; two pages of the same vendor's documentation are ONE
   source). For a product's own behaviour, its documentation and its shipped code, binary or
-  changelog count as two, when each states the claim itself.
+  changelog count as two, when each states the claim itself; a changelog is a dated release
+  record, wherever it is hosted.
+- **Note:** a numbered source entry under Findings: the page or file, plus a quote or a
+  locator from the source's body (not a search-result snippet).
+- **Traced:** a claim names at least one note a reader can find and check.
+- **Scoped:** the question states the scope, region, segment and period that apply to it
+  (the items of step 1 in the research skill).
+- **Dated fact:** a fact that can change over time (a price, a limit, a version, a count).
 - **Load-bearing claim:** a claim that the Answer or an Implication rests on.
 - **Verified:** a claim backed by two independent sources, counted PER CLAIM. A note that
   backs several claims verifies only those it gives two sources for.
@@ -31,14 +38,15 @@ Definitions the criteria use:
                           its confidence (verified, one source, unverified) said in words or
                           by citing a note that carries that label
 
-3. Traceability         0 a load-bearing claim cannot be traced to any named source, or fewer
-                          than half of all claims can
+3. Traceability         0 a load-bearing claim cannot be traced to any named source (sources
+                          counted but not named count as not traced), or fewer than half of
+                          all claims can
                         1 every load-bearing claim is traced, but other claims are not, or
                           sources are counted ("two sources") without being named
                         2 every claim, verified or not, names its source (page or file plus
                           a quote or locator), and verified claims name two independent ones
 
-4. Dates and methods    0 numbers or dated facts without dates, estimates passed as
+4. Dates and methods    0 numbers or dated facts with no data date, estimates passed as
                           measurements
                         1 access dates given, but some data dates, the version or commit of a
                           measured thing, or an estimate's method are missing
@@ -52,8 +60,9 @@ Definitions the criteria use:
                           claim presented as fact
                         1 an Unverified section exists, but some one-source claims,
                           inferences or conflicts are missing from it, a conflict lacks its
-                          values, or a label points the wrong way (an "upper bound" that the
-                          report never shows is one)
+                          values, or a label says the opposite of what the evidence shows
+                          (calling a figure an "upper bound" when the report never shows the
+                          true value is below it)
                         2 every one-source claim, inference and conflict is labelled where it
                           appears and listed under Unverified, conflicts with both values,
                           and each label is justified
@@ -62,10 +71,11 @@ Definitions the criteria use:
                           the one asked
                         1 some findings use a stand-in the report does not justify (region
                           for language, one product for a market), some sub-question has no
-                          findings, or sources were read only as search snippets
+                          findings, a cited source shows only a search snippet, or the
+                          promised depth was not delivered
                         2 the evidence measures what the question asks, each sub-question
-                          has findings, sources were read in full, and the promised depth
-                          was delivered
+                          has findings, every cited source carries a quote or locator from
+                          its body, and the promised depth was delivered
 
 7. Implications         0 none, or they do not follow from the Findings
                         1 present, but one rests on unverified evidence without saying so,
@@ -75,10 +85,13 @@ Definitions the criteria use:
                           its reason, and any that rests on unverified evidence says so
 
 8. Sources list         0 missing, or no source was read
-                        1 present, but access dates, versions or the pages actually used are
-                          incomplete, or it does not say what it leaves out
-                        2 grouped, with access dates and versions, and one line saying what
-                          the search did not cover (regions, paywalls, languages, lost notes)
+                        1 present, but not grouped, access dates, versions or the pages
+                          actually used are incomplete, or it does not say what it leaves out
+                        2 grouped, every page actually used listed with its access date and
+                          version, and one line saying what the search did not cover
+                          (regions, paywalls, languages, lost notes)
+
+A criterion that meets none of its 0 conditions and misses any of its 2 conditions scores 1.
 
 Threshold: total >= 13/16 AND no criterion at 0 AND Answer (criterion 2) = 2.
 With criterion 4 N/A: total >= 11/14 AND the same two conditions.
