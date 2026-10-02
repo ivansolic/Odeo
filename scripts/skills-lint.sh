@@ -304,15 +304,23 @@ fi
 # C18. The research rubric defines its confidence words once, in its Definitions; inside the
 #      criteria (the fenced block) the bare lowercase word "unverified" is flagged, because
 #      the defined word is narrower (no nameable source) and the criteria mean "not verified".
-#      Capitalised "Unverified" (the section and criterion name) is allowed. Honest limit: it
-#      guards this one word in this one file; it cannot tell whether any other term is used
-#      in the meaning its definition gives. A root without the rubric is skipped.
+#      Capitalised "Unverified" (the section and criterion name) is allowed. It fails CLOSED:
+#      a rubric without exactly one closed ``` fence is a violation, because a scan of no
+#      fence checks nothing. Honest limit: it guards this one word inside the fence of this
+#      one file (not the scorer notes after it, not a capitalised "Unverified" that means
+#      "not verified"), and cannot tell whether any other term keeps its defined meaning.
+#      A root without the rubric is skipped.
 rubric="$ROOT/skills/research/rubric.md"
 if [[ -f "$rubric" ]]; then
   while IFS= read -r hit; do
-    viol C18 "skills/research/rubric.md:$hit: a criterion says 'unverified'; say 'not verified', or define the narrower sense in Definitions"
-  done < <(awk '/^```/ { inside = !inside; next }
-                inside && /(^|[^A-Za-z])unverified([^A-Za-z]|$)/ { print NR }' "$rubric")
+    if [[ "$hit" == nofence ]]; then
+      viol C18 "skills/research/rubric.md has no single closed \`\`\` criteria block, so C18 cannot run"
+    else
+      viol C18 "skills/research/rubric.md:$hit: a criterion says 'unverified'; say 'not verified', or define the narrower sense in Definitions"
+    fi
+  done < <(awk '/^```/ { inside = !inside; fences++; next }
+                inside && /(^|[^A-Za-z])unverified([^A-Za-z]|$)/ { print NR }
+                END { if (fences != 2) print "nofence" }' "$rubric")
 fi
 
 # C9. Every SKILL.md declares a non-empty description

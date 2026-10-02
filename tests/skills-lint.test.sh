@@ -341,7 +341,8 @@ rm -rf "$d"
 # lowercase word "unverified", whose defined meaning is narrower (no nameable source). Three
 # review rounds found the two meanings mixed after edits (2026-10-02); two copies of a
 # definition drift, so the criteria may not restate it. Capitalised "Unverified" names the
-# section and the criterion and is allowed. Observed failing before C18 existed.
+# section and the criterion and is allowed. Observed failing before C18 existed; mutations
+# observed failing: whole-file scan, case-insensitive, rule removed, no fail-closed END check.
 rubric_root() { # rubric_root <criteria line>: a clean root plus a research rubric
   local d; d="$(clean_root)"; mkdir -p "$d/skills/research"
   printf -- '# Research rubric\n\nDefinitions:\n- **Unverified:** no nameable source.\n- a claim marked unverified is honest\n\n```\n1. Answer  0 missing\n          1 %s\n```\n' "$1" > "$d/skills/research/rubric.md"
@@ -353,6 +354,15 @@ d="$(rubric_root 'rests on not verified evidence; see the Unverified section')"
 check "C18 control: not verified and the capitalised section name pass" 0 "$d"; rm -rf "$d"
 d="$(clean_root)"
 check "C18 control: a root without a research rubric is skipped" 0 "$d"; rm -rf "$d"
+# The check must fail CLOSED: a rubric whose criteria block is not a closed ``` fence (fence
+# removed, `~~~`, indented, turned into a table) would otherwise be scanned for nothing and pass.
+# Observed failing (2026-10-02, code review round 1): `~~~` plus "unverified" passed with rc 0.
+d="$(clean_root)"; mkdir -p "$d/skills/research"
+printf -- '# Research rubric\n\n~~~\n1. Answer  1 rests on unverified evidence\n~~~\n' > "$d/skills/research/rubric.md"
+check "C18 flags a rubric whose criteria are not in a closed backtick fence" 1 "$d"; rm -rf "$d"
+d="$(clean_root)"; mkdir -p "$d/skills/research"
+printf -- '# Research rubric\n\n```text\n1. Answer  1 rests on unverified evidence\n```\n' > "$d/skills/research/rubric.md"
+check "C18 flags a criterion inside a fence with a language tag" 1 "$d"; rm -rf "$d"
 
 # FINAL: the real repo must pass its own lint
 check "the actual repo passes its own invariants" 0 "$TEST_DIR/.."
