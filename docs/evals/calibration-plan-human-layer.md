@@ -3,7 +3,7 @@ type: calibration
 date: 2026-10-02
 artifact: docs/checklists/review-calibration.md scenarios 3 and 4, skills/build/SKILL.md B5.3
 scorer: the orchestrating session (Claude), by rules written before the runs
-model: claude-opus-5-5[1m]
+model: claude-opus-5-5[1m] (the scorer, and the 12 agents, which inherited the session model)
 model_tier: strongest
 reps: 5, 5, 2
 ---
@@ -27,7 +27,8 @@ Summary as written. Both were reviewed as text. This note measures whether agent
 - B5.3 runs: fresh agents acting as the /odeo:build orchestrator at B5 step 3 per
   skills/build/SKILL.md, given plan-usr-014-b.md as reviewed clean. A script checked that each
   of the five Summary bullets appears verbatim (whitespace aside); a one-word paraphrase of one
-  bullet in a copy of a run output made it report FAIL (4/5), so it can fail. That the Summary
+  bullet in a copy of a run output made it report FAIL (4/5), so it can fail (self-attested:
+  the paraphrased copy was not kept). That the Summary
   comes before the file map was checked BY HAND (line numbers), not by the script.
 
 ## Limits, stated

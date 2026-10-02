@@ -88,7 +88,8 @@ Each scenario is one record:
 - known unplanted findings: the formula guard prefixes `-` too, so a title like "-1 day
   buffer" changes, against criterion 4, and the Summary does not say so; and the Risks line
   "if `listTasks` returns due dates as strings, stop and ask" reads, literally, as an open
-  question missing from `What you decide` (a format question, see the 2026-10-02 note).
+  question missing from `What you decide` (a format question, see
+  docs/evals/calibration-plan-human-layer.md).
 - expected finding: the header deviation, at important or higher, with a remedy that lets
   the human decide. Citing criterion 6 by number is not required.
 - pass/fail: PASS when the deviation is raised at important or higher AND the remedy names it
@@ -114,9 +115,11 @@ Each scenario is one record:
 1. Run BLIND, per the blind scoring in `docs/eval-framework.md`: copy the seed and its story
    (only those) to a fresh scratch directory, under neutral names, and give the reviewer that
    directory. No grading rule, earlier output or this checklist may be within its reach.
-2. Dispatch the reviewer under test on that seed (for a reviewer changed on a branch the
-   installed plugin does not carry yet, have a fresh agent follow the branch's agent file,
-   and record that it was not the dispatched agent).
+2. Dispatch the reviewer under test on that seed. For a reviewer changed on a branch the
+   installed plugin does not carry yet, copy the branch's agent file and every doc it cites
+   (for `architecture-reviewer`: agents/architecture-reviewer.md and docs/plan-format.md) into
+   the scratch directory of step 1, point a fresh agent at those copies and never at the
+   worktree, and record that it was not the dispatched agent.
 3. Compare its verdict against the expected finding and severity above, by the rules written
    here before the run.
 4. Record PASS/FAIL as an eval note. A FAIL is a real regression in the
