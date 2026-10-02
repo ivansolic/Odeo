@@ -2,7 +2,7 @@
 artifact: architecture-reviewer
 type: agent-definition
 branch: test/plan-human-layer-behavior
-reviewed_commit: 50226e7
+reviewed_commit: 59d9183
 artifact_version: 8
 date: 2026-10-02
 scorer: agent-reviewer
@@ -15,69 +15,58 @@ verdict: PASS
 previous_total: 10/10
 ---
 
-# Agent: architecture-reviewer (round 9, at 50226e7)
+# Agent: architecture-reviewer (round 10, re-anchor at 59d9183)
 
-Scoped re-review of the round-8 Minor fix on `test/plan-human-layer-behavior`. The dispatcher
-says the branch is now rebased onto main 76a72a6. I re-read the whole file at this commit.
-Outside the criterion-6 paragraph (now `:28-35`) it matches the text scored at e1e28d2, apart
-from line numbers shifting by one below it. In `docs/plan-format.md` at the same commit I
-checked the class (`:72-78`), the Risks template (`:185-189`) and criterion 6 (`:298-304`).
+Re-anchor. The dispatcher states that `agents/architecture-reviewer.md` is unchanged since
+50226e7. I re-read the whole file at 59d9183 and it matches the text scored in round 9, line
+for line, including the criterion-6 paragraph at `:28-35`. `artifact_version` stays 8.
 
-Method note: this reviewer holds no Bash. The sha `50226e7` was supplied by the dispatcher;
-the rebase onto 76a72a6 is the dispatcher's claim. The tier is the one my context reports
-(Opus class), not re-resolved against a live lineup in this run (no web tool).
+One change this agent depends on was checked: plan-format criterion 5 (`plan-format.md:296-297`)
+now reads "risks and open questions listed, for the builder to ask (`stop rule:`) or the human
+to decide (`gate:`), not guess". The other changes named by the dispatcher (the calibration
+archive moved out of `docs/evals/`, wording in the checklist and the note) touch nothing this
+agent cites, and this record no longer cites the archive path.
 
-## Scores
+Method note: this reviewer holds no Bash. The sha `59d9183` was supplied by the dispatcher;
+"unchanged" and the list of other changes are the dispatcher's claims. I confirmed the first
+by reading, not by diffing. The tier is the one my context reports (Opus class), not
+re-resolved against a live lineup in this run (no web tool).
+
+## Does criterion 5's new wording contradict `:29-35`? No.
+- Criterion 5 asks that each Risks item be LISTED with the right owner: the builder asks
+  (`stop rule:`), or the human decides (`gate:`). Criterion 6, as echoed at `:29-35`, asks
+  where each one SURFACES: a `gate:` item also under `What you decide`, a stop rule not. The
+  two criteria split the same two kinds the same way, so they complement each other.
+- The ownership words line up across all three places. plan-format's class (`:73-78`), the
+  Risks template (`:186-189`) and criterion 5 (`:296-297`) all have "the human answers / the
+  human to decide" for `gate:` and "the builder must ASK / the builder to ask" for
+  `stop rule:`. The agent's "the human answers ... `gate:`" (`:29-30`) and "A builder stop rule
+  ... is not a finding" (`:34-35`) match both.
+- Criterion 5 does not settle the open label-versus-content Minor. It names the labels but
+  says nothing about an item whose label and content disagree, so that item stays open as
+  recorded.
+
+## Scores (all carried, evidence re-checked at 59d9183)
 
 - **trigger/description clarity: 2**, `:3` unchanged.
 - **tool least-privilege: 2**, `tools: Read, Grep, Glob` (`:4`), matching AGENTS.md
   Guardrails 5 `[E]`; `:48-49` keeps the loop closed.
-- **role boundary: 2**, still a detector: a technical-layer-only choice "is a finding"
-  (`:33-34`), a stop rule "is not a finding" (`:34-35`); the reviewer decides neither.
+- **role boundary: 2**, detector, not decider (`:33-35`).
 - **policy conformance: 2**, `effort: high`, no `model:` line, C11 clean.
-- **instruction quality: 2**, the copied class now matches the canonical one exactly, and the
-  paragraph still applies criterion 6 "in full ... which wins" (`:28-29`).
+- **instruction quality: 2**, the copied class is exact against `plan-format.md:73-78` and
+  consistent with criteria 5 and 6.
 
 ## Total: 10/10   ## Verdict: PASS (threshold >= 8/10, no criterion at 0)
 
 ## Ceiling: 10/10, reached
 The Minor and Nits below are open; none blocks the ceiling.
 
-## Does the copy now match plan-format? Yes, in meaning, every member.
-
-| plan-format.md | architecture-reviewer.md |
-|---|---|
-| `:73-74` "every open question in Risks that the HUMAN answers (a choice about what the user gets)" | `:29-30` "every open question in Risks that the human answers (a choice about what the user gets; plan-format marks it `gate:`)" |
-| `:74-75` "every Design decision that changes what the user gets or departs from the story's wording" | `:31` identical |
-| `:76-78` "a builder stop rule in Risks ('if X, stop and ask') stay[s] in the technical layer alone" | `:34-35` "A builder stop rule in Risks ('if X, stop and ask') is not such a choice and is not a finding." |
-| `:186-189` "`stop rule:` ... it stays here. `gate:` an open question the human answers before approval (a choice about what the user gets); it is also named under `What you decide`." | the `gate:` pointer at `:30` agrees |
-
-The only addition, "plan-format marks it `gate:`", points at the canonical marker and adds no
-meaning of its own. The "purely technical decision" clause is not copied; the positive class
-implies it, as before. Criterion 6 at `:298-304` has no new contradiction: a `stop rule:` item
-is for the build, a `gate:` item is a gate decision, and level 1 fails exactly a gate decision
-left only in the technical layer.
-
-## Closure verified
-- **CLOSED (was Minor 1), the gloss that defines "the human answers" was missing.** It is
-  restored word for word at `:29-30`.
-- **CLOSED (out of scope, plan-format), the stop rule placed in "Design decisions".**
-  `plan-format.md:76-78` now reads "stay in the technical layer alone".
-- **CLOSED (out of scope, plan-format), two kinds of Risks item with one definition.** The
-  Risks template now marks each item `stop rule:` or `gate:` (`:186-189`).
-
-## Open findings
-- **Minor, new, `:29-35`, label versus meaning.** The new markers are applied by the plan's
-  author, and nothing in the paragraph says which one wins when the label and the content
-  disagree. A product choice marked `stop rule:` would match ":34-35 is not a finding" if the
-  reviewer keys on the label. An unmarked Risks item has no stated treatment either, even though
-  plan-format requires "each item marked". The paragraph's own wording puts meaning first ("a
-  choice about what the user gets"), so a careful reading already gets this right. This is the
-  failure shape the marker introduces, not one measured. Fix, one sentence after `:35`: "Judge
-  by the content, not the label: an unmarked Risks item, or a `stop rule:` that is really a
-  choice about what the user gets, is a finding."
-- **Nit, new, `:30`, a short line** ("about what the user gets; plan-format marks it `gate:`),
-  and every"). Rewrap `:29-32`.
+## Open (recorded, not taken)
+- **Minor, `:29-35`, label versus content.** Nothing says that an unmarked Risks item, or a
+  `stop rule:` that is really a choice about what the user gets, is judged by its content.
+  Author's decision: recorded as open, not taken. Optional one-sentence fix as stated in
+  round 9.
+- **Nit, `:30`, a short line.** Rewrap `:29-32`.
 - **Nit, carried, author-declined, `:37-49`**, one paragraph carries three duties.
 - **Nit, carried, author-declined, `:45-46`**, leftover break ("... non-plan architectural
   review. On a / re-review ...").
@@ -93,17 +82,15 @@ Round 4 (4f001fa): 10/10 PASS, 2 Minor + 2 Nits.
 Round 5 (e5dbea0): 10/10 PASS, both Minors closed; 3 cosmetic Nits open.
 Round 6 (babe300): 10/10, re-anchor.
 Round 7 (2859827): 10/10, re-anchor after rebase onto 95d17e3.
-Round 8 (e1e28d2, branch test/plan-human-layer-behavior): 10/10, 1 Minor (missing gloss) + 2
-Nits.
-Round 9 (50226e7, rebased onto 76a72a6): 10/10 PASS. Missing-gloss Minor closed, both
-plan-format out-of-scope items closed; 1 Minor new (label versus meaning) + 1 Nit new + 2 Nits
-carried. No criterion moved.
-Stop condition (eval-framework): APPROVE at max. Under the framework the loop may stop here.
-The label-versus-meaning Minor is a one-sentence fix if the author wants it, and does not need
-another round to verify beyond a narrow re-read.
+Round 8 (e1e28d2, branch test/plan-human-layer-behavior): 10/10, 1 Minor + 2 Nits.
+Round 9 (50226e7, rebased onto 76a72a6): 10/10, gloss Minor closed; 1 Minor new + 3 Nits.
+Round 10 (59d9183): 10/10 PASS, re-anchor; artifact unchanged; criterion 5's new wording
+checked, consistent. Nothing moved.
+Stop condition (eval-framework): PASS at max; the loop for this artifact is done. The open
+Minor is the author's recorded decision.
 
 ## Vs previous version
-Held at 10/10, no regression. The copied class now matches the canonical text exactly.
+Identical artifact, identical score. Only `reviewed_commit:` moved (50226e7 -> 59d9183).
 
 ## History
 - 2026-08-04 v2 (f8f8da6): first per-file review, after the plan-review mode gained the
@@ -125,6 +112,9 @@ Held at 10/10, no regression. The copied class now matches the canonical text ex
   narrowed, stop-rule carve-out added, paragraph rewrapped. Round 8 = 10/10 PASS, held;
   line-width Nit closed; missing-gloss Minor new.
 - 2026-10-02 v8 (50226e7, rebased onto main 76a72a6): gloss restored with a `gate:` pointer;
-  plan-format's Risks template marks `stop rule:` / `gate:` and its stop-rule clause now says
-  "technical layer". Round 9 = 10/10 PASS, held; gloss Minor closed; label-versus-meaning
-  Minor and a short-line Nit new.
+  plan-format's Risks template marks `stop rule:` / `gate:`. Round 9 = 10/10 PASS, held; gloss
+  Minor closed; label-versus-content Minor and a short-line Nit new.
+- 2026-10-02 v8 re-anchored (59d9183): artifact unchanged, re-read in full; plan-format
+  criterion 5 now names `stop rule:` and `gate:`, checked against `:29-35`, consistent; the
+  calibration archive moved out of docs/evals, which this record no longer cites. Round 10 =
+  10/10 PASS, held; label-versus-content Minor recorded as the author's open item.
