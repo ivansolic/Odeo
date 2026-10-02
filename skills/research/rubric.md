@@ -89,6 +89,8 @@ Notes for the scorer:
 - Count claims for criterion 3 by listing the load-bearing ones first (the Answer's and the
   Implications' factual clauses), then estimating the share of all claims that are traced.
 - A "decide later" Implication with no cited finding scores 1 on criterion 7.
+- Criterion 1: mode and depth may be stated in the frontmatter; a key term counts as defined
+  when the report states what it means in this report (an inline gloss is enough).
 - The Answer condition exists because a report that labels everything correctly but
   answers nothing would otherwise pass on its other criteria.
 - Judge the evidence the report shows, never the world: without web access, do not call a
