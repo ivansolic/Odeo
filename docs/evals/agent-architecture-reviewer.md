@@ -2,8 +2,8 @@
 artifact: architecture-reviewer
 type: agent-definition
 branch: test/plan-human-layer-behavior
-reviewed_commit: e1e28d2
-artifact_version: 7
+reviewed_commit: 50226e7
+artifact_version: 8
 date: 2026-10-02
 scorer: agent-reviewer
 model: claude-opus-5-5[1m]
@@ -15,122 +15,75 @@ verdict: PASS
 previous_total: 10/10
 ---
 
-# Agent: architecture-reviewer (round 8, at e1e28d2)
+# Agent: architecture-reviewer (round 9, at 50226e7)
 
-Scoped review of the criterion-6 paragraph (`:28-34`) on `test/plan-human-layer-behavior`,
-which narrows the Risks half of the `What you decide` class and adds a carve-out for builder
-stop rules. I re-read the whole file at this commit. Outside `:28-34` it matches the text
-scored at 2859827, apart from line numbers shifting by two below the paragraph. I checked the
-canonical text in `docs/plan-format.md` at the same commit: the class at `:72-78`, the Risks
-section definition at `:185-186`, and criterion 6 at `:295-301`.
+Scoped re-review of the round-8 Minor fix on `test/plan-human-layer-behavior`. The dispatcher
+says the branch is now rebased onto main 76a72a6. I re-read the whole file at this commit.
+Outside the criterion-6 paragraph (now `:28-35`) it matches the text scored at e1e28d2, apart
+from line numbers shifting by one below it. In `docs/plan-format.md` at the same commit I
+checked the class (`:72-78`), the Risks template (`:185-189`) and criterion 6 (`:298-304`).
 
-Method note: this reviewer holds no Bash. The sha `e1e28d2` was supplied by the dispatcher;
-files were read in the worktree `plan-behavior-tests`. The tier is the one my context reports
+Method note: this reviewer holds no Bash. The sha `50226e7` was supplied by the dispatcher;
+the rebase onto 76a72a6 is the dispatcher's claim. The tier is the one my context reports
 (Opus class), not re-resolved against a live lineup in this run (no web tool).
 
 ## Scores
 
-- **trigger/description clarity: 2**, `:3` unchanged: plan-review mode, the Guardrails-1
-  detector duty, and "Not for shipped code (code-reviewer), UI (design-reviewer), or PM
-  documents (pm-reviewer)."
+- **trigger/description clarity: 2**, `:3` unchanged.
 - **tool least-privilege: 2**, `tools: Read, Grep, Glob` (`:4`), matching AGENTS.md
-  Guardrails 5 `[E]`; `:47-48` keeps the loop closed ("You cannot write files").
-- **role boundary: 2**, the change only narrows what the reviewer reports. "A builder stop
-  rule in Risks ('if X, stop and ask') is not such a choice and is not a finding" (`:33-34`)
-  takes away a false finding; it gives the reviewer no new decision to make for the human. The
-  reviewer still surfaces every human-answered choice and still decides none of them.
-- **policy conformance: 2**, `effort: high` (`:5`), no `model:` line, C11 clean, no
-  `isolation:` needed.
-- **instruction quality: 2**, the paragraph still applies criterion 6 "in full as written in
-  ... plan-format.md, which wins" (`:28-29`). The class echo matches the canonical members, and
-  the carve-out is stated more plainly than in the canonical text. One Minor below: the echo
-  drops the gloss that tells the reviewer which Risks questions count. It does not contradict
-  anything.
+  Guardrails 5 `[E]`; `:48-49` keeps the loop closed.
+- **role boundary: 2**, still a detector: a technical-layer-only choice "is a finding"
+  (`:33-34`), a stop rule "is not a finding" (`:34-35`); the reviewer decides neither.
+- **policy conformance: 2**, `effort: high`, no `model:` line, C11 clean.
+- **instruction quality: 2**, the copied class now matches the canonical one exactly, and the
+  paragraph still applies criterion 6 "in full ... which wins" (`:28-29`).
 
 ## Total: 10/10   ## Verdict: PASS (threshold >= 8/10, no criterion at 0)
 
 ## Ceiling: 10/10, reached
-Every criterion is at its described top level. The Minor and Nits below are open; none blocks
-the ceiling.
+The Minor and Nits below are open; none blocks the ceiling.
 
-## The three checks asked for
+## Does the copy now match plan-format? Yes, in meaning, every member.
 
-**1. Does the echo match plan-format's class in meaning? Yes for both members and the
-carve-out, with one gloss missing.**
-
-| plan-format.md:73-78 | architecture-reviewer.md:29-34 |
+| plan-format.md | architecture-reviewer.md |
 |---|---|
-| "every open question in Risks that the HUMAN answers (a choice about what the user gets)" | "every open question in Risks that the human answers" |
-| "every Design decision that changes what the user gets or departs from the story's wording" | identical |
-| "A purely technical decision (how, not what) stays in Design decisions alone" | not echoed; implied by the positive class |
-| "and so does a builder stop rule in Risks ('if X, stop and ask'): it is for the build, not the gate" | "A builder stop rule in Risks ('if X, stop and ask') is not such a choice and is not a finding." |
+| `:73-74` "every open question in Risks that the HUMAN answers (a choice about what the user gets)" | `:29-30` "every open question in Risks that the human answers (a choice about what the user gets; plan-format marks it `gate:`)" |
+| `:74-75` "every Design decision that changes what the user gets or departs from the story's wording" | `:31` identical |
+| `:76-78` "a builder stop rule in Risks ('if X, stop and ask') stay[s] in the technical layer alone" | `:34-35` "A builder stop rule in Risks ('if X, stop and ask') is not such a choice and is not a finding." |
+| `:186-189` "`stop rule:` ... it stays here. `gate:` an open question the human answers before approval (a choice about what the user gets); it is also named under `What you decide`." | the `gate:` pointer at `:30` agrees |
 
-The dropped parenthetical, "(a choice about what the user gets)", matters more than its
-length. A stop rule is also answered by the human in the end: the builder stops and asks
-them. So "that the human answers" taken alone does not separate the two kinds of Risks item.
-The gloss does, and so does the agent's own carve-out sentence for the common case. Because
-the paragraph defers to plan-format, the meaning is preserved, but the test the reviewer
-applies at the point of use is one step less exact than the canonical one. See Minor 1.
-
-**2. Role boundary holds.** See the score above. The narrowing reduces findings and moves no
-decision away from the human.
-
-**3. No new contradiction with criterion 6 (`plan-format.md:295-301`).** Level 1 fails a plan
-for "leaving a gate decision or story deviation only in the technical layer". A stop rule is
-by definition answered during the build, not at the gate ("it is for the build, not the
-gate"), so excluding it is consistent with level 1. Level 2's "EVERY decision they make" sits
-in the same criterion as "gate decision" and reads as gate decisions. Under that reading it
-also holds. One residual, not a contradiction and outside this file: nothing tells the human
-at the gate that a stop rule may bring a question back to them mid-build. That was option 3 in
-the calibration note, and it was not taken. It is a format choice, recorded here so it is not
-lost.
-
-## Open findings
-- **Minor 1, `:29`, the echo drops the gloss that defines "the human answers".** Fix: write
-  "every open question in Risks that the human answers (a choice about what the user gets)",
-  copying `plan-format.md:74`. That makes the echo word for word, and the classifier sits where
-  the reviewer applies it. The calibration (0/10 false requests) suggests behaviour is already
-  right with the carve-out, so this is about exactness, not a measured failure.
-- **Nit, carried, `:36-48`**, the last plan-review paragraph carries three duties (Guardrails-1
-  readable checks, vocabulary, re-review discipline).
-- **Nit, carried, `:44-45`**, rewrap artifact ("... non-plan architectural review. On a /
-  re-review ...").
+The only addition, "plan-format marks it `gate:`", points at the canonical marker and adds no
+meaning of its own. The "purely technical decision" clause is not copied; the positive class
+implies it, as before. Criterion 6 at `:298-304` has no new contradiction: a `stop rule:` item
+is for the build, a `gate:` item is a gate decision, and level 1 fails exactly a gate decision
+left only in the technical layer.
 
 ## Closure verified
-- **CLOSED (was Nit), line width at `:28`/`:31`.** The paragraph is rewrapped to about 92
-  columns. `:28` is still long because of the `${CLAUDE_PLUGIN_ROOT}` path, which is the same
-  pattern as `:17` and `:37`, so I count it as the file's convention, not a defect.
+- **CLOSED (was Minor 1), the gloss that defines "the human answers" was missing.** It is
+  restored word for word at `:29-30`.
+- **CLOSED (out of scope, plan-format), the stop rule placed in "Design decisions".**
+  `plan-format.md:76-78` now reads "stay in the technical layer alone".
+- **CLOSED (out of scope, plan-format), two kinds of Risks item with one definition.** The
+  Risks template now marks each item `stop rule:` or `gate:` (`:186-189`).
 
-## Out of scope (for the dispatcher)
-- **`docs/plan-format.md:76-78`, the stop-rule clause misplaces the stop rule.** It says "A
-  purely technical decision ... stays in Design decisions alone, and so does a builder stop rule
-  in Risks". Read literally, that says the stop rule stays in Design decisions, but it lives in
-  Risks. The intent ("stays out of the Summary") is clear from context. Better wording: "...
-  stays in the technical layer alone". The agent's own sentence (`:33-34`) does not inherit
-  the slip.
-- **Risks now holds two kinds of item** under one definition (`plan-format.md:186`, "anything
-  ambiguous the builder must ASK about"): questions the human answers at the gate, and stop
-  rules for the build. The class text tells them apart, but the section template does not. A
-  plan author could mark each item (for example "gate:" or "stop rule:"). That is a format
-  choice, not this agent's.
-
-## On the calibration evidence
-I read `docs/evals/calibration-plan-human-layer.md` as supporting data, not as something that
-moves a score (this rubric scores the definition). It reports scenario 3 caught 5/5,
-scenario 4 with no false flag 5/5, and false stop-rule requests falling from 7/10 (run 1) to
-0/10 (run 2, blind). Limits to keep in view:
-- The note itself says run 2 was against the format at ff6ee09, not e1e28d2. It does not say
-  whether the agent text it ran included this exact carve-out sentence.
-- Its runs were general-purpose agents told to follow the files, not the dispatched agent. The
-  note states this itself for run 1.
-- Ordering and blindness are self-attested.
-
-None of this weakens the definition. It means the measured behaviour describes this text
-only to the extent ff6ee09 carried it.
+## Open findings
+- **Minor, new, `:29-35`, label versus meaning.** The new markers are applied by the plan's
+  author, and nothing in the paragraph says which one wins when the label and the content
+  disagree. A product choice marked `stop rule:` would match ":34-35 is not a finding" if the
+  reviewer keys on the label. An unmarked Risks item has no stated treatment either, even though
+  plan-format requires "each item marked". The paragraph's own wording puts meaning first ("a
+  choice about what the user gets"), so a careful reading already gets this right. This is the
+  failure shape the marker introduces, not one measured. Fix, one sentence after `:35`: "Judge
+  by the content, not the label: an unmarked Risks item, or a `stop rule:` that is really a
+  choice about what the user gets, is a finding."
+- **Nit, new, `:30`, a short line** ("about what the user gets; plan-format marks it `gate:`),
+  and every"). Rewrap `:29-32`.
+- **Nit, carried, author-declined, `:37-49`**, one paragraph carries three duties.
+- **Nit, carried, author-declined, `:45-46`**, leftover break ("... non-plan architectural
+  review. On a / re-review ...").
 
 ## Integrity
-House voice. The carve-out and the narrowed class match the vocabulary of
-`docs/plan-format.md`. Nothing reads as copied from another project.
+House voice. Nothing reads as copied from another project.
 
 ## Round-by-round
 Round 1 (f8f8da6): 8/10, 2 Important + 1 Minor.
@@ -140,13 +93,17 @@ Round 4 (4f001fa): 10/10 PASS, 2 Minor + 2 Nits.
 Round 5 (e5dbea0): 10/10 PASS, both Minors closed; 3 cosmetic Nits open.
 Round 6 (babe300): 10/10, re-anchor.
 Round 7 (2859827): 10/10, re-anchor after rebase onto 95d17e3.
-Round 8 (e1e28d2, new branch test/plan-human-layer-behavior): 10/10 PASS. Narrowed Risks class
-and stop-rule carve-out scored; line-width Nit closed; 1 Minor new (missing gloss) + 2 Nits
+Round 8 (e1e28d2, branch test/plan-human-layer-behavior): 10/10, 1 Minor (missing gloss) + 2
+Nits.
+Round 9 (50226e7, rebased onto 76a72a6): 10/10 PASS. Missing-gloss Minor closed, both
+plan-format out-of-scope items closed; 1 Minor new (label versus meaning) + 1 Nit new + 2 Nits
 carried. No criterion moved.
+Stop condition (eval-framework): APPROVE at max. Under the framework the loop may stop here.
+The label-versus-meaning Minor is a one-sentence fix if the author wants it, and does not need
+another round to verify beyond a narrow re-read.
 
 ## Vs previous version
-Held at 10/10, no regression. The change removes a measured false-finding pattern without
-loosening the catch on a real one. The echo is one parenthetical short of word for word.
+Held at 10/10, no regression. The copied class now matches the canonical text exactly.
 
 ## History
 - 2026-08-04 v2 (f8f8da6): first per-file review, after the plan-review mode gained the
@@ -164,7 +121,10 @@ loosening the catch on a real one. The echo is one parenthetical short of word f
 - 2026-10-01 v6 re-anchored (babe300): artifact unchanged. Round 6 = 10/10 PASS, held.
 - 2026-10-01 v6 re-anchored (2859827): rebased onto released main 95d17e3; artifact unchanged.
   Round 7 = 10/10 PASS, held.
-- 2026-10-02 v7 (e1e28d2, branch test/plan-human-layer-behavior; the record's `branch:` moved
-  from feature/plan-human-layer): Risks half of the `What you decide` echo narrowed to "that
-  the human answers", stop-rule carve-out added, paragraph rewrapped. Round 8 = 10/10 PASS,
-  held; line-width Nit closed; missing-gloss Minor new.
+- 2026-10-02 v7 (e1e28d2, branch test/plan-human-layer-behavior): Risks half of the echo
+  narrowed, stop-rule carve-out added, paragraph rewrapped. Round 8 = 10/10 PASS, held;
+  line-width Nit closed; missing-gloss Minor new.
+- 2026-10-02 v8 (50226e7, rebased onto main 76a72a6): gloss restored with a `gate:` pointer;
+  plan-format's Risks template marks `stop rule:` / `gate:` and its stop-rule clause now says
+  "technical layer". Round 9 = 10/10 PASS, held; gloss Minor closed; label-versus-meaning
+  Minor and a short-line Nit new.
