@@ -22,9 +22,12 @@ Each scenario is one record:
 - **id**: short kebab-case name.
 - **reviewer**: which agent is under test.
 - **seed**: the artifact with a known flaw (a diff, a plan, a UI, a PRD), small
-  and self-contained. Inline here for now; extract to a fixtures directory under
-  `tests/` when `/odeo:improve` calibrate mode automates the runs.
+  and self-contained. Inline when short; otherwise under `tests/fixtures/calibration/`,
+  with a NEUTRAL file name (a name that states the defect hands the reviewer the answer).
 - **planted defect**: the one flaw we are testing for.
+- **known unplanted findings** (optional): real flaws in the seed that a good reviewer will
+  also raise. They do not affect the grade; listing them keeps a grader from reading them as
+  noise or as the planted defect.
 - **expected finding**: what the reviewer MUST report, and the minimum severity.
 - **pass / fail**: PASS if the reviewer flags the defect at or above the expected
   severity; FAIL if it misses it, downgrades it below the bar, or approves clean.
@@ -77,32 +80,45 @@ Each scenario is one record:
 
 ### 3. `architecture-reviewer-flags-decision-missing-from-summary`
 - reviewer: `architecture-reviewer` (plan-review mode)
-- seed (plan + story, too long to inline): `tests/fixtures/calibration/plan-decision-missing-from-summary.md`
-  for the story `tests/fixtures/calibration/USR-014-export-csv.md`.
+- seed (plan + story, too long to inline): `tests/fixtures/calibration/plan-usr-014-a.md` for
+  the story `tests/fixtures/calibration/USR-014-export-csv.md`.
 - planted defect: a Design decision writes the CSV header as `due_date` where the story says
   "due date", a change to what the user gets, and the Summary's `What you decide` does not
   name it. The human approves from the Summary and would never see the choice.
-- expected finding: the header deviation, flagged under criterion 6 at important or higher,
-  WITH the remedy that the human decides it (name it in `What you decide`).
-- pass/fail: PASS as above. FAIL if the plan is called clean, if the deviation is only a
-  note, or if it is raised only as "fix the header" without surfacing the choice.
+- known unplanted findings: the formula guard prefixes `-` too, so a title like "-1 day
+  buffer" changes, against criterion 4, and the Summary does not say so; and the Risks line
+  "if `listTasks` returns due dates as strings, stop and ask" reads, literally, as an open
+  question missing from `What you decide` (a format question, see the 2026-10-02 note).
+- expected finding: the header deviation, at important or higher, with a remedy that lets
+  the human decide. Citing criterion 6 by number is not required.
+- pass/fail: PASS when the deviation is raised at important or higher AND the remedy names it
+  in `What you decide`, alone or as one of two options ("match the story, or keep `due_date`
+  and name it in `What you decide`" passes). FAIL when the plan is called clean, when it is
+  only a note, or when the only remedy is "match the story" with no choice surfaced.
 
 ### 4. `architecture-reviewer-leaves-technical-decision-alone` (false-positive control)
 - reviewer: `architecture-reviewer` (plan-review mode)
-- seed: `tests/fixtures/calibration/plan-technical-decision-only.md` (same story). The same
-  plan with the header deviation named in `What you decide`, plus a purely technical Design
+- seed: `tests/fixtures/calibration/plan-usr-014-b.md` (same story): the plan of scenario 3
+  with the header deviation named in `What you decide`, plus a purely technical Design
   decision (the serializer is a pure function with no I/O) that the Summary does not mention.
-- planted defect: none for criterion 6. This scenario guards the opposite failure: a reviewer
-  that pushes every decision into the Summary, so the human layer swells into a second spec.
-- expected finding: no finding asking for the technical decision in the human layer. Other
-  findings do not affect the grade.
-- pass/fail: PASS if no finding (any rank) asks for the pure-function decision in the Summary
-  or `What you decide`; FAIL otherwise.
+- planted defect: none. This scenario guards the opposite failure: a reviewer that pushes
+  every decision into the human layer, so it swells into a second spec.
+- known unplanted findings: the same two as scenario 3 (the formula guard changing titles is a
+  real criterion-6 finding here, and expected).
+- expected finding: no finding asking for the pure-function decision in the human layer
+  (Summary, Why, Explanation or `What you decide`). Other findings do not affect the grade.
+- pass/fail: PASS if no finding (any rank) asks for the pure-function decision anywhere in the
+  human layer; FAIL otherwise.
 
-## How to run (manual, until `/odeo:improve` calibrate mode)
-1. Put the seed on a scratch branch (or paste it as the review scope).
-2. Dispatch the reviewer under test on that seed.
-3. Compare its verdict against the expected finding and severity above.
+## How to run (manual, or by `/odeo:improve` calibrate mode)
+1. Run BLIND, per the blind scoring in `docs/eval-framework.md`: copy the seed and its story
+   (only those) to a fresh scratch directory, under neutral names, and give the reviewer that
+   directory. No grading rule, earlier output or this checklist may be within its reach.
+2. Dispatch the reviewer under test on that seed (for a reviewer changed on a branch the
+   installed plugin does not carry yet, have a fresh agent follow the branch's agent file,
+   and record that it was not the dispatched agent).
+3. Compare its verdict against the expected finding and severity above, by the rules written
+   here before the run.
 4. Record PASS/FAIL as an eval note. A FAIL is a real regression in the
    reviewer, fix the agent (or the rubric), then re-run, per the review loop.
 
