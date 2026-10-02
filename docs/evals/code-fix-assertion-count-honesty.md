@@ -2,123 +2,92 @@
 artifact: fix-assertion-count-honesty
 type: code
 branch: fix/assertion-count-honesty
-reviewed_commit: 9be9472
+reviewed_commit: 91e979c
 date: 2026-10-02
 scorer: code-reviewer
 model: claude-opus-5-5[1m] (Opus 5.5, 1M context)
 model_tier: strong
 effort: high
-scores: { correctness: 1, security: 2, performance: 2, readability: 1, testing: 1, conventions: 2 }
-total: 9/12
-verdict: REQUEST CHANGES
+scores: { correctness: 2, security: 2, performance: 2, readability: 2, testing: 1, conventions: 2 }
+total: 11/12
+verdict: APPROVE WITH COMMENTS
+previous_total: 9/12
 ---
 
 ## Scope reviewed
 
-I reviewed `git diff main...HEAD` (main c04c60b, HEAD 9be9472), which has two commits: `4c96dcb`
-(docs-claims-check counts SKIP lines) and `9be9472` (the suites declare their counts, README
-1408). The changed files are `scripts/docs-claims-check.sh`, `tests/docs-claims-check.test.sh`,
-`tests/language-guard.test.sh`, `tests/ledger-backup.test.sh` and `README.md`. This branch has
-no plan file. The contract is the goal stated in the dispatch: the README assertion count is
+This is round 2. I read `git diff 9be9472 91e979c`, which has three code commits: `12c5740`
+(the check reads skip lines in any casing and has its own uncounted-skip counter), `75570fd`
+(the three root guards declare their counts, README 1421) and `91e979c` (the CI step). The
+round-1 record is commit `764837c`. The contract is unchanged: the README assertion count is
 one number on every machine.
 
 What I checked myself:
-- I read the run branch of each of the seven ledger-backup SKIP counts. Cases 24, 25c and 26
-  make 2 assertions each. Cases 28, 29 and 30 make 3 each. Case 40 makes 2. All seven are
-  correct.
-- The language-guard PER_LOCALE value of 8 is correct: there are 4 `for l in $UTF8_LOCALES`
-  loops, each calls `assert_locale` once, and each call makes 2 assertions.
-- I ran a mutation of the stdin redirect. With `</dev/null` removed, the case-8 fixture goes red
-  (the suite fails and the run exits 1). As shipped it is green. The guard is real.
-- I ran the SKIP regex under /bin/bash 3.2.57. `SKIP 2 - r` matches and captures 2.
-  `SKIP 2 -r`, `SKIP - r` and `SKIPPED 2 - r` are rejected. `SKIP 0 - r` is accepted.
-  `SKIP 08 - r` prints an arithmetic error and drops the 8 without failing.
-- I fed the shipped check a fixture suite that prints a lowercase `skip - ...` line. It reports
-  DRIFTED with the "Fix the NUMBER in the document" footer, against a README that is correct.
+- The three new counts against their run branches. prose-language-check G7 makes 1 assertion
+  (`assert_eq`). token-report makes 1 (`expect_exit`). odeo-context makes 2 (`assert_exit` and
+  `assert_empty`). All three are correct.
+- The new tripwire. `grep -c '^  assert_locale "'` matches exactly the 4 in-loop calls (lines
+  278, 295, 307, 317). It does not match the definition (column 0) or the comments.
+- The CI log of private run 36986787500 at 91e979c (ubuntu). It shows `SKIP 8` for both locales
+  and `SKIP 2` for case 40, then "note: 18 assertion(s) in 3 skipped case(s) were added back",
+  then "ok: assertions = 1421". macOS skips a different set (case 40 only, 2 added back) and
+  reaches the same 1421. That is the first two-machine evidence for the branch's claim. Together
+  with the locale and SHELLOPTS skips, it also explains the old 1399 vs 1383 gap: Linux skipped
+  case 40 as well.
+- A mutation of the new `|| "$skip_fail" -gt 0` in `count_reason` (Important 1 below). The
+  mutant survives the suite.
 
 ## Findings
 
 ### Important
-1. **Four root-dependent assertions still skip without a count, so the README's own example is
-   false.** README.md:244 says that a case a machine cannot run "as root" prints
-   `SKIP <n> - <reason>`. Three such branches do not:
-   - tests/prose-language-check.test.sh:219 prints a lowercase `skip:` line (1 assertion).
-   - tests/token-report.test.sh:107 prints a lowercase `skip -` line (1 assertion).
-   - tests/odeo-context.test.sh:311 prints nothing at all (2 assertions).
+1. **The new "blames neither the README" assertion cannot fail, so the round-1 harm is not
+   pinned.** In tests/docs-claims-check.test.sh:108 the uncounted-skip loop uses a README
+   claiming 2 assertions. With the skip uncounted, the run also measures 2, so the claim matches
+   and no DRIFTED or "Fix the NUMBER" can appear whatever `count_reason` does. I removed
+   `|| "$skip_fail" -gt 0` from scripts/docs-claims-check.sh:141 and ran the same fixture:
+   - With README=2, the output is identical to the shipped script, so the suite stays green.
+   - With README=4 (the full count, which is what a real README carries), the mutant prints
+     `DRIFTED` and "Fix the NUMBER in the document". The shipped script prints `UNVERIFIED`.
 
-   The check matches `^SKIP` case-sensitively, so none of them is counted or refused. As root
-   the run measures 1404 against a correct README, and it tells the reader to edit the README.
-   That is the harm the old UNVERIFIED path existed to prevent. Fix: change each to
-   `SKIP <n> - ...` (n = 1, 1 and 2), turning the odeo-context guard into an if/else. Then
-   close the class at the check: use `grep -iE '^skip'` in scripts/docs-claims-check.sh:126,
-   so that a lowercase skip line is refused as uncounted instead of disappearing.
-2. **The program's documented contract still describes the removed behaviour.**
-   - The header at scripts/docs-claims-check.sh:18-19 still says exit 0 may carry UNVERIFIED
-     claims because "this machine could not run the whole suite".
-   - The `claim()` comment at lines 45-54 justifies the fourth argument by the more-or-less
-     skipped machine.
-
-   Now UNVERIFIED arises only with a failed suite, and that run exits 1. Rewrite both to the
-   failed-suite rationale.
-3. **The uncounted-SKIP failure prints a false cause.** scripts/docs-claims-check.sh:123-124
-   adds to `suite_fail`, so the footer (line 160) and `count_reason` (line 141) both say
-   "suite(s) exited non-zero" about a suite that exited 0. Fix: keep a separate
-   `skip_fail` counter with its own footer line, for example "a suite printed an uncounted
-   SKIP; fix the suite".
-4. **CI should get the `--assertions` step in this branch.** Right now the claim "the same on
-   every machine" has been measured on one machine. The old README numbers also do not
-   reconcile with locales alone. If Linux lacks both locales and runs case 40, 1399 on macOS
-   predicts 1385 on Linux, not the 1383 that was recorded. That leaves an unexplained 2-assertion
-   Linux difference, unless the two figures came from different commits. Fix: add a step that
-   runs `bash scripts/docs-claims-check.sh --assertions` to .github/workflows/checks.yml (it
-   could replace the suites loop, since it fails on any failed suite). Raise `timeout-minutes`
-   to cover a second full run. This is a CI change, so the decision is Ivan's, but without it
-   the branch's headline claim stays unverified.
+   That is exactly the root scenario from round 1, and no test holds it. Fix: write the README
+   in that loop with a count above the ok lines (for example 3), so the uncounted skip leaves
+   the total short. Then the `*"Fix the NUMBER"*` arm actually guards `count_reason`. Watch the
+   mutant above go red before you claim it.
 
 ### Nitpicks
-- scripts/docs-claims-check.sh:119 accepts `SKIP 0`, and `SKIP 08` makes an arithmetic error
-  that silently drops the count. Use `^SKIP\ ([1-9][0-9]*)\ -\ `.
-- tests/language-guard.test.sh:258: the tripwire counts only the exact spelling
-  `for l in $UTF8_LOCALES; do` at column 0. It does not check that each loop calls
-  `assert_locale` exactly once. Count `assert_locale "` calls inside those loops instead, or
-  state the limit in the comment.
-- tests/docs-claims-check.test.sh:119-125: the case-6 header still speaks of the unverified
-  outcome in the present tense. Put it in the past tense.
-- On its own, commit 4c96dcb turns `--assertions` red on this Mac (case 40's bare SKIP) until
-  9be9472. That does not matter for an ff merge, but it is not bisect-clean.
+- scripts/docs-claims-check.sh:123: `SKIP 08 - x` is now refused, which is correct. But the
+  message calls it a "skip line without a count" when it has a malformed count. Say "without a
+  valid count", or leave it.
+- The 4c96dcb bisect point: leaving the history as it is is fine for a fast-forward merge. I do
+  not ask for a squash.
 
-## Spec change versus weakened test (cases 4, 5, 7)
-
-This is a spec change, not a weakened test. The removed assertions pinned behaviour the new
-contract deliberately reverses: a mismatch excused as UNVERIFIED at exit 0, and the second
-summary form. The replacements are stricter in every direction. They pin the exact total
-(4 = 2 ok + 2 skipped). Both one-below and one-above are now required to fail as DRIFTED. They
-pin the suite's quoted reason, and they require an uncounted SKIP to fail and blame the suite.
-The only thing dropped without a replacement is the "measurable claim stays fatal while another
-is unverified" scope check. It is now unobservable, because UNVERIFIED only coexists with a
-failed suite, which exits 1 anyway.
-
-## Answers to the points raised
-
-- Hand-written counts can drift unseen only on machines that run the case. The count is never
-  read there, so the drift is harmless until a machine skips the case, and that machine shows
-  DRIFTED. This holds, with one caveat: no machine in CI skips any ledger-backup case, so a
-  wrong n would surface only as root. Nothing protects it except review.
-- No suite needs stdin. I agree with the author's grep, and the mutation confirms the
-  redirect is load-bearing.
-- `[[ =~ ]]` and BASH_REMATCH work under bash 3.2. The escaped-space unquoted regex is correct
-  there.
-- The regex is anchored correctly at the start and requires `<n> - `. The gaps are the
-  lowercase variant (Important 1) and 0 or leading-zero counts (nitpick).
+## Round-1 findings, status
+- Uncounted root skips: fixed. The class is closed for every printed casing by
+  `grep -iE '^skip'`. The residual is a guard that skips in silence, which no grep can see. It
+  is stated, not hidden, and the CI step now shows any such silent machine difference as
+  DRIFTED on Linux.
+- Stale contract comments: fixed (the header Exit text and the `claim()` comment).
+- False "exited non-zero" cause: fixed with `skip_fail`, its own message and its own footer.
+  This is tested, apart from the `count_reason` arm above.
+- CI step: added after the suites loop, and timeout-minutes is 20. Keeping the loop for
+  per-suite log output is the right call. The step ran green on Linux at 91e979c.
+- Nitpicks: the regex is `[1-9][0-9]*`, the tripwire counts calls and states its indent limit,
+  and the case-6 header is in the past tense. All done.
 
 ## Scores
-correctness 1/2 · security 2/2 · performance 2/2 · readability 1/2 · testing 1/2 · conventions 2/2 -> total 9/12 (threshold: >=9, no zero)
+correctness 2/2 · security 2/2 · performance 2/2 · readability 2/2 · testing 1/2 · conventions 2/2 -> total 11/12 (threshold: >=9, no zero)
 
 ## Ceiling
-12/12 is reachable. Fixing Important 1 to 3 restores correctness and readability. Testing
-reaches 2 with the CI step (or with an explicit human decision to defer it, recorded in the
-body).
+12/12 is reachable. Testing returns to 2 once the uncounted-skip fixture's README count makes
+the "blames neither" assertion able to fail. That is a one-number change plus the mutation run.
 
 ## Verdict
-REQUEST CHANGES. The total clears the threshold, but the branch's stated invariant is not
-held for root, which is a case the README names. The fix is a few lines.
+APPROVE WITH COMMENTS. The branch's invariant now holds and has been measured on two machines
+with different skip sets. One test assertion is vacuous and should be made real before merge.
+
+## History
+- Round 1 (9be9472): REQUEST CHANGES, 9/12. Four uncounted root-dependent assertions, stale
+  contract comments, a false "exited non-zero" cause, and the CI step missing.
+- Round 2 (91e979c): APPROVE WITH COMMENTS, 11/12. Better by 2: all round-1 findings fixed,
+  plus Linux CI evidence for 1421. One new Important: a vacuous assertion in the
+  uncounted-skip loop, shown by a surviving mutant.
