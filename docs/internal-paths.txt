@@ -24,6 +24,9 @@ docs/checklists/anthropic-practices-pass.md
 docs/checklists/skills-alignment-pass.md
 docs/checklists/language-live-check.md
 docs/evals/
+# Raw calibration run outputs and their recount script: evidence for docs/evals notes, kept
+# out of docs/evals because merge-gate requires every file there to be an eval record.
+docs/calibration-runs/
 docs/plans/
 docs/prds/
 docs/stories/

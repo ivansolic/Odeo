@@ -1,6 +1,6 @@
 """Recount every number the calibration note states for this run, naming the runs behind each.
 
-Run from the repo root:  python3 docs/evals/calibration-runs/2026-10-02-blind/recount.py
+Run from the repo root:  python3 docs/calibration-runs/2026-10-02-blind/recount.py
 Reads the archived outputs next to this file and the seed in tests/fixtures/calibration/.
 Criteria are the ones in GRADING.md here; sentence-level matching is a heuristic, so the
 named runs are printed for a human to open and confirm.
