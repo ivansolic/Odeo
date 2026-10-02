@@ -21,7 +21,8 @@ confident single figure.
 
 ## Process
 1. **Sharpen the question** (one exchange max): scope, region, segment, date
-   sensitivity. A vague question produces a vague report; say so and sharpen.
+   sensitivity, the decision it serves, its sub-questions, and what its key terms
+   mean in this report. A vague question produces a vague report; say so and sharpen.
 2. **Ask the depth**: quick scan (~10 min, top sources only) or thorough
    (fan-out, cross-checks). Recommend from the stakes: a PRD bet deserves
    thorough; a curiosity deserves quick.
@@ -43,15 +44,24 @@ confident single figure.
 5. **Write the report** to `docs/research/RES-NNN-<slug>.md` (NNN = next number
    after the highest existing `RES-` file there):
    ```
-   ## Question · ## Answer (3 sentences, plain language; each factual clause
-      cites its note or says "unverified")
+   ## Question (scope, sub-questions, the decision it serves, key terms;
+      mode and depth may sit in the frontmatter)
+   ## Answer (3 sentences, plain language; each factual clause cites its note
+      or says "unverified")
    ## Findings (each claim: its note numbers + its confidence word, with the
       data's date; the numbered notes with quotes follow the claims)
    ## Numbers (ranges + the method that produced each)
    ## Unverified (single-source or contested, labeled honestly)
-   ## Implications for us (what this changes in PRD/priorities, 3 bullets max)
-   ## Sources (links, access date)
+   ## Implications for us (what this changes in PRD/priorities, 3 bullets max,
+      each with its reason and the notes it rests on)
+   ## Sources (grouped by publisher, links, access date, versions; one line on
+      what the search did not cover: regions, paywalls, languages, blocked pages)
    ```
+5b. **Score it**: dispatch `pm-reviewer` against
+   `${CLAUDE_PLUGIN_ROOT}/skills/research/rubric.md`, handing it the commit sha and
+   `output_language` (Guardrails 1 and 7 in `${CLAUDE_PLUGIN_ROOT}/AGENTS.md`).
+   Below the threshold, fix the report and re-dispatch the same reviewer: the review
+   loop of Guardrails 3, with its stop condition.
 6. **Show it to the human**: open the report in their editor (`code -r <file>`,
    fallback `cursor -r`; neither installed, give the path). Mention
    Cmd+Shift+V once for the formatted view.
@@ -61,8 +71,6 @@ confident single figure.
    `.claude/tasks/todo.md`.
 
 ## Where it sits in the process
-The report is scored by `pm-reviewer` against `${CLAUDE_PLUGIN_ROOT}/skills/research/rubric.md`.
-
 Discovery. `/odeo:discover` offers it as an optional evidence step; `/odeo:prd` offers it
 when the Context section rests on assumptions ("shall I back this with
 /odeo:research?"). Fully standalone too, any question, any time, no phase required.
