@@ -4,6 +4,7 @@ title: Platform support for Odeo beyond Claude Code
 mode: deep-dive
 depth: thorough
 date: 2026-09-29
+revised: 2026-10-02
 sources: official vendor docs only, read raw and grepped; second source = vendor source code, binary or changelog
 ---
 
@@ -18,99 +19,133 @@ do updates reach users, and what would Odeo lose. Which platform should be porte
 
 ## Answer
 
-Codex is the closest target: it reads Odeo's existing `.claude-plugin/` manifests, loads its
-skills and hooks, and injects SessionStart and SubagentStart context, but it cannot ship
-Odeo's subagents from a plugin and hides plugin hooks until the user trusts them. Cowork runs
-nearly all of Odeo once `bin/` is renamed; Antigravity has no session-start hook, so the
-baseline would have to become rules. None of the four puts a plugin's `bin/` on PATH, so
-moving `bin/` to `scripts/` and calling scripts by path is a prerequisite shared by every port.
+Odeo can most likely run in Codex with the least rework: Codex reads Odeo's existing plugin
+files and has the two session-start hooks Odeo relies on, but Odeo's review and build agents
+would have to be rebuilt, and users must approve the hooks once. Cowork and claude.ai chat
+refuse any plugin with a top-level `bin/` folder, so they cannot be tested until `bin/` is gone
+(release B); what else works in Cowork is largely unverified, and claude.ai chat ignores hooks
+and agents, so it could carry only the planning (PM) skills. Antigravity has no session-start
+hook at all, so Odeo's baseline would have to be rewritten as rules there.
 
 ## Findings
 
 Legend: **Y** supported · **P** partial or reworked · **N** not supported · **?** unverified.
-Sources per cell are in the notes below the table; "2" = two independent official sources.
+A **verified** cell has its source quoted in the notes below the table. A cell marked
+**?** was reported by the 2026-09-29 research, but the agent reports that held its sources
+were not kept (revision 2026-10-02), so its source cannot be named here: the reported value
+is shown after "reported:", and it must be re-checked before anything relies on it. The
+Claude Code column is Odeo's own platform, exercised by its test suite.
 
 | Capability Odeo uses | Claude Code (today) | Codex CLI / ChatGPT app | Antigravity | Cowork | claude.ai chat |
 |---|---|---|---|---|---|
-| Plugin manifest + install from GitHub | Y | **Y, reads `.claude-plugin/*` directly** (2) | Y, own `plugin.json` (name + description only); GitHub URL install works (2: changelog + binary) | Y, Customize → Add marketplace (2) | Y, same path as Cowork (2) |
-| Top-level `bin/` in the plugin | Y, on PATH | P, allowed, **not on PATH**, symlinks skipped (2) | P, not on PATH (absence confirmed) | **N, plugin refused** (4) | **N, plugin refused** (4) |
-| SKILL.md skills | Y | Y, `plugin:skill`, list capped at 8,000 chars / 2% of context (2) | Y, open standard (2) | Y (2) | Y (2); upload may reject non-standard frontmatter (?) |
-| Subagents with own tool lists | Y | **N from a plugin**; standalone TOML, no tool list, sandbox only (2) | Y, `agents/*.md`, own tool names (2) | Y (3); frontmatter fields honoured (?) | N, ignored (3) |
-| Session-start context injection | Y, 10k/hook, split into parts | **Y**, SessionStart + SubagentStart, ~2,500 tokens/hook default, raisable (2) | **N**, no SessionStart; use `rules/` (24 KB/file, 20k-token budget) or PreInvocation (2) | Hooks load (3); specific events (?) | N, hooks ignored (3) |
-| Edit guard (PreToolUse) | Y | P, sees the `apply_patch` text, not a file path (2) | P, own tool names, can gate not inject (2) | ? | N |
-| Stop hook | Y | P, JSON only (2) | P, `decision: continue` (2) | ? | N |
-| Plugin hooks run without a prompt | Y | **N, skipped until the user trusts them** in `/hooks` (2) | Y (2) | N, user confirms first (1) | n/a |
-| userConfig dialog (language) | Y | N (2) | N (schema forbids) (2) | N (2) | N (2) |
-| Reads AGENTS.md / CLAUDE.md | CLAUDE.md | AGENTS.md, 32 KiB (2) | AGENTS.md / GEMINI.md, not CLAUDE.md (2) | as Claude Code (?) | n/a |
-| Updates | version bump | version bump; Git marketplaces auto-upgrade at start (1) | marketplace auto-update; GitHub installs need reinstall (2) | automatic, "Check for updates" (2) | as Cowork |
-| Git guards in the user's repo | Y | Y (local CLI) | Y (local CLI) | ? (VM) | N |
+| Plugin manifest + install from GitHub | Y | **Y, reads `.claude-plugin/*` directly** (note 1) | ? reported: own `plugin.json` (name + description only); GitHub URL install works, per changelog + binary | ? reported: Customize, Add marketplace | ? reported: same path as Cowork |
+| Top-level `bin/` in the plugin | Y, on PATH | ? reported: allowed, not on PATH, symlinks skipped | ? inferred: not on PATH, because no doc mentions it (no positive source) | **N, plugin refused** (note 4) | **N, plugin refused** (note 4) |
+| SKILL.md skills | Y | ? reported: yes, as `plugin:skill`, list capped at 8,000 chars or 2% of context | ? reported: yes, open standard | ? reported: yes | ? reported: yes; upload may reject non-standard frontmatter |
+| Subagents with own tool lists | Y | **N from a plugin** (note 3); ? reported: standalone TOML agents, no tool list, sandbox only | ? reported: `agents/*.md`, own tool names | ? reported: yes; frontmatter fields unknown | ? reported: ignored |
+| Session-start context injection | Y, 10k/hook, split into parts | ? reported: SessionStart + SubagentStart exist; **~2,500 tokens/hook default** (note 2) | **N, no SessionStart event** (note 5); rules instead, 24 KB per file, 20k-token budget (note 5) | ? reported: hooks load; which events fire unknown | ? reported: hooks ignored |
+| Edit guard (PreToolUse) | Y | ? reported: partial, sees the `apply_patch` text, not a file path | P, the PreToolUse event exists (note 5); ? reported: own tool names, can gate but not inject | ? | ? reported: no |
+| Stop hook | Y | ? reported: partial, JSON only | P, the Stop event exists (note 5); ? reported: `decision: continue` | ? | ? reported: no |
+| Plugin hooks run without a prompt | Y | **N, skipped until the user trusts them** (note 2) | ? reported: yes | ? reported: no, user confirms first (one source only) | n/a |
+| userConfig dialog (language) | Y | ? reported: no | ? reported: no (schema forbids) | ? reported: no | ? reported: no |
+| Reads AGENTS.md / CLAUDE.md | CLAUDE.md | ? reported: AGENTS.md, 32 KiB limit | ? reported: AGENTS.md / GEMINI.md, not CLAUDE.md | ? reported: as Claude Code | n/a |
+| Updates | version bump | ? reported: version bump; Git marketplaces auto-upgrade at start (source code only) | ? reported: marketplace auto-update; GitHub installs need reinstall | ? reported: automatic, "Check for updates" | ? reported: as Cowork |
+| Git guards in the user's repo | Y | ? inferred: yes, it runs as a local CLI | ? inferred: yes, it runs as a local CLI | ? (runs in a VM) | ? inferred: no, no local repo |
 
-Notes, verbatim anchors (full quotes and URLs are in the three agent reports behind this file):
-- Codex manifests: "a legacy-compatible marketplace at `$REPO_ROOT/.claude-plugin/marketplace.json`"
-  (developers.openai.com/plugins/build/plugins) and source `DISCOVERABLE_PLUGIN_MANIFEST_PATHS`
-  including `.claude-plugin/plugin.json` (github.com/openai/codex, commit c248f6d).
-- Codex hooks: "Codex skips plugin-bundled hooks until you review and trust the current hook
-  definition"; "By default, Codex limits each model-visible hook-output message to roughly
-  2,500 tokens" (developers.openai.com/codex/hooks) and `DEFAULT_HOOK_OUTPUT_TOKEN_LIMIT = 2_500`.
-- Codex agents: "Convert reusable behavior to skills… move reusable agent procedures into
-  skills" (developers.openai.com/plugins/guides/submit-claude-plugin, OpenAI's official guide
-  for porting Claude Code plugins).
-- `bin/` refused on claude.ai and Cowork: "A top-level `bin/` directory stops claude.ai and
-  Cowork from installing the plugin at all" (claude.com/docs/plugins/build) and the
-  plugins-reference `bin/` row; fix documented as `scripts/` + `${CLAUDE_PLUGIN_ROOT}/scripts/<name>`
-  (claude.com/docs/plugins/org-sync).
-- Antigravity hooks: events PreToolUse, PostToolUse, PreInvocation, PostInvocation, Stop;
-  SessionStart 0 hits, PreToolUse 9 (antigravity.google/docs/hooks); rules limits "24 KB
-  (24,000 bytes) per-file limit" and "20,000-token aggregate rules budget"
-  (antigravity.google/docs/rules).
+Notes, verbatim anchors (the only sources this document can still name):
+1. Codex manifests: "a legacy-compatible marketplace at `$REPO_ROOT/.claude-plugin/marketplace.json`"
+   (developers.openai.com/plugins/build/plugins) and source `DISCOVERABLE_PLUGIN_MANIFEST_PATHS`
+   including `.claude-plugin/plugin.json` (github.com/openai/codex, commit c248f6d).
+2. Codex hooks: "Codex skips plugin-bundled hooks until you review and trust the current hook
+   definition"; "By default, Codex limits each model-visible hook-output message to roughly
+   2,500 tokens" (developers.openai.com/codex/hooks) and `DEFAULT_HOOK_OUTPUT_TOKEN_LIMIT = 2_500`
+   (same repo and commit).
+3. Codex agents: "Convert reusable behavior to skills… move reusable agent procedures into
+   skills" (developers.openai.com/plugins/guides/submit-claude-plugin, OpenAI's official guide
+   for porting Claude Code plugins). This supports "no plugin-shipped agents"; the TOML details
+   in the same cell are not covered by it.
+4. `bin/` refused on claude.ai and Cowork: "A top-level `bin/` directory stops claude.ai and
+   Cowork from installing the plugin at all" (claude.com/docs/plugins/build) and the
+   plugins-reference `bin/` row; fix documented as `scripts/` + `${CLAUDE_PLUGIN_ROOT}/scripts/<name>`
+   (claude.com/docs/plugins/org-sync).
+5. Antigravity hooks: events PreToolUse, PostToolUse, PreInvocation, PostInvocation, Stop;
+   SessionStart 0 hits, PreToolUse 9 (antigravity.google/docs/hooks); rules limits "24 KB
+   (24,000 bytes) per-file limit" and "20,000-token aggregate rules budget"
+   (antigravity.google/docs/rules).
 
 ## Numbers
 
-- Odeo's baseline: ~19k characters, about 4.75k tokens (measured locally, 3 parts today).
-  Codex default 2,500 tokens per hook: needs 2 parts or `additionalContextLimit`. Antigravity
-  rules: fits one 24 KB file but shares a 20k-token budget with all rules.
-- Odeo ships 67 skills. Codex lists skills in at most 8,000 characters (or 2% of context), so
-  descriptions will be shortened and some skills dropped from implicit matching.
-- `bin/` holds 26 programs, called by bare name from skills, agents and hooks; `resolve-language`
-  alone appears in 8 files, `privacy-scan` in 6.
+Measured in this repo on 2026-09-29 unless a commit is named.
+- Odeo's baseline: ~19k characters (measured), about 4.75k tokens (heuristic: characters
+  divided by four, not a tokenizer count), delivered in 3 parts. Against Codex's ~2,500 tokens
+  per hook (note 2) that means at least 2 parts; a setting to raise the limit was reported as
+  `additionalContextLimit` (? unverified, no source kept). Antigravity rules: fits one 24 KB
+  file but shares the 20k-token budget with all rules (note 5).
+- Odeo ships 67 skills (re-counted at a278bd0). The reported 8,000-character Codex skill-list
+  cap (?) would shorten descriptions and drop some skills from implicit matching.
+- On 2026-09-29, `bin/` held the 26 programs, called by bare name; `resolve-language` appeared in
+  8 files, `privacy-scan` in 6. Since 0.3.0 (published 2026-09-29) the programs live in
+  `scripts/` and are called by path; `bin/` holds only 26 forwarding wrappers for old installs,
+  and release B removes them.
 
 ## Unverified
 
-- Cowork: whether SessionStart and SubagentStart fire and inject context, whether agent
-  frontmatter (`tools`, `model`, `effort`, `isolation`) is honoured, and whether git hooks can
-  be installed into the user's repos from the Cowork VM.
+Every **?** cell in the table, plus:
+- Cowork: whether SessionStart and SubagentStart fire and inject context; whether PreToolUse
+  and Stop hooks run; whether agent frontmatter (`tools`, `model`, `effort`, `isolation`) is
+  honoured; whether git hooks can be installed into the user's repos from the Cowork VM; the
+  "user confirms plugin hooks first" claim rests on one source.
+- Antigravity: "`bin/` not on PATH" is an inference from absence in the docs, not a confirmed
+  fact. `agy plugin import … claude` exists in the shipped binary (help text and
+  `ClaudeCodeImporter`) but is undocumented; not run. Where CLI installs land: the docs and the
+  changelog were found to disagree, but the two values were not kept, so this is open. Skill
+  namespace format: one changelog line.
 - claude.ai: whether a plugin upload rejects skill frontmatter outside the Agent Skills spec
-  (`disable-model-invocation` is in 53 of 67 skills). Documented for skill uploads only.
+  (`disable-model-invocation` is in 53 of 67 skills); documented for skill uploads only.
 - Codex: order of concurrently launched SessionStart parts; whether an unmodified Odeo repo
   installs as-is through `codex plugin marketplace add ivansolic/Odeo`; the `$odeo:skill`
   mention syntax (source test only); auto-upgrade at startup (source only).
-- Antigravity: `agy plugin import … claude` exists in the shipped binary (help text and
-  `ClaudeCodeImporter`) but is undocumented; not run. Where CLI installs land (docs and
-  changelog disagree). Skill namespace format (one changelog line).
+- Git guard cells for Codex, Antigravity and claude.ai are inferences from how each product
+  runs (local CLI or not), not documented facts.
 
 ## Implications for us
 
-- **Shared first step for every port: move `bin/` to `scripts/` and call scripts by path.**
-  It is required for Cowork and claude.ai and needed anyway for Codex and Antigravity. Claude
-  Code loses only bare-name calls.
-- **Port Codex first**, then Cowork. Codex already reads our manifests and has the two hooks
-  the baseline needs; the real work is the subagent pipeline (no plugin-shipped agents, no tool
-  lists) and the hook trust step users must take once. Cowork is nearly free after step one.
-- **Antigravity is a larger rework** (baseline as rules, own tool names, own manifest), and
-  **claude.ai chat can only carry the PM skills**; decide whether either is worth it after the
-  Codex port. Test the undocumented `agy plugin import` first: it could shorten Antigravity.
+- **Done: move `bin/` to `scripts/` and call scripts by path.** Shipped in 0.3.0 (2026-09-29).
+  Cowork and claude.ai still refuse Odeo until release B deletes the `bin/` wrappers, so the
+  Cowork install test belongs to release B.
+- **Port Codex first, then Cowork.** Codex is the only target where the parts Odeo depends on
+  most are verified: it reads our manifests (note 1) and its hook output limit and trust step
+  are documented (note 2). Cowork cannot be tried before release B, and most of what it would
+  run is unverified. The real Codex work is the subagent pipeline (no plugin-shipped agents,
+  note 3) and the one-time hook trust step for users. Re-check every **?** Codex cell in the
+  spike before the PRD.
+- **Antigravity is a larger rework** (baseline as rules, note 5, plus reported own tool names
+  and own manifest), and **claude.ai chat can carry the PM skills at most**; decide whether
+  either is worth it after the Codex port. Test the undocumented `agy plugin import` first: it
+  could shorten Antigravity.
 
 ## Sources (accessed 2026-09-29)
 
+These pages were read for the original research. Only the notes above keep quotes from them;
+which page supported which **?** cell was not kept. Where a page redirected, which ones did was
+not kept either.
 OpenAI: developers.openai.com/codex/plugins, /plugins/build/plugins, /codex/skills,
 /codex/hooks, /codex/subagents, /codex/guides/agents-md, /codex/config-reference,
 /plugins/guides/submit-claude-plugin, /codex/import (several redirect to learn.chatgpt.com);
 github.com/openai/codex at c248f6d; Codex CLI 0.158.0 (released 2026-09-28).
 Google: antigravity.google/docs/plugins, /cli/features, /changelog, /marketplace, /skills,
-/subagents, /hooks, /sidecars, /rules, /cli/gcli-migration; google-gemini/gemini-cli docs;
-the local `agy` 1.1.5 binary (help text and strings only).
+/subagents, /hooks, /sidecars, /rules, /cli/gcli-migration; google-gemini/gemini-cli docs (path
+not kept); the local `agy` 1.1.5 binary (help text and strings only).
 Anthropic: claude.com/docs/plugins/platform-support, /overview, /build, /org-sync,
 /org-rollout, /admin, /cowork/guide/plugins, /cowork/overview, /cowork/changelog,
 /skills/overview, /skills/how-to; code.claude.com/docs/en/plugins-reference,
 /plugins/components, /plugins/loading, /skills, /discover-plugins, /desktop;
 support.claude.com/en/articles/12111783.
+
+## Revision 2026-10-02
+
+The pm-reviewer scored version 1 at 9/14 (docs/evals/RES-002.md): about nine cells cited a
+source count without naming the sources, which lived in three agent reports that were not kept.
+Rather than restate them from memory, those cells are now marked **?** with the reported value
+shown. Also corrected: "Cowork runs nearly all of Odeo" and "nearly free" (unsupported by the
+table), the `bin/` status after 0.3.0, the reason for Codex first, the token figure labelled as
+a heuristic, and claude.ai chat added to the Answer.
