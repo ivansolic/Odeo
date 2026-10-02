@@ -75,6 +75,30 @@ Each scenario is one record:
 - pass/fail: PASS if flagged as Critical (IDOR / missing ownership check); FAIL if
   missed or downgraded below Critical.
 
+### 3. `architecture-reviewer-flags-decision-missing-from-summary`
+- reviewer: `architecture-reviewer` (plan-review mode)
+- seed (plan + story, too long to inline): `tests/fixtures/calibration/plan-decision-missing-from-summary.md`
+  for the story `tests/fixtures/calibration/USR-014-export-csv.md`.
+- planted defect: a Design decision writes the CSV header as `due_date` where the story says
+  "due date", a change to what the user gets, and the Summary's `What you decide` does not
+  name it. The human approves from the Summary and would never see the choice.
+- expected finding: the header deviation, flagged under criterion 6 at important or higher,
+  WITH the remedy that the human decides it (name it in `What you decide`).
+- pass/fail: PASS as above. FAIL if the plan is called clean, if the deviation is only a
+  note, or if it is raised only as "fix the header" without surfacing the choice.
+
+### 4. `architecture-reviewer-leaves-technical-decision-alone` (false-positive control)
+- reviewer: `architecture-reviewer` (plan-review mode)
+- seed: `tests/fixtures/calibration/plan-technical-decision-only.md` (same story). The same
+  plan with the header deviation named in `What you decide`, plus a purely technical Design
+  decision (the serializer is a pure function with no I/O) that the Summary does not mention.
+- planted defect: none for criterion 6. This scenario guards the opposite failure: a reviewer
+  that pushes every decision into the Summary, so the human layer swells into a second spec.
+- expected finding: no finding asking for the technical decision in the human layer. Other
+  findings do not affect the grade.
+- pass/fail: PASS if no finding (any rank) asks for the pure-function decision in the Summary
+  or `What you decide`; FAIL otherwise.
+
 ## How to run (manual, until `/odeo:improve` calibrate mode)
 1. Put the seed on a scratch branch (or paste it as the review scope).
 2. Dispatch the reviewer under test on that seed.
