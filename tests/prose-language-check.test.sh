@@ -216,7 +216,7 @@ assert_eq "G3 project dir does not exist -> 2"    "2" "$(g "$TMP/nope" "$TMP/a.m
 assert_eq "G4 file does not exist -> 2"           "2" "$(g "$DE" "$TMP/nope.md")"
 assert_eq "G5 a directory passed as a file -> 2"  "2" "$(g "$DE" "$DE")"
 assert_eq "G6 an argument beginning with - -> 2"  "2" "$(g "$DE" --quiet "$TMP/a.md")"
-if [ "$(id -u)" = "0" ]; then echo "skip: G7 unreadable file (running as root reads anything)"
+if [ "$(id -u)" = "0" ]; then echo "SKIP 1 - G7 unreadable file (running as root reads anything)"
 else unread="$TMP/unread.md"; de_prose > "$unread"; chmod 000 "$unread"
   assert_eq "G7 an unreadable file -> 2" "2" "$(g "$DE" "$unread")"; chmod 644 "$unread"; fi
 run "$DE" "$TMP/B1.md" "$TMP/e-fr.md"; out="$OUT"

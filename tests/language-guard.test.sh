@@ -250,14 +250,16 @@ for l in en_US.UTF-8 de_AT.UTF-8; do
     echo "SKIP $PER_LOCALE - locale $l is not installed"
   fi
 done
-# Tripwire for the hand-written count: it must equal the loops this file actually has, times
-# two. Adding a fifth locale loop without raising PER_LOCALE fails here, on every machine,
-# instead of only on one that lacks a locale. Observed failing (2026-10-02) with PER_LOCALE=6.
-locale_loops="$(grep -c '^for l in \$UTF8_LOCALES; do$' "$0")"
-if [ "$((locale_loops * 2))" -eq "$PER_LOCALE" ]; then
-  echo "ok: PER_LOCALE ($PER_LOCALE) matches the $locale_loops locale loops"
+# Tripwire for the hand-written count: it must equal the assert_locale calls this file actually
+# makes per locale (each one indented inside a `for l in $UTF8_LOCALES` loop), times two. A new
+# call without raising PER_LOCALE fails here, on every machine, instead of only on one that
+# lacks a locale. It counts calls written at the loop indent; a call nested deeper is not seen.
+# Observed failing (2026-10-02) with PER_LOCALE=6.
+locale_calls="$(grep -c '^  assert_locale "' "$0")"
+if [ "$((locale_calls * 2))" -eq "$PER_LOCALE" ]; then
+  echo "ok: PER_LOCALE ($PER_LOCALE) matches the $locale_calls assert_locale calls"
 else
-  echo "FAIL: PER_LOCALE is $PER_LOCALE but $locale_loops locale loops make $((locale_loops * 2))"; fail=1
+  echo "FAIL: PER_LOCALE is $PER_LOCALE but $locale_calls assert_locale calls make $((locale_calls * 2))"; fail=1
 fi
 
 # Case 15: Frontmatter key with bare uppercase ASCII (Id:) must fail.
