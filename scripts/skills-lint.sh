@@ -301,6 +301,20 @@ if [[ $rc_g -eq 0 && $rc_f -eq 0 && "$pl_global" != "$pl_format" ]]; then
   viol C17 "the plan layers differ: global/CLAUDE.md '$pl_global' vs docs/plan-format.md '$pl_format'"
 fi
 
+# C18. The research rubric defines its confidence words once, in its Definitions; inside the
+#      criteria (the fenced block) the bare lowercase word "unverified" is flagged, because
+#      the defined word is narrower (no nameable source) and the criteria mean "not verified".
+#      Capitalised "Unverified" (the section and criterion name) is allowed. Honest limit: it
+#      guards this one word in this one file; it cannot tell whether any other term is used
+#      in the meaning its definition gives. A root without the rubric is skipped.
+rubric="$ROOT/skills/research/rubric.md"
+if [[ -f "$rubric" ]]; then
+  while IFS= read -r hit; do
+    viol C18 "skills/research/rubric.md:$hit: a criterion says 'unverified'; say 'not verified', or define the narrower sense in Definitions"
+  done < <(awk '/^```/ { inside = !inside; next }
+                inside && /(^|[^A-Za-z])unverified([^A-Za-z]|$)/ { print NR }' "$rubric")
+fi
+
 # C9. Every SKILL.md declares a non-empty description
 for f in "${SKILLS[@]:+${SKILLS[@]}}"; do
   grep -qE '^description: .+' "$f" \

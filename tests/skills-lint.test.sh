@@ -336,6 +336,24 @@ case "$out" in "(exit"*) echo "FAIL - C17 passed an empty list: $out"; fail=$((f
   *) echo "FAIL - C17 did not report the empty list as empty"; fail=$((fail+1));; esac
 rm -rf "$d"
 
+# C18: the research rubric defines its confidence words ONCE, in its Definitions; the criteria
+# block (the fenced block) says "not verified" for the broad sense and never uses the bare
+# lowercase word "unverified", whose defined meaning is narrower (no nameable source). Three
+# review rounds found the two meanings mixed after edits (2026-10-02); two copies of a
+# definition drift, so the criteria may not restate it. Capitalised "Unverified" names the
+# section and the criterion and is allowed. Observed failing before C18 existed.
+rubric_root() { # rubric_root <criteria line>: a clean root plus a research rubric
+  local d; d="$(clean_root)"; mkdir -p "$d/skills/research"
+  printf -- '# Research rubric\n\nDefinitions:\n- **Unverified:** no nameable source.\n- a claim marked unverified is honest\n\n```\n1. Answer  0 missing\n          1 %s\n```\n' "$1" > "$d/skills/research/rubric.md"
+  printf '%s' "$d"
+}
+d="$(rubric_root 'rests on unverified evidence without saying so')"
+check "C18 flags the bare word unverified in a rubric criterion" 1 "$d"; rm -rf "$d"
+d="$(rubric_root 'rests on not verified evidence; see the Unverified section')"
+check "C18 control: not verified and the capitalised section name pass" 0 "$d"; rm -rf "$d"
+d="$(clean_root)"
+check "C18 control: a root without a research rubric is skipped" 0 "$d"; rm -rf "$d"
+
 # FINAL: the real repo must pass its own lint
 check "the actual repo passes its own invariants" 0 "$TEST_DIR/.."
 
