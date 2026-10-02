@@ -73,9 +73,9 @@ arch_review: pending    # set by the /odeo:build pipeline after the plan-review 
   the story this plan carries, each named. That class is: every open question in Risks
   that the HUMAN answers (a choice about what the user gets), and every Design decision that
   changes what the user gets or departs from the story's wording. Each appears here too;
-  none lives only in the technical layer. A purely technical decision (how, not what) stays
-  in Design decisions alone, and so does a builder stop rule in Risks ("if X, stop and
-  ask"): it is for the build, not the gate.>
+  none lives only in the technical layer. A purely technical decision (how, not what) and a
+  builder stop rule in Risks ("if X, stop and ask") stay in the technical layer alone: they
+  are for the build, not the gate.>
 - How we will know it works: <the observable check, plainly>
 <For example:>
 - What you get: one command that tells you which language Odeo writes your documents in,
@@ -183,7 +183,10 @@ Constraints: <copied verbatim from the spec/story. Boundaries live in the
  docs/codebase-map.md, this section names only what THIS plan must respect.>
 
 ## Risks / open questions
-<anything ambiguous the builder must ASK about rather than decide alone>
+<Two kinds, each item marked. `stop rule:` anything ambiguous the builder must ASK about
+ rather than decide alone ("if X, stop and ask"); it stays here. `gate:` an open question the
+ human answers before approval (a choice about what the user gets); it is also named under
+ `What you decide`.>
 
 ## Review Focus
 <3 to 5 ways this could fail that the tasks do NOT test, each one line, so the reviewers

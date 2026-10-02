@@ -28,6 +28,9 @@ Each scenario is one record:
 - **known unplanted findings** (optional): real flaws in the seed that a good reviewer will
   also raise. They do not affect the grade; listing them keeps a grader from reading them as
   noise or as the planted defect.
+- **not a finding (recorded, not graded)** (optional): something the format says is NOT a
+  finding, with the exact rule for counting reviewers that raise it anyway. It does not affect
+  the grade; the count shows whether a rule is understood.
 - **expected finding**: what the reviewer MUST report, and the minimum severity.
 - **pass / fail**: PASS if the reviewer flags the defect at or above the expected
   severity; FAIL if it misses it, downgrades it below the bar, or approves clean.
@@ -88,9 +91,11 @@ Each scenario is one record:
 - known unplanted findings: the formula guard prefixes `-` too, so a title like "-1 day
   buffer" changes, against criterion 4, and the Summary does not say so.
 - not a finding (recorded, not graded): the Risks line "if `listTasks` returns due dates as
-  strings, stop and ask" is a builder stop rule, which plan-format keeps out of `What you
-  decide`. A reviewer that asks for it there misreads the class; count it, as a signal that
-  the narrowed rule is understood (docs/evals/calibration-plan-human-layer.md has the history).
+  strings, stop and ask" is a builder stop rule, which plan-format keeps out of the human
+  layer. Counted when any finding asks for it in the Summary or `What you decide`
+  (docs/evals/calibration-plan-human-layer.md has the history). The seed predates the
+  `stop rule:` / `gate:` markers in Risks, so a reviewer may also note the item is unmarked;
+  that is a known unplanted finding, not this count.
 - expected finding: the header deviation, at important or higher, with a remedy that lets
   the human decide. Citing criterion 6 by number is not required.
 - pass/fail: PASS when the deviation is raised at important or higher AND the remedy names it
@@ -106,8 +111,9 @@ Each scenario is one record:
 - planted defect: none. This scenario guards the opposite failure: a reviewer that pushes
   every decision into the human layer, so it swells into a second spec.
 - known unplanted findings: the same as scenario 3 (the formula guard changing titles is a
-  real criterion-6 finding here, and expected); the Risks stop rule is "not a finding" here
-  too, recorded the same way.
+  real criterion-6 finding here, and expected).
+- not a finding (recorded, not graded): the same Risks stop rule as scenario 3, counted by
+  the same rule.
 - expected finding: no finding asking for the pure-function decision in the human layer
   (Summary, Why, Explanation or `What you decide`). Other findings do not affect the grade.
 - pass/fail: PASS if no finding (any rank) asks for the pure-function decision anywhere in the
