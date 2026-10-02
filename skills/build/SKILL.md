@@ -138,7 +138,7 @@ For one story at a time. The safest mode and the right default while learning.
 3. Seed `.claude/tasks/todo.md` with the task, context, and key decisions.
 4. Open the editor: `code -r .` (fallback `cursor -r .`; if neither exists, say so once and skip). As you build, reveal each file you just finished with `code -r -g <file>` so the user watches the story take shape; note that VS Code's Source Control panel marks changed lines in the gutter automatically. If the user says it's noisy, ease off.
 5. **Agree the success-signal (the loop's stop condition):** what "done" means here, every acceptance criterion + tests/lint/typecheck green + any quality targets (in plain language: "loads fast", "works for keyboard/screen-reader users"). Default is just the acceptance criteria + tests; add targets only if they matter.
-6. **Plan first, I prompt you and I wait.** Offer once: *"want the `architect` agent to draft the plan for us to review, or shall I draft it here?"* Either way: tell the user on screen: *"press Shift+Tab twice (plan mode), I'll present the steps and wait for your OK before writing any code."* In plan mode, present the step-by-step plan; **write no code until the user approves.** Approving the plan exits plan mode automatically and building starts (if they want changes, revise and re-present). Then build together (TDD for logic, ux-design + ux-writing for UI, follow `${CLAUDE_PLUGIN_ROOT}/AGENTS.md` and the project's `CLAUDE.md` + security baseline), looping build -> check the success-signal -> fix; stop and report if stuck after a few tries.
+6. **Plan first, I prompt you and I wait.** Offer once: *"want the `architect` agent to draft the plan for us to review, or shall I draft it here?"* Either way: tell the user on screen: *"press Shift+Tab twice (plan mode), I'll present the steps and wait for your OK before writing any code."* In plan mode, present the plan in the session-plan shape (its human layer first: Summary, Why, Explanation, per the `Plan layers:` line of `${CLAUDE_PLUGIN_ROOT}/docs/plan-format.md`), then the steps; **write no code until the user approves.** Approving the plan exits plan mode automatically and building starts (if they want changes, revise and re-present). Then build together (TDD for logic, ux-design + ux-writing for UI, follow `${CLAUDE_PLUGIN_ROOT}/AGENTS.md` and the project's `CLAUDE.md` + security baseline), looping build -> check the success-signal -> fix; stop and report if stuck after a few tries.
 7. Verify every success-signal item. Then `code-reviewer` (and `design-reviewer` if UI). If the change touches auth, input handling, uploads, payments, or data access, run the built-in `/security-review` too (note: it needs `origin/HEAD`; if the repo's remote is new, run `git remote set-head origin -a` once first).
 8. When the user says so, integrate with `/odeo:merge` (rebase onto main, tests, merge PR, cleanup). Offer it; never start it on your own.
 
@@ -229,8 +229,9 @@ once so a still editor is not mistaken for a stall. Live watching is with-me (Mo
    `Bash`, and the loop REGENERATES the artifact, so a later round would otherwise drop
    the field and the surviving artifact is the one the gate reads (`${CLAUDE_PLUGIN_ROOT}/AGENTS.md`
    Guardrails 7).
-3. **Present the plans for approval**: approach, file map, riskiest part, open
-   questions, + the plan-review trajectory. The user approves (flip
+3. **Present the plans for approval**: lead with each plan's `Summary for humans` as
+   written (its `Biggest risk` and `What you decide` ARE the riskiest part and the open
+   questions; do not restate them), then the file map and the plan-review trajectory. The user approves (flip
    `approved: yes`), asks for changes (back to the architect), or rejects.
    **No builder runs without an approved plan that carries an `arch_review:`
    line**, and a `builder_tier:` line in its `model_plan:`; all three are the builder's
@@ -307,7 +308,13 @@ architect -> docs/plans/2026-07-14-usr-012-timer.md (approved: no)
   model_plan: judgment <session model> (per session environment) effort high (configured, per CLAUDE_EFFORT)
               builder_tier: sonnet effort high (plan is precise, work mechanical)
 architecture-reviewer on the plan: fits inherited architecture, 1 note (shown)
-"Plan + independent check above. Approve, change, or reject?"
+"Summary for humans (as written in the plan):
+   What you get: a pause button that keeps your place in the timer.
+   What changes for users: a Pause button next to Start; nothing else moves.
+   Biggest risk: a paused timer drifts if the tab sleeps.
+   What you decide: approve, and whether a pause survives a page reload (the plan says no).
+   How we will know it works: pause, wait a minute, resume; the time left is unchanged.
+ The file map and the plan-review trajectory follow. Approve, change, or reject?"
 > approve                                   (flips approved: yes)
 (builder runs headless in its worktree; nothing changes in your editor, you review at the gate)
 builder in ../dogfood-usr-012 -> success-signal checklist all pass

@@ -52,99 +52,92 @@ out2="$( cd "$tmp2" && bash "$CHECK" 2>&1 )"; rc2=$?
   || bad "a README with no claims passed: the check would go green on a gutted document"
 rm -rf "$tmp2"
 
-# 4. --assertions counts what the suites report, and SAYS when some were skipped. A suite that
-#    skips assertions (a root guard, a shell that refuses
-#    SHELLOPTS) makes the total environment-dependent, and without the note a machine that ran
-#    a different amount of the suite reads as a drifted README, which sends the reader to fix a
-#    document that is correct.
+# 4. A SKIPPED CASE IS ADDED BACK, so the total is the same on every machine. A suite that
+#    cannot run a case (a root guard, a shell that refuses SHELLOPTS, a locale that is not
+#    installed) prints `SKIP <n> - <reason>`, n being the assertions the case makes when it runs.
+#    The check adds n to the `ok` lines, so the README carries ONE number and any mismatch is
+#    drift. Before this, a SKIP line carried no count, so the total moved with the machine and
+#    every machine that skipped anything reported the claim as UNVERIFIED: +6 real assertions
+#    from a merged branch went unnoticed that way. Observed failing (2026-10-02) before the
+#    count was read: the total was 2, not 4, and the claim was UNVERIFIED.
 #    Run against a miniature tree rather than this repo: the real --assertions pass runs
 #    every suite and takes minutes, and a slow test gets skipped, which is how this whole
 #    class of check rots.
 mini="$(mktemp -d)"; mkdir -p "$mini/scripts" "$mini/tests"
 printf '#!/usr/bin/env bash\necho hi\n' > "$mini/scripts/foo.sh"; chmod +x "$mini/scripts/foo.sh"
 printf '#!/usr/bin/env bash\necho "ok   - a"\n' > "$mini/tests/foo.test.sh"
-printf '#!/usr/bin/env bash\necho "SKIP - b"\necho "ok   - c"\n' > "$mini/tests/skippy.test.sh"
-cat > "$mini/README.md" <<'MINI'
-├── scripts/   ← 1 executables
-│   └── *.test.sh   ← 2 suites, 2 assertions. 1 of the 1 programs have their own suite
-MINI
+printf '#!/usr/bin/env bash\necho "SKIP 2 - b cannot run here"\necho "ok   - c"\n' > "$mini/tests/skippy.test.sh"
+printf '├── scripts/   ← 1 executables\n│   └── *.test.sh   ← 2 suites, 4 assertions. 1 of the 1 programs have their own suite\n' > "$mini/README.md"
 out4="$( cd "$mini" && bash "$CHECK" --assertions 2>&1 )"; rc4=$?
-[[ "$rc4" -eq 0 ]] && ok "--assertions totals the suites' ok lines (exit 0)" \
-  || bad "--assertions miscounted a tree built to match (exit $rc4): $out4"
-case "$out4" in *"1 check(s) were SKIPPED"*) ok "and it reports that 1 check was skipped";;
-  *) bad "a skipped check was counted silently (got: ${out4:-<empty>})";; esac
-#    The note's CAUSES are pinned, not only the count: it once named a single cause that did not
-#    apply (a missing tool), which sent readers to install something that was never missing.
-#    Observed failing (2026-09-30) with the note narrowed to the shell cause alone.
-case "$out4" in *"as this user"*"shell refuses"*) ok "and the note names both causes (user and shell)";;
-  *) bad "the skip note no longer names both causes: ${out4:-<empty>}";; esac
+[[ "$rc4" -eq 0 ]] && ok "a skipped case's assertions are added back (exit 0)" \
+  || bad "the full total did not match a README built for it (exit $rc4): $out4"
+case "$out4" in *"ok: assertions = 4"*) ok "and the total is ok + skipped = 4";;
+  *) bad "the skipped assertions were not added back: ${out4:-<empty>}";; esac
+case "$out4" in *"2 assertion(s) in 1 skipped case(s) were added back"*) ok "and it says what it added back";;
+  *) bad "the skip was added back silently: ${out4:-<empty>}";; esac
+case "$out4" in *"skippy.test.sh: SKIP 2 - b cannot run here"*) ok "and it quotes the suite's own reason for the skip";;
+  *) bad "the note does not quote why the case was skipped: ${out4:-<empty>}";; esac
+case "$out4" in *UNVERIFIED*) bad "a fully accounted total is still called unverified";;
+  *) ok "and a fully accounted total is not called unverified";; esac
 #    The other direction: no skips, no note. A note that always prints teaches the reader to
 #    ignore it, which is the same as not having one.
 printf '#!/usr/bin/env bash\necho "ok   - b"\necho "ok   - c"\n' > "$mini/tests/skippy.test.sh"
+printf '├── scripts/   ← 1 executables\n│   └── *.test.sh   ← 2 suites, 3 assertions. 1 of the 1 programs have their own suite\n' > "$mini/README.md"
 out5="$( cd "$mini" && bash "$CHECK" --assertions 2>&1 )"
-case "$out5" in *SKIPPED*) bad "the skip note printed when nothing was skipped";;
+case "$out5" in *"added back"*) bad "the skip note printed when nothing was skipped";;
   *) ok "and it stays quiet when nothing was skipped";; esac
 rm -rf "$mini"
 
-# 5. AN INCOMPLETE MEASUREMENT IS NOT EVIDENCE, IN EITHER DIRECTION. The note told the reader
-#    the count could read LOW, and the check still FAILED on any mismatch. So a machine that
-#    ran MORE of the suite than the author's (one skip fewer) counted HIGHER, got `DRIFTED`,
-#    exit 1, and the instruction "Fix the NUMBER in the document, never this check": it was
-#    told to edit a correct README and break it for everyone else. That was live in this repo,
-#    where bash 3.2 skips a case bash 5 runs.
-#
-#    The rule under test: when anything was skipped, the assertion count reports UNVERIFIED and
-#    does NOT fail, while the claims this run CAN measure completely stay fatal. The assertion
-#    is on the OUTCOME (exit code and word), not on the note's prose, which is what let the
-#    previous version pass while the harm was live.
+# 5. WITH EVERY SKIP COUNTED, A MISMATCH IS DRIFT IN BOTH DIRECTIONS, and a SKIP without a count
+#    is a broken suite. The old rule excused any mismatch while something was skipped, because
+#    a skipped case held an unknown number of assertions; with the number declared there is
+#    nothing left to excuse. Observed failing (2026-10-02) under the old rule: both directions
+#    were UNVERIFIED at exit 0, and the bare SKIP was accepted.
 mini5="$(mktemp -d)"; mkdir -p "$mini5/scripts" "$mini5/tests"
 printf '#!/usr/bin/env bash\necho hi\n' > "$mini5/scripts/foo.sh"; chmod +x "$mini5/scripts/foo.sh"
 printf '#!/usr/bin/env bash\necho "ok   - a"\n' > "$mini5/tests/foo.test.sh"
-printf '#!/usr/bin/env bash\necho "SKIP - b"\necho "ok   - c"\n' > "$mini5/tests/skippy.test.sh"
-# The README claims 2. This run measures 2, so the count itself is honest; the rows below bend
-# the README instead of the tree, one in each direction.
-for direction in high low; do
-  case "$direction" in
-    high) documented=1 ;;   # a machine that ran MORE than the author's: measured > documented
-    low)  documented=3 ;;   # a machine that ran LESS: measured < documented
-  esac
-  cat > "$mini5/README.md" <<MINI5
-├── scripts/   ← 1 executables
-│   └── *.test.sh   ← 2 suites, $documented assertions. 1 of the 1 programs have their own suite
-MINI5
+printf '#!/usr/bin/env bash\necho "SKIP 2 - b cannot run here"\necho "ok   - c"\n' > "$mini5/tests/skippy.test.sh"
+for documented in 3 5; do   # the full total is 4: one below and one above
+  printf '├── scripts/   ← 1 executables\n│   └── *.test.sh   ← 2 suites, %s assertions. 1 of the 1 programs have their own suite\n' "$documented" > "$mini5/README.md"
   out="$( cd "$mini5" && bash "$CHECK" --assertions 2>&1 )"; rc=$?
-  [[ "$rc" -eq 0 ]] \
-    && ok "a count that could not be fully measured does not fail the check ($direction reading)" \
-    || bad "an unmeasurable count exited $rc, telling the reader to edit a correct README ($direction): $out"
-  case "$out" in *UNVERIFIED*) ok "and it is reported as UNVERIFIED, not as drift ($direction)";;
-    *) bad "the mismatch was not marked unverified ($direction): ${out:-<empty>}";; esac
-  case "$out" in *DRIFTED*) bad "it still called an unmeasurable count drift ($direction)";;
-    *) ok "and the word DRIFTED is not used for it ($direction)";; esac
+  [[ "$rc" -ne 0 ]] && ok "a README at $documented against a full total of 4 fails" \
+    || bad "a README at $documented passed against a full total of 4: $out"
+  case "$out" in *DRIFTED*"Fix the NUMBER"*) ok "and it is drift, with the fix-the-document footer ($documented)";;
+    *) bad "the mismatch was not reported as drift ($documented): ${out:-<empty>}";; esac
 done
-# The exemption is SCOPED. A claim this run measures completely is still fatal, skip or no skip,
-# because otherwise one skipped case would switch the whole document off.
-cat > "$mini5/README.md" <<'MINI5'
-├── scripts/   ← 999 executables
-│   └── *.test.sh   ← 2 suites, 2 assertions. 1 of the 1 programs have their own suite
-MINI5
-out="$( cd "$mini5" && bash "$CHECK" --assertions 2>&1 )"; rc=$?
-[[ "$rc" -ne 0 ]] && ok "a claim that CAN be measured still fails while another is unverified" \
-  || bad "one skipped case switched off the claims this run could verify: $out"
-case "$out" in *DRIFTED*) ok "and that one is still reported as drift";;
-  *) bad "the measurable claim failed without naming drift: ${out:-<empty>}";; esac
+# The README sits ABOVE the ok lines (3 against 2), as a real README does when a skipped case
+# went uncounted, so withholding the number is what keeps it from being called drifted. With a
+# README at 2 the "blames neither" check could not fail: review round 2 measured a mutant that
+# no longer withholds it staying green there, and red here.
+printf '├── scripts/   ← 1 executables\n│   └── *.test.sh   ← 2 suites, 3 assertions. 1 of the 1 programs have their own suite\n' > "$mini5/README.md"
+#    Every spelling that is not a counted SKIP is refused, including the lowercase `skip -` and
+#    `skip:` three suites used for their root guards (review round 1: as root they vanished from
+#    the total and a correct README was called drifted), and a count of 0, which skips nothing.
+#    Observed failing (2026-10-02, round 1) for the lowercase lines, read case-sensitively.
+for bare in 'SKIP - b cannot run here' 'skip - b cannot run here' 'skip: b cannot run here' 'SKIP 0 - b'; do
+  printf '#!/usr/bin/env bash\necho "%s"\necho "ok   - c"\n' "$bare" > "$mini5/tests/skippy.test.sh"
+  out="$( cd "$mini5" && bash "$CHECK" --assertions 2>&1 )"; rc=$?
+  [[ "$rc" -ne 0 ]] && ok "'$bare' fails the run" || bad "'$bare' was accepted: $out"
+  case "$out" in *"skippy.test.sh"*"skip line without a valid count"*) ok "and it names the suite and the missing count ('$bare')";;
+    *) bad "the uncounted skip was not named ('$bare'): ${out:-<empty>}";; esac
+  case "$out" in *"carry no count"*) ok "and the footer names the uncounted skip ('$bare')";;
+    *) bad "the footer does not name the uncounted skip ('$bare'): ${out:-<empty>}";; esac
+  case "$out" in *"Fix the NUMBER"*|*"exited non-zero"*) bad "an uncounted skip blames the README or a suite exit ('$bare')";;
+    *) ok "and it blames neither the README nor an exit code ('$bare')";; esac
+done
 rm -rf "$mini5"
 
 # 6. A SUITE THAT FAILS IS NOT AN UNVERIFIED COUNT. The assertion total was read out of each
 #    suite's `ok` lines and the suite's EXIT CODE was thrown away, which did not matter while any
 #    mismatch failed: a broken suite produced a wrong total and the run went red anyway, for the
-#    wrong reason but loudly. Adding the unverified outcome removed that accident, and the case
-#    it removed it for is the worst one: a suite that ERRORS now reports fewer assertions, the
-#    mismatch is excused as unverified, and the run ends GREEN on every machine that skips
-#    anything, which here is every machine. A broken instrument must never read as a clean bill.
+#    wrong reason but loudly. The unverified outcome (then granted to any run that skipped a case,
+#    since removed) took that accident away, and for the worst case: a suite that ERRORED reported
+#    fewer assertions, the mismatch was excused as unverified, and the run ended GREEN on every
+#    machine that skipped anything. A broken instrument must never read as a clean bill.
 mini6="$(mktemp -d)"; mkdir -p "$mini6/scripts" "$mini6/tests"
 printf '#!/usr/bin/env bash\necho hi\n' > "$mini6/scripts/foo.sh"; chmod +x "$mini6/scripts/foo.sh"
 printf '#!/usr/bin/env bash\necho "ok   - a"\n' > "$mini6/tests/foo.test.sh"
-printf '#!/usr/bin/env bash\necho "SKIP - b"\necho "ok   - c"\n' > "$mini6/tests/skippy.test.sh"
+printf '#!/usr/bin/env bash\necho "SKIP 1 - b"\necho "ok   - c"\n' > "$mini6/tests/skippy.test.sh"
 printf '#!/usr/bin/env bash\necho "FAIL - d"\nexit 1\n' > "$mini6/tests/broken.test.sh"
 cat > "$mini6/README.md" <<'MINI6'
 ├── scripts/   ← 1 executables
@@ -189,37 +182,38 @@ case "$out6b" in *"exited non-zero"*) bad "a drift with green suites blames a su
   *) ok "and it does not blame a suite";; esac
 rm -rf "$mini6"
 
-# 7. THE LAST LINE MUST NOT CONTRADICT THE RUN. With an unverified claim above it, the summary
-#    still read "every countable claim matches the tree", which is the exact shape of claim this
-#    program exists to catch, printed by the program itself. A reader who scrolls to the end,
-#    which is what a summary is for, gets the opposite of what happened.
+# 7. THE LAST LINE STATES THE CLEAN RESULT PLAINLY, skips included. With every skip counted, a
+#    run that reaches the summary measured every claim, so the summary says so. (It used to have a
+#    second form for an UNVERIFIED claim; that state now arises only with a failed suite, which
+#    exits 1 before the summary, so the form was removed rather than left untested.)
 mini7="$(mktemp -d)"; mkdir -p "$mini7/scripts" "$mini7/tests"
 printf '#!/usr/bin/env bash\necho hi\n' > "$mini7/scripts/foo.sh"; chmod +x "$mini7/scripts/foo.sh"
 printf '#!/usr/bin/env bash\necho "ok   - a"\n' > "$mini7/tests/foo.test.sh"
-printf '#!/usr/bin/env bash\necho "SKIP - b"\necho "ok   - c"\n' > "$mini7/tests/skippy.test.sh"
-cat > "$mini7/README.md" <<'MINI7'
-├── scripts/   ← 1 executables
-│   └── *.test.sh   ← 2 suites, 7 assertions. 1 of the 1 programs have their own suite
-MINI7
-out7="$( cd "$mini7" && bash "$CHECK" --assertions 2>&1 )"; rc7=$?
-[[ "$rc7" -eq 0 ]] && ok "an unverified claim still exits 0" || bad "unverified run exited $rc7: $out7"
-last7="$(printf '%s\n' "$out7" | grep -v '^$' | tail -1)"
-case "$last7" in *"every countable claim matches"*)
-    bad "the summary claims everything matches while a claim went unverified: $last7";;
-  *UNVERIFIED*|*unverified*) ok "and the summary says how many claims went unverified";;
-  *) bad "the summary neither claims success nor names the unverified claim: $last7";; esac
-#    And the other direction: a fully verified run must still say so plainly, or the summary
-#    becomes noise that a reader learns to skip.
-printf '#!/usr/bin/env bash\necho "ok   - b"\necho "ok   - c"\n' > "$mini7/tests/skippy.test.sh"
-cat > "$mini7/README.md" <<'MINI7'
-├── scripts/   ← 1 executables
-│   └── *.test.sh   ← 2 suites, 3 assertions. 1 of the 1 programs have their own suite
-MINI7
+printf '#!/usr/bin/env bash\necho "SKIP 1 - b"\necho "ok   - c"\n' > "$mini7/tests/skippy.test.sh"
+printf '├── scripts/   ← 1 executables\n│   └── *.test.sh   ← 2 suites, 3 assertions. 1 of the 1 programs have their own suite\n' > "$mini7/README.md"
 out8="$( cd "$mini7" && bash "$CHECK" --assertions 2>&1 )"; rc8=$?
-[[ "$rc8" -eq 0 ]] && ok "a fully measured run still exits 0" || bad "clean run exited $rc8: $out8"
-case "$out8" in *"every countable claim matches"*) ok "and still says every claim matches";;
-  *) bad "a clean run no longer states the clean result: ${out8:-<empty>}";; esac
+[[ "$rc8" -eq 0 ]] && ok "a fully measured run with a counted skip exits 0" || bad "clean run exited $rc8: $out8"
+last8="$(printf '%s\n' "$out8" | grep -v '^$' | tail -1)"
+case "$last8" in *"every countable claim matches"*) ok "and the last line says every claim matches";;
+  *) bad "a clean run no longer states the clean result: $last8";; esac
 rm -rf "$mini7"
+
+# 8. A SUITE NEVER WAITS ON THE CALLER'S STDIN. Run in the background with stdin left open, a
+#    suite that read from it waited forever: the whole check was killed at a 30-minute limit
+#    with no output (2026-10-02). Suites run with stdin from /dev/null. The fixture suite reads
+#    with a 3-second limit and passes only when the read returns at once (end-of-file); the check is fed a pipe that stays
+#    open for 5 seconds, so the RED is bounded and cannot hang this suite. Observed failing
+#    (2026-10-02) before the redirect: the fixture timed out and the run went red.
+mini8="$(mktemp -d)"; mkdir -p "$mini8/scripts" "$mini8/tests"
+printf '#!/usr/bin/env bash\necho hi\n' > "$mini8/scripts/foo.sh"; chmod +x "$mini8/scripts/foo.sh"
+# bash 3.2 returns 1 for both a timeout and end-of-file, so the fixture measures the wait: EOF
+# returns at once, an open pipe holds the read for its full 3 seconds.
+printf '#!/usr/bin/env bash\nstart=$SECONDS; read -r -t 3 x; waited=$((SECONDS-start))\nif [ "$waited" -lt 2 ]; then echo "ok   - stdin is closed"; else echo "FAIL - stdin was open, waited ${waited}s"; exit 1; fi\n' > "$mini8/tests/foo.test.sh"
+printf '├── scripts/   ← 1 executables\n│   └── *.test.sh   ← 1 suites, 1 assertions. 1 of the 1 programs have their own suite\n' > "$mini8/README.md"
+out9="$( cd "$mini8" && sleep 5 | bash "$CHECK" --assertions 2>&1 )"; rc9=$?
+[[ "$rc9" -eq 0 ]] && ok "a suite run under an open stdin still gets end-of-file" \
+  || bad "a suite saw the caller's open stdin (exit $rc9): $out9"
+rm -rf "$mini8"
 
 echo ""
 if [[ "$fail" -eq 0 ]]; then echo "docs-claims-check: all $pass assertions passed."; else echo "docs-claims-check: $fail FAILURE(S) above."; fi

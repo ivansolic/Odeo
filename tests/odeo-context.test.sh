@@ -313,6 +313,8 @@ if [ "$(id -u)" != 0 ]; then
   chmod 500 "$h/data"; out="$(community "$h" "$h/data/sub" 2>/dev/null)"; rc=$?; chmod 700 "$h/data"
   assert_exit "community: a data dir it cannot write -> still 0" 0 "$rc"
   assert_empty "community: a data dir it cannot write -> silent (it could not rate-limit)" "$out"
+else
+  echo "SKIP 2 - running as root, a data dir it cannot write is still writable"
 fi
 # a clone with neither a stamp nor a HEAD cannot be dated: a reminder, not silence forever
 h="$(fresh_case nohead)"; rm "$h/.claude/community-knowledge/.git/odeo-last-sync" "$h/.claude/community-knowledge/.git/HEAD"

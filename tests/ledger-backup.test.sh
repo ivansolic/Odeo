@@ -435,7 +435,7 @@ chmod 000 "$p24/.claude/tasks/todo.md"
 out="$(run "$p24")"; rc=$?
 chmod 644 "$p24/.claude/tasks/todo.md"
 if [ "$(id -u)" = "0" ]; then
-  echo "SKIP - running as root, an unreadable file is still readable"
+  echo "SKIP 2 - running as root, an unreadable file is still readable"
 else
   [ "$rc" = 4 ] && ok "an unreadable ledger file on the git path -> exit 4" \
     || bad "unreadable file -> exit $rc (want 4): $out"
@@ -510,7 +510,7 @@ p25c="$(mkproject p25c "ledger_backup: dir $broken/backups")"
 out="$(run "$p25c")"; rc=$?
 chmod 644 "$broken/.git/config" 2>/dev/null
 if [ "$(id -u)" = "0" ]; then
-  echo "SKIP - running as root, an unreadable config is still readable"
+  echo "SKIP 2 - running as root, an unreadable config is still readable"
 else
   [ "$rc" = 2 ] && ok "a repository git cannot read -> exit 2, not 'no repository here'" \
     || bad "unreadable repo state -> exit $rc (want 2): $out"
@@ -529,7 +529,7 @@ out="$(run "$p26")"; rc=$?
 out2="$(run "$p26" --check)"; rc2=$?
 chmod 755 "$p26/.claude/tasks"
 if [ "$(id -u)" = "0" ]; then
-  echo "SKIP - running as root, an unreadable directory is still readable"
+  echo "SKIP 2 - running as root, an unreadable directory is still readable"
 else
   [ "$rc" = 2 ] && ok "an unreadable ledger directory -> exit 2, not 'nothing to back up'" \
     || bad "unreadable ledger dir -> exit $rc (want 2): $out"
@@ -570,7 +570,7 @@ chmod -R a-w "$b28" 2>/dev/null
 out="$(run "$p28")"; rc=$?
 chmod -R u+w "$b28" 2>/dev/null
 if [ "$(id -u)" = "0" ]; then
-  echo "SKIP - running as root, a read-only repository is still writable"
+  echo "SKIP 3 - running as root, a read-only repository is still writable"
 else
   [ "$rc" = 5 ] && ok "a reachable remote that refuses the write -> exit 5" \
     || bad "read-only remote -> exit $rc (want 5): $out"
@@ -595,7 +595,7 @@ chmod -R 000 "$b29/objects" 2>/dev/null
 out="$(run "$p29")"; rc=$?
 chmod -R 755 "$b29/objects" 2>/dev/null
 if [ "$(id -u)" = "0" ]; then
-  echo "SKIP - running as root, unreadable objects are still readable"
+  echo "SKIP 3 - running as root, unreadable objects are still readable"
 else
   [ "$rc" = 4 ] && ok "an existing branch whose objects cannot be read -> exit 4" \
     || bad "unreadable objects -> exit $rc (want 4): $out"
@@ -622,7 +622,7 @@ p30="$(mkproject p30 "ledger_backup: dir $TMP/wt-linked/backups")"
 out="$(run "$p30")"; rc=$?
 chmod 755 "$wtmain/.git/worktrees" 2>/dev/null
 if [ "$(id -u)" = "0" ]; then
-  echo "SKIP - running as root, an unreadable worktree directory is still readable"
+  echo "SKIP 3 - running as root, an unreadable worktree directory is still readable"
 else
   [ "$rc" = 2 ] && ok "a worktree whose gitdir git cannot follow is still refused (exit 2)" \
     || bad "unfollowable worktree -> exit $rc (want 2): $out"
@@ -899,7 +899,7 @@ if ( SHELLOPTS=allexport bash -c 'shopt -qo allexport' ) 2>/dev/null; then
     || bad "allexport re-exported a script variable and the index was rewritten"
   [ "$rc" = 0 ] && ok "and the backup still ran (exit 0)" || bad "allexport run -> exit $rc: $out"
 else
-  echo "SKIP - this shell refuses SHELLOPTS from the environment, so allexport cannot be exercised"
+  echo "SKIP 2 - this shell refuses SHELLOPTS from the environment, so allexport cannot be exercised"
 fi
 
 # 41. THE PUBLISH REFUSAL READS THE SAME URL, so it must read it the same WAY. The containment
