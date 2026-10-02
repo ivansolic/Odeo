@@ -3,7 +3,8 @@
 Scored by `pm-reviewer` (0-2 per criterion) over one research report
 (`docs/research/RES-NNN-<slug>.md`). Record goes to `docs/evals/<RES-id>.md`.
 
-Definitions the criteria use:
+Definitions the criteria use. They are the ONE place these terms are defined: the research
+skill points here instead of rewording them, so the two files cannot drift apart.
 - **Claim:** any statement of fact in the report, including a cell or sentence marked
   unverified. Marking a claim "?" or "unverified" does not make it traced; it makes it honest.
 - **Independent sources:** neither one derives from the other (two articles citing one
@@ -11,15 +12,20 @@ Definitions the criteria use:
   source). For a product's own behaviour, its documentation and its shipped code, binary or
   changelog count as two, when each states the claim itself; a changelog is a dated release
   record, wherever it is hosted.
-- **Note:** a numbered source entry under Findings: the page or file, plus a quote or a
-  locator from the source's body (not a search-result snippet).
+- **Note:** a numbered entry under Findings naming one or more sources, each with its page or
+  file and a quote or locator from the source's body (not a search-result snippet).
 - **Traced:** a claim names at least one note a reader can find and check.
-- **Scoped:** the question states the scope, region, segment and period that apply to it
-  (the items of step 1 in the research skill).
+- **Scoped:** the question states its scope, region, segment and date sensitivity where they
+  apply (the first four items of step 1 in the research skill).
 - **Dated fact:** a fact that can change over time (a price, a limit, a version, a count).
 - **Load-bearing claim:** a claim that the Answer or an Implication rests on.
-- **Verified:** a claim backed by two independent sources, counted PER CLAIM. A note that
-  backs several claims verifies only those it gives two sources for.
+- **Confidence words**, one per claim, written where the claim appears:
+  - **Verified:** backed by two independent sources, counted PER CLAIM (a note that backs
+    several claims verifies only those it gives two sources for).
+  - **One source:** backed by exactly one source.
+  - **Unverified:** backed by no source the report can name.
+  - **Not verified** means one source or unverified; every not-verified claim, and every
+    contested one, is listed in the Unverified section.
 
 ```
 1. Question             0 no scoped question
@@ -34,9 +40,9 @@ Definitions the criteria use:
                           what Findings mark unverified), skips part of the question, or
                           leads with jargon
                         2 plain language first, the best supported answer to every part of
-                          the question, and every factual clause matches its Findings, with
-                          its confidence (verified, one source, unverified) said in words or
-                          by citing a note that carries that label
+                          the question, and every factual clause matches its Findings and
+                          carries its confidence word, in the clause itself or in the
+                          Findings claim it cites
 
 3. Traceability         0 a load-bearing claim cannot be traced to any named source (sources
                           counted but not named count as not traced), or fewer than half of
@@ -46,26 +52,25 @@ Definitions the criteria use:
                         2 every claim, verified or not, names its source (page or file plus
                           a quote or locator), and verified claims name two independent ones
 
-4. Dates and methods    0 numbers or dated facts with no data date, estimates passed as
-                          measurements
+4. Dates and methods    0 no number or dated fact carries a data date, or an estimate is
+                          passed as a measurement
                         1 access dates given, but some data dates, the version or commit of a
                           measured thing, or an estimate's method are missing
                         2 every number and dated fact carries its data date, every estimate
-                          is labelled with its method, every local measurement names what it
+                          is labeled with its method, every local measurement names what it
                           measured and at which version or commit
                         (N/A only when the report contains no numbers and no dated facts;
                           then rescale)
 
-5. Unverified labelling 0 no Unverified section, or a load-bearing one-source or contested
+5. Unverified labelling 0 no Unverified section, or a load-bearing not-verified or contested
                           claim presented as fact
-                        1 an Unverified section exists, but some one-source claims,
+                        1 an Unverified section exists, but some not-verified claims,
                           inferences or conflicts are missing from it, a conflict lacks its
-                          values, or a label says the opposite of what the evidence shows
-                          (calling a figure an "upper bound" when the report never shows the
-                          true value is below it)
-                        2 every one-source claim, inference and conflict is labelled where it
-                          appears and listed under Unverified, conflicts with both values,
-                          and each label is justified
+                          values, or a label claims more than the evidence shows (an "upper
+                          bound" the report never shows to be one)
+                        2 every not-verified claim, inference and conflict is labeled where
+                          it appears and listed under Unverified, conflicts with both
+                          values, and each label is justified
 
 6. Evidence fit         0 no source was read, or the evidence answers a different question than
                           the one asked
@@ -88,8 +93,9 @@ Definitions the criteria use:
                         1 present, but not grouped, access dates, versions or the pages
                           actually used are incomplete, or it does not say what it leaves out
                         2 grouped, every page actually used listed with its access date and
-                          version, and one line saying what the search did not cover
-                          (regions, paywalls, languages, lost notes)
+                          its version where the source has one, and one line saying what the
+                          search did not cover (regions, paywalls, languages, blocked or lost
+                          pages)
 
 A criterion that meets none of its 0 conditions and misses any of its 2 conditions scores 1.
 

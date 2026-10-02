@@ -5,9 +5,11 @@ description: Use when the user wants market or web research with sources, asks a
 # Research (evidence, not vibes)
 
 Turns a question into a CITED report the rest of the system can lean on. The
-contract: **every claim carries 2+ independent sources, or it carries the label
-`unverified`.** No number is ever invented; a range with a shown method beats a
-confident single figure.
+contract: **every claim is verified (two independent sources) or says plainly that it
+is not (`one source` or `unverified`).** These terms, and note, traced and
+independent, are defined once, in the Definitions of `${CLAUDE_PLUGIN_ROOT}/skills/research/rubric.md`; this skill
+uses them and never rewords them. No number is ever invented; a range with a shown
+method beats a confident single figure.
 
 ## Modes (pick from the question, confirm in one line)
 - **market-size**: TAM/SAM/SOM as RANGES, triangulated from 2+ methods
@@ -30,17 +32,14 @@ confident single figure.
    term + synonyms, competitor names once discovered, "X pricing", "X market
    size <year>", regional variants). Fetch the promising sources, don't answer
    from search snippets alone.
-4. **Triangulate every claim**: 2+ INDEPENDENT sources (two articles citing the
-   same press release = one source; two pages of one vendor's docs = one source).
-   Count sources PER CLAIM: a note that backs several claims verifies only those it
-   gives two sources for. Conflicting numbers are reported AS a conflict with both
-   values, never silently averaged.
-4b. **Cite as you write**: put each source in a numbered note under Findings, with
-   its page or file and a short verbatim quote. Every claim cites its note(s) and
-   carries its confidence in words: **verified** (two independent sources, both
-   cited), **one source**, or **unverified** (no source you can name). A claim with
-   no note you can name is unverified, however sure you feel; never restate a
-   source from memory.
+4. **Triangulate every claim**: aim for two independent sources per claim (the rubric's
+   Independent sources and Verified definitions say what counts). Conflicting numbers
+   are reported AS a conflict with both values, never silently averaged.
+4b. **Cite as you write**: put a claim's sources in a numbered note under Findings (the
+   rubric's Note definition). Every claim cites its note(s) and carries its confidence
+   word where it appears: verified, one source, or unverified (the rubric's Confidence
+   words). A claim with no note you can name is unverified, however sure you feel;
+   never restate a source from memory.
 5. **Write the report** to `docs/research/RES-NNN-<slug>.md` (NNN = next number
    after the highest existing `RES-` file there):
    ```
@@ -51,14 +50,14 @@ confident single figure.
    ## Findings (each claim: its note numbers + its confidence word, with the
       data's date; the numbered notes with quotes follow the claims)
    ## Numbers (ranges + the method that produced each)
-   ## Unverified (single-source or contested, labeled honestly)
+   ## Unverified (every claim that is not verified, and every conflict with both values)
    ## Implications for us (what this changes in PRD/priorities, 3 bullets max,
       each with its reason and the notes it rests on)
    ## Sources (grouped by publisher, links, access date, versions; one line on
       what the search did not cover: regions, paywalls, languages, blocked pages)
    ```
-5b. **Score it**: dispatch `pm-reviewer` against
-   `${CLAUDE_PLUGIN_ROOT}/skills/research/rubric.md`, handing it the commit sha and
+5b. **Score it**: commit the report, then dispatch `pm-reviewer` against
+   `${CLAUDE_PLUGIN_ROOT}/skills/research/rubric.md`, handing it `git rev-parse --short HEAD` and
    `output_language` (Guardrails 1 and 7 in `${CLAUDE_PLUGIN_ROOT}/AGENTS.md`).
    Below the threshold, fix the report and re-dispatch the same reviewer: the review
    loop of Guardrails 3, with its stop condition.
@@ -81,11 +80,17 @@ when the Context section rests on assumptions ("shall I back this with
 >    europe", "recipe app revenue EU", competitor annual reports, app-store
 >    category data. Triangulates a top-down analyst range against bottom-up
 >    (EU households x adoption x ARPU), both methods shown.
-> -> RES-003-eu-meal-prep-market.md: "€180-420M SAM (two methods, 2025 data);
->    the wide range comes from disagreement between analyst reports (labeled);
->    bottom-up favors the low end. Unverified: retention benchmarks (one
->    source)." Opened in the editor; offered: "cite RES-003 in PRD-001's
->    Context?"
+> -> RES-003-eu-meal-prep-market.md. Answer: "The EU meal-prep app market (SAM) is
+>    €180-420M, 2025 data (verified, notes 1 and 2: an analyst range and a
+>    bottom-up estimate); the analysts disagree with each other (conflict, both
+>    values in Findings), and bottom-up favors the low end. Retention is unknown
+>    for planning: one source (note 3)."
+>    Findings: "Bottom-up SAM €190M (verified, notes 1 and 2) ... Note 1: <analyst
+>    report title, page, data year>, quote '<the sentence that states the range>';
+>    note 2: <household statistics table, data year>, quote '<the row used>'." (The
+>    angle brackets are placeholders: an example never names a source nobody read.)
+>    Score: pm-reviewer against the rubric, PASS. Opened in the editor; offered:
+>    "cite RES-003 in PRD-001's Context?"
 
 ## Honest limits (say them, never paper over)
 - **No web access / blocked network** (corporate proxies, sandboxes): say so
@@ -97,9 +102,9 @@ when the Context section rests on assumptions ("shall I back this with
 - Data ages: every number carries its data year, not just the access date.
 
 ## Rules for yourself
-- Two independent sources or `unverified`, no exceptions, no silent averaging.
-- No sentence states something as fact without citing a note; "one source" and
-  "unverified" are said where the claim appears, not only in the Unverified section.
+- Verified, or labeled `one source` or `unverified`: no exceptions, no silent averaging.
+- No sentence states something as fact without citing a note; its confidence word is
+  said where the claim appears, not only in the Unverified section.
 - Never fabricate a number, a source, or a quote (honesty guardrail; a
   fabricated citation is worse than no report).
 - Ranges with methods over point estimates; conflicts reported as conflicts.
