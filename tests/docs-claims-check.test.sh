@@ -105,24 +105,31 @@ for documented in 3 5; do   # the full total is 4: one below and one above
   case "$out" in *DRIFTED*"Fix the NUMBER"*) ok "and it is drift, with the fix-the-document footer ($documented)";;
     *) bad "the mismatch was not reported as drift ($documented): ${out:-<empty>}";; esac
 done
-printf '#!/usr/bin/env bash\necho "SKIP - b cannot run here"\necho "ok   - c"\n' > "$mini5/tests/skippy.test.sh"
 printf '├── scripts/   ← 1 executables\n│   └── *.test.sh   ← 2 suites, 2 assertions. 1 of the 1 programs have their own suite\n' > "$mini5/README.md"
-out="$( cd "$mini5" && bash "$CHECK" --assertions 2>&1 )"; rc=$?
-[[ "$rc" -ne 0 ]] && ok "a SKIP line without a count fails the run" \
-  || bad "a SKIP line without a count was accepted: $out"
-case "$out" in *"skippy.test.sh"*"SKIP line without a count"*) ok "and it names the suite and the missing count";;
-  *) bad "the uncounted SKIP was not named: ${out:-<empty>}";; esac
-case "$out" in *"Fix the NUMBER"*) bad "an uncounted SKIP blames the README";;
-  *) ok "and it blames the suite, not the README";; esac
+#    Every spelling that is not a counted SKIP is refused, including the lowercase `skip -` and
+#    `skip:` three suites used for their root guards (review round 1: as root they vanished from
+#    the total and a correct README was called drifted), and a count of 0, which skips nothing.
+#    Observed failing (2026-10-02, round 1) for the lowercase lines, read case-sensitively.
+for bare in 'SKIP - b cannot run here' 'skip - b cannot run here' 'skip: b cannot run here' 'SKIP 0 - b'; do
+  printf '#!/usr/bin/env bash\necho "%s"\necho "ok   - c"\n' "$bare" > "$mini5/tests/skippy.test.sh"
+  out="$( cd "$mini5" && bash "$CHECK" --assertions 2>&1 )"; rc=$?
+  [[ "$rc" -ne 0 ]] && ok "'$bare' fails the run" || bad "'$bare' was accepted: $out"
+  case "$out" in *"skippy.test.sh"*"skip line without a count"*) ok "and it names the suite and the missing count ('$bare')";;
+    *) bad "the uncounted skip was not named ('$bare'): ${out:-<empty>}";; esac
+  case "$out" in *"carry no count"*) ok "and the footer names the uncounted skip ('$bare')";;
+    *) bad "the footer does not name the uncounted skip ('$bare'): ${out:-<empty>}";; esac
+  case "$out" in *"Fix the NUMBER"*|*"exited non-zero"*) bad "an uncounted skip blames the README or a suite exit ('$bare')";;
+    *) ok "and it blames neither the README nor an exit code ('$bare')";; esac
+done
 rm -rf "$mini5"
 
 # 6. A SUITE THAT FAILS IS NOT AN UNVERIFIED COUNT. The assertion total was read out of each
 #    suite's `ok` lines and the suite's EXIT CODE was thrown away, which did not matter while any
 #    mismatch failed: a broken suite produced a wrong total and the run went red anyway, for the
-#    wrong reason but loudly. Adding the unverified outcome removed that accident, and the case
-#    it removed it for is the worst one: a suite that ERRORS now reports fewer assertions, the
-#    mismatch is excused as unverified, and the run ends GREEN on every machine that skips
-#    anything, which here is every machine. A broken instrument must never read as a clean bill.
+#    wrong reason but loudly. The unverified outcome (then granted to any run that skipped a case,
+#    since removed) took that accident away, and for the worst case: a suite that ERRORED reported
+#    fewer assertions, the mismatch was excused as unverified, and the run ended GREEN on every
+#    machine that skipped anything. A broken instrument must never read as a clean bill.
 mini6="$(mktemp -d)"; mkdir -p "$mini6/scripts" "$mini6/tests"
 printf '#!/usr/bin/env bash\necho hi\n' > "$mini6/scripts/foo.sh"; chmod +x "$mini6/scripts/foo.sh"
 printf '#!/usr/bin/env bash\necho "ok   - a"\n' > "$mini6/tests/foo.test.sh"
