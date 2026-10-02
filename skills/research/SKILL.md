@@ -88,8 +88,8 @@ did not do:
 > every hook change is an inference from 'the current hook definition'."
 The clause says its confidence word, the note gives the page and the quote, and the
 inference is labeled as one. The same report also shows the failure this skill now
-prevents: its other notes were lost, so most of its cells could not be traced, and
-it scored below the rubric's threshold.
+prevents: the sources behind most of its table cells were not kept, so those cells
+could not be traced to anything.
 
 ## Honest limits (say them, never paper over)
 - **No web access / blocked network** (corporate proxies, sandboxes): say so
