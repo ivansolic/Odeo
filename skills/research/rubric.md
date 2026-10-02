@@ -19,7 +19,8 @@ skill points here instead of rewording them, so the two files cannot drift apart
   apply (the first four items of step 1 in the research skill).
 - **Dated fact:** a fact that can change over time (a price, a limit, a version, a count).
 - **Load-bearing claim:** a claim that the Answer or an Implication rests on.
-- **Confidence words**, one per claim, written where the claim appears:
+- **Confidence words**, one per claim, written where the claim appears (an Answer clause
+  may carry it by citing the Findings claim that does):
   - **Verified:** backed by two independent sources, counted PER CLAIM (a note that backs
     several claims verifies only those it gives two sources for).
   - **One source:** backed by exactly one source.
@@ -37,7 +38,7 @@ skill points here instead of rewording them, so the two files cannot drift apart
 2. Answer               0 missing, does not answer the question, or only lists what is
                           unknown without giving the best answer the evidence supports
                         1 answers, but a factual clause outruns the Findings (states as fact
-                          what Findings mark unverified), skips part of the question, or
+                          what Findings mark not verified), skips part of the question, or
                           leads with jargon
                         2 plain language first, the best supported answer to every part of
                           the question, and every factual clause matches its Findings and
@@ -83,11 +84,11 @@ skill points here instead of rewording them, so the two files cannot drift apart
                           its body, and the promised depth was delivered
 
 7. Implications         0 none, or they do not follow from the Findings
-                        1 present, but one rests on unverified evidence without saying so,
+                        1 present, but one rests on not-verified evidence without saying so,
                           gives a recommendation without its reason, or there are more than
                           three bullets
                         2 at most three bullets, each follows from cited Findings, each gives
-                          its reason, and any that rests on unverified evidence says so
+                          its reason, and any that rests on not-verified evidence says so
 
 8. Sources list         0 missing, or no source was read
                         1 present, but not grouped, access dates, versions or the pages

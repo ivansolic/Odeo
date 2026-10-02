@@ -56,7 +56,8 @@ method beats a confident single figure.
    ## Sources (grouped by publisher, links, access date, versions; one line on
       what the search did not cover: regions, paywalls, languages, blocked pages)
    ```
-5b. **Score it**: commit the report, then dispatch `pm-reviewer` against
+5b. **Score it**: commit the report on a branch (on `main`, ask the human to create one
+   first: Git discipline in `${CLAUDE_PLUGIN_ROOT}/AGENTS.md`), then dispatch `pm-reviewer` against
    `${CLAUDE_PLUGIN_ROOT}/skills/research/rubric.md`, handing it `git rev-parse --short HEAD` and
    `output_language` (Guardrails 1 and 7 in `${CLAUDE_PLUGIN_ROOT}/AGENTS.md`).
    Below the threshold, fix the report and re-dispatch the same reviewer: the review
@@ -75,22 +76,20 @@ when the Context section rests on assumptions ("shall I back this with
 /odeo:research?"). Fully standalone too, any question, any time, no phase required.
 
 ## Worked example
-> User: "how big is the meal-prep app market in the EU?"
-> -> mode: market-size, thorough. Searches: "meal planning app market size
->    europe", "recipe app revenue EU", competitor annual reports, app-store
->    category data. Triangulates a top-down analyst range against bottom-up
->    (EU households x adoption x ARPU), both methods shown.
-> -> RES-003-eu-meal-prep-market.md. Answer: "The EU meal-prep app market (SAM) is
->    €180-420M, 2025 data (verified, notes 1 and 2: an analyst range and a
->    bottom-up estimate); the analysts disagree with each other (conflict, both
->    values in Findings), and bottom-up favors the low end. Retention is unknown
->    for planning: one source (note 3)."
->    Findings: "Bottom-up SAM €190M (verified, notes 1 and 2) ... Note 1: <analyst
->    report title, page, data year>, quote '<the sentence that states the range>';
->    note 2: <household statistics table, data year>, quote '<the row used>'." (The
->    angle brackets are placeholders: an example never names a source nobody read.)
->    Score: pm-reviewer against the rubric, PASS. Opened in the editor; offered:
->    "cite RES-003 in PRD-001's Context?"
+Adapted from a real report (RES-002, "Where can Odeo run besides Claude Code?",
+deep-dive, thorough). The note and its quote are verbatim from it; the confidence word
+and the Unverified line show how this skill writes the same claim, which RES-002 itself
+did not do:
+> Answer clause: "users must approve plugin hooks before they run, apparently again
+> whenever a hook changes (one source, note 2)."
+> Note 2: developers.openai.com/codex/hooks, quote: "Codex skips plugin-bundled hooks
+> until you review and trust the current hook definition".
+> Unverified section: "the hook trust step rests on one source; whether it repeats on
+> every hook change is an inference from 'the current hook definition'."
+The clause says its confidence word, the note gives the page and the quote, and the
+inference is labeled as one. The same report also shows the failure this skill now
+prevents: its other notes were lost, so most of its cells could not be traced, and
+it scored below the rubric's threshold.
 
 ## Honest limits (say them, never paper over)
 - **No web access / blocked network** (corporate proxies, sandboxes): say so
