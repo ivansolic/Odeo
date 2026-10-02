@@ -16,7 +16,7 @@ Summary as written. Both were reviewed as text. This note measures whether agent
 
 ## Run 2, BLIND (2026-10-02, format at ff6ee09, after narrowing the Risks class)
 Every number below is recomputed by
-`python3 docs/evals/calibration-runs/2026-10-02-blind/recount.py`, which reads the archived
+`python3 docs/calibration-runs/2026-10-02-blind/recount.py`, which reads the archived
 outputs in that directory (with GRADING.md, the rules written before the runs) and prints
 the runs behind each count. Its sentence matching is a heuristic; the run names let a human
 open each one and confirm.
@@ -38,16 +38,19 @@ the directory they were given.
 | Risks stop rule asked for in the Summary or `What you decide` (recorded) | 0/10 (run 1: 7/10 Important); 5/10 (r-a3, r-a4, r-b2, r-b4, r-b5) said it is correctly kept out |
 
 The B5.3 order check is a HEURISTIC: it finds the first "file map" text anywhere. A gate that
-says "see the file map below" above the Summary would fail a correct output, and a map under
-another label ("Files touched") would pass unchecked. It was shown to react on copies of the
+says "see the file map below" above the Summary would fail a correct output, and so would a
+correct output whose map carries another label ("Files touched"), since the check requires the
+text "file map". It was shown to react on copies of the
 outputs, a one-word paraphrase (4/5) and a "File map first." line added at the top; those
 copies were not archived, so that demonstration is self-attested.
 
 What this run can and cannot say: the stop-rule requests fell from 7/10 to 0/10, but run 2
 changed the format AND the blinding together, so it cannot separate the two causes, and 10
 runs is a small sample. The planted catch held at 5/5 under both. The narrowing is kept on
-that evidence and on the format's own reading (Risks is defined as the builder's questions),
-not on the drop alone.
+that evidence and on the format's reading at ff6ee09 (Risks then defined as the builder's
+questions), not on the drop alone. Since then the Risks template names two kinds, each item
+marked `stop rule:` or `gate:`; that marker version has NOT been run against agents yet, so
+this run is evidence for the narrowed class, not for the markers.
 
 Limits that still apply to run 2:
 - Contamination: the runs were in a session whose user global CLAUDE.md carries the same

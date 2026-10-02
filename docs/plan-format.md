@@ -293,8 +293,8 @@ them as a gate.
                    count equals the story's criterion count.
 4. Constraint fit  0 ignores architecture or boundaries / 1 partial / 2 inherits explicitly,
                    do-not-touch respected, escalations flagged
-5. Honesty         0 hides ambiguity / 1 some / 2 risks and open questions listed for the
-                   builder to ask, not guess
+5. Honesty         0 hides ambiguity / 1 some / 2 risks and open questions listed, for the
+                   builder to ask (`stop rule:`) or the human to decide (`gate:`), not guess
 6. Human layer     0 Summary, Why or Explanation missing / 1 present but in jargon,
                    disagreeing with the technical layer, leaving a gate decision or story
                    deviation only in the technical layer, or restating the Summary in Why

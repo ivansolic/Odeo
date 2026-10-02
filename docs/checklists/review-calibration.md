@@ -89,13 +89,12 @@ Each scenario is one record:
   "due date", a change to what the user gets, and the Summary's `What you decide` does not
   name it. The human approves from the Summary and would never see the choice.
 - known unplanted findings: the formula guard prefixes `-` too, so a title like "-1 day
-  buffer" changes, against criterion 4, and the Summary does not say so.
+  buffer" changes, against criterion 4, and the Summary does not say so; and the seed
+  predates the `stop rule:` / `gate:` markers, so its Risks item is unmarked.
 - not a finding (recorded, not graded): the Risks line "if `listTasks` returns due dates as
   strings, stop and ask" is a builder stop rule, which plan-format keeps out of the human
   layer. Counted when any finding asks for it in the Summary or `What you decide`
-  (docs/evals/calibration-plan-human-layer.md has the history). The seed predates the
-  `stop rule:` / `gate:` markers in Risks, so a reviewer may also note the item is unmarked;
-  that is a known unplanted finding, not this count.
+  (docs/evals/calibration-plan-human-layer.md has the history).
 - expected finding: the header deviation, at important or higher, with a remedy that lets
   the human decide. Citing criterion 6 by number is not required.
 - pass/fail: PASS when the deviation is raised at important or higher AND the remedy names it
