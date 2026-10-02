@@ -120,7 +120,7 @@ if [[ "$WITH_ASSERTIONS" -eq 1 ]]; then
         skipped_cases=$((skipped_cases+1)); skipped_asserts=$((skipped_asserts+BASH_REMATCH[1]))
         skip_lines="$skip_lines      $f: $line"$'\n'
       else
-        echo "UNCOUNTED SKIP: $f prints a skip line without a count ('$line'); write SKIP <n> - <reason>."
+        echo "UNCOUNTED SKIP: $f prints a skip line without a valid count ('$line'); write SKIP <n> - <reason>."
         fail=1; skip_fail=$((skip_fail+1))
       fi
     done <<< "$(printf '%s\n' "$out" | grep -iE '^skip')"

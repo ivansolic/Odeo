@@ -105,7 +105,11 @@ for documented in 3 5; do   # the full total is 4: one below and one above
   case "$out" in *DRIFTED*"Fix the NUMBER"*) ok "and it is drift, with the fix-the-document footer ($documented)";;
     *) bad "the mismatch was not reported as drift ($documented): ${out:-<empty>}";; esac
 done
-printf '├── scripts/   ← 1 executables\n│   └── *.test.sh   ← 2 suites, 2 assertions. 1 of the 1 programs have their own suite\n' > "$mini5/README.md"
+# The README sits ABOVE the ok lines (3 against 2), as a real README does when a skipped case
+# went uncounted, so withholding the number is what keeps it from being called drifted. With a
+# README at 2 the "blames neither" check could not fail: review round 2 measured a mutant that
+# no longer withholds it staying green there, and red here.
+printf '├── scripts/   ← 1 executables\n│   └── *.test.sh   ← 2 suites, 3 assertions. 1 of the 1 programs have their own suite\n' > "$mini5/README.md"
 #    Every spelling that is not a counted SKIP is refused, including the lowercase `skip -` and
 #    `skip:` three suites used for their root guards (review round 1: as root they vanished from
 #    the total and a correct README was called drifted), and a count of 0, which skips nothing.
@@ -114,7 +118,7 @@ for bare in 'SKIP - b cannot run here' 'skip - b cannot run here' 'skip: b canno
   printf '#!/usr/bin/env bash\necho "%s"\necho "ok   - c"\n' "$bare" > "$mini5/tests/skippy.test.sh"
   out="$( cd "$mini5" && bash "$CHECK" --assertions 2>&1 )"; rc=$?
   [[ "$rc" -ne 0 ]] && ok "'$bare' fails the run" || bad "'$bare' was accepted: $out"
-  case "$out" in *"skippy.test.sh"*"skip line without a count"*) ok "and it names the suite and the missing count ('$bare')";;
+  case "$out" in *"skippy.test.sh"*"skip line without a valid count"*) ok "and it names the suite and the missing count ('$bare')";;
     *) bad "the uncounted skip was not named ('$bare'): ${out:-<empty>}";; esac
   case "$out" in *"carry no count"*) ok "and the footer names the uncounted skip ('$bare')";;
     *) bad "the footer does not name the uncounted skip ('$bare'): ${out:-<empty>}";; esac
