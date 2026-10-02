@@ -35,7 +35,6 @@ fail=0
 claim_fail=0      # a claim DRIFTED or went MISSING: the document (or this check) needs fixing
 suite_fail=0      # a suite exited non-zero: the suite needs fixing, the README may be right
 found_any=0
-n_unverified=0
 
 # claim <label> <measured> <regex-with-one-capture> [unverifiable-reason]
 # Pulls the DOCUMENTED number out of README with the given pattern and compares it to the
@@ -66,7 +65,6 @@ claim() {
   if [[ "$documented" == "$measured" ]]; then
     echo "ok: $label = $measured"
   elif [[ -n "$unverifiable" ]]; then
-    n_unverified=$((n_unverified+1))
     echo "UNVERIFIED: $label , README says $documented, this run measured $measured"
     echo "            $unverifiable"
     echo "            Not judged: this run did not measure it completely, so its number is not"
@@ -97,51 +95,48 @@ claim "programs with their own suite" "$n_have" '[0-9]+ of the [0-9]+ programs'
 
 if [[ "$WITH_ASSERTIONS" -eq 1 ]]; then
   total=0
-  n_skipped=0
+  skipped_cases=0; skipped_asserts=0; skip_lines=""
   # THE SUITE'S EXIT CODE IS READ, not only its output. It used to be discarded, which was
   # survivable only by accident: a broken suite reported a wrong total, the total mismatched,
-  # and the run went red for the wrong reason. The unverified outcome removed that accident and
-  # left the worst case green, measured: a suite that ERRORS reports fewer `ok` lines, the
-  # mismatch is excused as unverified, and a machine that skips anything (here, every machine)
-  # ends at exit 0 under the summary line. A broken instrument must never read as a clean bill,
-  # and it is not an environment difference, so no skip excuses it.
+  # and the run went red for the wrong reason. A broken instrument must never read as a clean
+  # bill, and it is not an environment difference, so nothing excuses it.
+  # STDIN IS /dev/null. Run in the background with stdin left open, a suite that read from it
+  # waited forever and the whole check was killed at a 30-minute limit with no output.
   for f in tests/*.test.sh; do
-    out=$(bash "$f" 2>&1); rc=$?
+    out=$(bash "$f" 2>&1 </dev/null); rc=$?
     n=$(printf '%s\n' "$out" | grep -cE '^ok')
-    s=$(printf '%s\n' "$out" | grep -cE '^SKIP')
     total=$((total+n))
-    n_skipped=$((n_skipped+s))
     if [[ "$rc" -ne 0 ]]; then
       echo "SUITE FAILED: $f exited $rc, so the assertion count below is not a measurement."
       fail=1; suite_fail=$((suite_fail+1))
     fi
+    # A SKIPPED CASE IS ADDED BACK. A suite that cannot run a case prints `SKIP <n> - <reason>`,
+    # n being the assertions the case makes when it runs, so ok + n is the same on every
+    # machine and the README carries one number. A SKIP without a count would make the total
+    # depend on the machine again, so it is a broken suite, not an excuse.
+    while IFS= read -r line; do
+      [[ -n "$line" ]] || continue
+      if [[ "$line" =~ ^SKIP\ ([0-9]+)\ -\  ]]; then
+        skipped_cases=$((skipped_cases+1)); skipped_asserts=$((skipped_asserts+BASH_REMATCH[1]))
+        skip_lines="$skip_lines      $f: $line"$'\n'
+      else
+        echo "SUITE FAILED: $f prints a SKIP line without a count ('$line'); write SKIP <n> - <reason>."
+        fail=1; suite_fail=$((suite_fail+1))
+      fi
+    done <<< "$(printf '%s\n' "$out" | grep -E '^SKIP')"
   done
-  # A suite may SKIP checks, so this total is environment-dependent in a way the other claims
-  # are not. Saying so turns a confusing "the README drifted" into "this machine ran fewer
-  # assertions", which are opposite problems: one needs the document fixed, the other needs a
-  # different machine or shell.
-  # The note names CAUSES, plural, and only causes that occur. Measured reasons a suite skips
-  # here: the case cannot run as the current user (six root guards in ledger-backup.test.sh,
-  # where an unreadable file is readable anyway), or the shell refuses what the case needs
-  # (bash 3.2 makes SHELLOPTS readonly). It once named only a missing optional tool (pwsh, for
-  # the since-removed install.ps1 suite), which made it FALSE on an ordinary run: a note that
-  # names a cause that does not apply sends the reader to install a tool that was never missing.
-  # Counted in SKIP LINES, not assertions: a suite reports one line per skipped case, so this
-  # says how much went unverified, never how much the total is short by. Which is also why the
-  # error runs in BOTH directions and the claim below is not failed when there is any skip at
-  # all: a skipped case holds an unknown number of assertions, so a machine that runs it counts
-  # HIGHER than the README, not lower.
-  skip_reason=""
-  if [[ "$n_skipped" -gt 0 ]]; then
-    skip_reason="$n_skipped check(s) were SKIPPED here (the case cannot run as this user, or this shell refuses what it needs)."
-    echo "note: $skip_reason"
-    echo "      So the count below can read LOW or HIGH on this machine without the README being wrong."
+  # The note shows what was added back and WHY, in the suites' own words: a fixed list of causes
+  # once named one that did not apply and sent the reader to install a tool that was never
+  # missing, so the reasons are quoted, never summarised here.
+  if [[ "$skipped_cases" -gt 0 ]]; then
+    echo "note: $skipped_asserts assertion(s) in $skipped_cases skipped case(s) were added back:"
+    printf '%s' "$skip_lines"
   fi
-  # A FAILED SUITE MAKES THE TOTAL NO MEASUREMENT, skip or no skip. It reports fewer `ok` lines,
-  # so judging the total would call a correct README drifted and bury the suite's own remedy
-  # under "Fix the NUMBER". The run stays red through the suite (fail=1 above); only the number
-  # is withheld. Before this, only a skip could excuse it, which is not the ordinary machine.
-  count_reason="$skip_reason"
+  total=$((total+skipped_asserts))
+  # A FAILED SUITE MAKES THE TOTAL NO MEASUREMENT. It reports fewer `ok` lines, so judging the
+  # total would call a correct README drifted and bury the suite's own remedy under "Fix the
+  # NUMBER". The run stays red through the suite (fail=1 above); only the number is withheld.
+  count_reason=""
   if [[ "$suite_fail" -gt 0 ]]; then
     count_reason="$suite_fail suite(s) exited non-zero, so this total is not a measurement."
   fi
@@ -171,12 +166,7 @@ if [[ "$fail" -ne 0 ]]; then
   exit 1
 fi
 echo ""
-# THE SUMMARY MUST NOT OUTLIVE THE RUN IT SUMMARISES. "every countable claim matches the tree"
-# printed above an UNVERIFIED line is precisely the kind of stale claim this program exists to
-# catch, made by this program, at the place a reader looks when they stop reading.
-if [[ "$n_unverified" -gt 0 ]]; then
-  echo "docs-claims-check: every claim this run could measure matches; $n_unverified UNVERIFIED (see above)."
-else
-  echo "docs-claims-check: every countable claim matches the tree."
-fi
+# Reaching this line means every claim was measured: an UNVERIFIED claim arises only with a
+# failed suite, and that exits 1 above, so the summary has one form.
+echo "docs-claims-check: every countable claim matches the tree."
 exit 0
