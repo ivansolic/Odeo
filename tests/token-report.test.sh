@@ -104,7 +104,7 @@ UNREAD="$(mktemp)"; write_fixture "$UNREAD"; chmod 000 "$UNREAD"
 if [[ ! -r "$UNREAD" ]]; then
   expect_exit    "unreadable file is a usage error"   2 "$UNREAD"
 else
-  echo "skip - unreadable file test (file still readable as this user)"
+  echo "SKIP 1 - unreadable file test (file still readable as this user)"
 fi
 chmod 644 "$UNREAD"; rm -f "$UNREAD"
 

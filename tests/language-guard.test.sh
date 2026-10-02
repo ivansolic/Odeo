@@ -237,13 +237,30 @@ assert_locale() {
 # Capture all locales first to avoid a broken-pipe from locale -a under pipefail
 # (grep -q exits early after a match, causing locale -a to get SIGPIPE, which
 # makes the pipe exit non-zero and trips set -o pipefail).
+# A locale that is not installed is SKIPPED WITH ITS COUNT, so docs-claims-check adds its
+# assertions back and the README total is the same on every machine. Each locale runs the four
+# `for l in $UTF8_LOCALES` loops below, and assert_locale makes two assertions per call.
+PER_LOCALE=8
 UTF8_LOCALES=""
 all_locales="$(locale -a 2>/dev/null)"
 for l in en_US.UTF-8 de_AT.UTF-8; do
   if printf "%s\n" "$all_locales" | grep -qxF "$l" 2>/dev/null; then
     UTF8_LOCALES="$UTF8_LOCALES $l"
+  else
+    echo "SKIP $PER_LOCALE - locale $l is not installed"
   fi
 done
+# Tripwire for the hand-written count: it must equal the assert_locale calls this file actually
+# makes per locale (each one indented inside a `for l in $UTF8_LOCALES` loop), times two. A new
+# call without raising PER_LOCALE fails here, on every machine, instead of only on one that
+# lacks a locale. It counts calls written at the loop indent; a call nested deeper is not seen.
+# Observed failing (2026-10-02) with PER_LOCALE=6.
+locale_calls="$(grep -c '^  assert_locale "' "$0")"
+if [ "$((locale_calls * 2))" -eq "$PER_LOCALE" ]; then
+  echo "ok: PER_LOCALE ($PER_LOCALE) matches the $locale_calls assert_locale calls"
+else
+  echo "FAIL: PER_LOCALE is $PER_LOCALE but $locale_calls assert_locale calls make $((locale_calls * 2))"; fail=1
+fi
 
 # Case 15: Frontmatter key with bare uppercase ASCII (Id:) must fail.
 # A regression would show as the key passing under a UTF-8 locale.

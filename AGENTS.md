@@ -201,6 +201,10 @@ rules are also embedded in their bodies so they hold even when this file is abse
   term in a short labeled aside: "loads in 0.9s now, fixed how it fetches data
   (technical: removed an N+1 query)." Showing the aside is a per-project preference
   ("teach me as I go"), set in `/odeo:setup-project`; default on, professionals turn it off.
+- **Plans lead with a human layer** (what you get, the risk, every decision you make, why,
+  and per change before, after and who benefits), the technical layer below it. The
+  format is `docs/plan-format.md` for `/odeo:build` plans and `global/CLAUDE.md` for
+  session plans; it is not restated here.
 
 ## Guardrails (the hard rules, single source of truth)
 Every rule below is tagged: **[E] enforced**, a mechanism physically stops it

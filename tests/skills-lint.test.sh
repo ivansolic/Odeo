@@ -25,7 +25,8 @@ clean_root() { # a minimal root that passes every check
   mkskill "$d" alpha "" "Use when the user wants alpha things."
   mkskill "$d" beta "disable-model-invocation: true\n" "Explicit command, any description."
   printf -- '---\nname: code-reviewer\neffort: high\n---\nOnly you write the verdict.\n## History\noutput_language: prose follows it, see ${CLAUDE_PLUGIN_ROOT}/AGENTS.md Guardrails 7.\n' > "$d/agents/code-reviewer.md"
-  printf -- 'baseline\n' > "$d/global/CLAUDE.md"
+  printf -- 'baseline\nPlan layers: Summary, Why, Technical\n' > "$d/global/CLAUDE.md"
+  printf -- '# Plan format\nPlan layers: Summary, Why, Technical\n' > "$d/docs/plan-format.md"
   printf -- 'baseline\n' > "$d/AGENTS.md"
   printf -- 'map\n' > "$d/docs/system-map.md"
   echo "$d"
@@ -309,6 +310,59 @@ if [[ $rc -eq 1 && "$out" == *"perl not found"* && "$out" != *"command not found
   echo "ok   - C16 fails when perl is not on PATH"; pass=$((pass+1))
 else echo "FAIL - C16 without perl (rc=$rc want=1, want 'perl not found' and no 'command not found')"; fail=$((fail+1)); fi
 rm -rf "$d" "$noperl"
+
+# C17: the plan layers are one list in two files. global/CLAUDE.md shapes session plans and
+# docs/plan-format.md shapes /odeo:build plans; CLAUDE.md cannot point into the plugin (no
+# substitution there), so the list is written twice and this is what keeps the copies equal.
+# Observed failing (2026-10-01) before C17 existed: the mismatch and both missing cases.
+d="$(clean_root)"; printf -- 'baseline\nPlan layers: Summary, Technical\n' > "$d/global/CLAUDE.md"
+check "C17 flags plan layers that differ between the two files" 1 "$d"; rm -rf "$d"
+d="$(clean_root)"; printf -- 'baseline\n' > "$d/global/CLAUDE.md"
+check "C17 flags global/CLAUDE.md without the plan layers line" 1 "$d"; rm -rf "$d"
+d="$(clean_root)"; rm "$d/docs/plan-format.md"
+check "C17 flags a missing docs/plan-format.md" 1 "$d"; rm -rf "$d"
+d="$(clean_root)"; printf -- 'baseline\nPlan layers:   Summary, Why, Technical  \n' > "$d/global/CLAUDE.md"
+check "C17 control: the same list with other spacing passes" 0 "$d"; rm -rf "$d"
+# ONE line per file, as the rule says: a second, different list after the first is two lists
+# the model reads, and the first-match read never saw it. Observed failing (2026-10-01, review
+# round 1) with grep -m1 alone: the duplicate case passed.
+d="$(clean_root)"; printf -- '# Plan format\nPlan layers: Summary, Why, Technical\nPlan layers: Summary, Technical\n' > "$d/docs/plan-format.md"
+check "C17 flags a second 'Plan layers:' line in one file" 1 "$d"; rm -rf "$d"
+d="$(clean_root)"; printf -- 'baseline\nPlan layers:\n' > "$d/global/CLAUDE.md"
+out="$( bash "$LINT" "$d" 2>&1 )"; rc=$?
+[[ $rc -eq 1 ]] || out="(exit $rc, want 1) $out"
+case "$out" in "(exit"*) echo "FAIL - C17 passed an empty list: $out"; fail=$((fail+1));;
+  *"empty 'Plan layers:'"*) echo "ok   - C17 calls an empty list empty, not absent"; pass=$((pass+1));;
+  *) echo "FAIL - C17 did not report the empty list as empty"; fail=$((fail+1));; esac
+rm -rf "$d"
+
+# C18: the research rubric defines its confidence words ONCE, in its Definitions; the criteria
+# block (the fenced block) says "not verified" for the broad sense and never uses the bare
+# lowercase word "unverified", whose defined meaning is narrower (no nameable source). Three
+# review rounds found the two meanings mixed after edits (2026-10-02); two copies of a
+# definition drift, so the criteria may not restate it. Capitalised "Unverified" names the
+# section and the criterion and is allowed. Observed failing before C18 existed; mutations
+# observed failing: whole-file scan, case-insensitive, rule removed, no fail-closed END check.
+rubric_root() { # rubric_root <criteria line>: a clean root plus a research rubric
+  local d; d="$(clean_root)"; mkdir -p "$d/skills/research"
+  printf -- '# Research rubric\n\nDefinitions:\n- **Unverified:** no nameable source.\n- a claim marked unverified is honest\n\n```\n1. Answer  0 missing\n          1 %s\n```\n' "$1" > "$d/skills/research/rubric.md"
+  printf '%s' "$d"
+}
+d="$(rubric_root 'rests on unverified evidence without saying so')"
+check "C18 flags the bare word unverified in a rubric criterion" 1 "$d"; rm -rf "$d"
+d="$(rubric_root 'rests on not verified evidence; see the Unverified section')"
+check "C18 control: not verified and the capitalised section name pass" 0 "$d"; rm -rf "$d"
+d="$(clean_root)"
+check "C18 control: a root without a research rubric is skipped" 0 "$d"; rm -rf "$d"
+# The check must fail CLOSED: a rubric whose criteria block is not a closed ``` fence (fence
+# removed, `~~~`, indented, turned into a table) would otherwise be scanned for nothing and pass.
+# Observed failing (2026-10-02, code review round 1): `~~~` plus "unverified" passed with rc 0.
+d="$(clean_root)"; mkdir -p "$d/skills/research"
+printf -- '# Research rubric\n\n~~~\n1. Answer  1 rests on unverified evidence\n~~~\n' > "$d/skills/research/rubric.md"
+check "C18 flags a rubric whose criteria are not in a closed backtick fence" 1 "$d"; rm -rf "$d"
+d="$(clean_root)"; mkdir -p "$d/skills/research"
+printf -- '# Research rubric\n\n```text\n1. Answer  1 rests on unverified evidence\n```\n' > "$d/skills/research/rubric.md"
+check "C18 flags a criterion inside a fence with a language tag" 1 "$d"; rm -rf "$d"
 
 # FINAL: the real repo must pass its own lint
 check "the actual repo passes its own invariants" 0 "$TEST_DIR/.."

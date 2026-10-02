@@ -18,6 +18,17 @@ without an approved plan file.
 
 ## Structure
 
+Plan layers: Summary, Why, Explanation, Technical, Review Focus, Verification, Out of scope
+
+A plan has two readers: the human at the gate, who may not be a developer, and the builder,
+who executes it as a contract. So it leads with a HUMAN LAYER (Summary, Why, Explanation, in
+plain language, `AGENTS.md` "Talking to the user"), then the TECHNICAL layer (Header through
+Risks / open questions), then Review Focus, VERIFICATION (the Success signal) and Out of
+scope, in the order of the template below. The same list shapes session plans in
+`global/CLAUDE.md`; lint C17 keeps the two lists equal.
+The human layer is NOT contract: where it and the technical layer disagree, the technical
+layer wins and the disagreement is a finding for the plan review.
+
 ```markdown
 # Plan: <story id + name>
 approved: no            # flipped to yes by the human at the gate
@@ -53,6 +64,44 @@ model_plan:             # the judgment model and effort AS OF when the plan is w
 arch_review: pending    # set by the /odeo:build pipeline after the plan-review loop:
                         # "clean (vN, YYYY-MM-DD)" or "waived (human)" for
                         # standalone human-supplied plans. The builder requires it.
+
+## Summary for humans
+- What you get: <the outcome in one plain sentence, no file names, no jargon>
+- What changes for users: <what a user notices, or "nothing visible">
+- Biggest risk: <the one most likely way this disappoints, plainly>
+- What you decide: <the approval itself, plus EVERY open choice and EVERY deviation from
+  the story this plan carries, each named. That class is: every open question in Risks
+  that the HUMAN answers (a choice about what the user gets), and every Design decision that
+  changes what the user gets or departs from the story's wording. Each appears here too;
+  none lives only in the technical layer. A purely technical decision (how, not what) and a
+  builder stop rule in Risks ("if X, stop and ask") stay in the technical layer alone: they
+  are for the build, not the gate.>
+- How we will know it works: <the observable check, plainly>
+<For example:>
+- What you get: one command that tells you which language Odeo writes your documents in,
+  and where that choice comes from.
+- What changes for users: a new `/odeo:language` command, and a language you already set
+  is replaced only when you ask for it.
+- Biggest risk: it names a language your documents do not actually use.
+- What you decide: approve the plan, and one choice: a setting you already have is
+  replaced only when you ask for it explicitly (the `--overwrite` design decision below).
+- How we will know it works: in a project set to German it answers that German is set
+  for this project, and the tests check every other case.
+
+## Why
+<The reason only: the problem, for whom, and why now, in two or three plain sentences. Do
+not restate the Summary.>
+Users cannot see which language is in force, so a document in the wrong language is the
+first sign. Non-developers cannot read the config files that decide it.
+
+## Explanation
+<Per change, one line: before -> after -> who benefits. This is what the Summary does not
+give: the difference each change makes and for whom. Plain words; a technical term gets its
+plain meaning first. Do not restate the Summary or the Why.>
+- Language check: before, read three files by hand -> after, one command answers -> anyone
+  who is not sure which language their next document will be in.
+- Replacing a setting: before, a second run silently kept the old one -> after, it is
+  replaced only on request -> users who set a language once and do not want it changed.
 
 ## Header
 Goal: <the story's outcome, one sentence>
@@ -97,6 +146,8 @@ Constraints: <copied verbatim from the spec/story. Boundaries live in the
 - scripts/language-status.sh        CREATE: prints the effective language and its scope
 - tests/language-status.test.sh CREATE: tests for language-status.sh
 - skills/language/SKILL.md      CREATE: the /odeo:language command surface
+- scripts/set-global-language.sh MODIFY: `--overwrite` replaces an existing value; without it
+                                  the file is unchanged
 
 ## Tasks
 <the smallest independently testable units, in dependency order; each task:>
@@ -125,13 +176,6 @@ Constraints: <copied verbatim from the spec/story. Boundaries live in the
 <which tasks are independent (safe to build in parallel) and which are sequential.
  One line is enough on a single-task or strictly sequential plan.>
 
-## Success signal (every acceptance criterion mapped to a concrete check)
-<ONE ROW PER acceptance criterion in the story, quoted short and attributed, so the
- mapping is provably complete: the row count MUST equal the story's criterion count.>
-| Criterion (short quote, USR-00X) | Proven by |
-|---|---|
-| "a newly generated PRD body is in German" | `bash tests/localized-prose.test.sh` |
-
 ## Do-not-touch boundaries
 <files and behaviors this plan must NOT change, with the reason for each. Write
  `none` plus one line of why whenever no boundary applies (a greenfield repo, or an
@@ -139,10 +183,34 @@ Constraints: <copied verbatim from the spec/story. Boundaries live in the
  docs/codebase-map.md, this section names only what THIS plan must respect.>
 
 ## Risks / open questions
-<anything ambiguous the builder must ASK about rather than decide alone>
+<Two kinds, each item marked. `stop rule:` anything ambiguous the builder must ASK about
+ rather than decide alone ("if X, stop and ask"); it stays here. `gate:` an open question the
+ human answers before approval (a choice about what the user gets); it is also named under
+ `What you decide`.>
+
+## Review Focus
+<3 to 5 ways this could fail that the tasks do NOT test, each one line, so the reviewers
+know where to look hardest. Not a restatement of the tasks or of the Risks. `none` plus one
+line of why when the story is too small to fail in an untested way.>
+- Run from a subfolder, `/odeo:language` may find a different project than the document
+  writer does, so both pass their own tests and still disagree.
+
+## Success signal (every acceptance criterion mapped to a concrete check)
+<ONE ROW PER acceptance criterion in the story, quoted short and attributed, so the
+ mapping is provably complete: the row count MUST equal the story's criterion count.>
+| Criterion (short quote, USR-00X) | Proven by |
+|---|---|
+| "shows which language is in force and where it comes from" (USR-00X) | `bash tests/language-status.test.sh` |
+
+## Out of scope
+<What this plan deliberately does not do, in plain words, so nobody reads it in.>
+- Changing the language of documents that already exist.
 ```
 
 ## Rules
+- **The human layer is never `none`.** Summary, Why and Explanation are written even on a
+  one-task story, because the gate is where the human reads the plan; a small story makes
+  them short, not absent. Review Focus and Out of scope may be `none` with a one-line reason.
 - **No placeholders.** "TBD", "add error handling", "improve X" are plan failures.
   Exact paths, names, signatures, commands. A deliberate `none` plus its one-line
   reason is NOT a placeholder: it is an answered question, and it is how a small
@@ -225,8 +293,15 @@ them as a gate.
                    count equals the story's criterion count.
 4. Constraint fit  0 ignores architecture or boundaries / 1 partial / 2 inherits explicitly,
                    do-not-touch respected, escalations flagged
-5. Honesty         0 hides ambiguity / 1 some / 2 risks and open questions listed for the
-                   builder to ask, not guess
+5. Honesty         0 hides ambiguity / 1 some / 2 risks and open questions listed, for the
+                   builder to ask (`stop rule:`) or the human to decide (`gate:`), not guess
+6. Human layer     0 Summary, Why or Explanation missing / 1 present but in jargon,
+                   disagreeing with the technical layer, leaving a gate decision or story
+                   deviation only in the technical layer, or restating the Summary in Why
+                   or Explanation / 2 a non-developer can say from it alone what they get,
+                   the biggest risk and EVERY decision they make; Explanation adds the
+                   per-change difference; Review Focus names failure modes the tasks do
+                   not already test, or is `none` with a reason the story bears out
 No threshold, and no score is published: the plan loop clears on CLEAN, meaning no real
 finding is left, and nothing downstream reads a number from here. The bar the reviewer
 works toward is every criterion at 2; anything below that is a finding to state, not a

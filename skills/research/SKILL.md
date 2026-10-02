@@ -5,9 +5,11 @@ description: Use when the user wants market or web research with sources, asks a
 # Research (evidence, not vibes)
 
 Turns a question into a CITED report the rest of the system can lean on. The
-contract: **every claim carries 2+ independent sources, or it carries the label
-`unverified`.** No number is ever invented; a range with a shown method beats a
-confident single figure.
+contract: **every claim is verified (two independent sources) or says plainly that it
+is not (`one source` or `unverified`).** These terms, and note, traced and
+independent, are defined once, in the Definitions of `${CLAUDE_PLUGIN_ROOT}/skills/research/rubric.md`; this skill
+uses them and never rewords them. No number is ever invented; a range with a shown
+method beats a confident single figure.
 
 ## Modes (pick from the question, confirm in one line)
 - **market-size**: TAM/SAM/SOM as RANGES, triangulated from 2+ methods
@@ -21,7 +23,8 @@ confident single figure.
 
 ## Process
 1. **Sharpen the question** (one exchange max): scope, region, segment, date
-   sensitivity. A vague question produces a vague report; say so and sharpen.
+   sensitivity, the decision it serves, its sub-questions, and what its key terms
+   mean in this report. A vague question produces a vague report; say so and sharpen.
 2. **Ask the depth**: quick scan (~10 min, top sources only) or thorough
    (fan-out, cross-checks). Recommend from the stakes: a PRD bet deserves
    thorough; a curiosity deserves quick.
@@ -29,19 +32,36 @@ confident single figure.
    term + synonyms, competitor names once discovered, "X pricing", "X market
    size <year>", regional variants). Fetch the promising sources, don't answer
    from search snippets alone.
-4. **Triangulate every claim**: 2+ INDEPENDENT sources (two articles citing the
-   same press release = one source). Conflicting numbers are reported AS a
-   conflict with both values, never silently averaged.
+4. **Triangulate every claim**: aim for two independent sources per claim (the rubric's
+   Independent sources and Verified definitions say what counts). Conflicting numbers
+   are reported AS a conflict with both values, never silently averaged.
+4b. **Cite as you write**: put a claim's sources in a numbered note under Findings (the
+   rubric's Note definition). Every claim cites its note(s) and carries its confidence
+   word where it appears: verified, one source, or unverified (the rubric's Confidence
+   words). A claim with no note you can name is unverified, however sure you feel;
+   never restate a source from memory.
 5. **Write the report** to `docs/research/RES-NNN-<slug>.md` (NNN = next number
    after the highest existing `RES-` file there):
    ```
-   ## Question · ## Answer (3 sentences, plain language)
-   ## Findings (each claim: source A + source B, with the data's date)
+   ## Question (scope, sub-questions, the decision it serves, key terms;
+      mode and depth may sit in the frontmatter)
+   ## Answer (3 sentences, plain language; each factual clause cites its note
+      or says "unverified")
+   ## Findings (each claim: its note numbers + its confidence word, with the
+      data's date; the numbered notes with quotes follow the claims)
    ## Numbers (ranges + the method that produced each)
-   ## Unverified (single-source or contested, labeled honestly)
-   ## Implications for us (what this changes in PRD/priorities, 3 bullets max)
-   ## Sources (links, access date)
+   ## Unverified (every claim that is not verified, and every conflict with both values)
+   ## Implications for us (what this changes in PRD/priorities, 3 bullets max,
+      each with its reason and the notes it rests on)
+   ## Sources (grouped by publisher, links, access date, versions; one line on
+      what the search did not cover: regions, paywalls, languages, blocked pages)
    ```
+5b. **Score it**: commit the report on a branch (on `main`, ask the human to create one
+   first: Git discipline in `${CLAUDE_PLUGIN_ROOT}/AGENTS.md`), then dispatch `pm-reviewer` against
+   `${CLAUDE_PLUGIN_ROOT}/skills/research/rubric.md`, handing it `git rev-parse --short HEAD` and
+   `output_language` (Guardrails 1 and 7 in `${CLAUDE_PLUGIN_ROOT}/AGENTS.md`).
+   Below the threshold, fix the report and re-dispatch the same reviewer: the review
+   loop of Guardrails 3, with its stop condition.
 6. **Show it to the human**: open the report in their editor (`code -r <file>`,
    fallback `cursor -r`; neither installed, give the path). Mention
    Cmd+Shift+V once for the formatted view.
@@ -56,16 +76,20 @@ when the Context section rests on assumptions ("shall I back this with
 /odeo:research?"). Fully standalone too, any question, any time, no phase required.
 
 ## Worked example
-> User: "how big is the meal-prep app market in the EU?"
-> -> mode: market-size, thorough. Searches: "meal planning app market size
->    europe", "recipe app revenue EU", competitor annual reports, app-store
->    category data. Triangulates a top-down analyst range against bottom-up
->    (EU households x adoption x ARPU), both methods shown.
-> -> RES-003-eu-meal-prep-market.md: "€180-420M SAM (two methods, 2025 data);
->    the wide range comes from disagreement between analyst reports (labeled);
->    bottom-up favors the low end. Unverified: retention benchmarks (one
->    source)." Opened in the editor; offered: "cite RES-003 in PRD-001's
->    Context?"
+Adapted from a real report (RES-002, "Where can Odeo run besides Claude Code?",
+deep-dive, thorough). The note and its quote are verbatim from it; the confidence word
+and the Unverified line show how this skill writes the same claim, which RES-002 itself
+did not do:
+> Answer clause: "users must approve plugin hooks before they run, apparently again
+> whenever a hook changes (one source, note 2)."
+> Note 2: developers.openai.com/codex/hooks, quote: "Codex skips plugin-bundled hooks
+> until you review and trust the current hook definition".
+> Unverified section: "the hook trust step rests on one source; whether it repeats on
+> every hook change is an inference from 'the current hook definition'."
+The clause says its confidence word, the note gives the page and the quote, and the
+inference is labeled as one. The same report also shows the failure this skill now
+prevents: the sources behind most of its table cells were not kept, so those cells
+could not be traced to anything.
 
 ## Honest limits (say them, never paper over)
 - **No web access / blocked network** (corporate proxies, sandboxes): say so
@@ -77,7 +101,9 @@ when the Context section rests on assumptions ("shall I back this with
 - Data ages: every number carries its data year, not just the access date.
 
 ## Rules for yourself
-- Two independent sources or `unverified`, no exceptions, no silent averaging.
+- Verified, or labeled `one source` or `unverified`: no exceptions, no silent averaging.
+- No sentence states something as fact without citing a note; its confidence word is
+  said where the claim appears, not only in the Unverified section.
 - Never fabricate a number, a source, or a quote (honesty guardrail; a
   fabricated citation is worse than no report).
 - Ranges with methods over point estimates; conflicts reported as conflicts.

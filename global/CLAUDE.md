@@ -14,7 +14,7 @@ The first-person voice ("I want…") is intentional, when you adopt this file,
 - Ask before big architectural or product changes
 - Keep responses concise; no filler or excessive caveats
 - **Document with examples.** Always pair an explanation, option set, or doc with a concrete worked example (the exact command, a before/after, an end-to-end walkthrough), not just abstract steps.
-- **Plain language to the user.** All user-facing output (skill questions, reports, and your own replies) leads with plain language, no jargon, say what the user gets. This is the `ux-writing` standard applied to how the system talks, not just UI copy. The audience includes non-developers. When a technical term matters, give the plain meaning first, then optionally the term in a short labeled aside (e.g. "loads in 0.9s now, fixed how it fetches data (technical: removed an N+1 query)"). Whether to show the technical aside is a per-project preference ("teach me as I go"), set in `/odeo:setup-project`; default off.
+- **Plain language to the user.** All user-facing output (skill questions, reports, and your own replies) leads with plain language, no jargon, say what the user gets. This is the `ux-writing` standard applied to how the system talks, not just UI copy. The audience includes non-developers. When a technical term matters, give the plain meaning first, then optionally the term in a short labeled aside (e.g. "loads in 0.9s now, fixed how it fetches data (technical: removed an N+1 query)"). Whether to show the technical aside is a per-project preference ("teach me as I go"), set in `/odeo:setup-project`; default on, professionals turn it off.
 - **Prose follows the project's output language; mechanics stay English.** Before writing a PRD, story, memo, plan, research doc or review write-up, resolve the target project's setting with `"${CLAUDE_PLUGIN_ROOT}/scripts/resolve-language.sh" <project-dir>` (the `output_language` line in its `CLAUDE.md`, or the value handed to you at dispatch if you have no `Bash`), and write the BODY in that language. Everything a machine or a collaborator reads stays English: the whole frontmatter block, filenames and slugs, branch names, commit messages, code, identifiers and comments; the localized title goes in the document's H1 instead. Change it any time with `/odeo:language`. After saving a generated document you can check it with `"${CLAUDE_PLUGIN_ROOT}/scripts/prose-language-check.sh" <project-dir> <file>`, which WARNS when the prose reads as another language and never blocks anything (its exit is always 0).
 - Comments in code: English only
 
@@ -25,6 +25,25 @@ The first-person voice ("I want…") is intentional, when you adopt this file,
 - If something goes sideways mid-task, STOP and re-plan, don't keep pushing through a failing approach
 - Use plan mode for verification and investigation steps too, not only for building
 - Write a detailed spec upfront; don't work from ambiguity
+
+### Plan shape (human layer first)
+Plan layers: Summary, Why, Explanation, Technical, Review Focus, Verification, Out of scope
+- **Summary** (five items, each short, no jargon): what I get, what changes for users, the
+  biggest risk, what I decide, how we will know it works. "What I decide" names EVERY open
+  choice and every deviation from my request; none lives only in the technical part.
+- **Why**: the reason only (the problem, for whom, why now), not a restatement of the Summary.
+- **Explanation**: per change, before -> after -> who benefits, in plain words. It adds the
+  difference each change makes, which the Summary does not give; it does not repeat it.
+- **Technical**, for you and the reviewers: exact files, the tests that must fail first,
+  the commands that verify.
+- **Review Focus**: 3 to 5 ways this could fail that the tasks do not test, or `none`
+  with a reason when the task is too small to fail in an untested way.
+- **Verification**: which tests and which reviewer, what "done" is, when you stop and ask.
+- **Out of scope**, in plain words.
+- The human layer is not the contract: if the Summary and the Technical part disagree,
+  fix the Summary, because the Technical part is what gets built.
+- Iterate the plan until it is clear to me before executing. Reviewers judge the work
+  against the plan, not against a retelling of the request.
 
 ### Self-Improvement Loop
 - After ANY correction from me: append the pattern to `.claude/tasks/lessons.md` in the current project
