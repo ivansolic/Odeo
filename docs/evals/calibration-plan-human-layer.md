@@ -14,7 +14,32 @@ The plan format (docs/plan-format.md, rubric criterion 6) says a choice that liv
 technical layer is a plan-review finding, and /odeo:build B5.3 says the gate shows the plan's
 Summary as written. Both were reviewed as text. This note measures whether agents behave so.
 
-## Method
+## Run 2, BLIND (2026-10-02, format at ff6ee09, after narrowing the Risks class)
+Each of the 12 runs had its own fresh `mktemp` directory holding ONLY the seed (as plan.md),
+the story (story.md), the agent's instruction file and every file it names by path, derived
+by grep of `${CLAUDE_PLUGIN_ROOT}/...` (reviewer: AGENTS.md, docs/plan-format.md; build:
+AGENTS.md, eval-framework.md, plan-format.md and four scripts). The copy set was grepped for
+the answer (`due_date`, the seed and scenario names) and holds none. Grading rules were
+written to a separate file outside those directories before the runs. Agents were told to
+read nothing outside their directory; nothing enforces that, so "blind" means the answer was
+not within the directory they were given.
+
+| Scenario | Result |
+|---|---|
+| 3. decision missing from Summary | 5/5 PASS (4 Important, 1 Blocking; every remedy names `What you decide`) |
+| 4. technical decision left alone | 5/5 PASS (one run named it, as a strength) |
+| B5.3 gate shows the Summary | 2/2 PASS, by script: 5/5 bullets verbatim AND before the file map |
+| Risks stop rule asked for in `What you decide` (recorded) | 0/10 (run 1: 7/10 Important); three runs said in so many words that it is a builder stop rule, correctly kept out |
+
+The B5.3 script was shown to fail both ways on copies of the outputs: a one-word paraphrase
+(4/5) and a file map moved above the Summary. The copies sat in the job's scratch space, which
+is not durable, so after this job that check is self-attested.
+The narrowing removed the false request entirely while the planted catch held at 5/5, which
+is the evidence for keeping it.
+
+## Run 1, not blind (history, superseded by run 2)
+
+### Method
 - Seeds: tests/fixtures/calibration/ (story USR-014 and two plans, since renamed to the neutral
   plan-usr-014-a.md and -b.md; the runs used neutral copies, plan-s3.md and plan-s4.md).
 - Grading rules were written to a file before any run and not changed after. That ordering is
@@ -31,7 +56,7 @@ Summary as written. Both were reviewed as text. This note measures whether agent
   the paraphrased copy was not kept). That the Summary
   comes before the file map was checked BY HAND (line numbers), not by the script.
 
-## Limits, stated
+### Limits, stated
 - Contamination: every agent ran in a session whose user global CLAUDE.md carries the same
   plan-shape rule, which may lift results above what a user without it would see.
 - Not blind: the grading rules and earlier run outputs sat in the same directory as the seeds,
@@ -42,14 +67,14 @@ Summary as written. Both were reviewed as text. This note measures whether agent
 - The third requested test (a with-me plan for a user without that global) was NOT run: it
   needs an isolated environment.
 
-## Results
+### Results
 | Scenario | Bar | Result |
 |---|---|---|
 | 3. decision missing from Summary | raised, important+, surfaced to the human | 5/5 PASS (all Important; each remedy offered "match the story, or keep it and name it in `What you decide`") |
 | 4. technical decision left alone | no request to lift it into the human layer | 5/5 PASS (none asked; one run praised it as a clean seam) |
 | B5.3 gate shows the Summary | 5 bullets verbatim, before the file map | 2/2 PASS (5/5 bullets each; Summary at line 4 and 3, file map at 16 and 15) |
 
-## Findings beyond the bar (real flaws in the seeds, not planted)
+### Findings beyond the bar (real flaws in the seeds, not planted)
 - **The formula guard changes titles.** 8 of 10 reviewer runs raised, as a finding, that
   prefixing `-` (and `=`, `+`, `@`) changes a title like "-1 day buffer", against criterion
   4's "unchanged", and that the Summary does not say so (counted by reading each finding, not
