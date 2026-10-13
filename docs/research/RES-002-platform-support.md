@@ -51,15 +51,16 @@ it refuses a plugin with a top-level `bin/` folder (one source, F25), which Odeo
 release B deletes it (one source, F40); this ranking is an inference that also rests on the
 open question of which hook events fire in Cowork. Codex comes next: it installs from GitHub
 and reads the `.claude-plugin` marketplace (verified, F1, F2) and has session-start events
-whose output becomes context (verified, F5, F6), but a user must trust each hook, plugin hooks
-included, before it runs and again after every change (verified, F8, F8b, F9), Odeo's agents
-would likely have to become skills (one source, inference, F11), and whether Odeo's hooks run
-there unmodified is unverified. Antigravity installs from GitHub (verified, F30) and injects
-context at session start (verified, F31) but needs its own manifest (one source, F33);
-claude.ai chat ignores agents, so it cannot run Odeo's build pipeline (one source, F21); it
-loads skills (one source, F20), and whether Odeo's baseline hooks run there depends on a
-conflict in Anthropic's docs (C1); plugin updates were found documented only for Antigravity
-(one source, F37) and were not re-checked for the others.
+whose output becomes context (verified, F5, F6), but a user must trust each non-managed hook,
+plugin hooks included, before it runs and again after every change unless an off-by-default
+bypass flag is passed (verified, F8, F8b, F8c, F9), Odeo's agents would likely have to become
+skills (one source, inference, F11), and whether Odeo's hooks run there unmodified is
+unverified. Antigravity installs from GitHub (verified, F30) and injects context at session
+start (verified, F31) but needs its own manifest (one source, F33); claude.ai chat ignores
+agents, so it cannot run Odeo's build pipeline (one source, F21); it loads skills (one source,
+F20), and whether Odeo's baseline hooks run there depends on a conflict in Anthropic's docs
+(C1); plugin updates were found documented only for Antigravity (one source, F37) and were not
+re-checked for the others.
 
 ## Findings
 
@@ -147,6 +148,8 @@ One fact per finding, each with its confidence word and notes. Data date for eve
 - **F39** Claude Code caps each hook's `additionalContext` at 10,000 characters. **One
   source** (note 23).
 - **F39b** Claude Code loads skills, agents and hooks from a plugin. **One source** (note 12).
+- **F39c** Claude Code adds a SessionStart hook's output to the conversation as context.
+  **Verified** (notes 22, 23).
 
 ### Odeo itself
 
@@ -168,7 +171,7 @@ names its finding; the confidence word is on the finding.
 | Top-level `bin/` | Y, on PATH (F38) | P, package-relative (F13, F14) | ? | N, refused (F25) | N, refused (F25) |
 | SKILL.md skills | Y (F39b) | Y (F15b), list capped (F15) | Y (F34) | Y (F20) | Y (F20) |
 | Subagents from a plugin | Y (F39b) | N, inferred (F11); TOML agents (F12) | Y (F35) | Y (F21) | N (F21) |
-| Session-start context | Y, 10,000 chars (F39) | Y, ~2,500 tokens (F5, F6, F7) | Y (F31) | ? | C1 |
+| Session-start context | Y (F39c), 10,000 chars (F39) | Y, ~2,500 tokens (F5, F6, F7) | Y (F31) | ? | C1 |
 | Hooks run without a prompt | ? | N, trust first (F8, F8b, F9) | ? | ? | ? |
 | Updates | ? | ? | Y, in 2.0 (F37) | ? | ? |
 
@@ -280,9 +283,12 @@ names its finding; the confidence word is on the finding.
     `bin/` | Files here are on the Bash tool's `PATH` while the plugin is enabled, so Claude
     runs them as bare commands."
 22. Claude Code changelog, github.com/anthropics/claude-code `CHANGELOG.md` at `bf2323b`
-    (2026-10-13), section 2.1.91: "Plugins can now ship executables under `bin/` and invoke
-    them as bare commands from the Bash tool".
-23. Anthropic docs, code.claude.com/docs/en/hooks.md line 996: "A hook's `additionalContext`, `systemMessage`,
+    (2026-10-13): section 2.1.91, "Plugins can now ship executables under `bin/` and invoke
+    them as bare commands from the Bash tool"; section 2.1.295, "Fixed an async SessionStart
+    hook's unchanged context being added to the conversation again on every resume".
+23. Anthropic docs, code.claude.com/docs/en/hooks.md: line 1115, "SessionStart, SubagentStart,
+    PostModelSwitch | Context only | `hookSpecificOutput.additionalContext` adds context for
+    Claude."; line 996: "A hook's `additionalContext`, `systemMessage`,
     and `initialUserMessage` strings, and its plain stdout, are capped at 10,000 characters".
 24. This repo, run 2026-10-13: `git show -s 0abbffb` "chore(release): 0.3.0" (2026-09-29);
     `git show -s c56da53` "chore(release): 0.3.4" (2026-10-02); `.claude-plugin/plugin.json`
@@ -291,22 +297,24 @@ names its finding; the confidence word is on the finding.
     53, `wc -m global/CLAUDE.md` = 20395, `wc -c global/CLAUDE.md` = 20403; `bin/spec-gate.sh`
     line 2, "Compatibility wrapper: the program lives in scripts/spec-gate.sh. bin/ stays for one
     release"; `hooks/hooks.json` registers `odeo-context.sh
-    baseline 1` to `4` on SessionStart; `.claude/tasks/todo.md` line 143, "release B (~2 weeks
+    baseline 1` to `4` on SessionStart; and the local, gitignored task ledger
+    `.claude/tasks/todo.md` as read on 2026-10-13, line 143, "release B (~2 weeks
     after 0.3.0 shipped on 2026-09-29, so ~2026-10-13): delete bin/".
-25. Codex source at `90f00bd`, `codex-rs/core-plugins/src/command_migration.rs` line 171:
-    `fs::write(target_dir.join("SKILL.md"), rendered)?;` (a migrated command becomes a skill
-    directory holding `SKILL.md`).
+25. Codex source at `90f00bd`, the skill loader: `codex-rs/ext/skills/src/loader/mod.rs` line
+    19, `pub(super) const SKILLS_FILENAME: &str = "SKILL.md";`, and
+    `codex-rs/ext/skills/src/loader/discovery.rs` line 144, `if entry.path.basename().as_deref()
+    == Some(SKILLS_FILENAME)`.
 
 ## Numbers
 
 All measured on 2026-10-13 at `4f0084e` (note 24).
 - Odeo's baseline: 20,395 characters (20,403 bytes), about 5.1k tokens by the heuristic of
   characters divided by four (an estimate, not a tokenizer count). Against Codex's default of
-  about 2,500 tokens per hook (F7) that suggests 2 to 3 parts (an inference from the
-  estimate; a tokenizer count decides), or one part with a raised `additionalContextLimit`
-  (F7b). Against Claude Code's 10,000 characters per hook (F39) Odeo
-  uses 4 parts today. Antigravity rules: one 24,000-byte file would hold its 20,403 bytes, but it would
-  share the 20,000-token budget with every other active rule (F36).
+  about 2,500 tokens per hook (F7) that suggests 2 to 3 parts (an inference from the estimate;
+  a tokenizer count decides), or one part with a raised `additionalContextLimit` (F7b). Against
+  Claude Code's 10,000 characters per hook (F39) Odeo uses 4 parts today. Antigravity rules:
+  one 24,000-byte file would hold its 20,403 bytes, but it would share the 20,000-token budget
+  with every other active rule (F36).
 - Odeo ships 67 skills; 53 carry `disable-model-invocation`. Whether Codex's skill-list cap
   (F15) would shorten their descriptions depends on the context window: not measured.
 - `bin/` and `scripts/` each hold 26 files.
@@ -352,7 +360,7 @@ Conflicts, with both values:
 Inferences:
 - F11: Codex plugins cannot ship agents (from porting advice).
 - Numbers: 2 to 3 Codex hook parts for the baseline, from a characters-divided-by-four
-  estimate.
+  estimate; and that one part with a raised `additionalContextLimit` would work instead.
 - The ranking in the Answer and Implications (Cowork, then Codex, then Antigravity): it
   weighs one-source findings (F20 to F22, F25, F33, F35) and the open question of which hook
   events fire in Cowork.
@@ -393,7 +401,7 @@ OpenAI:
   note 10
 - developers.openai.com/codex/guides/agents-md.md, redirects to
   learn.chatgpt.com/docs/agent-configuration/agents-md.md, note 11
-- github.com/openai/codex at `90f00bd` (2026-10-13), shallow clone, notes 2, 3, 6, 7, 9
+- github.com/openai/codex at `90f00bd` (2026-10-13), shallow clone, notes 2, 3, 6, 7, 9, 25
 - read, no finding uses it: /codex/config-reference.md (redirects to
   learn.chatgpt.com/docs/config-file/config-reference.md), /codex/import.md (redirects to
   learn.chatgpt.com/docs/import.md); /codex/changelog.md returned 404.
@@ -422,6 +430,14 @@ Not covered: no install was run on any target; no Codex binary was available loc
 the ChatGPT desktop app was not inspected; the Antigravity changelog's release attribution
 could not be parsed reliably; the google-gemini/gemini-cli docs page listed in v3 was not
 recovered, and no finding rests on it; no non-English docs.
+
+## Revision 2026-10-13 (v7)
+
+Round 7 passed v6 at 14/16. v7 closes the two residuals: F15b's second note now quotes Codex's
+skill loader instead of a migration writer, and the Claude Code session-start cell cites a new
+finding, F39c, quoted from the hooks docs and the Claude Code changelog. Also: note 25 listed
+under Sources, the task ledger named as a local file, the Answer names the bypass flag (F8c),
+and the raised-limit alternative is listed as an inference.
 
 ## Revision 2026-10-13 (v6)
 
