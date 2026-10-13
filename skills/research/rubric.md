@@ -7,6 +7,8 @@ Definitions the criteria use. They are the ONE place these terms are defined: th
 skill points here instead of rewording them, so the two files cannot drift apart.
 - **Claim:** any statement of fact in the report, including a cell or sentence marked
   unverified. Marking a claim "?" or "unverified" does not make it traced; it makes it honest.
+  A claim states ONE fact: a sentence that joins two facts ("X has A and does B") is two
+  claims, and each carries its own confidence word.
 - **Independent sources:** neither one derives from the other (two articles citing one
   press release are ONE source; two pages of the same vendor's documentation are ONE
   source). For a product's own behaviour, its documentation and its shipped code, binary or
@@ -21,8 +23,11 @@ skill points here instead of rewording them, so the two files cannot drift apart
 - **Load-bearing claim:** a claim that the Answer or an Implication rests on.
 - **Confidence words**, one per claim, written where the claim appears (an Answer clause
   may carry it by citing the Findings claim that does):
-  - **Verified:** backed by two independent sources, counted PER CLAIM (a note that backs
-    several claims verifies only those it gives two sources for).
+  - **Verified:** backed by two independent sources whose notes EACH quote that same fact,
+    counted PER CLAIM (a note that backs several claims verifies only those it gives two
+    sources for). A quote of a nearby fact does not count: a field name, a test name, a
+    string in a binary or a related sentence that only implies the claim leaves it one
+    source.
   - **One source:** backed by exactly one source.
   - **Unverified:** backed by no source the report can name.
   - **Not verified** means one source or unverified; every not-verified claim, and every

@@ -35,8 +35,9 @@ method beats a confident single figure.
 4. **Triangulate every claim**: aim for two independent sources per claim (the rubric's
    Independent sources and Verified definitions say what counts). Conflicting numbers
    are reported AS a conflict with both values, never silently averaged.
-4b. **Cite as you write**: put a claim's sources in a numbered note under Findings (the
-   rubric's Note definition). Every claim cites its note(s) and carries its confidence
+4b. **Cite as you write**: one fact per claim (the rubric's Claim definition); put its sources
+   in a numbered note under Findings (the rubric's Note definition), and for a verified claim
+   quote that fact from both sources, not a nearby one. Every claim cites its note(s) and carries its confidence
    word where it appears: verified, one source, or unverified (the rubric's Confidence
    words). A claim with no note you can name is unverified, however sure you feel;
    never restate a source from memory.
