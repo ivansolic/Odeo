@@ -37,7 +37,7 @@ method beats a confident single figure.
    are reported AS a conflict with both values, never silently averaged.
 4b. **Cite as you write**: one fact per claim (the rubric's Claim definition); put its sources
    in a numbered note under Findings (the rubric's Note definition), and for a verified claim
-   quote that fact from both sources, not a nearby one. Every claim cites its note(s) and carries its confidence
+   quote that fact from both sources, not a nearby one (the rubric's Verified definition). Every claim cites its note(s) and carries its confidence
    word where it appears: verified, one source, or unverified (the rubric's Confidence
    words). A claim with no note you can name is unverified, however sure you feel;
    never restate a source from memory.
@@ -78,19 +78,20 @@ when the Context section rests on assumptions ("shall I back this with
 
 ## Worked example
 Adapted from a real report (RES-002, "Where can Odeo run besides Claude Code?",
-deep-dive, thorough). The note and its quote are verbatim from it; the confidence word
-and the Unverified line show how this skill writes the same claim, which RES-002 itself
-did not do:
-> Answer clause: "users must approve plugin hooks before they run, apparently again
-> whenever a hook changes (one source, note 2)."
-> Note 2: developers.openai.com/codex/hooks, quote: "Codex skips plugin-bundled hooks
-> until you review and trust the current hook definition".
-> Unverified section: "the hook trust step rests on one source; whether it repeats on
-> every hook change is an inference from 'the current hook definition'."
-The clause says its confidence word, the note gives the page and the quote, and the
-inference is labeled as one. The same report also shows the failure this skill now
-prevents: the sources behind most of its table cells were not kept, so those cells
-could not be traced to anything.
+deep-dive, thorough, v7). The findings and quotes are verbatim from it:
+> F1: "Codex adds a plugin marketplace from a GitHub repository URL with `codex plugin
+> marketplace add`. **Verified** (notes 1, 2)."
+> Note 1, OpenAI docs: "Use `codex plugin marketplace add` to add and track a marketplace
+> source"; example "codex plugin marketplace add https://github.com/example/plugins.git".
+> Note 2, Codex source at `90f00bd`: help text "codex plugin marketplace add
+> https://github.com/owner/repo".
+> F13: "OpenAI's porting guide says to call bundled executables by package-relative path.
+> **One source** (note 8)."
+Each finding states one fact and carries one confidence word. F1 is verified because both
+notes quote that same fact; F13 has one source and says so. The failure this prevents, from
+an earlier version of the same report: a claim was called verified while its second note
+quoted only a test name (`session_start_hooks_apply_additional_context_limits_individually`),
+a nearby fact, so it was one source until a quote of the setting itself was found.
 
 ## Honest limits (say them, never paper over)
 - **No web access / blocked network** (corporate proxies, sandboxes): say so

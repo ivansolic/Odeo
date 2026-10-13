@@ -25,9 +25,10 @@ skill points here instead of rewording them, so the two files cannot drift apart
   may carry it by citing the Findings claim that does):
   - **Verified:** backed by two independent sources whose notes EACH quote that same fact,
     counted PER CLAIM (a note that backs several claims verifies only those it gives two
-    sources for). A quote of a nearby fact does not count: a field name, a test name, a
-    string in a binary or a related sentence that only implies the claim leaves it one
-    source.
+    sources for). A quote of a nearby fact does not count: a quote that only names a field,
+    test or string, or a related sentence, without itself stating the claim, leaves it one
+    source. A code, binary or changelog quote that states the claim itself counts
+    (Independent sources).
   - **One source:** backed by exactly one source.
   - **Unverified:** backed by no source the report can name.
   - **Not verified** means one source or unverified; every not-verified claim, and every
