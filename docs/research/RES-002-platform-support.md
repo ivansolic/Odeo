@@ -29,7 +29,9 @@ Antigravity, claude.ai chat and Claude Cowork:
 The decision it serves: which platform the next porting spike targets (Phase 2 in the task
 ledger). Scope: desktop and CLI products only, no region or segment limit (all targets are
 global products). For Codex, the source code evidence is the CLI's; the ChatGPT desktop app
-is covered only where a finding says so.
+is covered only where a finding says so. For Antigravity, the docs pages used here state that
+they cover Antigravity 2.0, the Antigravity CLI and the Antigravity IDE (notes 15, 17); the
+binary evidence is the CLI's.
 
 Key terms in this report:
 - **Ported**: Odeo installs on the target as a plugin and its three load-bearing layers work
@@ -43,20 +45,21 @@ Key terms in this report:
 
 ## Answer
 
-Cowork is probably the target with the least rework, but only after release B: it is
-documented to load the same plugin folder's skills, agents and hooks (one source each, F20,
-F21, F22), yet it refuses a plugin with a top-level `bin/` folder (one source, F25), which Odeo
-keeps until release B deletes it (one source, F40); this ranking is an inference that also
-rests on the open question of which hook events fire in Cowork. Codex comes next: it installs
-from GitHub and reads the `.claude-plugin` marketplace (verified, F1, F2) and has session-start
-events whose output becomes context (verified, F5, F6), but a user must trust each hook before
-it runs and again after every change (verified, F8, F9), Odeo's agents would likely have to
-become skills (one source, inference, F11), and whether Odeo's hooks run there unmodified is
-unverified. Antigravity installs from GitHub (verified, F30) and injects context at session
-start (verified, F31) but needs its own manifest (one source, F33); claude.ai chat ignores
-agents (one source, F21) and its docs conflict on hooks (C1), so it can carry the PM skills at
-most; plugin updates were found documented only for Antigravity (one source, F37) and were not
-re-checked for the others.
+Cowork is probably the target with the least rework, but only after release B: it is documented
+to load the same plugin folder's skills, agents and hooks (one source each, F20, F21, F22), yet
+it refuses a plugin with a top-level `bin/` folder (one source, F25), which Odeo keeps until
+release B deletes it (one source, F40); this ranking is an inference that also rests on the
+open question of which hook events fire in Cowork. Codex comes next: it installs from GitHub
+and reads the `.claude-plugin` marketplace (verified, F1, F2) and has session-start events
+whose output becomes context (verified, F5, F6), but a user must trust each hook, plugin hooks
+included, before it runs and again after every change (verified, F8, F8b, F9), Odeo's agents
+would likely have to become skills (one source, inference, F11), and whether Odeo's hooks run
+there unmodified is unverified. Antigravity installs from GitHub (verified, F30) and injects
+context at session start (verified, F31) but needs its own manifest (one source, F33);
+claude.ai chat ignores agents, so it cannot run Odeo's build pipeline (one source, F21); it
+loads skills (one source, F20), and whether Odeo's baseline hooks run there depends on a
+conflict in Anthropic's docs (C1); plugin updates were found documented only for Antigravity
+(one source, F37) and were not re-checked for the others.
 
 ## Findings
 
@@ -65,8 +68,8 @@ One fact per finding, each with its confidence word and notes. Data date for eve
 
 ### Codex (CLI unless stated)
 
-- **F1** Codex adds a plugin marketplace from a GitHub repository (`codex plugin marketplace
-  add owner/repo`). **Verified** (notes 1, 2).
+- **F1** Codex adds a plugin marketplace from a GitHub repository URL with `codex plugin
+  marketplace add`. **Verified** (notes 1, 2).
 - **F2** Codex reads a marketplace at `.claude-plugin/marketplace.json`. **Verified** (notes
   1, 3).
 - **F3** Codex discovers a plugin manifest at `.claude-plugin/plugin.json`. **One source**
@@ -79,8 +82,11 @@ One fact per finding, each with its confidence word and notes. Data date for eve
   **Verified** (notes 5, 6).
 - **F7b** A Codex hook handler can change that limit with `additionalContextLimit`.
   **Verified** (notes 5, 6).
-- **F8** Codex runs a non-managed hook, plugin hooks included, only after the user trusts it.
-  **Verified** (notes 5, 7).
+- **F8** Codex runs a non-managed hook only after the user trusts it. **Verified** (notes 5, 7).
+- **F8b** Codex treats plugin hooks as non-managed, so they need trust too. **Verified** (notes
+  5, 7).
+- **F8c** A flag, `--dangerously-bypass-hook-trust`, off by default, runs enabled hooks without
+  trust for one invocation. **Verified** (notes 5, 7).
 - **F9** Codex records trust against the hook's hash, so a changed hook needs trust again.
   **Verified** (notes 5, 7).
 - **F10** Codex PreToolUse can match file edits as `apply_patch`, `Edit` or `Write`. **One
@@ -94,6 +100,7 @@ One fact per finding, each with its confidence word and notes. Data date for eve
   **One source** (note 8).
 - **F14** Codex's plugin installer skips a symlinked executable under `bin/`. **One source**
   (note 9).
+- **F15b** A Codex skill is a directory with a `SKILL.md` file. **Verified** (notes 10, 25).
 - **F15** Codex's skill list uses at most 2% of the context window, or 8,000 characters when
   the window is unknown. **One source** (note 10).
 - **F16** Codex reads AGENTS.md files up to 32 KiB combined by default. **One source** (note
@@ -116,11 +123,11 @@ One fact per finding, each with its confidence word and notes. Data date for eve
 ### Antigravity
 
 - **F30** Antigravity installs plugins from a GitHub repository. **Verified** (notes 15, 16).
-- **F31** Antigravity has a `SessionStart` hook that can inject steps into the conversation
-  before the first model call. **Verified** (notes 17, 18).
+- **F31** Antigravity has a `SessionStart` hook whose output can inject steps into the
+  conversation. **Verified** (notes 17, 18).
 - **F32** Antigravity has a `Stop` hook. **Verified** (notes 17, 18).
-- **F32b** Antigravity has tools named `run_command` and `view_file`. **Verified** (notes 17,
-  18).
+- **F32b** Antigravity has tools named `run_command` and `view_file`. **One source** (note 17;
+  the binary contains both strings, but nothing shown ties them to tools).
 - **F32c** Antigravity PreToolUse matches tool names such as `run_command`. **One source**
   (note 17).
 - **F33** An Antigravity plugin needs its own `plugin.json`, whose schema allows only `name`
@@ -159,21 +166,22 @@ names its finding; the confidence word is on the finding.
 | Plugin from GitHub | ? | Y (F1, F2) | Y (F30) | Y (F24) | Y (F24) |
 | Reads `.claude-plugin/` manifest | ? | Y (F2, F3) | N, own manifest (F33) | ? | ? |
 | Top-level `bin/` | Y, on PATH (F38) | P, package-relative (F13, F14) | ? | N, refused (F25) | N, refused (F25) |
-| SKILL.md skills | Y (F39b) | Y, list capped (F15) | Y (F34) | Y (F20) | Y (F20) |
+| SKILL.md skills | Y (F39b) | Y (F15b), list capped (F15) | Y (F34) | Y (F20) | Y (F20) |
 | Subagents from a plugin | Y (F39b) | N, inferred (F11); TOML agents (F12) | Y (F35) | Y (F21) | N (F21) |
 | Session-start context | Y, 10,000 chars (F39) | Y, ~2,500 tokens (F5, F6, F7) | Y (F31) | ? | C1 |
-| Hooks run without a prompt | ? | N, trust first (F8, F9) | ? | ? | ? |
+| Hooks run without a prompt | ? | N, trust first (F8, F8b, F9) | ? | ? | ? |
 | Updates | ? | ? | Y, in 2.0 (F37) | ? | ? |
 
 ### Notes
 
 1. OpenAI docs, developers.openai.com/plugins/build/plugins.md: line 541, "a legacy-compatible
-   marketplace at `$REPO_ROOT/.claude-plugin/marketplace.json`"; lines 184 to 190, "Use
-   `codex plugin marketplace add` to add and track a marketplace source" with the example
-   `codex plugin marketplace add owner/repo`.
+   marketplace at `$REPO_ROOT/.claude-plugin/marketplace.json`"; lines 184 to 191, "Use
+   `codex plugin marketplace add` to add and track a marketplace source", example line 191:
+   "codex plugin marketplace add https://github.com/example/plugins.git --sparse .agents/plugins".
 2. Codex source, github.com/openai/codex at `90f00bd`, `codex-rs/cli/src/marketplace_cmd.rs`
-   lines 62 to 66: `bin_name = "codex plugin marketplace add"`; "Marketplace source: a local
-   path, owner/repo[@ref], HTTPS Git URL, or SSH Git URL."
+   lines 62 to 66: `bin_name = "codex plugin marketplace add"`; line 63, help text "codex plugin
+   marketplace add https://github.com/owner/repo"; "Marketplace source: a local path,
+   owner/repo[@ref], HTTPS Git URL, or SSH Git URL."
 3. Codex source at `90f00bd`: `codex-rs/core-plugins/src/marketplace.rs` lines 20 to 25,
    `MARKETPLACE_MANIFEST_RELATIVE_PATHS` includes `".claude-plugin/marketplace.json"`;
    `codex-rs/exec-server-protocol/src/protocol.rs` lines 51 to 55,
@@ -183,25 +191,30 @@ names its finding; the confidence word is on the finding.
    ChatGPT on the web, desktop, and mobile, and in Codex in the ChatGPT desktop app."
 5. OpenAI docs, developers.openai.com/codex/hooks.md (redirects to
    learn.chatgpt.com/docs/hooks.md): line 27, "When a session or subagent starts |
-   `SessionStart`, `SubagentStart`"; line 676, "That `additionalContext` text is added as
-   extra developer context"; lines 529 to 530, "By default, Codex limits each model-visible
+   `SessionStart`, `SubagentStart`"; under the heading "### SessionStart" (line 648), line 658:
+   "Plain text on `stdout` is added as extra developer context."; lines 529 to 530, "By default, Codex limits each model-visible
    hook-output message to roughly 2,500 tokens"; line 555, "Omit `additionalContextLimit` to
    use the default `2500`-token threshold"; lines 64 to 66, "Before a non-managed hook can
    run, Codex requires you to review and trust the exact hook definition. Codex records trust
    against the hook's current hash, so new or changed hooks are marked for review and skipped
-   until trusted"; lines 406 to 408, "Codex skips plugin-bundled hooks until you review and
+   until trusted"; lines 76 to 77, "pass `--dangerously-bypass-hook-trust` to run enabled hooks
+   without requiring persisted hook trust for that invocation"; lines 406 to 408, "Codex skips plugin-bundled hooks until you review and
    trust the current hook definition"; line 433, "For `apply_patch`, `matcher` values can
    also use `Edit` or `Write`".
 6. Codex source at `90f00bd`: `codex-rs/protocol/src/protocol.rs` lines 1694 and 1697,
    `SessionStart` and `SubagentStart`; `codex-rs/hooks/src/events/session_start.rs` line 94,
    `additional_contexts_for_model: Vec<AdditionalContext>`; `codex-rs/hooks/src/output_spill.rs` line 12,
-   `DEFAULT_HOOK_OUTPUT_TOKEN_LIMIT: usize = 2_500`; `codex-rs/core/tests/suite/hooks.rs`
-   line 2092, test `session_start_hooks_apply_additional_context_limits_individually`.
+   `DEFAULT_HOOK_OUTPUT_TOKEN_LIMIT: usize = 2_500`; `codex-rs/config/src/hook_config.rs`
+   lines 176 to 184, "Unset uses 2,500 tokens; `0` disables spilling for this hook" and
+   `rename = "additionalContextLimit"` on `additional_context_limit: Option<usize>`.
 7. Codex source at `90f00bd`, `codex-rs/hooks/src/engine/discovery.rs`: lines 715 to 721, a
    handler is pushed only `if enabled && (source.bypass_hook_trust || matches!(trust_status,
    HookTrustStatus::Managed | HookTrustStatus::Trusted))`; lines 807 to 810,
    `Some(trusted_hash) if trusted_hash == current_hash => HookTrustStatus::Trusted`,
-   `Some(_) => HookTrustStatus::Modified`, `None => HookTrustStatus::Untrusted`.
+   `Some(_) => HookTrustStatus::Modified`, `None => HookTrustStatus::Untrusted`; lines 283 to
+   284, a plugin hook source is `source: HookSource::Plugin, is_managed: false`.
+   `codex-rs/utils/cli/src/shared_options.rs` line 63:
+   `#[arg(long = "dangerously-bypass-hook-trust", default_value_t = false)]`.
 8. OpenAI docs, one source across two pages:
    developers.openai.com/plugins/guides/submit-claude-plugin.md line 33, "move reusable agent
    procedures into skills", and line 37 (`bin/` row), "Call bundled executables with
@@ -213,13 +226,14 @@ names its finding; the confidence word is on the finding.
    test `agent_plugin_install_skips_symlinked_executable`, asserting
    `!result.installed_path.join("bin/tool").exists()`.
 10. OpenAI docs, developers.openai.com/codex/skills.md (redirects to
-    learn.chatgpt.com/docs/build-skills.md) lines 38 to 39: "this list uses at most 2% of the
+    learn.chatgpt.com/docs/build-skills.md): line 45, "A skill is a directory with a `SKILL.md`
+    file plus optional scripts and references"; lines 38 to 39, "this list uses at most 2% of the
     model's context window, or 8,000 characters when the context window is unknown".
 11. OpenAI docs, developers.openai.com/codex/guides/agents-md.md (redirects to
     learn.chatgpt.com/docs/agent-configuration/agents-md.md) line 15:
     "`project_doc_max_bytes` (32 KiB by default)".
-12. Anthropic docs, claude.com/docs/plugins/platform-support.md, component table (columns
-    Chat, Cowork, Claude Code): "Skills (`skills/<name>/SKILL.md`) | Loads | Loads | Loads";
+12. Anthropic docs, claude.com/docs/plugins/platform-support.md, component table, header
+    "| Component | Chat | Cowork | Claude Code | Notes |": "Skills (`skills/<name>/SKILL.md`) | Loads | Loads | Loads";
     "Agents (`agents/*.md`) | Ignored | Loads | Loads"; "Hooks (`hooks/hooks.json`) | Ignored
     | Loads | Loads"; install table, row "Where you add plugins": "[**Customize > Plugins**](https://claude.ai/customize/plugins)
     in claude.ai or the desktop app"; row "Hosts for a marketplace you add yourself": "GitHub
@@ -232,7 +246,8 @@ names its finding; the confidence word is on the finding.
     Loads"; claude.com/docs/plugins/build.md line 544, "stops claude.ai and Cowork from installing the
     plugin at all" (after "**A top-level `bin/` directory**"); claude.com/docs/plugins/org-sync.md
     line 109, "The error message starts with `Plugin contains a top-level bin/ directory`".
-15. Google docs, antigravity.google/docs/plugins: "A plugin is a directory containing a
+15. Google docs, antigravity.google/docs/plugins: "Available on: Antigravity 2.0 Antigravity CLI
+    Antigravity IDE"; "A plugin is a directory containing a
     required manifest file ( plugin.json )"; schema `"required" : [ "name" ],
     "additionalProperties" : false` with only `name` and `description`; tree shows
     `skills/<skill-name>/SKILL.md` and `agents/<agent-name>.md`; "Install from a GitHub repository link"; "Plugins installed in Antigravity 2.0 are
@@ -246,7 +261,8 @@ names its finding; the confidence word is on the finding.
     rather than the private application data folder". The page text does not let this report
     attribute either line to a release (two parsing methods gave different versions), so no
     version is claimed.
-17. Google docs, antigravity.google/docs/hooks: "SessionStart array Handlers that run once
+17. Google docs, antigravity.google/docs/hooks: "Available on: Antigravity 2.0 Antigravity CLI
+    Antigravity IDE"; "SessionStart array Handlers that run once
     when a new conversation session starts, before the first model invocation"; output field
     "injectSteps array of objects Optional. List of steps to inject into the conversation
     trajectory at the start of the session"; "Stop Fires when execution terminates"; matcher
@@ -254,7 +270,8 @@ names its finding; the confidence word is on the finding.
 18. Antigravity CLI binary `agy` 1.1.5 (local, file date 2026-07-21), `strings` output:
     `.exa.hooks_pb.SessionStartHookArgs`,
     `hooks_go_proto.(*SessionStartHookResult).GetInjectSteps`, `StopHookArgs`, `run_command`
-    (65 hits), `view_file` (49 hits).
+    (65 hits), `view_file` (49 hits), and `claude.(*ClaudeCodeImporter).Name` (5 hits for
+    `ClaudeCodeImporter`).
 19. Google docs, antigravity.google/docs/subagents, locations table: "Plugins
     plugins/<plugin_name>/agents/ Bundled Plugin Package".
 20. Google docs, antigravity.google/docs/rules: "24 KB ( 24,000 bytes) per-file limit" and
@@ -271,18 +288,24 @@ names its finding; the confidence word is on the finding.
     `git show -s c56da53` "chore(release): 0.3.4" (2026-10-02); `.claude-plugin/plugin.json`
     "version": "0.3.4"; at `4f0084e`: `ls bin | wc -l` = 26, `ls scripts | wc -l` = 26,
     `ls skills | wc -l` = 67, `grep -l disable-model-invocation skills/*/SKILL.md | wc -l` =
-    53, `wc -m global/CLAUDE.md` = 20395; `hooks/hooks.json` registers `odeo-context.sh
-    baseline 1` to `4` on SessionStart; `.claude/tasks/todo.md` lines 143 and 222 plan
-    release B to "delete bin/".
+    53, `wc -m global/CLAUDE.md` = 20395, `wc -c global/CLAUDE.md` = 20403; `bin/spec-gate.sh`
+    line 2, "Compatibility wrapper: the program lives in scripts/spec-gate.sh. bin/ stays for one
+    release"; `hooks/hooks.json` registers `odeo-context.sh
+    baseline 1` to `4` on SessionStart; `.claude/tasks/todo.md` line 143, "release B (~2 weeks
+    after 0.3.0 shipped on 2026-09-29, so ~2026-10-13): delete bin/".
+25. Codex source at `90f00bd`, `codex-rs/core-plugins/src/command_migration.rs` line 171:
+    `fs::write(target_dir.join("SKILL.md"), rendered)?;` (a migrated command becomes a skill
+    directory holding `SKILL.md`).
 
 ## Numbers
 
 All measured on 2026-10-13 at `4f0084e` (note 24).
-- Odeo's baseline: 20,395 characters, about 5.1k tokens by the heuristic of characters
-  divided by four (an estimate, not a tokenizer count). Against Codex's default of about
-  2,500 tokens per hook (F7) that means at least 3 parts, or one part with a raised
-  `additionalContextLimit` (F7b). Against Claude Code's 10,000 characters per hook (F39) Odeo
-  uses 4 parts today. Antigravity rules: one 24,000-byte file would hold it, but it would
+- Odeo's baseline: 20,395 characters (20,403 bytes), about 5.1k tokens by the heuristic of
+  characters divided by four (an estimate, not a tokenizer count). Against Codex's default of
+  about 2,500 tokens per hook (F7) that suggests 2 to 3 parts (an inference from the
+  estimate; a tokenizer count decides), or one part with a raised `additionalContextLimit`
+  (F7b). Against Claude Code's 10,000 characters per hook (F39) Odeo
+  uses 4 parts today. Antigravity rules: one 24,000-byte file would hold its 20,403 bytes, but it would
   share the 20,000-token budget with every other active rule (F36).
 - Odeo ships 67 skills; 53 carry `disable-model-invocation`. Whether Codex's skill-list cap
   (F15) would shorten their descriptions depends on the context window: not measured.
@@ -298,7 +321,7 @@ One source:
 - Cowork and chat: F20 skills; F21 agents; F22 Cowork hooks for plugins in general (F23
   verifies organization plugins only); F24 install path; F25 `bin/` refused (Anthropic docs
   only; no dated refused install was observed).
-- Antigravity: F32c PreToolUse matching; F33 manifest; F34 skills; F35 plugin agents; F36
+- Antigravity: F32b tool names (docs only); F32c PreToolUse matching; F33 manifest; F34 skills; F35 plugin agents; F36
   rules limits; F37 automatic updates.
 - Claude Code: F39 hook cap; F39b skills, agents and hooks load.
 - Odeo: F40, F41, F42, this repo only.
@@ -312,7 +335,7 @@ Unverified, no source this report can name:
   whether it reads `.claude-plugin/`; how updates reach users.
 - Antigravity: whether `bin/` is supported; which agent frontmatter fields it honours;
   whether hooks run without a prompt; whether `agy plugin import ... claude` (seen in the
-  binary as `ClaudeCodeImporter`, 5 hits) converts Odeo, not run.
+  binary as `ClaudeCodeImporter`, note 18) converts Odeo, not run.
 - claude.ai chat: whether it reads `.claude-plugin/`; how updates reach users; whether an
   upload rejects skill frontmatter outside the Agent Skills spec.
 - Claude Code cells marked **?** were not researched (Odeo's current platform).
@@ -328,6 +351,8 @@ Conflicts, with both values:
 
 Inferences:
 - F11: Codex plugins cannot ship agents (from porting advice).
+- Numbers: 2 to 3 Codex hook parts for the baseline, from a characters-divided-by-four
+  estimate.
 - The ranking in the Answer and Implications (Cowork, then Codex, then Antigravity): it
   weighs one-source findings (F20 to F22, F25, F33, F35) and the open question of which hook
   events fire in Cowork.
@@ -341,10 +366,11 @@ Inferences:
   one-source findings into verified ones or refutes them.
 - **Keep Codex as the second target and plan for the trust step.** Reason: Codex installs
   from GitHub, reads our marketplace and has session-start context (F1, F2, F5, F6,
-  verified), but every release that changes a hook asks users to trust it again (F8, F9,
-  verified), and the agent pipeline likely has to become skills (F11, one source, an
+  verified), but plugin hooks need trust (F8, F8b, verified) and every release that changes
+  a hook asks users to trust it again (F9, verified), and the agent pipeline likely has to become skills (F11, one source, an
   inference). The spike settles whether Odeo's hooks run unmodified (unverified).
-- **Re-rank Antigravity after the Cowork test; claude.ai chat stays PM skills at most.**
+- **Re-rank Antigravity after the Cowork test; claude.ai chat cannot run the build
+  pipeline.**
   Reason: Antigravity injects context at session start (F31, verified) and takes plugin
   agents (F35, one source), but needs its own manifest (F33, one source) and its own tool
   names in guards (F32c, one source). Chat ignores agents (F21, one source), which removes
@@ -396,6 +422,15 @@ Not covered: no install was run on any target; no Codex binary was available loc
 the ChatGPT desktop app was not inspected; the Antigravity changelog's release attribution
 could not be parsed reliably; the google-gemini/gemini-cli docs page listed in v3 was not
 recovered, and no finding rests on it; no non-English docs.
+
+## Revision 2026-10-13 (v6)
+
+Round 6 scored v5 at 12/16: in three Verified findings the second note quoted a nearby fact,
+not the same one, and the Answer settled the chat hooks conflict. v6 quotes the same fact in
+both notes (F1, F6, F7b, F8 split into F8, F8b, F8c), relabels F32b one source, narrows F31,
+adds F15b for Codex SKILL.md, scopes the Antigravity docs, and states the baseline's part
+count as an inference. A dispatcher-side check now also requires each Verified finding's key
+terms to appear in the quotes of both notes.
 
 ## Revision 2026-10-13 (v5)
 
