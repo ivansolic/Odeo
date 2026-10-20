@@ -31,16 +31,22 @@ method beats a confident single figure.
 3. **Fan out searches**, several phrasings and angles per sub-question (market
    term + synonyms, competitor names once discovered, "X pricing", "X market
    size <year>", regional variants). Fetch the promising sources, don't answer
-   from search snippets alone.
+   from search snippets alone, and save each fetched page or file as text under
+   `~/.cache/odeo/research/RES-NNN/` (not `/tmp`, which the OS empties), so step 5b can
+   check every quote against it.
 4. **Triangulate every claim**: aim for two independent sources per claim (the rubric's
    Independent sources and Verified definitions say what counts). Conflicting numbers
    are reported AS a conflict with both values, never silently averaged.
 4b. **Cite as you write**: one fact per claim (the rubric's Claim definition); put its sources
    in a numbered note under Findings (the rubric's Note definition), and for a verified claim
-   quote that fact from both sources, not a nearby one (the rubric's Verified definition). Every claim cites its note(s) and carries its confidence
-   word where it appears: verified, one source, or unverified (the rubric's Confidence
-   words). A claim with no note you can name is unverified, however sure you feel;
-   never restate a source from memory.
+   quote that fact from both sources, not a nearby one (the rubric's Verified definition).
+   Every claim cites its note(s) and carries its confidence word where it appears:
+   verified, one source, or unverified (the rubric's Confidence words). A claim with no
+   note you can name is unverified, however sure you feel; never restate a source from
+   memory. Write it in the shape step 5b checks: a claim is `- **F1** <one fact>.
+   **Verified** (notes 1, 2)`; a verified claim adds its key terms, the words of that fact
+   each of its notes must quote, as `<!-- terms: term; alt one|alt two -->`; a note starts
+   with its source's name and a comma (`OpenAI docs, <page>: "quote"`).
 5. **Write the report** to `docs/research/RES-NNN-<slug>.md` (NNN = next number
    after the highest existing `RES-` file there):
    ```
@@ -57,7 +63,11 @@ method beats a confident single figure.
    ## Sources (grouped by publisher, links, access date, versions; one line on
       what the search did not cover: regions, paywalls, languages, blocked pages)
    ```
-5b. **Score it**: commit the report on a branch (on `main`, ask the human to create one
+5b. **Check, then score it**: run `${CLAUDE_PLUGIN_ROOT}/scripts/research-check.sh <report>
+   --sources ~/.cache/odeo/research/RES-NNN` and fix every violation it names (exit 1);
+   exit 2 means the check did not run, so say that and why. It checks labels, notes, key
+   terms and quotes, not meaning: the reviewer still judges whether two notes state the
+   same fact. Then commit the report on a branch (on `main`, ask the human to create one
    first: Git discipline in `${CLAUDE_PLUGIN_ROOT}/AGENTS.md`), then dispatch `pm-reviewer` against
    `${CLAUDE_PLUGIN_ROOT}/skills/research/rubric.md`, handing it `git rev-parse --short HEAD` and
    `output_language` (Guardrails 1 and 7 in `${CLAUDE_PLUGIN_ROOT}/AGENTS.md`).
