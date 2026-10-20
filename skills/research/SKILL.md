@@ -81,10 +81,15 @@ Adapted from a real report (RES-002, "Where can Odeo run besides Claude Code?",
 deep-dive, thorough, v7). The findings and quotes are verbatim from it:
 > F1: "Codex adds a plugin marketplace from a GitHub repository URL with `codex plugin
 > marketplace add`. **Verified** (notes 1, 2)."
-> Note 1, OpenAI docs: "Use `codex plugin marketplace add` to add and track a marketplace
-> source"; example "codex plugin marketplace add https://github.com/example/plugins.git".
-> Note 2, Codex source at `90f00bd`: help text "codex plugin marketplace add
-> https://github.com/owner/repo".
+> Note 1: OpenAI docs, developers.openai.com/plugins/build/plugins.md: line 541, "a
+> legacy-compatible marketplace at `$REPO_ROOT/.claude-plugin/marketplace.json`"; lines 184
+> to 191, "Use `codex plugin marketplace add` to add and track a marketplace source", example
+> line 191: "codex plugin marketplace add https://github.com/example/plugins.git --sparse
+> .agents/plugins".
+> Note 2: Codex source, github.com/openai/codex at `90f00bd`,
+> `codex-rs/cli/src/marketplace_cmd.rs` lines 62 to 66: `bin_name = "codex plugin marketplace
+> add"`; line 63, help text "codex plugin marketplace add https://github.com/owner/repo";
+> "Marketplace source: a local path, owner/repo[@ref], HTTPS Git URL, or SSH Git URL."
 > F13: "OpenAI's porting guide says to call bundled executables by package-relative path.
 > **One source** (note 8)."
 Each finding states one fact and carries one confidence word. F1 is verified because both
