@@ -2,146 +2,172 @@
 artifact: skills/research
 type: skill
 branch: chore/research-one-fact-rule
-reviewed_commit: f3b6fce
-artifact_version: 8
+reviewed_commit: 25b2a85
+artifact_version: 9
 date: 2026-10-20
 scorer: skill-reviewer
 model: claude-opus-5-5[1m]
 model_tier: strongest
 effort: high
-scores: { trigger_clarity: 2, structure: 2, worked_example: 2, precision: 2, safety_integration: 2 }
-total: 10/10
+scores: { trigger_clarity: 2, structure: 2, worked_example: 1, precision: 1, safety_integration: 2 }
+total: 8/10
 verdict: PASS
-previous_total: 9/10
+previous_total: 10/10
 ---
 
 ## Skill: research  (auto-invoked, no disable-model-invocation)
 
-This is round 3 on this branch, the last one allowed under the cap, at f3b6fce. The
-dispatcher supplied that sha. I have no shell, so I cannot confirm it myself. I scored the
-files on disk, which the dispatcher reports as the shipped state at that commit.
+Round 1 of change B on this branch, at 25b2a85. Change A closed at 10/10 (v8, f3b6fce). The
+dispatcher supplied the sha; I have no shell, so I could not confirm it or diff against
+f3b6fce. I scored the files on disk.
 
-What this round covers:
-- round 2's fix 1: notes 1 and 2 of the worked example copied word for word from RES-002;
-- round 2's fix 2: the test name in the history sentence. The dispatcher ran
-  `git log -S session_start_hooks_apply_additional_context_limits_individually -- docs/research/RES-002-platform-support.md`
-  and reports two commits: 03d1739 (v4, introduced) and 64df14e (v6, removed). I did not run
-  it. I accept it as dispatcher-supplied evidence, and it agrees with the history in
-  `docs/evals/RES-002.md:267-274` (v5 on `03d1739`; v6 names "the second note of a Verified
-  pair quotes a nearby fact").
-- The human kept change A after a blind A/B. That decision is recorded in the dispatcher's
-  ledger, not here, and it is not something this form gate judges.
-
-Round 2's fix 3 (`docs/system-map.md`) is outside the skill folder and was not applied.
+Change B, as the dispatcher describes it: step 3 now saves fetched sources under
+`~/.cache/odeo/research/RES-NNN/`; step 4b now states the claim shape the checker reads, a
+`<!-- terms: ... -->` comment on Verified claims, and a "source name, comma" start for
+notes; step 5b now runs `research-check.sh` before the review. The script itself belongs to
+code-reviewer. I read it only to check whether the skill's description of the shape is
+complete. That is a precision question about the skill, not a review of the script.
 
 Files read in full:
-- `skills/research/SKILL.md` (125 lines)
+- `skills/research/SKILL.md` (135 lines)
 - `skills/research/rubric.md` (126 lines)
+- `scripts/research-check.sh` (157 lines), read only to compare against the shape the skill states
 
-Also read:
-- `docs/research/RES-002-platform-support.md`, lines 68 to 103 (Findings F1 to F14) and 176
-  to 200 (notes 1 to 5), to check the example word for word;
-- `docs/evals/RES-002.md`, lines 262 to 286 (history v4 to v8);
-- `docs/system-map.md`, line 72.
+Also read: `docs/research/RES-002-platform-support.md` lines 65 to 76, and the line numbers
+of `### Notes` (178) and notes 1 and 2 (180, 184); `docs/system-map.md:72`.
 
 Model tier: strongest, as dispatched. This agent has no web access, so I could not re-check
-the live model lineup.
+the live model lineup. Output language: en (dispatcher-supplied).
 
 ## Scores
 - trigger clarity: 2, unchanged. SKILL.md:2 reads "Use when the user wants market or web
   research with sources, asks about market size, TAM/SAM/SOM, ...". That is the correct
-  format for an auto-invoked skill, and it uses the user's own words ("is it true that...").
-- structure: 2, unchanged. SKILL.md:9-11 says the terms are "defined once, in the
-  Definitions of `${CLAUDE_PLUGIN_ROOT}/skills/research/rubric.md`; this skill uses them and
-  never rewords them". SKILL.md has 125 lines. The rubric is the only supporting file, and it
-  is one level deep. The body follows the standard's shape: essence, modes, process, worked
-  example, output (step 5), rules.
-- worked example: 2 (was 1). Both round 2 defects are gone.
-  - Defect A (notes dropped the page or file) is fixed. SKILL.md:84 reads "Note 1: OpenAI
-    docs, developers.openai.com/plugins/build/plugins.md: line 541, ...". SKILL.md:89-90 reads
-    "Note 2: Codex source, github.com/openai/codex at `90f00bd`,
-    `codex-rs/cli/src/marketplace_cmd.rs` lines 62 to 66". Each note now has the page or file
-    plus quotes, which is what the rubric's Note definition (rubric.md:17-18) and
-    Traceability 2 (rubric.md:59-60) ask for. Copying this shape gives a conforming note.
-  - Defect B (quote cut short) is fixed. SKILL.md:87-88 carries the full example line,
-    "codex plugin marketplace add https://github.com/example/plugins.git --sparse
-    .agents/plugins".
-  - Word-for-word check against RES-002:
-    - F1, SKILL.md:82-83 = RES-002:72-73;
-    - F13, SKILL.md:93-94 = RES-002:100-101;
-    - note 1, SKILL.md:84-88 = RES-002:180-183;
-    - note 2, SKILL.md:89-92 = RES-002:184-187.
-    The only differences are line wrapping and the label ("Note 1:" in place of "1."), which
-    "Adapted from a real report" (SKILL.md:80) covers. "The findings and quotes are verbatim
-    from it" (SKILL.md:81) is now true.
-  - The explanation holds. "F1 is verified because both notes quote that same fact"
-    (SKILL.md:96): both notes quote adding a marketplace from a GitHub URL with that
-    command. The history sentence (SKILL.md:96-99) is backed by the dispatcher's `git log -S`
-    result and by `docs/evals/RES-002.md:270-274`.
-- precision: 2, unchanged. Paths, script names, the RES-NNN numbering rule (SKILL.md:44-45)
-  and the editor commands (SKILL.md:66-67) are exact. There are no TBDs. Step 4b
-  (SKILL.md:38-43) cites the rubric definition behind every term it uses.
+  format for an auto-invoked skill.
+- structure: 2, unchanged. SKILL.md has 135 lines. The rubric is the only supporting file
+  and sits one level deep. The script is referenced by path (SKILL.md:66) rather than
+  described in the body, which is the standard's "pre-written scripts over agent-generated
+  code" principle.
+- worked example: 1 (was 2). The values are real and the quotes match RES-002. But since
+  this change the example no longer shows the shape it asks the reader to copy:
+  - SKILL.md:46-49 prescribes `- **F1** <one fact>. **Verified** (notes 1, 2)`, a
+    `<!-- terms: ... -->` comment on a Verified claim, and numbered notes.
+  - The example renders F1 as `> F1: "Codex adds ... **Verified** (notes 1, 2)."`
+    (SKILL.md:92-93) and its notes as `> Note 1: OpenAI docs, ...` (SKILL.md:94). It has no
+    terms comment.
+  - So a report that copies the example fails the checker: with no `### Notes` and no
+    `1.` notes, `research-check.sh` exits 2 ("no '## Findings' with a '### Notes' list");
+    laid out correctly but still without the comment, it reports "F1: Verified but no key
+    terms". The standard asks for an example that is "runnable or directly imitable".
+  - On the tension you named: being verbatim does not stop the example from carrying the
+    comment. RES-002 itself already uses the checker shape: `- **F1** Codex adds a plugin
+    marketplace ...` at RES-002:72, `### Notes` at 178, and `1. OpenAI docs, ...` at 180.
+    The `F1:` and `Note 1:` labels are the skill's own adaptation, so the example matches
+    the checker better if it copies RES-002's actual layout. The only thing RES-002 lacks is
+    the terms comment. Adding it and saying it was added keeps "The findings and quotes are
+    verbatim from it" (SKILL.md:91) true, because the comment is neither a finding nor a
+    quote. See fix 1.
+- precision: 1 (was 2). Step 4b says it writes "the shape step 5b checks" (SKILL.md:46), but
+  that shape is incomplete in ways the checker depends on:
+  - (a) The `### Notes` heading is not named anywhere in the skill. SKILL.md:58 says only
+    "the numbered notes with quotes follow the claims". Without that heading the step 5b
+    command does not run (exit 2). The script header (research-check.sh:20) needs it.
+  - (b) The skill contradicts itself on how many sources go in a note. SKILL.md:41 says "put
+    its sources in a numbered note" (one note, several sources). The shape on SKILL.md:47
+    and the checker need one note per source: "Verified needs two notes", and a note's
+    source is "the text before its first comma" (research-check.sh:13). A writer who follows
+    SKILL.md:41 for a Verified claim gets "F1: Verified needs two notes". The rubric's Note
+    definition (rubric.md:17, "naming one or more sources") is not reworded, but step 4b now
+    gives two instructions that conflict.
+  - (c) One name for two concepts. The standard says "consistent terminology (one name per
+    concept, everywhere)". "Key terms" in SKILL.md:26, SKILL.md:53 and rubric criterion 1
+    (rubric.md:40-42, 118) means the question's terms, defined for the reader. In SKILL.md:47
+    and 69 it means the words each note of a Verified claim must quote. So a rubric scorer
+    reading "key term in it is undefined" and a writer reading "adds its key terms" are
+    talking about different things under the same name.
+  - (d) Minor: SKILL.md:67 says "fix every violation it names (exit 1)" but never says to run
+    the check again, so a fix is never confirmed. Also, step 3 (SKILL.md:35) uses `RES-NNN`
+    before step 5 (SKILL.md:50-51) says how NNN is chosen.
+
+  Rubric definitions: nothing in the change rewords them. Step 4b still points at the
+  rubric's Claim, Note, Verified and Confidence words definitions by name. The new "the
+  words of that fact each of its notes must quote" (SKILL.md:47-48) adds a check, not a
+  definition, and SKILL.md:69-70 keeps the same-fact judgment with the reviewer. The rubric
+  file reads exactly as the definitions previously scored (126 lines). I could not diff it.
 - safety integration: 2, unchanged.
-  - SKILL.md:60-65: step 5b commits "on a branch (on `main`, ask the human to create one
-    first: Git discipline in `${CLAUDE_PLUGIN_ROOT}/AGENTS.md`)". It hands over the sha and
-    `output_language` "(Guardrails 1 and 7 ...)", and it loops under "Guardrails 3, with its
-    stop condition".
-  - SKILL.md:114-115 points at the honesty guardrail. SKILL.md:123-124 points at Guardrails 7
-    and does not restate it.
-  - Neither file restates a guardrail.
+  - SKILL.md:68: "exit 2 means the check did not run, so say that and why" applies the
+    honesty rule that a check which did not run is never reported as passing.
+  - SKILL.md:68-70: "It checks labels, notes, key terms and quotes, not meaning: the
+    reviewer still judges whether two notes state the same fact" names the mechanical
+    limit.
+  - Git discipline and Guardrails 1, 3 and 7 are still referenced (SKILL.md:71-75, 133). No
+    guardrail is restated.
+  - Saving public pages to `~/.cache` sends nothing off the machine.
 
-## Total: 10/10   ## Verdict: PASS (threshold 8/10, no zero)
-
-The skill passes at the maximum score with no criterion at 0. Stop condition 1 (PASS) is
-met, and the maximum is reached, so the review loop ends here.
+## Total: 8/10   ## Verdict: PASS (threshold 8/10, no zero)
 
 ## Ceiling
-10/10, reached. No criterion is capped by the nature of this skill.
+10/10 is reachable. No criterion is capped by the nature of this skill. All four precision
+items and the example fix are edits inside SKILL.md.
 
 ## Top fixes
-None are needed to pass, and none change the score. Two optional items:
-1. Optional, inside the skill. Note 1 also quotes line 541 ("a legacy-compatible marketplace
-   at `$REPO_ROOT/.claude-plugin/marketplace.json`"). That quote backs F2, not F1. The rubric
-   allows this ("a note that backs several claims verifies only those it gives two sources
-   for", rubric.md:27-28), and copying the note in full was the right fix. A reader could
-   still mistake it for the nearby-fact quote the paragraph warns about. If you want to close
-   that off, append to SKILL.md:96: "(note 1's line 541 quote backs F2, not F1)". This would
-   change the file and so need a re-review, and the cap on this branch is spent. I recommend
-   leaving it unless there is another reason to edit the skill.
-2. Outside this skill folder, not scored, still open from round 1 (fix 4) and round 2 (fix
-   3): `docs/system-map.md:72` says "every claim 2+ independent sources or labeled
-   unverified". The rubric uses "unverified" only for a claim with no nameable source.
-   Suggested map text: "every claim verified by 2+ independent sources or labeled one source
-   or unverified". It belongs in a separate change.
+1. Worked example (SKILL.md:89-104): copy RES-002's real layout instead of the `F1:` and
+   `Note 1:` labels. Use `- **F1** Codex adds a plugin marketplace ... **Verified** (notes 1,
+   2).`, then a terms comment line, then `### Notes`, then `1. OpenAI docs, ...` and
+   `2. Codex source, ...` (RES-002:72-73, 178-187). Add the comment, for example
+   `<!-- terms: codex plugin marketplace add; github -->`; both notes quote both terms
+   (note 1: "Use `codex plugin marketplace add` ..." and ".../github.com/example/..."; note
+   2: `bin_name = "codex plugin marketplace add"` and ".../github.com/owner/repo"). Change
+   SKILL.md:90-91 to: "The findings and quotes are verbatim from it; the terms comment is
+   added here, since RES-002 predates it." Before claiming the example passes, run the
+   checker on a scratch copy of it. That is a behaviour check, which this gate does not do.
+2. Name the `### Notes` heading. In step 4b (SKILL.md:41), change "in a numbered note under
+   Findings" to "in a numbered note (`1. ...`) under a `### Notes` heading at the end of
+   Findings". In the step 5 template (SKILL.md:57-58), change "the numbered notes with quotes
+   follow the claims" to "then `### Notes`, the numbered notes with quotes".
+3. Resolve the note-count conflict at SKILL.md:41. Change "put its sources in a numbered
+   note" to "give each source its own numbered note". Do not touch rubric.md:17; one source
+   per note is a stricter writing rule that the rubric's "one or more" already allows.
+4. Give the checker's concept its own name. In SKILL.md:47 and 69, replace "key terms" with
+   "quote terms" (for example "a verified claim adds its quote terms, the words of that fact
+   each of its notes must quote"). Leave "key terms" for the question (SKILL.md:26, 53;
+   rubric criterion 1). The script's message text ("no key terms") should follow in the
+   code-reviewed change; the `<!-- terms: -->` marker can stay.
+5. Minor: at SKILL.md:67, after "fix every violation it names (exit 1)", add "and run it
+   again until it exits 0 (at most three runs; violations still left are listed for the
+   reviewer)". This gives the fix a verifier and a stop, per Guardrails 4. At step 3
+   (SKILL.md:35), add "(NNN as in step 5)".
+
+Optional, not scored: in SKILL.md:69-70, also say that the checker judges whether two notes
+come from independent sources only by name (the text before the first comma), which is a
+heuristic (Guardrails 6). Open from earlier rounds and outside this folder:
+`docs/system-map.md:72` still says "2+ independent sources or labeled unverified".
 
 ## Checks
-- Size: SKILL.md has 125 lines and the rubric 126, both under 500. References are one level
+- Size: SKILL.md has 135 lines and rubric.md 126, both under 500. References are one level
   deep.
-- Dashes: neither file contains an em dash or an en dash (grep count 0).
+- Dashes: none in either file (grep count 0).
 - AGENTS.md: nothing is restated.
-- Map duty: this change adds no command. `/odeo:research` is on `docs/system-map.md`
-  (line 72). The wording drift there is optional fix 2.
-- Integrity: this is a first-party skill, so the copied-text check does not apply. The
-  verbatim text in the example is copied from this repo's own RES-002, on purpose.
+- Map duty: no new command. `/odeo:research` is on `docs/system-map.md:72`.
+- Integrity: this is a first-party skill. The example quotes this repo's own RES-002 on
+  purpose.
 
 ## Loop status
-- Round 3 of 3 on this branch. Stop condition 1 (PASS) is met at 10/10. No further round is
-  needed.
-- Stop condition 3, round 2's concern: the worked example kept drifting from its source when
-  it was copied by hand. That class is now closed. The notes are copied whole, so the only
-  drift left would come from RES-002 itself changing, and a re-check against it is
-  mechanical.
-- This gate does not cover behaviour. Whether "one fact per claim" and the same-fact quote
-  rule actually stop over-labelled Verified claims is a behavioural question. The blind A/B
-  the human ran under `/odeo:improve` is the place for that evidence. A pass on form is not
-  evidence of behaviour.
+Round 1 of 3 for change B. This is a PASS, so stop condition 1 is met, but at 8/10 and not
+the maximum. Guardrails 3 asks for fixes 1 to 5 and a re-dispatch. No defect class repeats
+from change A. The example finding is new: it comes from the new shape, not from the
+copy-drift problem closed in v8.
+
+This is a form review only. Whether the checker shape actually catches over-labelled
+Verified claims is a behaviour question. Test it with the checker run on a fixture and with
+/odeo:improve, not here.
 
 ## Vs previous version
-Better: 9/10 -> 10/10. The verdict stays PASS.
-- worked example 1 -> 2: the notes now carry their page or file, quote in full, and match
-  RES-002 word for word. The test name in the history sentence is confirmed by the
-  dispatcher's `git log -S` result.
-- No change: trigger clarity 2, structure 2, precision 2, safety integration 2.
+Worse: 10/10 -> 8/10. The verdict stays PASS.
+- worked example 2 -> 1: the example now differs from the shape step 4b prescribes, and has
+  no terms comment.
+- precision 2 -> 1: the `### Notes` heading is not named; one note with several sources
+  conflicts with one source per note; "key terms" names two concepts.
+- No change: trigger clarity 2, structure 2, safety integration 2.
 
 ## History
 - 2026-10-02 (v1, Round 1, f947223): first record. 8/10 PASS.
@@ -187,4 +213,13 @@ Better: 9/10 -> 10/10. The verdict stays PASS.
     removed).
   - The human kept change A after a blind A/B; that decision is recorded in the dispatcher's
     ledger.
-  - Trajectory on this branch: 8 -> 9 -> 10.
+  - Trajectory on this branch: 8 -> 9 -> 10. Change A closed.
+- 2026-10-20 (v9, change B round 1, 25b2a85): 8/10 PASS, previous 10/10. The verdict line
+  was replaced (PASS -> PASS).
+  - Scored the source cache (step 3), the checker shape (step 4b) and the
+    `research-check.sh` step (step 5b).
+  - Worked example 2 -> 1: the example is not in the checker shape and has no terms
+    comment.
+  - Precision 2 -> 1: the `### Notes` heading is missing, the instruction on how many
+    sources go in a note conflicts, and "key terms" names two concepts.
+  - Rubric definitions were not reworded.
