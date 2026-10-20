@@ -32,21 +32,23 @@ method beats a confident single figure.
    term + synonyms, competitor names once discovered, "X pricing", "X market
    size <year>", regional variants). Fetch the promising sources, don't answer
    from search snippets alone, and save each fetched page or file as text under
-   `~/.cache/odeo/research/RES-NNN/` (not `/tmp`, which the OS empties), so step 5b can
-   check every quote against it.
+   `~/.cache/odeo/research/RES-NNN/` (pick the next RES number now, by step 5's rule; not
+   `/tmp`, which the OS empties), so step 5b can check every quote against it.
 4. **Triangulate every claim**: aim for two independent sources per claim (the rubric's
    Independent sources and Verified definitions say what counts). Conflicting numbers
    are reported AS a conflict with both values, never silently averaged.
-4b. **Cite as you write**: one fact per claim (the rubric's Claim definition); put its sources
-   in a numbered note under Findings (the rubric's Note definition), and for a verified claim
+4b. **Cite as you write**: one fact per claim (the rubric's Claim definition); give each
+   source its own numbered note (`1. ...`) under a `### Notes` heading at the end of
+   Findings (the rubric's Note definition), and for a verified claim
    quote that fact from both sources, not a nearby one (the rubric's Verified definition).
    Every claim cites its note(s) and carries its confidence word where it appears:
    verified, one source, or unverified (the rubric's Confidence words). A claim with no
    note you can name is unverified, however sure you feel; never restate a source from
    memory. Write it in the shape step 5b checks: a claim is `- **F1** <one fact>.
-   **Verified** (notes 1, 2)`; a verified claim adds its key terms, the words of that fact
+   **Verified** (notes 1, 2)`; a verified claim adds its quote terms, the words of that fact
    each of its notes must quote, as `<!-- terms: term; alt one|alt two -->`; a note starts
-   with its source's name and a comma (`OpenAI docs, <page>: "quote"`).
+   with its source's name, a comma, its page or file and a colon (`OpenAI docs, <page>:
+   "quote"`), and only what follows that colon counts as quoted.
 5. **Write the report** to `docs/research/RES-NNN-<slug>.md` (NNN = next number
    after the highest existing `RES-` file there):
    ```
@@ -55,7 +57,7 @@ method beats a confident single figure.
    ## Answer (3 sentences, plain language; each factual clause cites its note
       or says "unverified")
    ## Findings (each claim: its note numbers + its confidence word, with the
-      data's date; the numbered notes with quotes follow the claims)
+      data's date; then `### Notes`, the numbered notes with quotes)
    ## Numbers (ranges + the method that produced each)
    ## Unverified (every claim that is not verified, and every conflict with both values)
    ## Implications for us (what this changes in PRD/priorities, 3 bullets max,
@@ -64,10 +66,12 @@ method beats a confident single figure.
       what the search did not cover: regions, paywalls, languages, blocked pages)
    ```
 5b. **Check, then score it**: run `${CLAUDE_PLUGIN_ROOT}/scripts/research-check.sh <report>
-   --sources ~/.cache/odeo/research/RES-NNN` and fix every violation it names (exit 1);
-   exit 2 means the check did not run, so say that and why. It checks labels, notes, key
-   terms and quotes, not meaning: the reviewer still judges whether two notes state the
-   same fact. Then commit the report on a branch (on `main`, ask the human to create one
+   --sources ~/.cache/odeo/research/RES-NNN`, fix every violation it names (exit 1) and run
+   it again until it exits 0, at most three runs; violations still left go to the reviewer
+   as a list. Exit 2 means the check did not run, so say that and why. It checks labels,
+   notes, quote terms and quotes, not meaning: the reviewer still judges whether two notes
+   state the same fact, and it judges sources independent only by their names (a
+   heuristic). Then commit the report on a branch (on `main`, ask the human to create one
    first: Git discipline in `${CLAUDE_PLUGIN_ROOT}/AGENTS.md`), then dispatch `pm-reviewer` against
    `${CLAUDE_PLUGIN_ROOT}/skills/research/rubric.md`, handing it `git rev-parse --short HEAD` and
    `output_language` (Guardrails 1 and 7 in `${CLAUDE_PLUGIN_ROOT}/AGENTS.md`).
@@ -88,25 +92,39 @@ when the Context section rests on assumptions ("shall I back this with
 
 ## Worked example
 Adapted from a real report (RES-002, "Where can Odeo run besides Claude Code?",
-deep-dive, thorough, v7). The findings and quotes are verbatim from it:
-> F1: "Codex adds a plugin marketplace from a GitHub repository URL with `codex plugin
-> marketplace add`. **Verified** (notes 1, 2)."
-> Note 1: OpenAI docs, developers.openai.com/plugins/build/plugins.md: line 541, "a
-> legacy-compatible marketplace at `$REPO_ROOT/.claude-plugin/marketplace.json`"; lines 184
-> to 191, "Use `codex plugin marketplace add` to add and track a marketplace source", example
-> line 191: "codex plugin marketplace add https://github.com/example/plugins.git --sparse
-> .agents/plugins".
-> Note 2: Codex source, github.com/openai/codex at `90f00bd`,
-> `codex-rs/cli/src/marketplace_cmd.rs` lines 62 to 66: `bin_name = "codex plugin marketplace
-> add"`; line 63, help text "codex plugin marketplace add https://github.com/owner/repo";
-> "Marketplace source: a local path, owner/repo[@ref], HTTPS Git URL, or SSH Git URL."
-> F13: "OpenAI's porting guide says to call bundled executables by package-relative path.
-> **One source** (note 8)."
+deep-dive, thorough, v7). The findings and quotes are verbatim from it, in its layout; the
+quote-terms comment is added here, since RES-002 predates it:
+```
+- **F1** Codex adds a plugin marketplace from a GitHub repository URL with `codex plugin
+  marketplace add`. **Verified** (notes 1, 2)
+  <!-- terms: codex plugin marketplace add; github -->
+- **F13** OpenAI's porting guide says to call bundled executables by package-relative path.
+  **One source** (note 8)
+
+### Notes
+
+1. OpenAI docs, developers.openai.com/plugins/build/plugins.md: line 541, "a legacy-compatible
+   marketplace at `$REPO_ROOT/.claude-plugin/marketplace.json`"; lines 184 to 191, "Use
+   `codex plugin marketplace add` to add and track a marketplace source", example line 191:
+   "codex plugin marketplace add https://github.com/example/plugins.git --sparse .agents/plugins".
+2. Codex source, github.com/openai/codex at `90f00bd`, `codex-rs/cli/src/marketplace_cmd.rs`
+   lines 62 to 66: `bin_name = "codex plugin marketplace add"`; line 63, help text "codex plugin
+   marketplace add https://github.com/owner/repo"; "Marketplace source: a local path,
+   owner/repo[@ref], HTTPS Git URL, or SSH Git URL."
+8. OpenAI docs, one source across two pages:
+   developers.openai.com/plugins/guides/submit-claude-plugin.md line 33, "move reusable agent
+   procedures into skills", and line 37 (`bin/` row), "Call bundled executables with
+   package-relative paths"; developers.openai.com/codex/subagents.md (redirects to
+   learn.chatgpt.com/docs/agent-configuration/subagents.md) lines 340 to 342, "add standalone
+   TOML files under `~/.codex/agents/` for personal agents or `.codex/agents/` for
+   project-scoped agents".
+```
 Each finding states one fact and carries one confidence word. F1 is verified because both
-notes quote that same fact; F13 has one source and says so. The failure this prevents, from
-an earlier version of the same report: a claim was called verified while its second note
-quoted only a test name (`session_start_hooks_apply_additional_context_limits_individually`),
-a nearby fact, so it was one source until a quote of the setting itself was found.
+notes quote that same fact, and both quote its terms; F13 has one source and says so. The
+failure this prevents, from an earlier version of the same report: a claim was called
+verified while its second note quoted only a test name
+(`session_start_hooks_apply_additional_context_limits_individually`), a nearby fact, so it
+was one source until a quote of the setting itself was found.
 
 ## Honest limits (say them, never paper over)
 - **No web access / blocked network** (corporate proxies, sandboxes): say so
