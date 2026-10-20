@@ -132,7 +132,7 @@ assert_contains "M6 names F2" "F2: 0 confidence words" "$out"
 mutate m7 "<!-- terms: feature X; every plan|all plans -->" "<!-- terms: feature X; daily -->"
 run "$TMP/m7.md"
 assert_exit "M7 a key term outside one note's quotes fails" 1 "$code"
-assert_contains "M7 names F1 and note 2" "F1: key term 'daily' not inside a quote of note 2" "$out"
+assert_contains "M7 names F1 and note 2" "F1: quote term 'daily' not inside a quote of note 2" "$out"
 assert_absent "M7 does not blame note 1, which quotes it" "not inside a quote of note 1" "$out"
 
 mutate m8 "
@@ -228,12 +228,12 @@ assert_contains "N4 says why" "no checkable quotes" "$out"
 mutate n5 "<!-- terms: feature X; every plan|all plans -->" "<!-- terms: feature X; abc1234 -->"
 run "$TMP/n5.md"
 assert_exit "N5 a term found only in a locator fails" 1 "$code"
-assert_contains "N5 note 2's locator does not count" "F1: key term 'abc1234' not inside a quote of note 2" "$out"
+assert_contains "N5 note 2's locator does not count" "F1: quote term 'abc1234' not inside a quote of note 2" "$out"
 
 mutate n6 "<!-- terms: feature X; every plan|all plans -->" "<!-- terms: every plan Tool B -->"
 run "$TMP/n6.md"
 assert_exit "N6 a term spanning two quotes fails" 1 "$code"
-assert_contains "N6 names note 1" "F1: key term 'every plan Tool B' not inside a quote of note 1" "$out"
+assert_contains "N6 names note 1" "F1: quote term 'every plan Tool B' not inside a quote of note 1" "$out"
 
 mutate n7 "<!-- terms: feature X; every plan|all plans -->" "<!-- terms: magic flag -->"
 python3 -I - "$TMP/n7.md" <<'PY'
@@ -275,11 +275,8 @@ assert_contains "N11 names note 1" "note 1: duplicate note number" "$out"
 mutate n12 '"Tool B
    runs job Y daily"' '"Tool B
    runs job Y 日本語 daily"'
-python3 -I - "$TMP/n12.md" <<'PY'
-import sys
-p = sys.argv[1]; t = open(p).read()
-t = t.replace("\\u65e5\\u672c\\u8a9e", "日本語"); open(p, "w", encoding="utf-8").write(t)
-PY
+# N12 exercises a narrow output encoding only where the en_US.ISO8859-1 locale exists
+# (macOS has it); elsewhere Python falls back to UTF-8 and the case passes trivially.
 out="$(LC_ALL=en_US.ISO8859-1 LANG=en_US.ISO8859-1 bash "$SCRIPT" "$TMP/n12.md" --sources "$SRC" 2>&1)"; code=$?
 assert_exit "N12 a non-ASCII misquote in a narrow locale is a violation, not a crash" 1 "$code"
 assert_contains "N12 the violation is printed" "note 1: quote not found verbatim" "$out"
@@ -294,5 +291,43 @@ mutate n14 "changelog disagree on the plan limit (C1)." "changelog disagree on t
 run "$TMP/n14.md"
 assert_exit "N14 an F/C-like word outside a citation is not a reference" 0 "$code"
 assert_absent "N14 no unknown-finding report" "unknown finding" "$out"
+
+# --- P: round 2 of review found the parser still read what it did not understand as
+# clean. Notes now parse FAIL CLOSED: one header grammar, no typographic quote marks, and
+# a sources dir that holds a copy of the report's text is refused (each red on 56ded01).
+mutate p1 '"Tool B
+   runs job Y daily"' $'“Tool B\n   runs job Y daily”'
+run "$TMP/p1.md" --sources "$SRC"
+assert_exit "P1 a typographic quote mark in one note fails" 1 "$code"
+assert_contains "P1 names note 1" "note 1: typographic quote mark" "$out"
+
+mkdir -p "$TMP/copy"; cp -R "$SRC/." "$TMP/copy/"; cp "$GOOD" "$TMP/copy/draft.md"
+run "$GOOD" --sources "$TMP/copy"
+assert_exit "P2 a sources dir holding a renamed copy of the report exits 2" 2 "$code"
+assert_contains "P2 says why" "holds the text of note" "$out"
+
+mutate p3 '1. Acme docs, acme.dev/docs/features: "Tool A ships feature X on every plan"' '1. Acme docs, page "Plans: overview" says feature X on every plan "Tool A ships"'
+run "$TMP/p3.md"
+assert_exit "P3 a colon inside the first quote is not a header" 1 "$code"
+assert_contains "P3 names note 1" "note 1: no '<source>, <locator>: ' header" "$out"
+
+mutate p4 "- F2: one source." "- F2: one source (note 7)."
+run "$TMP/p4.md"
+assert_exit "P4 a missing note cited outside Findings fails" 1 "$code"
+assert_contains "P4 names the section and note" "Unverified: cites missing note 7" "$out"
+
+mutate p5 "1. Acme docs, acme.dev" '1. Acme `acme-cli` docs, acme.dev'
+run "$TMP/p5.md"
+assert_exit "P5 a code span inside a note's source name is allowed" 0 "$code"
+assert_contains "P5 still parses both notes" "3 findings, 2 notes" "$out"
+
+out="$(perl -e 'alarm 20; exec @ARGV' bash "$SCRIPT" "$GOOD" --sources / 2>&1)"; code=$?
+assert_exit "P6 --sources / is refused before walking the filesystem" 2 "$code"
+assert_contains "P6 says why" "contains the report itself" "$out"
+
+mkdir -p "$TMP/lowres"; cp -R "$SRC/." "$TMP/lowres/"; printf 'x\n' > "$TMP/lowres/res-777-other.md"
+run "$GOOD" --sources "$TMP/lowres"
+assert_exit "P7 a lower-case res-NNN report in sources exits 2" 2 "$code"
+assert_contains "P7 says why" "contains a research report" "$out"
 
 exit "$fail"

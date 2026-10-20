@@ -69,9 +69,9 @@ method beats a confident single figure.
    --sources ~/.cache/odeo/research/RES-NNN`, fix every violation it names (exit 1) and run
    it again until it exits 0, at most three runs; violations still left go to the reviewer
    as a list. Exit 2 means the check did not run, so say that and why. It checks labels,
-   notes, quote terms and quotes, not meaning: the reviewer still judges whether two notes
-   state the same fact, and it judges sources independent only by their names (a
-   heuristic). Then commit the report on a branch (on `main`, ask the human to create one
+   notes, quote terms and quotes, not meaning, and it judges sources independent only by
+   their names (a heuristic), so the reviewer still judges whether two notes state the same
+   fact and whether their sources are really independent. Then commit the report on a branch (on `main`, ask the human to create one
    first: Git discipline in `${CLAUDE_PLUGIN_ROOT}/AGENTS.md`), then dispatch `pm-reviewer` against
    `${CLAUDE_PLUGIN_ROOT}/skills/research/rubric.md`, handing it `git rev-parse --short HEAD` and
    `output_language` (Guardrails 1 and 7 in `${CLAUDE_PLUGIN_ROOT}/AGENTS.md`).
@@ -96,10 +96,10 @@ deep-dive, thorough, v7). The findings and quotes are verbatim from it, in its l
 quote-terms comment is added here, since RES-002 predates it:
 ```
 - **F1** Codex adds a plugin marketplace from a GitHub repository URL with `codex plugin
-  marketplace add`. **Verified** (notes 1, 2)
+  marketplace add`. **Verified** (notes 1, 2).
   <!-- terms: codex plugin marketplace add; github -->
 - **F13** OpenAI's porting guide says to call bundled executables by package-relative path.
-  **One source** (note 8)
+  **One source** (note 8).
 
 ### Notes
 

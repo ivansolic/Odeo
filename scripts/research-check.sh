@@ -22,8 +22,13 @@
 #   - **C1** ... **conflict** ...
 #   ### Notes
 #   1. <Source>, <locator>: "verbatim quote" ...
-# Only text after the locator's ": " counts as quotes, so a file name in the locator never
-# satisfies a quote term.
+# Notes parse FAIL CLOSED: the header must be "<source>, <locator>: " with the comma and the
+# colon both before the first double quote, and a typographic double quote (U+201C,
+# U+201D, U+201E, U+00AB, U+00BB) is a violation, never silently skipped. Only text after
+# the header counts as quotes, so a file name in the locator never satisfies a quote term.
+# Finding ids are checked in Answer, Implications and Numbers only inside parentheses
+# ("(F1, verified)"), so a word like "C3 model" is not a reference; note citations
+# ("(note 7)") are checked in every section.
 #
 # Usage:
 #   research-check.sh <report.md> [--sources <dir>]
@@ -62,6 +67,11 @@ import os, re, stat, sys
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
+LABELS = ("Verified", "One source", "Unverified", "conflict")
+MUST_LIST = {"One source": "one source", "Unverified": "unverified", "conflict": "conflict"}
+TYPOGRAPHIC = "“”„«»"
+NOTE_CITE = r"\(notes? ([\d, ]+)\)"
+
 
 def did_not_run(why):
     print(f"research-check: {why} (the check did not run)", file=sys.stderr)
@@ -72,49 +82,46 @@ def norm(s):
     return re.sub(r"\s+", " ", s).strip()
 
 
-def main(report, sources):
-    text = open(report, encoding="utf-8", errors="replace").read()
-    labels = ("Verified", "One source", "Unverified", "conflict")
-    must_list = {"One source": "one source", "Unverified": "unverified", "conflict": "conflict"}
-    violations = []
+def section(text, name):
+    m = re.search(r"(?ms)^## " + re.escape(name) + r"\b.*?(?=^## |\Z)", text)
+    return m.group(0) if m else ""
 
-    def section(name):
-        m = re.search(r"(?ms)^## " + re.escape(name) + r"\b.*?(?=^## |\Z)", text)
-        return m.group(0) if m else ""
 
-    findings_sec = section("Findings")
-    if "### Notes" not in findings_sec:
-        did_not_run("no '## Findings' with a '### Notes' list")
-    claims_part, notes_part = findings_sec.split("### Notes", 1)
-    notes_part = re.split(r"(?m)^### ", notes_part, maxsplit=1)[0]
+def cited_notes(text):
+    return [int(x) for grp in re.findall(NOTE_CITE, text) for x in re.findall(r"\d+", grp)]
 
+
+def quotes_in(region):
+    return [norm(a or b) for a, b in re.findall(r'"([^"]+)"|`([^`]+)`', region)]
+
+
+def parse_notes(notes_part, violations):
     notes = {}
     for m in re.finditer(r"(?ms)^(\d+)\. (.*?)(?=^\d+\. |\Z)", notes_part):
         n = int(m.group(1))
         if n in notes:
             violations.append(f"note {n}: duplicate note number")
             continue
-        notes[n] = m.group(2)
-
-    def header(n):
-        """(source, quote region) when the note has '<source>, <locator>: ', else None."""
-        flat = norm(notes[n])
-        first_quote = flat.find('"') if '"' in flat else len(flat)  # a `name` may sit in the source
-        comma = flat.find(", ")
-        if comma < 0 or comma > first_quote:
-            return None
-        colon = flat.find(": ", comma)
-        if colon < 0:
-            return None
-        return norm(flat[:comma]), flat[colon + 2:]
-
-    def quotes_in(region):
-        return [a or b for a, b in re.findall(r'"([^"]+)"|`([^`]+)`', region)]
-
+        notes[n] = norm(m.group(2))
     for n, body in notes.items():
+        if any(c in body for c in TYPOGRAPHIC):
+            violations.append(f"note {n}: typographic quote mark; use straight double quotes")
         if body.count('"') % 2:
             violations.append(f"note {n}: odd number of '\"', so its quotes cannot be paired")
+    return notes
 
+
+def header(note):
+    """(source, quote region) for '<source>, <locator>: ' before the first double quote."""
+    first_quote = note.find('"') if '"' in note else len(note)
+    comma = note.find(", ")
+    colon = note.find(": ", comma + 2) if comma >= 0 else -1
+    if comma < 0 or colon < 0 or colon > first_quote:
+        return None
+    return norm(note[:comma]), note[colon + 2:]
+
+
+def parse_findings(claims_part, violations):
     findings = {}
     for m in re.finditer(r"(?ms)^- \*\*([FC]\d+[a-z]?)\*\* (.*?)(?=^- \*\*|^### |^\||\Z)", claims_part):
         fid, body = m.group(1), m.group(2)
@@ -122,79 +129,73 @@ def main(report, sources):
             violations.append(f"{fid}: duplicate finding id")
             continue
         findings[fid] = body
-    if not findings:
-        did_not_run("no findings parsed (expected '- **F1** ...' lines under '## Findings')")
+    return findings
 
-    term_quotes = set()  # (note, quote) pairs a quote term relied on; checked with --sources
-    unverified_sec = section("Unverified")
-    for fid, body in findings.items():
-        flat = norm(body)
-        words = [w for w in re.findall(r"\*\*([^*]+)\*\*", flat) if w in labels]
-        if len(words) != 1:
-            violations.append(f"{fid}: {len(words)} confidence words {words}")
-        cited = [int(x) for grp in re.findall(r"\(notes? ([\d, ]+)\)", flat)
-                 for x in re.findall(r"\d+", grp)]
-        for n in cited:
-            if n not in notes:
-                violations.append(f"{fid}: cites missing note {n}")
-        cited = [n for n in dict.fromkeys(cited) if n in notes]
-        if len(words) == 1 and words[0] in must_list and \
-                not re.search(r"\b" + re.escape(fid) + r"\b", unverified_sec):
-            violations.append(f"{fid}: {must_list[words[0]]} but not listed under Unverified")
-        if words != ["Verified"]:
-            continue
-        if len(cited) < 2:
-            violations.append(f"{fid}: Verified needs two notes, cites {cited}")
-            continue
-        heads = {}
-        for n in cited:
-            h = header(n)
-            if h is None:
-                violations.append(f"note {n}: no '<source>, <locator>: ' header before its first quote")
-            else:
-                heads[n] = h
-        if len(heads) == len(cited) and len({h[0].casefold() for h in heads.values()}) < 2:
-            violations.append(f"{fid}: Verified on notes from one source ({next(iter(heads.values()))[0]})")
-        tm = re.search(r"<!--\s*terms:\s*(.*?)\s*-->", body, re.S)
-        if not tm:
-            violations.append(f"{fid}: Verified but no quote terms (<!-- terms: ... -->)")
-            continue
-        terms = [[a.strip() for a in t.split("|") if a.strip()] for t in tm.group(1).split(";")]
-        for n, (_src, region) in heads.items():
-            quotes = [norm(q) for q in quotes_in(region)]
-            for alts in [a for a in terms if a]:
-                hit = [q for q in quotes if any(a.lower() in q.lower() for a in alts)]
-                if not hit:
-                    violations.append(f"{fid}: key term '{'|'.join(alts)}' not inside a quote of note {n}")
-                term_quotes.update((n, q) for q in hit)
 
-    cite_sections = ["Answer", "Implications for us", "Numbers"]
-    for name in cite_sections:
+def check_verified(fid, body, cited, notes, violations, term_quotes):
+    if len(cited) < 2:
+        violations.append(f"{fid}: Verified needs two notes, cites {cited}")
+        return
+    heads = {}
+    for n in cited:
+        h = header(notes[n])
+        if h is None:
+            violations.append(f"note {n}: no '<source>, <locator>: ' header before its first quote")
+        else:
+            heads[n] = h
+    if len(heads) == len(cited) and len({h[0].casefold() for h in heads.values()}) < 2:
+        violations.append(f"{fid}: Verified on notes from one source ({next(iter(heads.values()))[0]})")
+    tm = re.search(r"<!--\s*terms:\s*(.*?)\s*-->", body, re.S)
+    if not tm:
+        violations.append(f"{fid}: Verified but no quote terms (<!-- terms: ... -->)")
+        return
+    terms = [[a.strip() for a in t.split("|") if a.strip()] for t in tm.group(1).split(";")]
+    for n, (_src, region) in heads.items():
+        quotes = quotes_in(region)
+        for alts in [a for a in terms if a]:
+            hit = [q for q in quotes if any(a.lower() in q.lower() for a in alts)]
+            if not hit:
+                violations.append(f"{fid}: quote term '{'|'.join(alts)}' not inside a quote of note {n}")
+            term_quotes.update((n, q) for q in hit)
+
+
+def check_finding(fid, body, notes, unverified_sec, violations, term_quotes):
+    flat = norm(body)
+    words = [w for w in re.findall(r"\*\*([^*]+)\*\*", flat) if w in LABELS]
+    if len(words) != 1:
+        violations.append(f"{fid}: {len(words)} confidence words {words}")
+    cited = cited_notes(flat)
+    for n in cited:
+        if n not in notes:
+            violations.append(f"{fid}: cites missing note {n}")
+    cited = [n for n in dict.fromkeys(cited) if n in notes]
+    if len(words) == 1 and words[0] in MUST_LIST and \
+            not re.search(r"\b" + re.escape(fid) + r"\b", unverified_sec):
+        violations.append(f"{fid}: {MUST_LIST[words[0]]} but not listed under Unverified")
+    if words == ["Verified"]:
+        check_verified(fid, body, cited, notes, violations, term_quotes)
+
+
+def check_citations(text, findings, notes, claims_part, violations):
+    for name in ("Answer", "Implications for us", "Numbers"):
         refs = set()
-        for paren in re.findall(r"\(([^()]*)\)", section(name)):
+        for paren in re.findall(r"\(([^()]*)\)", section(text, name)):
             refs.update(re.findall(r"\b([FC]\d+[a-z]?)\b", paren))
         for ref in sorted(refs - set(findings)):
             violations.append(f"{name}: unknown finding {ref}")
-    for name, part in (("Unverified", unverified_sec), ("Findings", claims_part)):
+    for name, part in (("Unverified", section(text, "Unverified")), ("Findings", claims_part)):
         for ref in sorted(set(re.findall(r"\b([FC]\d+[a-z]?)\b", part)) - set(findings)):
             violations.append(f"{name}: unknown finding {ref}")
-
-    if sources:
-        quote_line = check_sources(report, sources, notes, header, quotes_in, term_quotes, violations)
-    else:
-        quote_line = "quotes: not checked (no --sources dir)"
-
-    for v in violations:
-        print(f"research-check: {v}")
-    print(f"research-check: {len(findings)} findings, {len(notes)} notes; {quote_line}")
-    sys.exit(1 if violations else 0)
+    for name in ("Answer", "Implications for us", "Numbers", "Unverified"):
+        for n in sorted(set(cited_notes(section(text, name))) - set(notes)):
+            violations.append(f"{name}: cites missing note {n}")
 
 
-def check_sources(report, sources, notes, header, quotes_in, term_quotes, violations):
+def read_sources(report, sources, notes):
     root = os.path.realpath(sources)
-    if os.path.realpath(report).startswith(root + os.sep):
+    if os.path.commonpath([root, os.path.realpath(report)]) == root:
         did_not_run(f"sources dir '{sources}' contains the report itself")
-    corpus = []
+    texts = []
 
     def walk_error(err):
         print(f"research-check: cannot read {err.filename}: {err.strerror}", file=sys.stderr)
@@ -202,23 +203,28 @@ def check_sources(report, sources, notes, header, quotes_in, term_quotes, violat
     for dirpath, _dirs, files in os.walk(sources, onerror=walk_error):
         for f in files:
             path = os.path.join(dirpath, f)
-            if re.fullmatch(r"RES-\d+.*\.md", f):
+            if re.fullmatch(r"res-\d+.*\.md", f, re.I):
                 did_not_run(f"sources dir '{sources}' contains a research report ({f})")
             if not stat.S_ISREG(os.lstat(path).st_mode):
                 continue
             try:
-                corpus.append(open(path, encoding="utf-8", errors="replace").read())
+                texts.append((path, norm(open(path, encoding="utf-8", errors="replace").read())))
             except OSError as e:
                 print(f"research-check: cannot read source {path}: {e.strerror}", file=sys.stderr)
-    corpus = norm("\n".join(corpus))
+    for path, body in texts:
+        for n, note in notes.items():
+            if len(note) >= 40 and note in body:
+                did_not_run(f"source '{path}' holds the text of note {n}, a copy of the report")
+    return " ".join(body for _p, body in texts)
 
+
+def check_quotes(notes, term_quotes, corpus, violations):
     checked, skipped = [], 0
     for n in sorted(notes):
-        h = header(n)
-        region = h[1] if h else norm(notes[n])
+        h = header(notes[n])
+        region = h[1] if h else notes[n]
         double_quoted = {norm(x) for x in re.findall(r'"([^"]+)"', region)}
         for q in quotes_in(region):
-            q = norm(q)
             if (q in double_quoted and len(q) >= 12) or (n, q) in term_quotes:
                 checked.append((n, q))
             else:
@@ -233,6 +239,33 @@ def check_sources(report, sources, notes, header, quotes_in, term_quotes, violat
         else:
             violations.append(f'note {n}: quote not found verbatim: "{q[:70]}"')
     return f"quotes: {found}/{len(checked)} verbatim ({skipped} short or code quotes not checked)"
+
+
+def main(report, sources):
+    text = open(report, encoding="utf-8", errors="replace").read()
+    violations = []
+    findings_sec = section(text, "Findings")
+    if "### Notes" not in findings_sec:
+        did_not_run("no '## Findings' with a '### Notes' list")
+    claims_part, notes_part = findings_sec.split("### Notes", 1)
+    notes_part = re.split(r"(?m)^### ", notes_part, maxsplit=1)[0]
+    notes = parse_notes(notes_part, violations)
+    findings = parse_findings(claims_part, violations)
+    if not findings:
+        did_not_run("no findings parsed (expected '- **F1** ...' lines under '## Findings')")
+    term_quotes = set()
+    unverified_sec = section(text, "Unverified")
+    for fid, body in findings.items():
+        check_finding(fid, body, notes, unverified_sec, violations, term_quotes)
+    check_citations(text, findings, notes, claims_part, violations)
+    if sources:
+        quote_line = check_quotes(notes, term_quotes, read_sources(report, sources, notes), violations)
+    else:
+        quote_line = "quotes: not checked (no --sources dir)"
+    for v in violations:
+        print(f"research-check: {v}")
+    print(f"research-check: {len(findings)} findings, {len(notes)} notes; {quote_line}")
+    sys.exit(1 if violations else 0)
 
 
 try:
