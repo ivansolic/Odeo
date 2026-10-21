@@ -1,11 +1,14 @@
 ---
 module: cross-cutting (applies to any matcher, parser, or heuristic under review)
 tags: [defect-class, recurring-critical, heuristic, decidability, review-loop,
-       structural-invariant, bounded-residual, escalation]
+       structural-invariant, bounded-residual, escalation, fail-closed, parser,
+       emulation, residual-direction]
 problem_type: pattern
 provenance: USR-006 prose-language check, 2026-08-13 to 2026-08-19. Three review
   Criticals of one class across rounds 2, 3, 4 (each 7-8/12); resolved by removing
-  the class, 12/12 APPROVE at 9ff98f5
+  the class, 12/12 APPROVE at 9ff98f5; and research-check.sh change B on
+  chore/research-one-fact-rule, 2026-10-20 to 2026-10-21, the fail-open class four
+  times, closed structurally three times, 12/12 at 57daa41
 reuse_count: 0
 created: 2026-08-21
 ---
@@ -85,3 +88,33 @@ bt=$0; opn=(opn + gsub(/`/, "", bt)) % 2
 ```
 The `opn` bit is not another guard on the pairing rule. It removes the case in
 which pairing could be wrong.
+
+## Second case: a checker that must fail closed (research-check.sh, 2026-10)
+
+The class was "input the parser does not understand is read as clean". It came back in
+four places, one review round each: note parsing, note citations in unlisted sections,
+a number hidden after a comma ("(notes 1, 2, and 9)"), and link addresses. Three moves
+closed it, each removing a class rather than a shape:
+
+| shape found | instance patch on offer | structural fix taken |
+|---|---|---|
+| qualified citation "(note 9, measured)" invisible | add the qualifier form to the regex | every parenthesis is scanned; a "note" that is not a number list is a violation |
+| "(notes 1, 2, and 9)" skipped note 9 | forbid "and/or/& digit" after the comma | a comma qualifier holds no digit at all |
+| link regex too loose, then too tight | a fuller CommonMark regex | stop deciding where a link ends: skip the "(" after "]", still read what is nested in it |
+
+Two things this case adds to the guidance above:
+
+1. **Emulating someone else's grammar is itself the class.** The link regex was a
+   hand-made copy of CommonMark, and every fix added a case to the copy. The way out was
+   one fact the checker can verify locally, never the grammar: "a link address does not
+   start with the word note and a space".
+2. **Check which way the residual points after removing a class.** Removing the link
+   regex traded a false alarm for a narrow MISS ("[F1](note 9)" skipped), which the next
+   review caught. For a fail-closed check the residual must be a false alarm, never a
+   miss. Say which way it points in the header, and probe for misses before you claim
+   "never a miss" (that claim in 57daa41 was still wrong for "(notes, 1)").
+
+What stopped the loop each time was not a better patch but the review loop's stop rule
+(same class twice in a row), which handed the choice to the human. The rule worked;
+this entry existed and was not looked up, which is the placement limit named in
+lessons.md, not a wording problem.
