@@ -24,11 +24,19 @@
 #   1. <Source>, <locator>: "verbatim quote" ...
 # Notes parse FAIL CLOSED: the header must be "<source>, <locator>: " with the comma and the
 # colon both before the first double quote, and a typographic double quote (U+201C,
-# U+201D, U+201E, U+00AB, U+00BB) is a violation, never silently skipped. Only text after
-# the header counts as quotes, so a file name in the locator never satisfies a quote term.
+# U+201D, U+201E, U+00AB, U+00BB) outside a straight-quoted or backtick span is a
+# violation, never silently skipped; inside one it is the source's own quote mark and goes
+# to the verbatim check. Only text after the header counts as quotes, so a file name in the
+# locator never satisfies a quote term.
 # Finding ids are checked in Answer, Implications and Numbers only inside parentheses
-# ("(F1, verified)"), so a word like "C3 model" is not a reference; note citations
-# ("(note 7)") are checked in every section.
+# ("(F1, verified)"), so a word like "C3 model" is not a reference. Note citations parse
+# FAIL CLOSED too: every parenthesis outside the Notes list is scanned (link targets and
+# code spans removed first), and a "note" or "notes" in one must be followed by a number
+# list, optionally then ", <qualifier>" or "; <qualifier>" ("(note 24, measured)"). Any
+# other "note" in a parenthesis ("(notes 1 and 2)", "(a note on pricing)") is a violation.
+# The guard against a sources dir holding a copy of the report is a heuristic: it refuses
+# only when a note of 40 or more characters appears unchanged in a source file, so a copy
+# whose notes were all edited afterwards is not caught.
 #
 # Usage:
 #   research-check.sh <report.md> [--sources <dir>]
@@ -70,7 +78,8 @@ sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 LABELS = ("Verified", "One source", "Unverified", "conflict")
 MUST_LIST = {"One source": "one source", "Unverified": "unverified", "conflict": "conflict"}
 TYPOGRAPHIC = "“”„«»"
-NOTE_CITE = r"\(notes? ([\d, ]+)\)"
+NOTE_WORD = re.compile(r"\bnotes?\b", re.I)
+NOTE_LIST = re.compile(r"notes?\s+(\d+(?:\s*,\s*\d+)*)\s*(?:,\s*\D.*)?", re.I | re.S)
 
 
 def did_not_run(why):
@@ -87,8 +96,35 @@ def section(text, name):
     return m.group(0) if m else ""
 
 
-def cited_notes(text):
-    return [int(x) for grp in re.findall(NOTE_CITE, text) for x in re.findall(r"\d+", grp)]
+def paren_texts(text):
+    """The text of every parenthesis, nested ones included, after link targets and code
+    spans are removed, so a URL or a file name holding "notes" is not a citation."""
+    text = re.sub(r"\]\([^)]*\)", "]", re.sub(r"`[^`]*`", "", text))
+    out, opened = [], []
+    for i, c in enumerate(text):
+        if c == "(":
+            opened.append(i)
+        elif c == ")" and opened:
+            out.append(text[opened.pop() + 1:i])
+    return out
+
+
+def cited_notes(text, where, violations):
+    """Note numbers cited in parentheses of text; a "note" that is not a number list is a
+    violation named after where. A nested parenthesis is read once on its own, so the
+    outer one is scanned with its nested parts blanked out."""
+    nums = []
+    for paren in paren_texts(text):
+        paren = re.sub(r"\([^()]*\)", "", paren)
+        for m in NOTE_WORD.finditer(paren):
+            segment = re.split(r"[;)]", paren[m.start():], maxsplit=1)[0]
+            cite = NOTE_LIST.fullmatch(segment)
+            if cite is None:
+                violations.append(f"{where}: unreadable note citation '({norm(paren)[:60]})'; "
+                                  "write (note N), (notes N, M) or (note N, <qualifier>)")
+                continue
+            nums.extend(int(x) for x in re.findall(r"\d+", cite.group(1)))
+    return nums
 
 
 def quotes_in(region):
@@ -104,8 +140,11 @@ def parse_notes(notes_part, violations):
             continue
         notes[n] = norm(m.group(2))
     for n, body in notes.items():
-        if any(c in body for c in TYPOGRAPHIC):
-            violations.append(f"note {n}: typographic quote mark; use straight double quotes")
+        outside = re.sub(r'"[^"]*"|`[^`]*`', "", body)
+        if any(c in outside for c in TYPOGRAPHIC):
+            violations.append(f"note {n}: typographic quote mark outside a quote; delimit "
+                              "quotes with straight double quotes (the source's own marks "
+                              "may stay inside them)")
         if body.count('"') % 2:
             violations.append(f"note {n}: odd number of '\"', so its quotes cannot be paired")
     return notes
@@ -164,7 +203,7 @@ def check_finding(fid, body, notes, unverified_sec, violations, term_quotes):
     words = [w for w in re.findall(r"\*\*([^*]+)\*\*", flat) if w in LABELS]
     if len(words) != 1:
         violations.append(f"{fid}: {len(words)} confidence words {words}")
-    cited = cited_notes(flat)
+    cited = cited_notes(body, fid, violations)
     for n in cited:
         if n not in notes:
             violations.append(f"{fid}: cites missing note {n}")
@@ -176,7 +215,7 @@ def check_finding(fid, body, notes, unverified_sec, violations, term_quotes):
         check_verified(fid, body, cited, notes, violations, term_quotes)
 
 
-def check_citations(text, findings, notes, claims_part, violations):
+def check_citations(text, findings, notes, claims_part, notes_part, violations):
     for name in ("Answer", "Implications for us", "Numbers"):
         refs = set()
         for paren in re.findall(r"\(([^()]*)\)", section(text, name)):
@@ -186,8 +225,12 @@ def check_citations(text, findings, notes, claims_part, violations):
     for name, part in (("Unverified", section(text, "Unverified")), ("Findings", claims_part)):
         for ref in sorted(set(re.findall(r"\b([FC]\d+[a-z]?)\b", part)) - set(findings)):
             violations.append(f"{name}: unknown finding {ref}")
-    for name in ("Answer", "Implications for us", "Numbers", "Unverified"):
-        for n in sorted(set(cited_notes(section(text, name))) - set(notes)):
+    rest = text.replace(notes_part, "\n")
+    for body in findings.values():
+        rest = rest.replace(body, "\n", 1)
+    for m in re.finditer(r"(?ms)^## ([^\n(]*?)\s*(?:\(.*?)?$(.*?)(?=^## |\Z)", rest):
+        name = m.group(1)
+        for n in sorted(set(cited_notes(m.group(2), name, violations)) - set(notes)):
             violations.append(f"{name}: cites missing note {n}")
 
 
@@ -257,7 +300,7 @@ def main(report, sources):
     unverified_sec = section(text, "Unverified")
     for fid, body in findings.items():
         check_finding(fid, body, notes, unverified_sec, violations, term_quotes)
-    check_citations(text, findings, notes, claims_part, violations)
+    check_citations(text, findings, notes, claims_part, notes_part, violations)
     if sources:
         quote_line = check_quotes(notes, term_quotes, read_sources(report, sources, notes), violations)
     else:

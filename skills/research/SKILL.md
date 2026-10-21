@@ -48,7 +48,11 @@ method beats a confident single figure.
    **Verified** (notes 1, 2)`; a verified claim adds its quote terms, the words of that fact
    each of its notes must quote, as `<!-- terms: term; alt one|alt two -->`; a note starts
    with its source's name, a comma, its page or file and a colon (`OpenAI docs, <page>:
-   "quote"`), and only what follows that colon counts as quoted.
+   "quote"`), and only what follows that colon counts as quoted; a quote is text in straight
+   double quotes or backticks, never in typographic marks („ “ « »), even in a localized
+   report, and a source's own typographic marks may stay inside such a quote. Cite a note
+   only as `(note N)`, `(notes N, M)` or `(note N, <qualifier>)`: a parenthesis holding the
+   word note or notes without that number list is a violation in every section.
 5. **Write the report** to `docs/research/RES-NNN-<slug>.md` (NNN = next number
    after the highest existing `RES-` file there):
    ```
@@ -71,8 +75,9 @@ method beats a confident single figure.
    as a list. Exit 2 means the check did not run, so say that and why. It checks labels,
    notes, quote terms and quotes, not meaning, and it judges sources independent only by
    their names (a heuristic), so the reviewer still judges whether two notes state the same
-   fact and whether their sources are really independent. Then commit the report on a branch (on `main`, ask the human to create one
-   first: Git discipline in `${CLAUDE_PLUGIN_ROOT}/AGENTS.md`), then dispatch `pm-reviewer` against
+   fact and whether their sources are really independent. Then commit the report on a
+   branch (on `main`, ask the human to create one first: Git discipline in
+   `${CLAUDE_PLUGIN_ROOT}/AGENTS.md`), then dispatch `pm-reviewer` against
    `${CLAUDE_PLUGIN_ROOT}/skills/research/rubric.md`, handing it `git rev-parse --short HEAD` and
    `output_language` (Guardrails 1 and 7 in `${CLAUDE_PLUGIN_ROOT}/AGENTS.md`).
    Below the threshold, fix the report and re-dispatch the same reviewer: the review

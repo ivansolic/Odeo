@@ -294,12 +294,17 @@ assert_absent "N14 no unknown-finding report" "unknown finding" "$out"
 
 # --- P: round 2 of review found the parser still read what it did not understand as
 # clean. Notes now parse FAIL CLOSED: one header grammar, no typographic quote marks, and
-# a sources dir that holds a copy of the report's text is refused (each red on 56ded01).
-mutate p1 '"Tool B
-   runs job Y daily"' $'“Tool B\n   runs job Y daily”'
-run "$TMP/p1.md" --sources "$SRC"
-assert_exit "P1 a typographic quote mark in one note fails" 1 "$code"
-assert_contains "P1 names note 1" "note 1: typographic quote mark" "$out"
+# a sources dir that holds a copy of the report's text is refused (each red on 56ded01
+# except P5, which locks the relaxation). P1 runs once per typographic mark, so dropping
+# any one of the five from the script turns its own P1 line red.
+for mark in '“' '”' '„' '«' '»'; do
+  mutate p1 '"Tool B
+   runs job Y daily"' "${mark}Tool B
+   runs job Y daily${mark}"
+  run "$TMP/p1.md" --sources "$SRC"
+  assert_exit "P1 [$mark] a typographic quote mark outside a quote fails" 1 "$code"
+  assert_contains "P1 [$mark] names note 1" "note 1: typographic quote mark" "$out"
+done
 
 mkdir -p "$TMP/copy"; cp -R "$SRC/." "$TMP/copy/"; cp "$GOOD" "$TMP/copy/draft.md"
 run "$GOOD" --sources "$TMP/copy"
@@ -329,5 +334,72 @@ mkdir -p "$TMP/lowres"; cp -R "$SRC/." "$TMP/lowres/"; printf 'x\n' > "$TMP/lowr
 run "$GOOD" --sources "$TMP/lowres"
 assert_exit "P7 a lower-case res-NNN report in sources exits 2" 2 "$code"
 assert_contains "P7 says why" "contains a research report" "$out"
+
+mutate p8 '"Tool B
+   runs job Y daily"' '"Tool B says the “sync” job runs daily"'
+mkdir -p "$TMP/curly"; cp -R "$SRC/." "$TMP/curly/"
+printf 'Tool B says the “sync” job runs daily.\n' > "$TMP/curly/blog.md"
+run "$TMP/p8.md" --sources "$TMP/curly"
+assert_exit "P8 a source's own curly quotes inside a straight quote pass" 0 "$code"
+assert_contains "P8 the nested quote is checked verbatim" "quotes: 3/3 verbatim" "$out"
+
+# --- Q: round 3 of review found note CITATIONS read as clean when the parser did not
+# understand them (a qualifier, a section outside the checked list). Every parenthesis
+# outside the Notes list is now scanned, and a "note" in one that is not a number list is a
+# violation (each red on 053f4ef except Q7, which locks what stays allowed).
+# Mutations of scripts/research-check.sh, each run on a copy, with the cases they redden:
+#   drop one mark from TYPOGRAPHIC -> that mark's P1 (2 lines); check typographic marks in
+#   the whole note body -> P8 (1); keep code spans and link targets in paren_texts -> Q7 (2);
+#   drop the ", <qualifier>" tail from NOTE_LIST -> Q2 name, Q8 (2); never append the
+#   unreadable-citation violation -> Q6 (2); scan only Answer, Implications, Numbers and
+#   Unverified -> Q3, Q4, Q5 (6); drop re.I from NOTE_WORD -> Q4 (2).
+mutate q1 "Tool A has feature X (verified, F1);" "Tool A has feature X (verified, F1, note 9);"
+run "$TMP/q1.md"
+assert_exit "Q1 a missing note cited in Answer fails" 1 "$code"
+assert_contains "Q1 names the section and note" "Answer: cites missing note 9" "$out"
+
+mutate q2 "**One source** (note 1)" "**One source** (note 9, measured)"
+run "$TMP/q2.md"
+assert_exit "Q2 a qualified citation of a missing note in a finding fails" 1 "$code"
+assert_contains "Q2 names F2 and the note" "F2: cites missing note 9" "$out"
+
+mutate q3 "against 10 seats (note 2).
+
+### Notes" "against 10 seats (note 2).
+
+| Plan | Seats |
+|---|---|
+| Pro | 10 (note 9) |
+
+### Notes"
+run "$TMP/q3.md"
+assert_exit "Q3 a missing note cited in a table under Findings fails" 1 "$code"
+assert_contains "Q3 names the section and note" "Findings: cites missing note 9" "$out"
+
+mutate q4 "Does Tool A have feature X?" "Does Tool A have feature X (Note 9)?"
+run "$TMP/q4.md"
+assert_exit "Q4 a missing note cited in Question, capitalised, fails" 1 "$code"
+assert_contains "Q4 names the section and note" "Question: cites missing note 9" "$out"
+
+mutate q5 "- acme.dev/docs/features;" "- acme.dev/docs/features (note 9);"
+run "$TMP/q5.md"
+assert_exit "Q5 a missing note cited in Sources fails" 1 "$code"
+assert_contains "Q5 names the section and note" "Sources: cites missing note 9" "$out"
+
+mutate q6 "- Rely on feature X (F1, verified)." "- Rely on feature X (F1, notes 1 and 2)."
+run "$TMP/q6.md"
+assert_exit "Q6 a note citation that is not a number list fails" 1 "$code"
+assert_contains "Q6 names the section" "Implications for us: unreadable note citation" "$out"
+
+mutate q7 "- Rely on feature X (F1, verified)." '- Rely on feature X (F1, verified; see [the docs](https://acme.dev/notes/3) and `notes.rs`).'
+run "$TMP/q7.md"
+assert_exit "Q7 a link target or code span with \"notes\" is not a citation" 0 "$code"
+assert_absent "Q7 no citation report" "note citation" "$out"
+
+mutate q8 "**Verified** (notes 1, 2)" "**Verified** (notes 1,
+  2, both read 2026-10-20)"
+run "$TMP/q8.md" --sources "$SRC"
+assert_exit "Q8 a qualified two-note citation still verifies" 0 "$code"
+assert_contains "Q8 the quote terms were still checked" "quotes: 3/3 verbatim" "$out"
 
 exit "$fail"
