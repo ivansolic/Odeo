@@ -1,9 +1,9 @@
 ---
-artifact: scripts/research-check.sh + tests/research-check.test.sh + README.md (code part of 9705c4e); skills/research/rubric.md checked only for code or test dependencies
+artifact: scripts/research-check.sh + tests/research-check.test.sh + README.md (code part of 81877e4); skills/research/SKILL.md checked only for code or test dependencies
 type: code
 branch: chore/research-one-fact-rule
-reviewed_commit: 9705c4e
-artifact_version: 7
+reviewed_commit: 81877e4
+artifact_version: 8
 date: 2026-10-21
 scorer: code-reviewer
 model: claude-opus-5-5[1m]
@@ -12,76 +12,88 @@ effort: high
 scores: { correctness: 1, security: 2, performance: 2, readability: 2, testing: 2, conventions: 2 }
 total: 11/12
 verdict: APPROVE WITH COMMENTS
-previous_total: 12/12
+previous_total: 11/12
 ---
 
 ## Artifact
 
-Commit `9705c4e` on `chore/research-one-fact-rule`, diff `88acd30..9705c4e`. This is round 2
-of change C (the round-4 and round-5 nitpicks). The link-address class in `paren_texts` now
-excludes whitespace, `\]\((?:[^()\s]|\([^()\s]*\))*\)`. The new test group is renamed S1 to
-S9, and two cases are added: S8 (a link missing its `)`) and S9 (text after a two-deep nested
-parenthesis). The mutation recipe is extended and the README count is now 1561. The commit
-body corrects the false "dead code" claim in `d36c803` without rewriting history. The
-`skills/research/rubric.md` change belongs to skill-reviewer. Here it was checked only for
-dependents: no script or test greps it. No plan file exists for this change, so there is no
-contract to check against.
+Commit `81877e4` on `chore/research-one-fact-rule`, diff `9705c4e..81877e4`. This is round 3
+of change C. The human chose option (b) from round 2: `paren_texts` no longer strips link
+targets with a regex. A `(` directly after `]` is marked as a link and is not output, the
+characters whose innermost open parenthesis is a link are blanked, and parentheses nested
+inside a link are still output. Three cases are new: S10 (a titled link), S11 (a `<>`
+address with a space) and S12 (a link address with its own parentheses inside a
+citation). The round-2 nits for the S-label comment and the docstring wrap are fixed, and
+the README count is now 1567. The `skills/research/SKILL.md` line 60 change belongs to
+skill-reviewer. Here it was checked only for dependents, and none exist. No plan file exists
+for this change, so there is no contract to check against.
 
 ## Verification (run by the reviewer)
 
-- Focused suite at `9705c4e`: 135 `ok:` lines, no FAIL. That is 131 + 4, and 1557 + 4 = 1561
-  matches the README.
-- Probes run against the scripts at `c8ced0a`, `88acd30` and `9705c4e`, each case inserted
-  once into the suite's good fixture:
-  - `[wiki](https://w.org/a and X (F1, verified) then (note 8) end)`: exit 1, 0, 1. The
-    round-1 regression is closed.
-  - `[docs](https://a.dev/x "release notes")`: exit 0, 0, **1** ("unreadable note citation").
-  - `[docs](<https://a.dev/release notes>)`: exit 0, 0, **1**.
-  - `[docs](https://a.dev/x "note 9")`: exit 0, 0, **1**.
-- Candidate fix, applied to a copy (see Important): all 135 cases stay green, S8 and a
-  titled variant of S8 stay red, and both valid forms above exit 0.
-- Diff has no em or en dashes. The author's mutation runs (S8 (2), S9 (2)) and the full-suite
-  run were not repeated.
+- Probes, each inserted once into the suite's good fixture and run against `9705c4e` and
+  `81877e4`:
+  - `[F1](note 9).`: exit 1, then **0**. Note 9 is missing, and the miss is new.
+  - `[F1](notes 1 and 9).`: exit 1, then **0**. The citation is malformed, and the miss is new.
+  - `per [docs][1](note 9).`: exit 1, then **0**. The miss is new.
+  - `\[F1\](note 9).`: exit 1, then **0**. The miss is new.
+  - Exit 1 on both, so no change: `[d](https://a.dev)(note 9)`, an image followed by
+    ` (note 9)`, `"the [new] plan"(note 9)`, `(F1, verified, note 9, see [d](...))`,
+    `[d](https://a.dev/(note 9))`, a titled link with `(notes)` in the title, and an
+    unclosed link followed by an unclosed `(note 9` in a later paragraph.
+  - `(note 9; see [d](https://a.dev/release notes))`: exit 1 on both. At `9705c4e` it was a
+    false alarm on the address, and now it reports the real missing note 9.
+- S5 and Q7 were checked by reading the code and the probes. S5,
+  `(F1, see [wiki](https://w.org/Foo_(bar)), note 9)`: the outer parenthesis is not a
+  link, `(bar)` is read on its own and then removed by `cited_notes`, and `note 9` is still
+  read, so the label holds. Q7 still reddens under its recorded mutation (keep link targets).
+- Candidate fix, applied to a copy (see Important): every case stays green except R1, which
+  fails the same way in an unmodified copy because it needs repo files, so the cause is the
+  environment. All four probe misses are caught, and RES-002 output is unchanged.
+- The diff has no em or en dashes. The author's mutation runs and the full-suite run were
+  not repeated.
 
-## Top findings (round 2 of this change)
+## Top findings (round 3 of this change)
 
 No Critical.
 
 Important
-- `scripts/research-check.sh:108`: excluding `\s` rejects valid CommonMark that both earlier
-  versions accepted. A link with a title, `[docs](https://a.dev/x "release notes")`, or an
-  angle-bracket destination with a space, `[docs](<https://a.dev/release notes>)`, is no
-  longer stripped. Its parenthesis is then read as a citation, so a correct report fails
-  with "unreadable note citation". This regression is fail-closed. The docstring claim at
-  `:104`, "no spaces, as in CommonMark", is false for exactly these two forms. The round-1
-  suggestion that produced this regex came from this reviewer, and it missed titles.
-  Fix: `\]\((?:<[^<>\n]*>|(?:[^()\s]|\([^()\s]*\))*)(?:[ \t]+(?:"[^"\n]*"|'[^'\n]*'))?[ \t]*\)`.
-  Probed: 135 green, S8 red, both valid forms exit 0. Add the titled link and the
-  angle-bracket link as allowed cases.
+- `scripts/research-check.sh:115`: removing the class traded it for a narrow miss. Any `(`
+  directly after `]` now counts as a link, whatever it contains. A citation written right
+  after a bracket, with no space, is therefore skipped: `[F1](note 9)`,
+  `[F1](notes 1 and 9)`, `[docs][1](note 9)`, `\[F1\](note 9)`. All four are caught at
+  `9705c4e`, because the old regex refused an address with a space. `[x](note 9)` is not a
+  CommonMark link either, so a reader sees a citation while the checker sees nothing.
+  Step 4b never shows this shape, so it is rare. It is still a miss in a check documented as
+  FAIL CLOSED. It is not the round-2 class: the fix decides whether a parenthesis is a link,
+  not where its address ends. The round-2 option (b), written by this reviewer, did not
+  name this cost. Fix: `opened.append((i, i > 0 and text[i - 1] == "]" and not
+  re.match(r"[ \t]*notes?\s", text[i + 1:], re.I)))`. A link address cannot start with the
+  word note followed by whitespace, so this checks one fact rather than copying the
+  grammar. Its residual is fail-closed: `[x](notes "Title")` would raise a false alarm. Add
+  `[F1](note 9)` as a case that must stay red. The alternative is to accept the miss and
+  name it in the header comment and the docstring.
 
 Nitpicks
-- `tests/research-check.test.sh:416`: "each red on c8ced0a except S1 and S2" is false for
-  S8, which passes on `c8ced0a` (that script reports missing note 8). Fix: "except S1, S2
-  and S8".
-- `scripts/research-check.sh:104-105`: the rewrapped docstring line is about 118 columns,
-  while the rest of the file wraps at about 92. Fix: rewrap.
-- `scripts/research-check.sh:115-117`: the duplicate message for nested unclosed
-  parentheses is carried forward. It is cosmetic and was left by the author's decision.
+- `tests/research-check.test.sh:419-422`: no mutation in the recipe reddens S5 any more.
+  Under every listed link mutation it still exits 1. Its label is still true, but nothing
+  records what S5 guards. Fix: name it in the comment as a lock for nested link
+  parentheses.
+- `tests/research-check.test.sh:416`: the corrected comment line is 112 columns, while the
+  block wraps at about 92. Fix: rewrap.
+- `scripts/research-check.sh:123-126`: the duplicate message for nested unclosed
+  parentheses is carried forward by the author's decision.
 
-## Stop condition 3 (two consecutive rounds, same class)
+## Stop condition 2 (three rounds on this artifact)
 
-Class: **the link-extent regex approximates CommonMark by hand**. Round 1 found the regex
-too loose, because whitespace let a broken link swallow citations. Round 2 finds it too
-tight, because the whitespace ban rejects titles and `<>` destinations. Each fix is another
-alternation in the same regex, and the candidate above leaves the next instances open:
-backslash-escaped parentheses, a title in parentheses or spanning a line, and a title next
-to a broken link. The loop stops here. The human chooses:
-(a) apply the candidate regex and document the remaining residuals in the docstring;
-(b) remove the class: stop deleting link targets, and skip only the OUTER parenthesis that
-directly follows `]`. The stack scanner still reads every nested parenthesis, so S8 stays
-caught and titles stop mattering. The cost is that a nested URL part containing "note" is
-read, so S5 and the URL cases would need re-checking;
-(c) revert to the `88acd30` regex and accept the round-1 broken-link residual.
+Change C has had three rounds: `88acd30`, `9705c4e` and `81877e4`. The loop stops here. Open
+items: the Important above and the three nits. What moved between rounds: round 1 found the
+regex too loose, round 2 found it too tight, and round 3 removes the regex. The removal
+fixes the round-1 and round-2 shapes plus the residuals round 2 named (titles, `<>`,
+parentheses nested two deep), all pinned by S8 and S10 to S12. What did not move: some
+input shape still decides what counts as a link. The human chooses:
+(a) apply the one-line peek above and add the red case;
+(b) accept the `](note N)` miss and document it in the header comment and the docstring;
+(c) merge as is, with the residual recorded only here.
 
 ## Scores
 
@@ -90,15 +102,16 @@ testing 2/2 · conventions 2/2 -> total 11/12 (threshold: >=9, no zero)
 
 ## Ceiling
 
-12/12 is reachable once the titled and angle-bracket links are accepted again. The class
-residuals left after option (a) are typo or rare shapes and would not lower a dimension
-under the stated threat model. Option (b) would also clear them.
+12/12 is reachable with option (a). The remaining residual is a fail-closed false alarm on a
+relative link to a file named `note` or `notes` that has a title, which would not lower a
+dimension. Option (b) keeps the miss, so it caps correctness at 1.
 
 ## Regression
 
-Worse: 12/12 -> 11/12. Round-1 nits 1, 2 and 3 are fixed, and S8 and S9 pin them. Nit 4 is
-carried by decision. The fix for nit 1 introduced a fail-closed regression on valid link
-syntax. Branch trajectory 8 -> 9 -> 9 -> 10 -> 12 -> 12 -> 11.
+Same score: 11/12 -> 11/12. Different residual: the round-2 fail-closed regression on titled
+and `<>` links is gone, and both are now pinned. The new residual is a narrow miss: no space
+between `]` and `(`. Change C trajectory 12 -> 11 -> 11. Branch trajectory 8 -> 9 -> 9 -> 10
+-> 12 -> 12 -> 11 -> 11.
 
 ## History
 
@@ -140,3 +153,10 @@ syntax. Branch trajectory 8 -> 9 -> 9 -> 10 -> 12 -> 12 -> 11.
   links and `<>` destinations (a fail-closed regression on valid CommonMark). This is the
   same class as round 1, so the loop stops under stop condition 3 and the human picks (a),
   (b) or (c).
+
+- Change C round 3, `81877e4`, 11/12 APPROVE WITH COMMENTS, the round the human authorized
+  after choosing option (b): the link regex is gone, and S10 to S12 pin titles, `<>`
+  addresses and nested link parentheses. The round-2 nits are fixed. New Important: any
+  `](` counts as a link, so a citation written directly after `]` (`[F1](note 9)`) is
+  skipped, a narrow miss that `9705c4e` caught. The loop stops under stop condition 2
+  (three rounds), and the human picks (a), (b) or (c).

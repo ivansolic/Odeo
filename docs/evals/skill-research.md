@@ -2,8 +2,8 @@
 artifact: skills/research
 type: skill
 branch: chore/research-one-fact-rule
-reviewed_commit: 9705c4e
-artifact_version: 15
+reviewed_commit: 81877e4
+artifact_version: 16
 date: 2026-10-21
 scorer: skill-reviewer
 model: claude-opus-5-5[1m]
@@ -12,69 +12,111 @@ effort: high
 scores: { trigger_clarity: 2, structure: 2, worked_example: 2, precision: 2, safety_integration: 2 }
 total: 10/10
 verdict: PASS
-previous_total: 9/10
+previous_total: 10/10
 ---
 
 ## Skill: research  (auto-invoked, no disable-model-invocation)
 
-Change C, round 2, at 9705c4e. The dispatcher supplied the sha. I have no shell, so I could
-not run the diffs myself. The dispatcher reports that `git diff --stat 43e7b0d 88acd30 --
-skills/research/` shows only rubric.md, and that 88acd30 -> 9705c4e also touches only
-rubric.md in this folder, so SKILL.md is byte-identical to 43e7b0d. I take that as the
-dispatcher's evidence. It closes the round 1 uncertainty ("consistent with no change, not a
-proof"), and the files on disk agree with it: SKILL.md is still 160 lines and rubric.md is
-still 128, which fits a one-line edit.
+Change C, round 3, at 81877e4. The dispatcher supplied the sha. I have no shell, so I could
+not run the diffs myself. The dispatcher reports that rubric.md is unchanged since 9705c4e,
+that SKILL.md changed only in the report layout's Question line (the optional edit from v15,
+approved by the human), and that `scripts/research-check.sh` changed how it skips link
+addresses (header lines 31-37). The files on disk agree with this: SKILL.md is now 162 lines
+(160 plus the two extra wrapped lines), and rubric.md is still 128.
 
 Files read in full:
-- `skills/research/SKILL.md` (160 lines)
+- `skills/research/SKILL.md` (162 lines)
 - `skills/research/rubric.md` (128 lines)
+- `scripts/research-check.sh` (343 lines), to check that step 4b still agrees with it
 
 Also read: `docs/system-map.md:72`.
 
 Model tier: strongest, as dispatched. This agent has no web access, so I could not re-check
 the live model lineup. Output language: en (supplied by the dispatcher).
 
-## Round 1 fix, checked
-rubric.md:38 now reads, exactly as proposed:
-`1. Question             0 no question, or a question that states no item of Scoped`
+## Optional v15 edit, checked
+SKILL.md:60-62 now reads:
+`## Question (scope, region, segment and date sensitivity where they apply,`
+`   sub-questions, the decision it serves, key terms; mode and depth may sit`
+`   in the frontmatter)`
 
 What holds:
-- Anchor 0 now uses the defined term by name. The bare noun "scope", which is also the first
-  item inside Scoped (rubric.md:20), no longer appears in the anchors, so reading (a)
-  ("the scope item is missing") is gone.
-- The three anchors now split on how many Scoped items are stated: none (0), some but not
-  every one that applies (1, rubric.md:39, "an item of Scoped that applies is missing"),
-  all that apply (2, "a scoped question"). "Only in part" is the complement of "no item",
-  so there is no overlap between 0 and 1. The catch-all at rubric.md:108 still covers
-  anything between 1 and 2.
-- The round 1 test case, "What do tools charge in Germany?" (region stated, subject not),
-  now has one reading: it states an item of Scoped, so it is not 0; an applicable item is
-  missing, so it is 1.
-- C18: criterion 1 holds no bare "unverified". The only hits are in Definitions
-  (rubric.md:9, 34), outside the single closed fence (rubric.md:37-112).
-- Dashes: 0 in `skills/research/`.
+- The content is word for word what v15 proposed. Only the wrap differs (three lines, not
+  two). It sits inside the shape's code fence, and the Answer and Findings lines wrap the
+  same way, so the layout stays consistent.
+- The first four items now match the Scoped definition (rubric.md:20, "its scope, region,
+  segment and date sensitivity where they apply") in the same order and the same words.
+- One name per concept (skill-authoring-standard.md:20): the bare noun "scope" now appears
+  only as the first item of Scoped, at SKILL.md:25, SKILL.md:60 and rubric.md:20. The v15
+  residual (it stood for the whole set at SKILL.md:60) is closed.
 
-Edge case considered, not a finding: a question where no Scoped item applies would state
-none and so read as 0. That cannot happen in practice, because the subject (scope) always
-applies to a research question.
+## Step 4b against the checker header
+SKILL.md:53-56: "Cite a note only as `(note N)`, `(notes N, M)`, `(note N, <qualifier>)` with
+no digit in the qualifier, or `(note N; <qualifier>)`: a parenthesis holding the word note or
+notes without that number list is a violation in every section."
+
+research-check.sh:31-42 (header) and the code agree on all points an author acts on:
+- The four forms are the same. They match `NOTE_LIST` (:88), the `;` split in `cited_notes`
+  (:138), and the header's "A qualifier after a comma holds no digit" (:38-39).
+- The violation message (:141-144) now lists all four forms. This closes the v13 residual
+  outside the folder ("lists only three of the four forms").
+- "In every section" agrees with ":42, Headings, the title and the frontmatter are scanned
+  too" and with `check_citations` (:248-257).
+- The checker exempts three places that step 4b does not name: link addresses (the
+  parenthesis right after "]", :34-35, `paren_texts` :105-127), code spans (:33-34), and the
+  Notes list itself (:33). In each case step 4b is stricter than the checker, never looser.
+  An author who follows step 4b can never get a citation violation from them, so this is not
+  a precision finding. The header's honesty line, "a separate word "note" in a URL's own
+  parentheses is a false alarm, never a miss" (:35-36), lives in the script, which is where
+  it belongs.
+
+Whether the new link-skipping code is correct is a code question for `code-reviewer`. I
+judged only whether the skill text and the script header agree.
+
+## Calibration result and the three named ambiguities
+The blind paired run the v14 and v15 records recommended was carried out, according to the
+dispatcher. Its result supports the change: no Scoped item gave 0 under both rubrics. The
+partly scoped case was 0 under the old text, with a second reading of 1, and 1 under the new
+text, with no second reading. The fully scoped case gave 2 under both. So the 0 / 1 split,
+which is the auto-FAIL boundary that change C was about, now has one reading.
+
+The new-rubric scorer named three remaining ambiguities. I judge that none must be fixed in
+this change:
+1. "A question that states" (rubric.md:20, 38): the question sentence, or the whole Question
+   section? This is a real looseness in wording, since "question" names both. But the
+   question sentence almost always states its subject, which is the scope item, so the two
+   readings can split only 1 from 2, not 0 from 1. SKILL.md:60-62 now puts every Scoped item
+   in the `## Question` section, which points to the section reading. This is the cheapest of
+   the three to close (see Top fixes, optional).
+2. No test for "where they apply": this is latitude the definition grants by design (a
+   pricing scan may have no segment), so it is method, not form. It can move 1 and 2 only:
+   the scope item always applies, so the 0 anchor does not depend on it.
+3. Which terms are "key": step 1 (SKILL.md:26-27) leaves the author to choose them, and
+   rubric.md:119-120 says when one counts as defined. Again a judgment call that moves 1 and
+   2 only.
+
+Routing all three to a later /odeo:improve is sound. That is where they belong anyway, since
+each one is about how a scorer behaves, which needs a behaviour test, not a form review.
 
 ## Scores
 - trigger clarity: 2, unchanged. SKILL.md:2: "Use when the user wants market or web research
-  with sources, asks about market size, TAM/SAM/SOM, competitor landscape, ...". Triggers
-  only, no workflow summary, which is right for an auto-invoked skill.
-- structure: 2, unchanged. SKILL.md is 160 lines and the rubric 128, both under 500. The
+  with sources, asks about market size, TAM/SAM/SOM, competitor landscape, ...". The
+  description lists triggers only, with no workflow summary, which is right for an
+  auto-invoked skill.
+- structure: 2, unchanged. SKILL.md is 162 lines and the rubric is 128, both under 500. The
   rubric is the only supporting file and sits one level deep. The definitions live only in
   rubric.md:6-35 ("this skill uses them and never rewords them", SKILL.md:10-11).
-- worked example: 2, unchanged. SKILL.md:104-128 is the RES-002 excerpt in the checker
-  shape, and SKILL.md:129-134 explains it. Change C does not touch it.
-- precision: 1 -> 2. rubric.md:38: "0 no question, or a question that states no item of
-  Scoped". All three criterion 1 anchors now use the defined term, and the paths, commands,
-  exit codes, citation forms and checker shape are exact throughout (SKILL.md:35, 47-56,
-  74-77, 154).
-- safety integration: 2, unchanged. SKILL.md:77 ("Exit 2 means the check did not run, so
-  say that and why", Guardrails 6). SKILL.md:75-77 give a verifier and a stop (Guardrails
-  4). SKILL.md:79 names the source-name check "a heuristic". Guardrails 1, 3 and 7 are
-  referenced by number (SKILL.md:81-86, 158), not restated.
+- worked example: 2, unchanged. SKILL.md:105-129 is the RES-002 excerpt in the checker shape,
+  and SKILL.md:130-135 explains it. This round does not touch it, and it still fits the four
+  citation forms ("(notes 1, 2)", "(note 8)").
+- precision: 2, unchanged. SKILL.md:60: "## Question (scope, region, segment and date
+  sensitivity where they apply," now matches rubric.md:20 term for term. Step 4b agrees with
+  the checker header (section above). Paths, commands, exit codes and citation forms are
+  exact throughout (SKILL.md:35, 47-56, 75-78, 155).
+- safety integration: 2, unchanged. SKILL.md:78: "Exit 2 means the check did not run, so say
+  that and why" (Guardrails 6). SKILL.md:76-78 give a verifier and a stop: "at most three
+  runs" (Guardrails 4). SKILL.md:80 calls the source-name check "a heuristic". Guardrails 1,
+  3 and 7 are referenced by number (SKILL.md:82-87, 159), not restated.
 
 ## Total: 10/10   ## Verdict: PASS (threshold 8/10, no zero)
 
@@ -84,23 +126,15 @@ applies to a research question.
 ## Top fixes
 None required for this verdict.
 
-Optional, not scored (found this round; it was already in SKILL.md at the 10/10 rounds,
-since the file is unchanged since 43e7b0d):
-1. SKILL.md:60, the report shape, lists the Question section as "(scope, sub-questions, the
-   decision it serves, key terms; ...)". Here "scope" stands for the whole Scoped set, while
-   step 1 (SKILL.md:25) and rubric.md:20 use it for one item. An author who follows the
-   shape alone could leave out region, segment and date sensitivity and score 1 on
-   criterion 1. Step 1 already asks for all four, so the scorer's reading does not change,
-   which is why this is not scored. If you want the two files to use one name per concept
-   (skill-authoring-standard.md:20), rewrite the line to:
-   `## Question (scope, region, segment and date sensitivity where they apply, sub-questions,`
-   `   the decision it serves, key terms; mode and depth may sit in the frontmatter)`
+Optional, not scored, for the later /odeo:improve named by the dispatcher:
+1. To close ambiguity 1, add one bullet to the scorer notes after rubric.md:120:
+   `- Criterion 1: "the question" means the whole Question section, not only its first`
+   `  sentence; a Scoped item stated anywhere in that section counts.`
+   This edits rubric.md, so it needs its own review round, and change C has reached its
+   cap of three. That is why it goes to the later run rather than into this change.
 
-Behaviour check: the paired pm-reviewer scoring recommended in round 1 (criterion 1 on three
-Question sections, old rubric against new, through /odeo:improve) still applies, because the
-change can turn a 0 into a 1, and a 0 is an automatic FAIL. Fix 1 has landed, so the check
-would now measure the final text. The dispatcher reports it has not been run and that the
-human decides on it. It does not block this verdict, which judges form.
+Behaviour check: done (the dispatcher's blind paired run, results above). No further
+behaviour test is needed for change C.
 
 Not scored, outside this folder (carried from v13 and still open, for the dispatcher):
 - `docs/system-map.md:72` still says "every claim 2+ independent sources or labeled
@@ -108,27 +142,30 @@ Not scored, outside this folder (carried from v13 and still open, for the dispat
   command is listed.
 
 ## Checks
-- Size: SKILL.md 160 lines, rubric.md 128, both under 500. References are one level deep.
+- Size: SKILL.md 162 lines, rubric.md 128, both under 500. References are one level deep.
 - Dashes: 0 in `skills/research/`.
-- C18: clean. Criterion 1 holds no bare "unverified", and the fence is single and closed.
-- Defined terms: criterion 1 anchors 0, 1 and 2 all use Scoped. The bare noun "scope"
-  survives only in SKILL.md:25 (as the first item, correct) and SKILL.md:60 (optional item
-  above).
+- C18: rubric.md is unchanged since 9705c4e. Criterion 1 still holds no bare "unverified",
+  and the fence (rubric.md:37-112) is single and closed.
+- Defined terms: "scope" appears only as the first Scoped item (SKILL.md:25, 60;
+  rubric.md:20).
 - AGENTS.md: nothing restated. Guardrails are referenced by number.
 - Map duty: no new command. `/odeo:research` is on `docs/system-map.md:72`.
 - Integrity: first-party skill. The example quotes this repo's own RES-002 on purpose.
 
 ## Loop status
-Change C, round 2 of at most 3. Max score reached, so the loop stops here.
-- Trajectory for change C: 9 -> 10. What changed: rubric.md:38 anchor 0 now names Scoped.
-- Open for the human: whether to run the paired scoring check, and whether to apply the
-  optional SKILL.md:60 edit (applying it would need one more review round, still under the
-  cap).
+Change C, round 3 of at most 3. Max score reached, so the loop stops here.
+- Trajectory for change C: 9 -> 10 -> 10. What changed: rubric.md:38 anchor 0 now names
+  Scoped (round 2), and SKILL.md:60-62 now lists the Scoped items in the report shape
+  (round 3).
+- Open for the human: whether to run the later /odeo:improve on the three named criterion 1
+  ambiguities. The optional fix above is ready for it.
 
 ## Vs previous version
-Improved: 9/10 -> 10/10. The verdict line was replaced (PASS -> PASS).
-- Precision 1 -> 2: round 1 Top fix 1 applied as proposed.
-- No other score moved. SKILL.md is byte-identical to 43e7b0d (dispatcher's diff).
+Steady: 10/10 -> 10/10. The verdict line was replaced (PASS -> PASS).
+- The v15 optional edit was applied as proposed, and its residual is closed.
+- The v13 residual outside the folder (the checker's message listed three forms) is closed:
+  research-check.sh:141-144 lists four.
+- No score moved.
 
 ## History
 - 2026-10-02 (v1, Round 1, f947223): first record. 8/10 PASS.
@@ -237,3 +274,15 @@ Improved: 9/10 -> 10/10. The verdict line was replaced (PASS -> PASS).
   - Optional, not scored: SKILL.md:60 uses "scope" for the whole Scoped set.
   - Paired scoring check still recommended; the human decides.
   - Trajectory for change C: 9 -> 10. Max reached, loop stopped.
+- 2026-10-21 (v16, change C round 3, 81877e4, the last round under the cap): 10/10 PASS,
+  previous 10/10. The verdict line was replaced (PASS -> PASS).
+  - The v15 optional edit was applied as proposed (SKILL.md:60-62). The Question line now
+    matches rubric.md:20 term for term.
+  - Step 4b still agrees with the revised checker header (research-check.sh:31-42). Where
+    they differ, step 4b is stricter (link addresses, code spans, the Notes list). The
+    checker message now lists all four forms, which closes the v13 residual.
+  - The blind paired calibration ran: the 0 / 1 split has one reading under the new rubric.
+    Three named ambiguities (question sentence or section, "where they apply", "key" terms)
+    move only 1 and 2, so they go to a later /odeo:improve. An optional rubric note for the
+    first is ready.
+  - Trajectory for change C: 9 -> 10 -> 10. Change C closed.
