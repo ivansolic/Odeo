@@ -7,6 +7,8 @@ Definitions the criteria use. They are the ONE place these terms are defined: th
 skill points here instead of rewording them, so the two files cannot drift apart.
 - **Claim:** any statement of fact in the report, including a cell or sentence marked
   unverified. Marking a claim "?" or "unverified" does not make it traced; it makes it honest.
+  A claim states ONE fact: a sentence that joins two facts ("X has A and does B") is two
+  claims, and each carries its own confidence word.
 - **Independent sources:** neither one derives from the other (two articles citing one
   press release are ONE source; two pages of the same vendor's documentation are ONE
   source). For a product's own behaviour, its documentation and its shipped code, binary or
@@ -21,17 +23,22 @@ skill points here instead of rewording them, so the two files cannot drift apart
 - **Load-bearing claim:** a claim that the Answer or an Implication rests on.
 - **Confidence words**, one per claim, written where the claim appears (an Answer clause
   may carry it by citing the Findings claim that does):
-  - **Verified:** backed by two independent sources, counted PER CLAIM (a note that backs
-    several claims verifies only those it gives two sources for).
+  - **Verified:** backed by two independent sources whose notes EACH quote that same fact,
+    counted PER CLAIM (a note that backs several claims verifies only those it gives two
+    sources for). A quote of a nearby fact does not count: a quote that only names a field,
+    test or string, or a related sentence, without itself stating the claim, leaves it one
+    source. A code, binary or changelog quote that states the claim itself counts
+    (Independent sources).
   - **One source:** backed by exactly one source.
   - **Unverified:** backed by no source the report can name.
   - **Not verified** means one source or unverified; every not-verified claim, and every
     contested one, is listed in the Unverified section.
 
 ```
-1. Question             0 no scoped question
-                        1 scoped, but sub-questions, mode, depth or the decision it serves
-                          are missing, or a key term in it is undefined
+1. Question             0 no question, or a question that states no item of Scoped
+                        1 scoped only in part (an item of Scoped that applies is missing),
+                          or sub-questions, mode, depth or the decision it serves are
+                          missing, or a key term in it is undefined
                         2 a scoped question, its sub-questions, mode, depth, the decision it
                           serves, and its key terms defined
 
