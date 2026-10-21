@@ -2,112 +2,112 @@
 artifact: scripts/research-check.sh + tests/research-check.test.sh + tests/fixtures/research/ + skills/research/SKILL.md steps 3, 4b, 5b and worked example + README.md
 type: code
 branch: chore/research-one-fact-rule
-reviewed_commit: 053f4ef
-artifact_version: 3
-date: 2026-10-20
+reviewed_commit: eadb831
+artifact_version: 4
+date: 2026-10-21
 scorer: code-reviewer
 model: claude-opus-5-5[1m]
 model_tier: strongest
 effort: high
-scores: { correctness: 1, security: 2, performance: 2, readability: 2, testing: 1, conventions: 1 }
-total: 9/12
+scores: { correctness: 1, security: 2, performance: 2, readability: 2, testing: 2, conventions: 1 }
+total: 10/12
 verdict: APPROVE WITH COMMENTS
 previous_total: 9/12
 ---
 
 ## Artifact
 
-Commit `053f4ef` on `chore/research-one-fact-rule` (round 3, the last under stop
-condition 2), diff `56ded01..053f4ef`: `scripts/research-check.sh` split into module-level
-functions, note parsing made fail-closed (one header grammar, typographic quote marks are
-a violation, a content-based self-match guard, `commonpath` containment, case-insensitive
-`res-NNN` refusal, note citations checked outside Findings), cases P1 to P7 in
-`tests/research-check.test.sh`, N12's no-op block removed, skill step 5b reworded, README
-count 1514. No plan file exists for this change; the ledger entry is intent, not a contract.
+Commit `eadb831` on `chore/research-one-fact-rule` (round 4, run past the three-round cap
+on the human's explicit authorization), diff `053f4ef..eadb831`: note citations parse fail
+closed in every section (`paren_texts`, `cited_notes` with `NOTE_WORD` and `NOTE_LIST`,
+every `## ` section outside the Notes list and the already-scanned finding bodies),
+typographic marks flagged only outside straight-quoted and backtick spans, P1 looped over
+all five marks, P8, Q1 to Q8, a mutation recipe in the test file, skill step 4b extended,
+step 5b rewrapped. No plan file exists for this change; the ledger entry is intent, not a
+contract.
 
-## Round-2 findings, verified
+## Round-3 findings, verified
 
-Each re-checked by running the round-3 suite against the round-2 script (`56ded01`): P1,
-P2, P3, P4, P6 (message assertion), P7 are red there, P5 is green there (it locks the
-existing relaxation, as stated).
-- Typographic quote marks in one note: FIXED (P1). All five listed marks are in
-  `TYPOGRAPHIC`.
-- Self-match by filename: FIXED by a content test (P2). Reproduced: disabling the guard
-  turns P2 red.
-- Colon inside the first quote taken as the header: FIXED (`colon > first_quote` -> None,
-  P3).
-- Note citations outside Findings: FIXED for the literal `(note N)` form in Answer,
-  Implications, Numbers, Unverified (P4 for Unverified). See the new Important below for
-  the form that is still not parsed.
-- Backtick relaxation untested: FIXED (P5).
-- Nitpicks: `--sources /` refused (P6), `res-` case-insensitive (P7), header states the
-  parenthesis rule for finding ids, N12 no-op removed with a host comment, `main()` split.
-  All FIXED.
+Each re-checked by running the round-4 suite against the round-3 script (`053f4ef`): P8,
+Q1, Q2, Q3, Q4, Q5, Q6, Q8 are red there and Q7 is green, as the test comment states.
+- Qualified and out-of-section citations: FIXED. `(note 9, measured)`, `(verified, F1,
+  note 9)`, a table under Findings, Question, Sources and a capitalised `Note` are all
+  reported (Q1 to Q5). RES-002 shows no citation violation; its 49 parenthesised note
+  citations all parse.
+- Wrong typographic advice: FIXED (P8). The message and step 4b now say the source's own
+  marks may stay inside a straight quote.
+- Mutation gaps: FIXED. All eight mutations in the recipe were re-run here and reddened
+  exactly the cases and line counts it names. The section-scope mutation reddens Q3, Q4 and
+  Q5 (6 lines), and dropping `»` or `„` reddens only that mark's P1 lines.
+- Nitpicks: all FIXED ("except P5", the heuristic line in the header, the rewrapped line
+  in step 5b).
+- The deliberate consequence, prose such as `(a note on pricing)` or `(note that ...)`
+  becoming a violation, is right. The violation quotes the parenthesis, RES-002 has no
+  such hit, and a false positive costs one rewording. A silent miss costs a missing note
+  reaching review, which is what rounds 1 to 3 kept finding.
 
-## Top findings (round 3)
+## Top findings (round 4)
 
 Important
-- `scripts/research-check.sh:73, 90-91, 189-191`: note citations are only recognised in
-  the exact form `(note N)` / `(notes N, M)`. A qualifier inside the parenthesis makes the
-  citation invisible. Planted `**One source** (note 9, measured)` with two notes: exit 0,
-  "quotes: 3/3 verbatim". This form is real: `docs/research/RES-002` uses
-  `(note 24, measured)`, `(note 24, this repo)`, `(note 16, changelog fix)` and
-  `(note 14; three pages of one vendor's docs)`. Answer `(verified, F1, note 9)`, a
-  `(note 9)` in a table under Findings, in Question or in Sources: all exit 0. The header
-  (line 31) says note citations "are checked in every section". Fix: scan every
-  parenthesis in the report text minus the Notes list, and inside each take
-  `\bnotes?\s+(\d+(?:\s*,\s*\d+)*)`. Add a case that cites a missing note with a
-  qualifier.
-- `scripts/research-check.sh:106-108`: a verbatim quote whose SOURCE text contains
-  typographic quotes, such as `"Tool B says the “sync” job runs daily at noon"`, is a
-  violation. The message tells the author to "use straight double quotes". Doing that
-  produces an unpairable or non-verbatim quote. CMS-rendered web pages curl quotes by
-  default, so a long verbatim quote often contains them. This fails closed, not silently,
-  but the advice is wrong. Fix: flag typographic marks only outside straight double-quoted
-  and backtick spans. That still catches a curly-delimited quote and lets a nested one
-  through to the verbatim check. If that is not done, say "split the quote around the
-  source's own quote marks" in the message and in skill step 4b.
-- `tests/research-check.test.sh:298-319`: two stated sub-claims fail the mutation test.
-  First, setting the note-citation sections on line 189 to `("Unverified",)` leaves all
-  assertions green, so Answer, Implications and Numbers are unchecked by any test.
-  Second, `TYPOGRAPHIC[:1]` (only U+201C) leaves all assertions green, so four of the five
-  listed marks are untested. Fix: cover each of the five marks in P1, either with one
-  mutation per mark or with a loop over them. Also add a P4 variant in Answer.
-
-Same-class note: the first Important is the round-2 class, "an input the parser does
-not interpret is read as clean", now in note CITATION parsing instead of note parsing.
-Fixing it by adding the qualifier form to `NOTE_CITE` would be another instance patch.
-The class-level fix is the one named above: any `note` token in a parenthesis that does
-not parse as a number list is a violation.
+- `scripts/research-check.sh:82`: an Oxford-comma list is read as a qualifier. In
+  `(notes 1, 2, and 9)` the tail `,\s*\D.*` swallows `, and 9`. Planted on F2 with
+  only two notes: exit 0, no violation. On a Verified finding, `(notes 1, 1, and 2)`
+  reports "Verified needs two notes, cites [1]", which is wrong advice. This is the
+  round-1 to round-3 class again: input the parser does not interpret is read as clean.
+  Three-note lists are a natural shape, since Verified needs at least two notes. Minimal
+  fix: `(?:,\s*(?!(?:and|or|&)\s*\d)\D.*)?`, plus a Q9 case proven by mutation. The
+  structural fix removes the class: after the number list a comma only ever separates
+  numbers, and a qualifier comes only after `;`. That costs rewording three RES-002
+  citations and step 4b, so it is the human's decision.
+- `README.md:242`: the README says "1514 assertions". This round adds 26 assertions to
+  `tests/research-check.test.sh` (88 at `053f4ef`, 114 now), and no other suite changed,
+  so the tree has 1540. `scripts/docs-claims-check.sh --assertions` will report DRIFTED.
+  Fix: update the number and confirm it with that command. I worked the number out from
+  the two counts and did not run the full suite.
 
 Nitpicks
-- `tests/research-check.test.sh:297`: "each red on 56ded01" covers P5, which is green on
-  56ded01 by design. Say "each red on 56ded01 except P5, which locks the relaxation".
-- `scripts/research-check.sh:214-217`: the self-match guard refuses only when at least one
-  note of 40 or more characters is unchanged in the copy. A draft whose notes were all
-  edited afterwards is not caught. The header does not mention the guard or its limit.
-  Add one line saying it is a heuristic.
-- `skills/research/SKILL.md:74`: the reflowed line runs to about 150 columns while its
-  neighbours wrap at about 95. Rewrap it.
+- `scripts/research-check.sh:231-233`: three parts of a report are never scanned: the
+  text of a heading line (`## Numbers (note 9)`), the H1, and the frontmatter before the
+  first `## `. All three exit 0. That contradicts "every parenthesis outside the Notes
+  list" (line 33). Fix: pass `m.group(0)` instead of `m.group(2)`, and scan
+  `rest[:first "## "]` as `preamble`. Otherwise narrow the header claim.
+- `scripts/research-check.sh:102`: a link target holding parentheses, for example
+  `[w](https://e.org/Foo_(bar))`, leaves a stray `)`. That stray closes the outer
+  parenthesis early, so `(F1, verified, [w](...Foo_(bar)), note 9)` exits 0. An unclosed
+  `(note 9.` is also silent. Fix: match one level of balanced parentheses in the
+  link-target regex, `\]\((?:[^()]|\([^()]*\))*\)`.
+- `tests/research-check.test.sh`: three behaviours are not mutation-proven. Each of these
+  mutations leaves the suite green: `rest = text` (the Notes list is scanned too), removing
+  the nested-parenthesis blanking at line 118, and splitting only on `;` at line 120. All
+  three fail noisy, not silent. Fix: add a note whose locator holds `(release notes)` and
+  a citation `(notes 1, 2 (both read 2026-10-20))`, both expected exit 0.
+- `skills/research/SKILL.md:52`: the list „ “ « » omits ”, which the script also refuses.
+  Fix: list all five marks, or say "typographic marks such as".
+- `scripts/research-check.sh:123-124`: the message tells the author only how to write a
+  citation. For `(note that pricing changed)` it should also say "or reword a parenthesis
+  that is not a citation".
 
 ## Scores
 
 correctness 1/2 · security 2/2 · performance 2/2 · readability 2/2 ·
-testing 1/2 · conventions 1/2 -> total 9/12 (threshold: >=9, no zero)
+testing 2/2 · conventions 1/2 -> total 10/12 (threshold: >=9, no zero)
 
 ## Ceiling
 
-12/12 reachable. Nothing structurally caps this change. The documented meaning-level
-limits (same fact or shared word, independence judged by name) are out of scope for a
-mechanical check and are not scored against it.
+12/12 is reachable. Nothing structurally caps this change. Correctness reaches 2 once a
+number after a comma can no longer be read as qualifier text. Conventions reaches 2 when
+the README count matches the tree. The meaning-level limits the header documents (same
+fact or shared word, independence judged by name) are out of scope for a mechanical check
+and are not scored against it.
 
 ## Regression
 
-Same total: 9/12 -> 9/12. Readability stays 2: the split into module-level functions is
-clean. Correctness stays 1: every round-2 instance is fixed and one same-class sibling
-remains in citation parsing. Testing stays 1: the relaxation is now locked, but two
-sub-claims are not mutation-proven. Conventions stays 1: the header again claims coverage
-the code does not hold ("every section").
+Better: 9/12 -> 10/12. Testing rises 1 -> 2: the recipe is accurate and every round-3
+sub-claim is mutation-proven. The mutations that still survive all fail noisy, not silent.
+Correctness stays 1: every round-3 instance is fixed, but the qualifier tail lets one
+silent same-class shape through. Conventions stays 1, for a different reason: the header
+claim now mostly holds (headings and preamble are a nit), but the README assertion count
+drifted. Trajectory 8 -> 9 -> 9 -> 10.
 
 ## History
 
@@ -125,3 +125,9 @@ the code does not hold ("every section").
   unparsed (same class, now in citations), nested typographic quotes are refused with
   wrong advice, and two sub-claims are not mutation-covered. The loop stops under stop
   condition 2 (three rounds). The human decides on the residual.
+- Round 4, `eadb831`, 10/12 APPROVE WITH COMMENTS, run past the cap on the human's
+  authorization: every round-3 finding and nitpick is fixed and mutation-proven.
+  Remaining Important: an Oxford-comma list `(notes 1, 2, and 9)` is read as a qualifier
+  (same class, fourth instance), and the README assertion count drifted (1514, the tree
+  has 1540). The class recurred again, so the human decides between the minimal
+  lookahead and the structural grammar change (qualifiers only after `;`).
