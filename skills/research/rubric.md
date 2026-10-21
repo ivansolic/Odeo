@@ -35,9 +35,10 @@ skill points here instead of rewording them, so the two files cannot drift apart
     contested one, is listed in the Unverified section.
 
 ```
-1. Question             0 no scoped question
-                        1 scoped, but sub-questions, mode, depth or the decision it serves
-                          are missing, or a key term in it is undefined
+1. Question             0 no question, or a question with no scope at all
+                        1 scoped only in part (an item of Scoped that applies is missing),
+                          or sub-questions, mode, depth or the decision it serves are
+                          missing, or a key term in it is undefined
                         2 a scoped question, its sub-questions, mode, depth, the decision it
                           serves, and its key terms defined
 
