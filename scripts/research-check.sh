@@ -101,11 +101,11 @@ def section(text, name):
 
 
 def paren_texts(text):
-    """The text of every parenthesis, nested ones included, after link targets (with one
-    level of parentheses of their own) and code spans are removed, so a URL or a file name
+    """The text of every parenthesis, nested ones included, after link targets (no spaces,
+    as in CommonMark, and one level of parentheses of their own) and code spans are removed, so a URL or a file name
     holding "notes" is not a citation. An unclosed parenthesis runs to the end of its
     paragraph, so it is read rather than skipped."""
-    text = re.sub(r"\]\((?:[^()]|\([^()]*\))*\)", "]", re.sub(r"`[^`]*`", "", text))
+    text = re.sub(r"\]\((?:[^()\s]|\([^()\s]*\))*\)", "]", re.sub(r"`[^`]*`", "", text))
     out, opened = [], []
     for i, c in enumerate(text):
         if c == "(":
