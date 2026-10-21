@@ -100,7 +100,7 @@ removing a class rather than a shape:
 
 | shape found | instance patch on offer | structural fix taken |
 |---|---|---|
-| a note header or quote mark the parser did not read | one more guard per shape, as round 1 did | notes parse fail closed: one header grammar, anything else is a violation (053f4ef) |
+| a note header or quote mark the parser did not read | one more guard per shape, as round 1 did | one header grammar, required for every note a Verified finding cites; a typographic or unpaired quote mark in any note is a violation; self-match by content (053f4ef) |
 | qualified citation "(note 9, measured)" invisible | add the qualifier form to the regex | every parenthesis is scanned; a "note" that is not a number list is a violation (eadb831) |
 | "(notes 1, 2, and 9)" skipped note 9 | forbid "and/or/& digit" after the comma | a comma qualifier holds no digit at all (43e7b0d) |
 | link regex too loose, then too tight | a fuller CommonMark regex | stop deciding where a link ends: skip the "(" after "]", still read what is nested in it (81877e4, finished in 57daa41) |
