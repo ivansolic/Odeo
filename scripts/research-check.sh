@@ -31,9 +31,10 @@
 # Finding ids are checked in Answer, Implications and Numbers only inside parentheses
 # ("(F1, verified)"), so a word like "C3 model" is not a reference. Note citations parse
 # FAIL CLOSED too: every parenthesis outside the Notes list is scanned (code spans removed
-# first; a link address, the parenthesis right after "]", is skipped, but a parenthesis
-# nested inside it is read, so a separate word "note" in a URL's own parentheses is a false
-# alarm, never a miss), and a "note" or "notes" in one must be followed by a number
+# first; a link address, the parenthesis right after "]" unless it starts with "note " or
+# "notes ", is skipped, but a parenthesis nested inside it is read, so a separate word
+# "note" in a URL's own parentheses is a false alarm, never a miss), and a "note" or
+# "notes" in one must be followed by a number
 # list, optionally then ", <qualifier>" or "; <qualifier>" ("(note 24, measured)"). A
 # qualifier after a comma holds no digit, so no note number can hide in it ("(notes 1, 2,
 # and 9)"); one with a digit follows ";". Any other "note" in a parenthesis ("(notes 1 and
@@ -104,7 +105,8 @@ def section(text, name):
 
 def paren_texts(text):
     """The text of every parenthesis, nested ones included, after code spans are removed.
-    A parenthesis right after "]" is a link address: it is not read, and the text directly
+    A parenthesis right after "]" is a link address, unless it starts with the word note
+    or notes and a space, which no address does: it is not read, and the text directly
     inside it is blanked, so a URL, a title or a <> address holding "notes" is not a
     citation, while a parenthesis nested inside it is still read. An unclosed parenthesis
     runs to the end of its paragraph, so it is read rather than skipped."""
@@ -112,7 +114,9 @@ def paren_texts(text):
     chars, opened, spans = list(text), [], []
     for i, c in enumerate(text):
         if c == "(":
-            opened.append((i, i > 0 and text[i - 1] == "]"))
+            link = i > 0 and text[i - 1] == "]" and \
+                not re.match(r"[ \t]*notes?\s", text[i + 1:], re.I)
+            opened.append((i, link))
         elif c == ")" and opened:
             start, link = opened.pop()
             spans.append((start, i, link))

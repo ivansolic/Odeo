@@ -410,11 +410,12 @@ run "$TMP/q9.md"
 assert_exit "Q9 a number hidden in a comma qualifier fails" 1 "$code"
 assert_contains "Q9 names F2" "F2: unreadable note citation" "$out"
 
-# --- R: round-4 and round-5 nitpicks. Headings and the text above the first "## " are
-# scanned too, a link address may hold one level of parentheses, an unclosed parenthesis
-# is read to the end of its paragraph, and the message names every allowed form (each red
-# on c8ced0a except S1, S2 and S8 to S12; S1, S2 and S10 to S12 lock what stays allowed and redden the mutations
-# "scan the Notes list too" and "do not blank nested parentheses").
+# --- S: round-4 and round-5 nitpicks. Headings and the text above the first "## " are
+# scanned too, an unclosed parenthesis is read to the end of its paragraph, and the message
+# names every allowed form. Each case is red on c8ced0a except S1, S2 and S8 to S12. S1,
+# S2 and S10 to S12 lock what stays allowed; S1 and S2 redden the mutations "scan the Notes
+# list too" and "do not blank nested parentheses". S5 reddens no listed mutation now: it
+# stays as a regression lock for parentheses nested inside a link address.
 # Mutations, each run on a copy, with the cases they redden: scan the Notes list too -> S1
 #   (2); do not blank nested parentheses -> S2 (1); drop the heading line from each section
 #   -> S3 (2); drop the "Title" part -> S4 (2); skip unclosed parentheses -> S6 (2); drop
@@ -487,5 +488,18 @@ mutate s12 "- Rely on feature X (F1, verified)." "- Rely on feature X (F1, verif
 run "$TMP/s12.md"
 assert_exit "S12 a link address with its own parentheses, inside a citation, is not read" 0 "$code"
 assert_absent "S12 no citation report" "note citation" "$out"
+
+# Round 3 found that every "(" after "]" counted as a link, so a citation written right
+# after a bracket was skipped. A link address never starts with the word note and a space,
+# so such a parenthesis is read as a citation. Mutation: drop that test -> S13, S14 (4).
+mutate s13 "- Rely on feature X (F1, verified)." "- Rely on feature X [F1](note 9)."
+run "$TMP/s13.md"
+assert_exit "S13 a citation right after a bracket is read" 1 "$code"
+assert_contains "S13 names the section and note" "Implications for us: cites missing note 9" "$out"
+
+mutate s14 "- Rely on feature X (F1, verified)." "- Rely on feature X [F1](Notes 1 and 9)."
+run "$TMP/s14.md"
+assert_exit "S14 a malformed citation right after a bracket fails" 1 "$code"
+assert_contains "S14 names the section" "Implications for us: unreadable note citation" "$out"
 
 exit "$fail"
