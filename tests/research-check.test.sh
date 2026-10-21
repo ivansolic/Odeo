@@ -350,7 +350,8 @@ assert_contains "P8 the nested quote is checked verbatim" "quotes: 3/3 verbatim"
 # Mutations of scripts/research-check.sh, each run on a copy, with the cases they redden:
 #   drop one mark from TYPOGRAPHIC -> that mark's P1 (2 lines); check typographic marks in
 #   the whole note body -> P8 (1); keep code spans and link targets in paren_texts -> Q7 (2);
-#   drop the ", <qualifier>" tail from NOTE_LIST -> Q2 name, Q8 (2); never append the
+#   drop the ", <qualifier>" tail from NOTE_LIST -> Q2 name, Q8 (2); allow digits in that tail
+#   -> Q9 (2); never append the
 #   unreadable-citation violation -> Q6 (2); scan only Answer, Implications, Numbers and
 #   Unverified -> Q3, Q4, Q5 (6); drop re.I from NOTE_WORD -> Q4 (2).
 mutate q1 "Tool A has feature X (verified, F1);" "Tool A has feature X (verified, F1, note 9);"
@@ -397,9 +398,16 @@ assert_exit "Q7 a link target or code span with \"notes\" is not a citation" 0 "
 assert_absent "Q7 no citation report" "note citation" "$out"
 
 mutate q8 "**Verified** (notes 1, 2)" "**Verified** (notes 1,
-  2, both read 2026-10-20)"
+  2, both read; 2026-10-20)"
 run "$TMP/q8.md" --sources "$SRC"
 assert_exit "Q8 a qualified two-note citation still verifies" 0 "$code"
 assert_contains "Q8 the quote terms were still checked" "quotes: 3/3 verbatim" "$out"
+
+# Round 4: a number after the comma tail was read as qualifier text, so "(notes 1, and 9)"
+# skipped note 9. A qualifier after a comma now holds no digit; one with a digit follows ";".
+mutate q9 "**One source** (note 1)" "**One source** (notes 1, and 9)"
+run "$TMP/q9.md"
+assert_exit "Q9 a number hidden in a comma qualifier fails" 1 "$code"
+assert_contains "Q9 names F2" "F2: unreadable note citation" "$out"
 
 exit "$fail"

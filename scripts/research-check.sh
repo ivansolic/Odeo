@@ -32,8 +32,10 @@
 # ("(F1, verified)"), so a word like "C3 model" is not a reference. Note citations parse
 # FAIL CLOSED too: every parenthesis outside the Notes list is scanned (link targets and
 # code spans removed first), and a "note" or "notes" in one must be followed by a number
-# list, optionally then ", <qualifier>" or "; <qualifier>" ("(note 24, measured)"). Any
-# other "note" in a parenthesis ("(notes 1 and 2)", "(a note on pricing)") is a violation.
+# list, optionally then ", <qualifier>" or "; <qualifier>" ("(note 24, measured)"). A
+# qualifier after a comma holds no digit, so no note number can hide in it ("(notes 1, 2,
+# and 9)"); one with a digit follows ";". Any other "note" in a parenthesis ("(notes 1 and
+# 2)", "(a note on pricing)") is a violation.
 # The guard against a sources dir holding a copy of the report is a heuristic: it refuses
 # only when a note of 40 or more characters appears unchanged in a source file, so a copy
 # whose notes were all edited afterwards is not caught.
@@ -79,7 +81,7 @@ LABELS = ("Verified", "One source", "Unverified", "conflict")
 MUST_LIST = {"One source": "one source", "Unverified": "unverified", "conflict": "conflict"}
 TYPOGRAPHIC = "“”„«»"
 NOTE_WORD = re.compile(r"\bnotes?\b", re.I)
-NOTE_LIST = re.compile(r"notes?\s+(\d+(?:\s*,\s*\d+)*)\s*(?:,\s*\D.*)?", re.I | re.S)
+NOTE_LIST = re.compile(r"notes?\s+(\d+(?:\s*,\s*\d+)*)\s*(?:,\s*\D[^\d]*)?", re.I | re.S)
 
 
 def did_not_run(why):

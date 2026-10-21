@@ -49,10 +49,11 @@ method beats a confident single figure.
    each of its notes must quote, as `<!-- terms: term; alt one|alt two -->`; a note starts
    with its source's name, a comma, its page or file and a colon (`OpenAI docs, <page>:
    "quote"`), and only what follows that colon counts as quoted; a quote is text in straight
-   double quotes or backticks, never in typographic marks („ “ « »), even in a localized
+   double quotes or backticks, never in typographic marks („ “ ” « »), even in a localized
    report, and a source's own typographic marks may stay inside such a quote. Cite a note
-   only as `(note N)`, `(notes N, M)` or `(note N, <qualifier>)`: a parenthesis holding the
-   word note or notes without that number list is a violation in every section.
+   only as `(note N)`, `(notes N, M)`, `(note N, <qualifier>)` with no digit in the qualifier,
+   or `(note N; <qualifier>)`: a parenthesis holding the word note or notes without that
+   number list is a violation in every section.
 5. **Write the report** to `docs/research/RES-NNN-<slug>.md` (NNN = next number
    after the highest existing `RES-` file there):
    ```
@@ -69,8 +70,9 @@ method beats a confident single figure.
    ## Sources (grouped by publisher, links, access date, versions; one line on
       what the search did not cover: regions, paywalls, languages, blocked pages)
    ```
-5b. **Check, then score it**: run `${CLAUDE_PLUGIN_ROOT}/scripts/research-check.sh <report>
-   --sources ~/.cache/odeo/research/RES-NNN`, fix every violation it names (exit 1) and run
+5b. **Check, then score it**: run this one command,
+   `${CLAUDE_PLUGIN_ROOT}/scripts/research-check.sh <report> --sources ~/.cache/odeo/research/RES-NNN`,
+   fix every violation it names (exit 1) and run
    it again until it exits 0, at most three runs; violations still left go to the reviewer
    as a list. Exit 2 means the check did not run, so say that and why. It checks labels,
    notes, quote terms and quotes, not meaning, and it judges sources independent only by
