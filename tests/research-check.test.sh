@@ -4,7 +4,7 @@
 #
 # One GOOD report is built below; every other case is that report with ONE mutation, so a
 # case that turns red is attributable to its mutation alone. The mutations are the defect
-# classes the RES-002 review rounds 4 to 7 found by hand (docs/evals/RES-002.md).
+# classes the RES-002 review rounds 4 to 7 found by hand.
 #
 # FILE-WIDE INVARIANT: no case asserts only an exit code. Each violation case also asserts
 # the finding id or note number the script names, so a script that fails for the wrong

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # research-check.sh, the mechanical check a research report runs before review
 # (skills/research/SKILL.md step 5b). It catches, by rule, the defects the RES-002 review
-# rounds found by hand (docs/evals/RES-002.md): a finding without exactly one confidence
+# rounds found by hand: a finding without exactly one confidence
 # word, a Verified finding on fewer than two notes or on two notes from one source, a
 # not-verified or contested finding missing from Unverified, a reference to a finding or
 # note that does not exist, a quote term of a Verified finding that is not inside one quote
