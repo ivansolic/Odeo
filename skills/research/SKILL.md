@@ -57,8 +57,9 @@ method beats a confident single figure.
 5. **Write the report** to `docs/research/RES-NNN-<slug>.md` (NNN = next number
    after the highest existing `RES-` file there):
    ```
-   ## Question (scope, sub-questions, the decision it serves, key terms;
-      mode and depth may sit in the frontmatter)
+   ## Question (scope, region, segment and date sensitivity where they apply,
+      sub-questions, the decision it serves, key terms; mode and depth may sit
+      in the frontmatter)
    ## Answer (3 sentences, plain language; each factual clause cites its note
       or says "unverified")
    ## Findings (each claim: its note numbers + its confidence word, with the

@@ -30,8 +30,10 @@
 # locator never satisfies a quote term.
 # Finding ids are checked in Answer, Implications and Numbers only inside parentheses
 # ("(F1, verified)"), so a word like "C3 model" is not a reference. Note citations parse
-# FAIL CLOSED too: every parenthesis outside the Notes list is scanned (link targets and
-# code spans removed first), and a "note" or "notes" in one must be followed by a number
+# FAIL CLOSED too: every parenthesis outside the Notes list is scanned (code spans removed
+# first; a link address, the parenthesis right after "]", is skipped, but a parenthesis
+# nested inside it is read, so a separate word "note" in a URL's own parentheses is a false
+# alarm, never a miss), and a "note" or "notes" in one must be followed by a number
 # list, optionally then ", <qualifier>" or "; <qualifier>" ("(note 24, measured)"). A
 # qualifier after a comma holds no digit, so no note number can hide in it ("(notes 1, 2,
 # and 9)"); one with a digit follows ";". Any other "note" in a parenthesis ("(notes 1 and
@@ -101,20 +103,27 @@ def section(text, name):
 
 
 def paren_texts(text):
-    """The text of every parenthesis, nested ones included, after link targets (no spaces,
-    as in CommonMark, and one level of parentheses of their own) and code spans are removed, so a URL or a file name
-    holding "notes" is not a citation. An unclosed parenthesis runs to the end of its
-    paragraph, so it is read rather than skipped."""
-    text = re.sub(r"\]\((?:[^()\s]|\([^()\s]*\))*\)", "]", re.sub(r"`[^`]*`", "", text))
-    out, opened = [], []
+    """The text of every parenthesis, nested ones included, after code spans are removed.
+    A parenthesis right after "]" is a link address: it is not read, and the text directly
+    inside it is blanked, so a URL, a title or a <> address holding "notes" is not a
+    citation, while a parenthesis nested inside it is still read. An unclosed parenthesis
+    runs to the end of its paragraph, so it is read rather than skipped."""
+    text = re.sub(r"`[^`]*`", "", text)
+    chars, opened, spans = list(text), [], []
     for i, c in enumerate(text):
         if c == "(":
-            opened.append(i)
+            opened.append((i, i > 0 and text[i - 1] == "]"))
         elif c == ")" and opened:
-            out.append(text[opened.pop() + 1:i])
-    for i in opened:
-        end = re.search(r"\n\s*\n|\Z", text[i:])
-        out.append(text[i + 1:i + end.start()])
+            start, link = opened.pop()
+            spans.append((start, i, link))
+        elif opened and opened[-1][1]:
+            chars[i] = " "
+    text = "".join(chars)
+    out = [text[start + 1:end] for start, end, link in spans if not link]
+    for start, link in opened:
+        if not link:
+            end = re.search(r"\n\s*\n|\Z", text[start:])
+            out.append(text[start + 1:start + end.start()])
     return out
 
 

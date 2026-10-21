@@ -413,13 +413,13 @@ assert_contains "Q9 names F2" "F2: unreadable note citation" "$out"
 # --- R: round-4 and round-5 nitpicks. Headings and the text above the first "## " are
 # scanned too, a link address may hold one level of parentheses, an unclosed parenthesis
 # is read to the end of its paragraph, and the message names every allowed form (each red
-# on c8ced0a except S1 and S2, which lock what stays allowed and redden the mutations
+# on c8ced0a except S1, S2 and S8 to S12; S1, S2 and S10 to S12 lock what stays allowed and redden the mutations
 # "scan the Notes list too" and "do not blank nested parentheses").
 # Mutations, each run on a copy, with the cases they redden: scan the Notes list too -> S1
 #   (2); do not blank nested parentheses -> S2 (1); drop the heading line from each section
-#   -> S3 (2); drop the "Title" part -> S4 (2); the old link regex \]\([^)]*\) -> S5 (2);
-#   skip unclosed parentheses -> S6 (2); drop "reword" from the message -> S7 (1); allow
-#   spaces in a link address -> S8 (2); split the note segment on ")" as well as ";" -> S9 (2).
+#   -> S3 (2); drop the "Title" part -> S4 (2); skip unclosed parentheses -> S6 (2); drop
+#   "reword" from the message -> S7 (1); split the note segment on ")" as well as ";" -> S9
+#   (2). Link mutations are listed with S10 to S12 below.
 mutate s1 "2. Acme source, github.com/acme/a" "2. Acme source (release notes), github.com/acme/a"
 run "$TMP/s1.md"
 assert_exit "S1 a parenthesis inside the Notes list is not a citation" 0 "$code"
@@ -465,5 +465,27 @@ mutate s9 "- Rely on feature X (F1, verified)." "- Rely on feature X (F1, note 1
 run "$TMP/s9.md"
 assert_exit "S9 text after a two-deep nested parenthesis is still read" 1 "$code"
 assert_contains "S9 names the section" "Implications for us: unreadable note citation" "$out"
+
+# Round 2 found the link-address regex too tight after round 1 found it too loose, the same
+# class twice: a hand-made copy of CommonMark. The checker no longer decides where a link
+# address ends. It skips the parenthesis right after "]" and blanks only the text directly
+# inside it, so a title or a <> address cannot matter, and a citation nested inside a broken
+# link is still read (S8). Mutations: never treat "(" after "]" as a link -> Q7, S10, S11,
+#   S12 (8); blank nothing inside a link -> S12 (2); also blank parentheses nested inside a
+#   link -> S8 (2).
+mutate s10 "- Rely on feature X (F1, verified)." '- Rely on feature X (F1, verified) per [docs](https://a.dev/x "release notes").'
+run "$TMP/s10.md"
+assert_exit "S10 a link title holding notes is not a citation" 0 "$code"
+assert_absent "S10 no citation report" "note citation" "$out"
+
+mutate s11 "- Rely on feature X (F1, verified)." "- Rely on feature X (F1, verified) per [docs](<https://a.dev/release notes>)."
+run "$TMP/s11.md"
+assert_exit "S11 an angle-bracket address holding notes is not a citation" 0 "$code"
+assert_absent "S11 no citation report" "note citation" "$out"
+
+mutate s12 "- Rely on feature X (F1, verified)." "- Rely on feature X (F1, verified, see [d](https://a.dev/notes/(v2)))."
+run "$TMP/s12.md"
+assert_exit "S12 a link address with its own parentheses, inside a citation, is not read" 0 "$code"
+assert_absent "S12 no citation report" "note citation" "$out"
 
 exit "$fail"
