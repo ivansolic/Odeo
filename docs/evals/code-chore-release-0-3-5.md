@@ -2,158 +2,134 @@
 artifact: release-0.3.5
 type: code
 branch: chore/release-0.3.5
-reviewed_commit: 91566d1
-artifact_version: 1
+reviewed_commit: 65e00cd
+artifact_version: 2
 date: 2026-10-21
 scorer: code-reviewer
 model: claude-opus-5-5[1m] (Opus 5.5, 1M context)
 model_tier: strongest
 effort: high
-scores: { correctness: 1, security: 2, performance: 2, readability: 2, testing: 2, conventions: 1 }
-total: 10/12
+scores: { correctness: 1, security: 2, performance: 2, readability: 2, testing: 2, conventions: 2 }
+total: 11/12
 verdict: APPROVE WITH COMMENTS
 ---
 
-# Code review: chore/release-0.3.5, round 1
+# Code review: chore/release-0.3.5, round 2
 
 ## Scope reviewed
 
-- The release commit 91566d1. It changes `.claude-plugin/plugin.json:4` from 0.3.4 to 0.3.5
-  and nothing else.
-- The release contents, `git log dd566c2..91566d1`: 49 commits before the bump, in a straight
-  line. dd566c2 is the 0.3.4 release record on local main.
-
-origin is the public publication, a separate history, and was not compared.
+- `git rev-parse --short HEAD` is 65e00cd. That commit is
+  `docs(research): drop an internal record path from two public comments`, and it is the
+  tip: nothing comes after it.
+- `git diff --stat 91566d1..65e00cd` lists three files. One is the round-1 record, which
+  b830ac4 added unchanged. The other two are one-line comment edits in
+  `scripts/research-check.sh:4` and `tests/research-check.test.sh:7`. Nothing else moved,
+  so the round-1 coverage, bump, classification and count checks still hold for this
+  commit. I did not repeat them.
 
 ## Checks
 
-1. **Coverage.** Every non-eval commit is covered by an approving record. Each record is
-   anchored at its branch's last code commit, or at a later commit that only adds records.
-   There are four branches. The dispatcher listed three:
-   - `docs/knowledge-stacked-squash` (5df0dbf, 84dde3e, e82c918): the dispatcher missed this
-     one. Its record `docs/evals/code-docs-knowledge-stacked-squash.md` is anchored at
-     e82c918, the last code commit (104e33c only adds the record). It approves with
-     comments. Its files are all under `knowledge/`, which is internal.
-   - `docs/res-002-platform-support` (9da1025 to 921f906): `docs/evals/RES-002.md` passes at
-     921f906, the last report commit, with 16/16.
-   - `chore/research-one-fact-rule` (246bcc9 to 57daa41):
-     - The code record approves with comments at 57daa41, the last code commit.
-     - The skill record passes at 16c6cc5, which only adds a record. SKILL.md last changed
-       at 81877e4 and rubric.md at 9705c4e, both before 16c6cc5. The skill reviewer could
-       not run the diff itself, so I checked its claim from the file lists: nothing under
-       `skills/` moved between 81877e4 and 16c6cc5.
-     - Neither artifact line names `bin/research-check.sh` (added in 25b2a85 and never
-       changed) or the fixtures (added in 56ded01). They are inside the branch the code
-       record reviewed across nine rounds, and I read both here.
-   - `docs/knowledge-fail-closed-class` (06bbf15, 00541ba, 02494f8): its record approves at
-     02494f8, with 12/12.
-
-   No commit is uncovered.
-2. **Bump type.** Patch is the right bump under CONTRIBUTING.md:42-45. Nothing a user
-   depends on was moved or renamed:
-   - `scripts/research-check.sh` is new. Only the research skill calls it (step 5b). No
-     gate, hook or other script calls it, so a report that already exists is never checked
-     against the new format.
-   - The rubric is stricter. A Verified claim now needs both notes to quote the same fact,
-     and criterion 1 has a new middle step. That changes how a new review is scored, not the
-     structure. It is the same kind of change as the 0.3.4 plan criterion 6, which was a
-     patch. Records that already pass keep their verdict, and spec-gate does not read
-     research records.
-   - The script needs `python3`, which `focus-check.sh` already needed. When python3 is
-     missing it exits 2 ("did not run"), and the skill tells the agent to say so.
-3. **Classification.** All 347 tracked paths at 91566d1 are classified: 231 public, 116
-   internal, none unclassified. The eight new public paths are `bin/research-check.sh`,
-   `scripts/research-check.sh`, `tests/research-check.test.sh` and five files under
-   `tests/fixtures/research/`, so 223 + 8 = 231.
-4. **Public surface.**
-   - `tests/research-check.test.sh` reads nothing internal while it runs. It reads only
-     `$ROOT/scripts/research-check.sh` and `$ROOT/tests/fixtures/research` (line 182), and
-     the script reads only its arguments. The fixtures are synthetic ("Widget CLI"), with no
-     PII and no local paths.
-   - The worked example in `skills/research/SKILL.md` names RES-002 by ID. 0.3.4 already
-     did that, and the quotes are from public vendor docs and a public repo, so nothing
-     internal is linked.
-   - Two comments do name an internal file, `docs/evals/RES-002.md`, which the public tree
-     will not have. See Important 2.
-5. **Counts.**
-   - The quick `bash scripts/docs-claims-check.sh` passes with rc 0: 27 programs, 40
-     suites, and 27 programs with their own suite.
-   - I ran `tests/research-check.test.sh` alone: 145 ok, 0 FAIL, rc 0. It is the only
-     suite in the range that changed, so 1426 + 145 = 1571, which matches README.md:242.
-   - I did not run the full `--assertions` total. The coordinator will run it inside the
-     snapshot.
-   - The script line in README.md:216 matches the script.
-   - The `/odeo:research` row in `docs/system-map.md:72` says "every claim 2+ independent
-     sources or labeled unverified". That row predates this range and still roughly holds,
-     because a claim labelled one source is also listed under Unverified.
-6. **Dashes.** The added lines under README.md, scripts/, tests/, skills/, bin/ and
-   .claude-plugin/ have no em or en dashes. The scan was checked first on a line that does
-   contain one, and it found it.
+1. **Round-1 Important 2, the instance.** Both `(docs/evals/RES-002.md)` parentheticals are
+   gone. `grep -rn docs/evals/RES-002` across scripts/, tests/, bin/, skills/ and README.md
+   now finds nothing. Both comments still read correctly. The edit only touches comments,
+   so the 145 assertions in the research-check suite are unaffected. I did not re-run
+   them.
+2. **The four older references the dispatcher's hand grep found.** All four come from
+   before this release and are already on the public origin/main. None of them must block
+   0.3.5:
+   - `skills/merge/SKILL.md:102`, `docs/evals/skill-merge.md`. This sits in a line of
+     sample output in a worked example. A reader takes it as an illustrative record name,
+     not as a pointer to a file to open. No content is leaked, it is only a filename. It
+     does collide with a real internal file, so the 0.3.6 tripwire will fire on it. The
+     fix there is to rename it to a synthetic name that fits the example branch, such as
+     `docs/evals/code-docs-fix-the-thing.md`.
+   - `tests/localized-prose.test.sh:12` and `tests/fixtures/language-de-project/CLAUDE.md:4`,
+     `docs/checklists/language-live-check.md`. This is the same class as the one just
+     fixed. A public reader is pointed at a procedure the public tree does not ship. The
+     first of the two goes further and says AC1's generated-output half "is proven by"
+     that procedure, so on the public tree that claim cannot be checked. It is the
+     strongest of the four and should be fixed first in 0.3.6: either say that the
+     procedure is maintainer-internal, or drop the path. It does not block this release,
+     because 0.3.5 neither adds nor changes it, and holding the release back would not
+     unpublish it.
+   - `tests/language-guard.test.sh:185,198`. This is not a reference. It is a filename used
+     as a fixture, created under `$TMP`, which happens to match the tracked
+     `docs/plans/2026-07-23-USR-001-no-leak-guardrail.md` (and line 192 matches the tracked
+     story/eval name `USR-001-006-output-language.md`). It is a false positive for the
+     tripwire. The 0.3.6 mechanism must deal with it, either by renaming the fixture to a
+     synthetic id or by matching only outside `$TMP` heredoc targets. Otherwise the
+     tripwire starts life with an exemption list, and that list will grow.
+3. **Snapshot status.** The dispatcher reports publish-snapshot exit 3 with 35 advisory
+   privacy findings, none on a file changed since dd566c2, and that the snapshot suites
+   are running. I did not verify any of this. The merge decision should wait for those
+   suites to come back green.
 
 ## Findings
 
 Critical: none.
 
 Important
-- `skills/research/SKILL.md:35` and `:75`: the quote check can pass on pages from another
-  project.
-  - **What:** each project numbers its own reports (step 5: the next number after its own
-    highest `RES-` file). But the sources go to one shared folder per machine,
-    `~/.cache/odeo/research/RES-NNN/`. So the first report in project A and the first in
-    project B both save into `RES-001/`. An abandoned earlier attempt in the same project
-    leaves its pages there too.
-  - **Why it matters:** `read_sources` (`scripts/research-check.sh:264-288`) joins every
-    file in the folder into one text, and `check_quotes` accepts a quote found anywhere in
-    it. Measured on the public fixture: with `hooks.md` removed the check fails (rc 1,
-    6/8 quotes). The same page copied under `from-another-project/page.md` makes it pass
-    (rc 0, 8/8). So a quote that only appears in some other project's page is counted as
-    verbatim in this one's source.
-  - **Fix:** name the folder per project and require it to be new. For example
-    `~/.cache/odeo/research/<repo top-level dir name>/RES-NNN/`, and if that folder
-    already exists, empty it only with the human's OK, or stop and ask. Put a stale folder
-    in the "Honest limits" list. This is a skill change, so it needs a skill-reviewer pass.
-    It can go in a 0.3.6 fix branch rather than this release, because the reviewer still
-    judges quotes and the failure only makes a heuristic check weaker.
-- `scripts/research-check.sh:4` and `tests/research-check.test.sh:7`: two public files cite
-  `(docs/evals/RES-002.md)`, an internal record that the public tree will not have. Round 1
-  of 0.3.4 caught this same class in `docs/checklists/review-calibration.md`, as a
-  nitpick. It is rated higher now because the class came back one release later, and
-  nothing checks for it.
-  - **Fix now:** delete the parenthetical in both comments. "the defects the RES-002
-    review rounds found by hand" reads correctly on its own.
-  - **Fix the class:** add a mechanism instead of a third reminder. For example, a test (or
-    a `publish-guard.sh --require-allowlist` step) that takes every tracked internal FILE
-    path and greps the public files for it as a literal. That catches
-    `docs/evals/RES-002.md` but not the generic `docs/research/RES-NNN-<slug>.md` that the
-    skills legitimately point users at. Plant one reference first and watch it go red.
+- `skills/research/SKILL.md:35` and `:75` (carried over from round 1, routed to 0.3.6): the
+  folder `~/.cache/odeo/research/RES-NNN/` is shared by every project on the machine.
+  `read_sources` (`scripts/research-check.sh:264-288`) reads every file in it, so a quote
+  found only in another project's page, or in an abandoned attempt's page, counts as
+  verbatim. Round 1 showed this on the fixture: rc 1 without the page, rc 0 with it copied
+  into a sibling directory. The fix is unchanged: give each project its own folder, and
+  require the folder to be new or emptied with the human's OK. Add it to "Honest limits".
+  It needs a skill-reviewer pass.
 
 Nitpicks
-- `bin/research-check.sh:2-3`: the comment says the wrapper exists "so git hooks and
-  ~/bin shims written by Odeo 0.2.x still find it". No 0.2.x caller can exist, because the
-  program is new in 0.3.5. The real reason is that `tests/bin-wrappers.test.sh` requires
-  bin/ and scripts/ to name the same programs. Fix: say that in the comment. Or exempt
-  programs added after 0.2.x from that rule, so bin/ does not grow while
-  `docs/public-paths.txt` says it is "removed in the next release".
+- `bin/research-check.sh:2-3` (carried over, routed to 0.3.6): the reason the comment gives
+  for the wrapper, 0.2.x callers, cannot apply to a program that is new in 0.3.5. It should
+  name the bin/scripts parity rule in `tests/bin-wrappers.test.sh` instead.
+
+## Routing to 0.3.6: is it acceptable for a patch release?
+
+Yes for both items, on these terms:
+- **(1) Shared cache folder: acceptable.** The fault weakens a check, it does not open a
+  bypass. `research-check.sh` runs before review as an advisory check. No gate, hook or
+  spec-gate reads it, and the research reviewer still judges quotes against the sources.
+  The fault only shows up when two projects, or two attempts, reuse the same `RES-NNN`
+  number and the planted page contains the quote. The fix changes the skill, which needs
+  its own skill-reviewer loop, and a release-bump branch is the wrong place for that.
+  Shipping 0.3.5 does not make anything worse than it was in 0.3.4, which had no quote
+  check at all.
+- **(2) The tripwire: acceptable.** The instance this release would have added is fixed.
+  The four references left are already public, unchanged here, and leak only filenames,
+  not content. Still, the class has now recurred across two releases, so under the
+  placement rule (a lesson that recurs needs a mechanism, not another reminder) the
+  tripwire must not slip past 0.3.6. Build it RED-first against a planted reference, and
+  have it cover the `$TMP` fixture false positive described above.
 
 ## Scores
 
 correctness 1/2 · security 2/2 · performance 2/2 · readability 2/2 · testing 2/2 ·
-conventions 1/2 -> total 10/12 (threshold: >=9, no zero). PASS.
+conventions 2/2 -> total 11/12 (threshold: >=9, no zero). PASS.
 
 ## Ceiling
 
-12/12 is reachable, and nothing in the change caps it. Two things block it:
-- correctness: the shared sources folder (Important 1);
-- conventions: the internal path in public comments, which came back (Important 2).
+The ceiling for this branch as scoped is 11/12. Correctness is held at 1 by the
+shared-cache Important, which is shipped code and deliberately left for 0.3.6, because its
+fix is a skill change with its own reviewer. 12/12 needs that fix, and it does not belong
+on a release-bump branch.
 
-Removing the two parentheticals is a comment-only change, which needs this record
-regenerated, not a new skill review. The cache-folder fix touches the skill and needs its
-own reviewer.
-
-The 1571 total adds the coordinator's earlier full-run figure, 1426, to the 145 this
-reviewer counted. It is not a full snapshot run.
+Conventions went from 1 to 2. The diff no longer adds an internal path to public files. The
+four older references are outside this release's diff and do not count against it, but
+they are recorded above so that 0.3.6 owns them.
 
 ## Regression note
 
-This is the first record for this branch. For context, the 0.3.4 release ended at 12/12
-APPROVE.
+Better than round 1: 10/12 -> 11/12, and the verdict stays APPROVE WITH COMMENTS.
+Conventions went up because the two parentheticals were removed. Correctness is unchanged,
+because the finding was routed and not fixed.
+
+## History
+
+- Round 1, at 91566d1: 10/12, APPROVE WITH COMMENTS. Important 1 was the shared cache
+  folder. Important 2 was `docs/evals/RES-002.md` named in two public comments, plus the
+  request for a tripwire. There was one nitpick, the `bin/research-check.sh` comment. The
+  release contents dd566c2..91566d1 were checked for coverage, bump type, classification,
+  public surface, counts and dashes.
+- Round 2, at 65e00cd: the instance of Important 2 is fixed. Important 1, the tripwire and
+  the nitpick are routed to a 0.3.6 fix branch. The four older references to internal
+  paths were judged and do not block the release. 11/12, APPROVE WITH COMMENTS.
