@@ -410,4 +410,49 @@ run "$TMP/q9.md"
 assert_exit "Q9 a number hidden in a comma qualifier fails" 1 "$code"
 assert_contains "Q9 names F2" "F2: unreadable note citation" "$out"
 
+# --- R: round-4 and round-5 nitpicks. Headings and the text above the first "## " are
+# scanned too, a link address may hold one level of parentheses, an unclosed parenthesis
+# is read to the end of its paragraph, and the message names every allowed form (each red
+# on c8ced0a except R1 and R2, which lock what stays allowed and redden the mutations
+# "scan the Notes list too" and "do not blank nested parentheses").
+# Mutations, each run on a copy, with the cases they redden: scan the Notes list too -> R1
+#   (2); do not blank nested parentheses -> R2 (1); drop the heading line from each section
+#   -> R3 (2); drop the "Title" part -> R4 (2); the old link regex \]\([^)]*\) -> R5 (2);
+#   skip unclosed parentheses -> R6 (2); drop "reword" from the message -> R7 (1).
+mutate r1 "2. Acme source, github.com/acme/a" "2. Acme source (release notes), github.com/acme/a"
+run "$TMP/r1.md"
+assert_exit "R1 a parenthesis inside the Notes list is not a citation" 0 "$code"
+assert_absent "R1 no citation report" "note citation" "$out"
+
+mutate r2 "**Verified** (notes 1, 2)" "**Verified** (notes 1, 2 (both read 2026-10-20))"
+run "$TMP/r2.md" --sources "$SRC"
+assert_exit "R2 a nested parenthesis after the note list is allowed" 0 "$code"
+assert_contains "R2 the quote terms were still checked" "quotes: 3/3 verbatim" "$out"
+
+mutate r3 "## Numbers" "## Numbers (note 9)"
+run "$TMP/r3.md"
+assert_exit "R3 a missing note cited in a heading fails" 1 "$code"
+assert_contains "R3 names the section and note" "Numbers: cites missing note 9" "$out"
+
+mutate r4 "# RES-900: fixture" "# RES-900: fixture (note 9)"
+run "$TMP/r4.md"
+assert_exit "R4 a missing note cited above the first section fails" 1 "$code"
+assert_contains "R4 names the title part and note" "Title: cites missing note 9" "$out"
+
+mutate r5 "- Rely on feature X (F1, verified)." "- Rely on feature X (F1, see [wiki](https://w.org/Foo_(bar)), note 9)."
+run "$TMP/r5.md"
+assert_exit "R5 a link address with parentheses does not hide a citation" 1 "$code"
+assert_contains "R5 names the section and note" "Implications for us: cites missing note 9" "$out"
+
+mutate r6 "- Rely on feature X (F1, verified)." "- Rely on feature X (F1, verified; note 9."
+run "$TMP/r6.md"
+assert_exit "R6 an unclosed parenthesis with a note fails" 1 "$code"
+assert_contains "R6 names the section" "Implications for us: unreadable note citation" "$out"
+
+mutate r7 "- Rely on feature X (F1, verified)." "- Rely on feature X (F1, verified; a note on pricing)."
+run "$TMP/r7.md"
+assert_exit "R7 prose with note in a parenthesis fails" 1 "$code"
+assert_contains "R7 the message names the semicolon form" "(note N; <qualifier>)" "$out"
+assert_contains "R7 the message offers rewording" "reword" "$out"
+
 exit "$fail"

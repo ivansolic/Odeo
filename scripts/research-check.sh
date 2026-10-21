@@ -35,7 +35,9 @@
 # list, optionally then ", <qualifier>" or "; <qualifier>" ("(note 24, measured)"). A
 # qualifier after a comma holds no digit, so no note number can hide in it ("(notes 1, 2,
 # and 9)"); one with a digit follows ";". Any other "note" in a parenthesis ("(notes 1 and
-# 2)", "(a note on pricing)") is a violation.
+# 2)", "(a note on pricing)") is a violation. A number after ";" is qualifier text, so every
+# cited note goes in the list before it: "(notes 1; 9)" checks note 1 only. Headings, the
+# title and the frontmatter are scanned too ("Title" names the text above the first "## ").
 # The guard against a sources dir holding a copy of the report is a heuristic: it refuses
 # only when a note of 40 or more characters appears unchanged in a source file, so a copy
 # whose notes were all edited afterwards is not caught.
@@ -99,15 +101,20 @@ def section(text, name):
 
 
 def paren_texts(text):
-    """The text of every parenthesis, nested ones included, after link targets and code
-    spans are removed, so a URL or a file name holding "notes" is not a citation."""
-    text = re.sub(r"\]\([^)]*\)", "]", re.sub(r"`[^`]*`", "", text))
+    """The text of every parenthesis, nested ones included, after link targets (with one
+    level of parentheses of their own) and code spans are removed, so a URL or a file name
+    holding "notes" is not a citation. An unclosed parenthesis runs to the end of its
+    paragraph, so it is read rather than skipped."""
+    text = re.sub(r"\]\((?:[^()]|\([^()]*\))*\)", "]", re.sub(r"`[^`]*`", "", text))
     out, opened = [], []
     for i, c in enumerate(text):
         if c == "(":
             opened.append(i)
         elif c == ")" and opened:
             out.append(text[opened.pop() + 1:i])
+    for i in opened:
+        end = re.search(r"\n\s*\n|\Z", text[i:])
+        out.append(text[i + 1:i + end.start()])
     return out
 
 
@@ -119,11 +126,13 @@ def cited_notes(text, where, violations):
     for paren in paren_texts(text):
         paren = re.sub(r"\([^()]*\)", "", paren)
         for m in NOTE_WORD.finditer(paren):
-            segment = re.split(r"[;)]", paren[m.start():], maxsplit=1)[0]
+            segment = paren[m.start():].split(";", 1)[0]
             cite = NOTE_LIST.fullmatch(segment)
             if cite is None:
                 violations.append(f"{where}: unreadable note citation '({norm(paren)[:60]})'; "
-                                  "write (note N), (notes N, M) or (note N, <qualifier>)")
+                                  "write (note N), (notes N, M), (note N, <qualifier without "
+                                  "digits>) or (note N; <qualifier>), or reword a parenthesis "
+                                  "that is not a citation")
                 continue
             nums.extend(int(x) for x in re.findall(r"\d+", cite.group(1)))
     return nums
@@ -230,9 +239,12 @@ def check_citations(text, findings, notes, claims_part, notes_part, violations):
     rest = text.replace(notes_part, "\n")
     for body in findings.values():
         rest = rest.replace(body, "\n", 1)
-    for m in re.finditer(r"(?ms)^## ([^\n(]*?)\s*(?:\(.*?)?$(.*?)(?=^## |\Z)", rest):
-        name = m.group(1)
-        for n in sorted(set(cited_notes(m.group(2), name, violations)) - set(notes)):
+    first = re.search(r"(?m)^## ", rest)
+    parts = [("Title", rest[:first.start()] if first else rest)]
+    parts += [(m.group(1), m.group(0)) for m in
+              re.finditer(r"(?ms)^## ([^\n(]*?)\s*(?:\(.*?)?$.*?(?=^## |\Z)", rest)]
+    for name, part in parts:
+        for n in sorted(set(cited_notes(part, name, violations)) - set(notes)):
             violations.append(f"{name}: cites missing note {n}")
 
 
