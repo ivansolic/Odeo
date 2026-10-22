@@ -110,8 +110,8 @@ What updates: every skill, agent, guard script, and the global baseline (it is d
 by the plugin at session start, not copied into your files). What never changes on an
 update: your own `~/.claude/CLAUDE.md`, your projects, and your language setting.
 
-**Updating from 0.3.0 or earlier:** refresh the git guards of projects set up before 0.3.1
-once. Their hooks look up Odeo's programs on PATH first, where a script of the same name
+**Projects set up before 0.3.1, whatever Odeo version you run now:** refresh their git
+guards once. Their hooks look up Odeo's programs on PATH first, where a script of the same name
 from your environment or the project could stand in for the secret scan, and 0.2.x hooks
 (and the `~/bin` shims of an old `install.sh` setup) look only in `bin/`, which releases after 0.3.5 no longer ship, so they find a program
 only while an older Odeo copy is still in the plugin cache. In each such project Odeo names the command at session start (it
@@ -225,7 +225,7 @@ Odeo/
 │   ├── share-tunnel.sh       ← time-boxed public tunnel for a preview
 │   ├── second-opinion.sh     ← the sanctioned path for a paid cross-model review
 │   ├── ledger-backup.sh      ← backs up todo.md + lessons.md, which git deliberately ignores
-│   └── session-end-check.sh  ← advisory end-of-session sweep (incl. a stale ledger backup)
+│   └── session-end-check.sh  ← advisory end-of-session sweep (stale backup, long todo.md)
 ├── project-templates/        ← project-specific scaffolding only (not the tools)
 │   ├── CLAUDE.md             ← per-project config incl. a Security & Data section
 │   ├── knowledge/            ← README for the project knowledge base
