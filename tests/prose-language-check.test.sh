@@ -442,7 +442,7 @@ assert_eq "K10 the German still dominates, so the document is not misread: statu
 
 # K11: the heading rule without awk interval expressions. Up to three leading spaces still
 # make a heading, four do not, and seven hashes are not a heading. Intervals were the first
-# {n,m} use in bin/ and the awk on the stated portability floor treats them literally, which
+# {n,m} use in scripts/ and the awk on the stated portability floor treats them literally, which
 # would have silently killed exclusion 4 on installed machines.
 k11a="$TMP/K11a.md"; printf '   ## %s\nund mit von zu zum zur\n' "$SIX" > "$k11a"
 run "$DE" "$k11a"; o="$OUT"

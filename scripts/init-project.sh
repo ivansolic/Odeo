@@ -10,7 +10,7 @@
 # Usage:
 #   init-project.sh <project-name> [--no-ui]
 #
-# Templates come from the plugin's own project-templates/, next to this script's bin/
+# Templates come from the plugin's own project-templates/, next to this script's scripts/
 # (the layout Claude Code copies into the plugin cache). CLAUDE_TEMPLATES_DIR overrides.
 
 set -euo pipefail

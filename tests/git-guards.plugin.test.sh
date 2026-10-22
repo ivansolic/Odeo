@@ -7,7 +7,8 @@
 # the hooks were installed from (a plugin loaded in place from a clone). Never PATH (case
 # 11: a foreign script there is not Odeo's gate) and never a path relative to the repo
 # (case 10). Case 9 runs a hook written by the 0.2.x installer (bin/ lookups only) against
-# a current-layout cache, which reaches the program through the bin/ wrapper.
+# a 0.3.0 to 0.3.5 cache, which reaches the program through that release's bin/ wrapper
+# (tests/fixtures/legacy-bin-wrapper.sh; the repo itself no longer ships bin/).
 #
 # Observed failing (2026-09-23), each mutant checked to differ from the original:
 #   M1 no cache lookup          -> 3 FAIL (cases 2, 3, 4). Case 1 stays green under M1 because
@@ -19,7 +20,7 @@
 # Observed failing (2026-09-29), after the move to scripts/:
 #   M5 no scripts/ glob in the cache lookup -> 5 FAIL (cases 1, 2, 3, 4, 7)
 #   M6 no bin/ glob in the cache lookup     -> 1 FAIL (case 8)
-#   M7 bin/ wrapper does not forward        -> 2 FAIL (case 9)
+#   M7 the bin/ wrapper (tests/fixtures/legacy-bin-wrapper.sh) does not forward-> 2 FAIL (case 9)
 #   M8 repo-relative scripts/ and bin/ fallback restored (the 0.3.0 review's finding)
 #                                           -> 4 FAIL (case 10)
 #   M9 PATH lookup (command -v) restored first, as in 0.3.0 (the RED of case 11)
@@ -128,10 +129,10 @@ r8="$TMP/r8"; git init -q "$r8" && git -C "$r8" commit -q --allow-empty -m init
 assert_eq "current hook finds a 0.2.x cache (bin/)" "secret-scan.sh legacy-layout" "$(cat "$LOG")"
 
 # 9) THE COMPATIBILITY PROMISE: a hook written by the 0.2.x installer (it only knows
-#    */odeo/*/bin) keeps its gate once the cache holds only a current-layout version, whose
+#    */odeo/*/bin) keeps its gate while the cache holds a 0.3.0 to 0.3.5 version, whose
 #    real programs are in scripts/ and whose bin/ holds the forwarding wrappers.
 H9="$TMP/home9"; v9="$H9/.claude/plugins/cache/odeo/odeo/0.3.0"
-stub "$v9/scripts" current-layout 0; mkdir -p "$v9/bin"; cp "$ROOT"/bin/secret-scan.sh "$ROOT"/bin/publish-guard.sh "$v9/bin/"
+stub "$v9/scripts" current-layout 0; mkdir -p "$v9/bin"; cp "$ROOT/tests/fixtures/legacy-bin-wrapper.sh" "$v9/bin/secret-scan.sh"; cp "$ROOT/tests/fixtures/legacy-bin-wrapper.sh" "$v9/bin/publish-guard.sh"
 r9="$TMP/r9"; git init -q "$r9" && git -C "$r9" commit -q --allow-empty -m init
 # The pre-commit hook the 0.2.2 installer wrote, verbatim except the two baked paths
 # (the install-time dir is gone, as after a cache sweep). Copied, not regenerated from git

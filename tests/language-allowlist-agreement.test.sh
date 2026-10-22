@@ -2,7 +2,7 @@
 # Invariant: every copy of the output-language allowlist agrees.
 #
 # The code set `en de hr fr` is a literal in scripts/{resolve-language,set-global-language,
-# set-project-language,language-status}.sh, a `case` arm in bin/init-project.sh, and the
+# set-project-language,language-status}.sh, a `case` arm in scripts/init-project.sh, and the
 # userConfig options in .claude-plugin/plugin.json. This test is the ONLY mechanical
 # defense against those six
 # copies drifting. The failure it prevents is quiet, not loud: a writer that accepts a code
@@ -85,7 +85,7 @@ assert_eq "project writer accepts exactly the expected set" "$EXPECTED" "$p_acce
 assert_eq "global writer accepts exactly the expected set" "$EXPECTED" "$g_accept"
 assert_eq "both writers accept the SAME subset" "$p_accept" "$g_accept"
 
-# 4) THE FIFTH COPY: bin/init-project.sh is do-not-touch here, so it is checked textually
+# 4) THE FIFTH COPY: scripts/init-project.sh is do-not-touch here, so it is checked textually
 #    rather than by invoking the scaffolder (which would create a whole project tree).
 #    Extract the case ARMS rather than grepping for one expected arm: a grep for the
 #    expected pattern stays satisfied when an EXTRA arm is added (e.g. `es) ;;`), which

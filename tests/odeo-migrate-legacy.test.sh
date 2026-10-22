@@ -24,7 +24,7 @@
 #   M10 no refresh of outdated shims         -> 2 FAIL (case 15)
 #   M11 refresh overwrites without a copy    -> 1 FAIL (case 15, nothing is ever deleted)
 # Observed failing (2026-09-29), after the move to scripts/:
-#   M12 bin/publish-guard.sh wrapper exits 0 without forwarding -> 2 FAIL (case 16)
+#   M12 the bin/ wrapper (tests/fixtures/legacy-bin-wrapper.sh) exits 0 without forwarding -> 2 FAIL (case 16)
 #   M13 bounded() without the explicit <&0 (stdin becomes /dev/null) -> 1 FAIL (case 16)
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -230,15 +230,15 @@ out="$(HOME="$H" "$SCRIPT" --apply 2>&1)"
 assert_contains "a current shim is not refreshed again" "nothing to migrate" "$out"
 
 # 16) THE COMPATIBILITY PROMISE for shims: a ~/bin shim written by 0.2.2 (it only knows
-#     */odeo/*/bin), verbatim except the two baked paths, keeps its guard once the cache holds
-#     only a current-layout version (programs in scripts/, forwarding wrappers in bin/): the
-#     caller's stdin and the exit code pass through. With bin/ gone (the next release) it
+#     */odeo/*/bin), verbatim except the two baked paths, keeps its guard while the cache holds
+#     a 0.3.0 to 0.3.5 version (programs in scripts/, forwarding wrappers in bin/): the
+#     caller's stdin and the exit code pass through. With bin/ gone (releases after 0.3.5) it
 #     BLOCKS, which is the outcome the session-start nudge warns about. HOME is the fake home
 #     and CLAUDE_CONFIG_DIR is unset, so no real cache can answer instead.
 H16="$TMP/h16"; mkdir -p "$H16/bin"; v16="$H16/.claude/plugins/cache/odeo/odeo/0.3.0"
 mkdir -p "$v16/scripts" "$v16/bin"
 printf '#!/usr/bin/env bash\nwc -c | tr -d " "\nexit 5\n' > "$v16/scripts/publish-guard.sh"; chmod +x "$v16/scripts/publish-guard.sh"
-cp "$ROOT/bin/publish-guard.sh" "$v16/bin/"
+cp "$ROOT/tests/fixtures/legacy-bin-wrapper.sh" "$v16/bin/publish-guard.sh"
 { printf '#!/usr/bin/env bash\n'
   printf '# odeo-migrate-legacy shim: a pre-plugin project'"'"'s git hook calls ~/bin/publish-guard.sh; this runs the\n'
   printf '# newest Odeo plugin copy instead. Delete this file if you no longer use those projects.\n'

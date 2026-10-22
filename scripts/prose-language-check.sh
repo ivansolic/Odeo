@@ -189,7 +189,7 @@ EOF
   # C3 declares the status set closed at WARN | OK | LOW-EVIDENCE | NO-PROSE; UNREADABLE is a
   # FIFTH token. Both deviations are deliberate, and C3's list is raised as a plan correction
   # at the gate rather than edited here. No shipped consumer enumerates statuses (checked:
-  # nothing in bin/, skills/ or agents/ greps a status token, and neither AGENTS.md nor
+  # nothing in scripts/, skills/ or agents/ greps a status token, and neither AGENTS.md nor
   # global/CLAUDE.md lists them), so the widening breaks nothing that exists.
   #
   # What UNREADABLE means, stated as the CODE behaves and not more narrowly: a region that is
