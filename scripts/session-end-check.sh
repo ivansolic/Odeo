@@ -3,7 +3,8 @@
 # session-end-check.sh, advisory end-of-session sweep (Stop hook).
 #
 # Warns when things that should not outlive a working session are still alive:
-# public tunnels, dev servers, extra git worktrees. Advisory only: it prints,
+# public tunnels, dev servers, extra git worktrees, a ledger backup that fell behind, a
+# todo.md grown past what a session should read at start. Advisory only: it prints,
 # it never blocks, and it ALWAYS exits 0 (a broken check must not trap the user
 # in a session).
 #
@@ -65,6 +66,19 @@ if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
       else
         say "  (todo.md and lessons.md are gitignored, so git is not carrying them: run /odeo:retro, or ledger-backup.sh)"
       fi
+    fi
+  fi
+
+  # 6. The ledger has grown past what a session should read at start.
+  #    todo.md is read at the start of every session, so finished tasks left in it are paid
+  #    for every time (one ledger reached 1,343 lines). A written "keep it short" rule did not
+  #    hold, so the size is checked here, at the end of the session that let it grow.
+  LEDGER_MAX_LINES=150
+  todo="$root/.claude/tasks/todo.md"
+  if [[ -n "$root" && -f "$todo" ]]; then
+    todo_lines="$(wc -l < "$todo" | tr -d ' ')"
+    if [[ "$todo_lines" -gt "$LEDGER_MAX_LINES" ]]; then
+      say "todo.md has $todo_lines lines (limit $LEDGER_MAX_LINES): move finished tasks out (what matters goes into the commit, PR or lessons.md first)."
     fi
   fi
 fi

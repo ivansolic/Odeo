@@ -125,6 +125,27 @@ nogit="$TMP/nogit"; mkdir -p "$nogit"
 out="$( cd "$nogit" && bash "$SCRIPT" 2>&1 )"; rc=$?
 [ "$rc" = 0 ] && ok "outside a git repo: exit 0" || bad "exit $rc outside a git repo"
 
+# 7. A ledger that keeps finished tasks grows until every session pays to read it (it reached
+#    1,343 lines once). Over 150 lines it says so, naming the count; at 150 it stays quiet.
+#    Mutation recipe: change `-gt "$LEDGER_MAX_LINES"` in the script to `-gt 999999`; 7a fails
+#    (1 failure: the count is not named), 7b and 7c stay green.
+p7="$(mkproject long)"
+seq 1 200 > "$p7/.claude/tasks/todo.md"
+out="$(run "$p7")"; rc=$?
+[ "$rc" = 0 ] && ok "a 200-line ledger: exit 0" || bad "exit $rc"
+case "$out" in *"todo.md has 200 lines"*) ok "and it names the size of a 200-line ledger" ;;
+  *) bad "a 200-line ledger produced no size warning (got: ${out:-<silence>})" ;; esac
+seq 1 150 > "$p7/.claude/tasks/todo.md"
+out="$(run "$p7")"; rc=$?
+[ "$rc" = 0 ] && ok "a 150-line ledger: exit 0" || bad "exit $rc"
+case "$out" in *"todo.md has"*) bad "a 150-line ledger was warned about (got: $out)" ;;
+  *) ok "a ledger at the limit (150 lines) stays quiet" ;; esac
+rm -f "$p7/.claude/tasks/todo.md"
+out="$(run "$p7")"; rc=$?
+[ "$rc" = 0 ] && ok "no todo.md at all: exit 0" || bad "exit $rc without a todo.md"
+case "$out" in *"todo.md has"*) bad "it reported a size for a ledger that does not exist" ;;
+  *) ok "and nothing is said about its size" ;; esac
+
 echo ""
 if [ "$fail" -eq 0 ]; then echo "session-end-check: all $pass assertions passed."; else echo "session-end-check: $fail FAILURE(S) above."; fi
 exit "$fail"

@@ -62,10 +62,9 @@ Odeo is a Claude Code plugin. Nothing to clone, nothing to copy into your home f
 **+ → Plugins → Add plugin → odeo** and pick **your user account** as the scope. At user scope
 the terminal and the desktop app's local sessions share it, so it is installed in both (a
 project or local-only scope stays in that one folder). **Customize → Plugins → Add marketplace**
-does not work for Odeo yet: that path syncs through claude.ai (and Cowork), and claude.ai does
-not install a plugin that ships a top-level `bin/` folder. Odeo's programs now live in
-`scripts/`; `bin/` only holds forwarding wrappers for git guards written by older versions,
-and it goes in the next release.
+is not verified for Odeo yet: that path syncs through claude.ai (and Cowork). claude.ai
+does not install a plugin that ships a top-level `bin/` folder; Odeo no longer ships one
+(its programs live in `scripts/`), but the install through that path has not been tested.
 
 When the plugin is enabled, Claude Code asks once which language Odeo writes your
 documents in (English, Deutsch, Hrvatski, Français). Code, filenames and commits always
@@ -85,7 +84,7 @@ Code inside WSL or Git Bash; that path is **not yet verified** end to end.
 **Other agents** (Codex CLI and app, Antigravity, claude.ai and Cowork): not yet. Each needs
 its own plugin manifest and a verified port of the hooks, and none ships until it is tested;
 claude.ai and Cowork additionally reject a plugin with a top-level `bin/` folder, which Odeo
-drops in the next release.
+no longer ships.
 
 **Coming from the old `install.sh` setup?** Its copies in your home folder would load
 every skill twice. After installing the plugin, ask Claude to run the plugin's
@@ -111,11 +110,11 @@ What updates: every skill, agent, guard script, and the global baseline (it is d
 by the plugin at session start, not copied into your files). What never changes on an
 update: your own `~/.claude/CLAUDE.md`, your projects, and your language setting.
 
-**Updating from 0.3.0 or earlier:** refresh the git guards of projects set up before 0.3.1
-once. Their hooks look up Odeo's programs on PATH first, where a script of the same name
+**Projects set up before 0.3.1, whatever Odeo version you run now:** refresh their git
+guards once. Their hooks look up Odeo's programs on PATH first, where a script of the same name
 from your environment or the project could stand in for the secret scan, and 0.2.x hooks
-(and the `~/bin` shims of an old `install.sh` setup) look only in `bin/`, which the next
-release removes. In each such project Odeo names the command at session start (it
+(and the `~/bin` shims of an old `install.sh` setup) look only in `bin/`, which releases after 0.3.5 no longer ship, so they find a program
+only while an older Odeo copy is still in the plugin cache. In each such project Odeo names the command at session start (it
 rewrites `.git/hooks/pre-commit` and `pre-push`), and it only runs it after you say yes.
 
 **For maintainers:** users receive a new version only when `version` in
@@ -226,9 +225,7 @@ Odeo/
 │   ├── share-tunnel.sh       ← time-boxed public tunnel for a preview
 │   ├── second-opinion.sh     ← the sanctioned path for a paid cross-model review
 │   ├── ledger-backup.sh      ← backs up todo.md + lessons.md, which git deliberately ignores
-│   └── session-end-check.sh  ← advisory end-of-session sweep (incl. a stale ledger backup)
-├── bin/                      ← one forwarding wrapper per program, for git guards written by
-│                               Odeo 0.2.x (removed in the next release)
+│   └── session-end-check.sh  ← advisory end-of-session sweep (stale backup, long todo.md)
 ├── project-templates/        ← project-specific scaffolding only (not the tools)
 │   ├── CLAUDE.md             ← per-project config incl. a Security & Data section
 │   ├── knowledge/            ← README for the project knowledge base
@@ -239,7 +236,7 @@ Odeo/
 ├── global/
 │   └── CLAUDE.md             ← user-global baseline, delivered at session start by the plugin
 ├── tests/
-│   └── *.test.sh             ← 40 suites, 1571 assertions. 27 of the 27 programs have their
+│   └── *.test.sh             ← 39 suites, 1572 assertions. 27 of the 27 programs have their
 │                               own suite; the remaining suites are cross-cutting rather than
 │                               per-program. The number is the same on every machine: a case
 │                               a machine cannot run (as root, in a shell that refuses what it
