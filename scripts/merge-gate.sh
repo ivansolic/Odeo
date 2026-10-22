@@ -18,7 +18,7 @@
 
 set -uo pipefail
 # Deterministic collation: the cutoff comparison sorts ISO dates as strings, and `<`
-# inside [[ ]] is locale-collated. Matches bin/{language,publish}-guard.sh.
+# inside [[ ]] is locale-collated. Matches scripts/{language,publish}-guard.sh.
 LC_ALL=C
 export LC_ALL
 

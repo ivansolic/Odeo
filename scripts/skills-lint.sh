@@ -232,7 +232,7 @@ done < <(grep -n 'AGENTS\.md' "$ROOT"/skills/*/*.md "${AGENTS[@]:+${AGENTS[@]}}"
 
 # C16. Programs are named by the path a plugin install can run.
 #      The programs live in scripts/ and a plugin install puts them on no PATH that lasts
-#      (the bin/ compatibility wrappers go in the next release), so a SKILL.md or an agent
+#      (the bin/ compatibility wrappers are gone), so a SKILL.md or an agent
 #      names each one exactly as ${CLAUDE_PLUGIN_ROOT}/scripts/<name>, which Claude Code
 #      substitutes in those bodies only. Any other form is flagged: a bare name, a relative
 #      or absolute path, another variable. A skill's supporting file is read raw, where

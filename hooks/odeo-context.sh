@@ -28,8 +28,8 @@
 #       odeo-migrate-legacy.sh, because those copies load every skill and agent twice.
 #       Also names git guards written before the programs moved to scripts/ (the current
 #       repo's pre-commit / pre-push hook, or a ~/bin shim, that searches only bin/): they
-#       keep working through the bin/ wrappers, which a later release removes, so the user
-#       is asked to refresh them once.
+#       work only while an Odeo 0.3.0 to 0.3.5 copy with its bin/ wrappers is still in the
+#       plugin cache (releases after 0.3.5 ship no bin/), so the user is asked to refresh them once.
 #   odeo-context.sh community SessionStart
 #       When the shared community knowledge (~/.claude/community-knowledge, the copy
 #       /odeo:sync-community keeps) is missing, or its last successful sync is 14 days old,
@@ -244,7 +244,7 @@ outdated_guards() {
 }
 
 guards_nudge() { # guards_nudge <outdated_guards output>
-  printf '%s' "Odeo: some git guards were written by an older Odeo. Old git hooks may run a script named like Odeo's from PATH instead of Odeo's own, and once a later release removes bin/, 0.2.x hooks commit WITHOUT their secret scan (they only warn) while old ~/bin shims block every commit and push of the projects that call them. Tell the user once and offer to refresh them, only after they say yes:"
+  printf '%s' "Odeo: some git guards were written by an older Odeo. Old git hooks may run a script named like Odeo's from PATH instead of Odeo's own, and since releases after Odeo 0.3.5 ship no bin/, once no older copy is left in the plugin cache, 0.2.x hooks commit WITHOUT their secret scan (they only warn) while old ~/bin shims block every commit and push of the projects that call them. Tell the user once and offer to refresh them, only after they say yes:"
   case "$1" in *hook:*)
     printf ' in this repository run `"%s/scripts/install-git-guards.sh"` (it rewrites .git/hooks/pre-commit and pre-push);' "$ROOT" ;; esac
   case "$1" in *shim:*)
