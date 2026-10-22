@@ -15,7 +15,6 @@
 skills/
 agents/
 scripts/
-# compatibility wrappers for Odeo 0.2.x hooks and shims; removed in the next release
 tests/
 project-templates/
 global/

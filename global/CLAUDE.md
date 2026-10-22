@@ -181,7 +181,7 @@ For any non-trivial task in a project:
 2. Get my sign-off on the plan before implementation
 3. Mark items complete as you progress
 4. Summarize changes at each meaningful step
-5. When the task ships, describe what actually shipped in the commit or PR, then remove the task from `todo.md`; the ledger backup keeps the history, and the file is read at every session start
+5. When the task ships, describe what actually shipped in the commit or PR, then remove the task from `todo.md`, which is read at every session start. Anything still worth knowing goes into the commit, PR or `lessons.md` first: only a configured git ledger backup keeps older versions of the file
 6. Update `.claude/tasks/lessons.md` if any corrections occurred during the task
 
 ## Knowledge Base (local + community)

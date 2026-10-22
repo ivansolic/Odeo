@@ -113,8 +113,8 @@ update: your own `~/.claude/CLAUDE.md`, your projects, and your language setting
 **Updating from 0.3.0 or earlier:** refresh the git guards of projects set up before 0.3.1
 once. Their hooks look up Odeo's programs on PATH first, where a script of the same name
 from your environment or the project could stand in for the secret scan, and 0.2.x hooks
-(and the `~/bin` shims of an old `install.sh` setup) look only in `bin/`, which the next
-release removes. In each such project Odeo names the command at session start (it
+(and the `~/bin` shims of an old `install.sh` setup) look only in `bin/`, which releases after 0.3.5 no longer ship, so they find a program
+only while an older Odeo copy is still in the plugin cache. In each such project Odeo names the command at session start (it
 rewrites `.git/hooks/pre-commit` and `pre-push`), and it only runs it after you say yes.
 
 **For maintainers:** users receive a new version only when `version` in
@@ -236,7 +236,7 @@ Odeo/
 ├── global/
 │   └── CLAUDE.md             ← user-global baseline, delivered at session start by the plugin
 ├── tests/
-│   └── *.test.sh             ← 39 suites, 1571 assertions. 27 of the 27 programs have their
+│   └── *.test.sh             ← 39 suites, 1572 assertions. 27 of the 27 programs have their
 │                               own suite; the remaining suites are cross-cutting rather than
 │                               per-program. The number is the same on every machine: a case
 │                               a machine cannot run (as root, in a shell that refuses what it

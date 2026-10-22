@@ -24,7 +24,7 @@
 #   M10 no refresh of outdated shims         -> 2 FAIL (case 15)
 #   M11 refresh overwrites without a copy    -> 1 FAIL (case 15, nothing is ever deleted)
 # Observed failing (2026-09-29), after the move to scripts/:
-#   M12 bin/publish-guard.sh wrapper exits 0 without forwarding -> 2 FAIL (case 16)
+#   M12 the bin/ wrapper (tests/fixtures/legacy-bin-wrapper.sh) exits 0 without forwarding -> 2 FAIL (case 16)
 #   M13 bounded() without the explicit <&0 (stdin becomes /dev/null) -> 1 FAIL (case 16)
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"

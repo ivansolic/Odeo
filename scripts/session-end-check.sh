@@ -78,7 +78,7 @@ if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   if [[ -n "$root" && -f "$todo" ]]; then
     todo_lines="$(wc -l < "$todo" | tr -d ' ')"
     if [[ "$todo_lines" -gt "$LEDGER_MAX_LINES" ]]; then
-      say "todo.md has $todo_lines lines (limit $LEDGER_MAX_LINES): move finished tasks out; the ledger backup keeps the history."
+      say "todo.md has $todo_lines lines (limit $LEDGER_MAX_LINES): move finished tasks out (what matters goes into the commit, PR or lessons.md first)."
     fi
   fi
 fi

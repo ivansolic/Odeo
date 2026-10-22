@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Tests for the output-language wiring in bin/init-project.sh.
+# Tests for the output-language wiring in scripts/init-project.sh.
 # Covers the non-interactive flag path only (no TTY harness available).
 # TDD: run this FIRST (RED), then implement to GREEN.
 set -uo pipefail

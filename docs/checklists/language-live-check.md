@@ -11,7 +11,7 @@ is the proof, and a human reading the result is the verdict.
 Two deterministic layers already exist, and it matters what each one does and does not
 prove:
 
-- `bin/skills-lint.sh` invariant C13 proves the WIRING is present: the five
+- `scripts/skills-lint.sh` invariant C13 proves the WIRING is present: the five
   prose-generating skills, `skills/build/SKILL.md` and every agent definition each carry
   the token `output_language` and the pointer `Guardrails 7`. It proves the cause is in
   place. It proves nothing about the output.
@@ -34,7 +34,7 @@ DIRECTORY, so `ls -l .claude/agents/architect.md` follows the link and prints an
 ordinary file line with no arrow, identical whether the definition loaded is the live
 repo file or a stale copy. It cannot answer the question it would be asked.
 
-1. **The fixture resolves.** `bash bin/language-status.sh tests/fixtures/language-de-project`
+1. **The fixture resolves.** `bash scripts/language-status.sh tests/fixtures/language-de-project`
    prints exactly `de project`.
 
 2. **Run FROM THIS REPO, the project-level definitions are LIVE.** Three commands,
@@ -148,7 +148,7 @@ Save the returned plan to a throwaway path OUTSIDE the repo, for example
 `"$(mktemp -d)"/docs/plans/2026-08-12-usr-901-login-timeout.md`, then run:
 
 ```
-bash bin/language-guard.sh <that path> \
+bash scripts/language-guard.sh <that path> \
   --branch feature/usr-901-login-timeout \
   --commit "feat(auth): add a login timeout"
 ```
@@ -163,7 +163,7 @@ sample-evidence block of the run report. The sample lives OUTSIDE the repo, so t
 project directory is named explicitly:
 
 ```
-bash bin/prose-language-check.sh tests/fixtures/language-de-project <that path>
+bash scripts/prose-language-check.sh tests/fixtures/language-de-project <that path>
 ```
 
 It is a hint for a later reader, NOT a criterion, and neither outcome decides anything.
@@ -204,7 +204,7 @@ of the WORDING shipped in Tasks 1 to 3, so the remedy is a wording revision plus
 dispatch, NEVER a re-run of the same configuration hoping for a different sample. And
 the merge WAITS on it. Note exactly why that is a human duty: gate B6 sits after
 `code-reviewer` has already approved, and `merge-gate.sh` reads only the reviewer's
-`verdict:` (`bin/merge-gate.sh:206-218`), so nothing mechanical will refuse a merge on
+`verdict:` (`scripts/merge-gate.sh:206-218`), so nothing mechanical will refuse a merge on
 this row. The human at the gate is the only stop.
 
 Running the same configuration up to 3 times is allowed for ONE purpose, characterizing

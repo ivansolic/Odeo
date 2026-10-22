@@ -136,7 +136,8 @@ out="$(run "$p7")"; rc=$?
 case "$out" in *"todo.md has 200 lines"*) ok "and it names the size of a 200-line ledger" ;;
   *) bad "a 200-line ledger produced no size warning (got: ${out:-<silence>})" ;; esac
 seq 1 150 > "$p7/.claude/tasks/todo.md"
-out="$(run "$p7")"
+out="$(run "$p7")"; rc=$?
+[ "$rc" = 0 ] && ok "a 150-line ledger: exit 0" || bad "exit $rc"
 case "$out" in *"todo.md has"*) bad "a 150-line ledger was warned about (got: $out)" ;;
   *) ok "a ledger at the limit (150 lines) stays quiet" ;; esac
 rm -f "$p7/.claude/tasks/todo.md"

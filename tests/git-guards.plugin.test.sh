@@ -20,7 +20,7 @@
 # Observed failing (2026-09-29), after the move to scripts/:
 #   M5 no scripts/ glob in the cache lookup -> 5 FAIL (cases 1, 2, 3, 4, 7)
 #   M6 no bin/ glob in the cache lookup     -> 1 FAIL (case 8)
-#   M7 bin/ wrapper does not forward        -> 2 FAIL (case 9)
+#   M7 the bin/ wrapper (tests/fixtures/legacy-bin-wrapper.sh) does not forward-> 2 FAIL (case 9)
 #   M8 repo-relative scripts/ and bin/ fallback restored (the 0.3.0 review's finding)
 #                                           -> 4 FAIL (case 10)
 #   M9 PATH lookup (command -v) restored first, as in 0.3.0 (the RED of case 11)
