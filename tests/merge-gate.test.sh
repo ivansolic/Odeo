@@ -254,6 +254,42 @@ reviewed_commit: $sha"
 commit_at "$d" "$T3" rec-only
 check "an evals-only commit does not invalidate reviewed_commit" 0 "$d"; rm -rf "$d"
 
+# 17b. PROSE after the review. A change only to plain prose (the gate's PROSE_PATHS) after
+#      reviewed_commit, committed AFTER the record, must not refuse; anything else must,
+#      including instruction files that are Markdown (skills, AGENTS.md) and a path on no
+#      list (fail-closed). The change lands after the record, so the 3d ordering check is
+#      exercised too, not only the 3c content anchor.
+#      Mutations (observed failing, expected counts):
+#        PROSE_PATHS=(docs/evals), the behavior before 2026-10-23
+#                                        -> 4 FAIL (README, knowledge, plan, prose-dir delete)
+#        (Emptying the array instead aborts the gate under set -u on bash 3.2: refused,
+#        fail-closed, but it reddens 29 unrelated cases, so it attributes nothing.)
+#        PROSE_PATHS widened to '*.md'   -> 2 FAIL (skill, AGENTS.md)
+T4='2026-01-01T13:00:00'
+after_review() { # after_review <label> <expected-exit> <shell change, run in the repo>
+  local d sha
+  d="$(make_repo)"
+  ( cd "$d" && git checkout -qb feature/x && mkdir -p scripts knowledge docs/plans \
+      && echo b >> a.txt && echo 'echo x' > scripts/x.sh && echo k > knowledge/old.md \
+      && git add -A ) >/dev/null 2>&1
+  commit_at "$d" "$T2" code
+  sha="$( cd "$d" && git rev-parse HEAD )"
+  named_record "$d" "r.md" "feature/x" "APPROVE" "date: 2026-08-05
+reviewed_commit: $sha"
+  commit_at "$d" "$T3" rec
+  ( cd "$d" && eval "$3" && git add -A ) >/dev/null 2>&1; commit_at "$d" "$T4" after
+  check "$1" "$2" "$d"; rm -rf "$d"
+}
+after_review "prose after review: README.md edit passes" 0 'echo more >> README.md'
+after_review "prose after review: knowledge/ entry passes" 0 'echo k2 > knowledge/new.md'
+after_review "prose after review: docs/plans/ edit passes" 0 'echo p > docs/plans/p.md'
+after_review "prose after review: deleting a knowledge/ entry passes" 0 'git rm -q knowledge/old.md'
+after_review "code after review: scripts/ edit refuses" 1 "echo 'echo y' >> scripts/x.sh"
+after_review "instruction after review: skills/ SKILL.md refuses" 1 'mkdir -p skills/s && echo s > skills/s/SKILL.md'
+after_review "instruction after review: AGENTS.md refuses" 1 'echo a > AGENTS.md'
+after_review "unlisted path after review refuses (fail-closed)" 1 'echo n > notes.txt'
+after_review "code moved into a prose path after review refuses" 1 'git mv scripts/x.sh docs/plans/x.sh'
+
 # 18. Unresolvable reviewed_commit sha -> refuse (deny by default).
 d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1
 commit_at "$d" "$T2" code
