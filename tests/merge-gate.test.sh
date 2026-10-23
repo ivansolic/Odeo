@@ -254,10 +254,10 @@ reviewed_commit: $sha"
 commit_at "$d" "$T3" rec-only
 check "an evals-only commit does not invalidate reviewed_commit" 0 "$d"; rm -rf "$d"
 
-# 17b. PROSE after the review. A change only to plain prose (the gate's PROSE_FILES and PROSE_DIRS) after
-#      reviewed_commit, committed AFTER the record, must not refuse; anything else must,
-#      including instruction files that are Markdown (skills, AGENTS.md) and a path on no
-#      list (fail-closed). The change lands after the record, so the 3d ordering check is
+# 17b. PROSE after the review. A change only to plain prose (the gate's PROSE_FILES and
+#      PROSE_DIRS) after reviewed_commit, committed AFTER the record, must not refuse;
+#      anything else must, including instruction files that are Markdown (skills,
+#      AGENTS.md) and a path on no list (fail-closed). The change lands after the record, so the 3d ordering check is
 #      exercised too, not only the 3c content anchor.
 #      Mutations (observed failing 2026-10-23, expected counts):
 #        PROSE_FILES=(none) PROSE_DIRS=(none), the behavior before 2026-10-23

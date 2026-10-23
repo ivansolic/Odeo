@@ -309,8 +309,9 @@ while IFS= read -r record; do
     fi
     if ! git diff --quiet "$reviewed" HEAD -- "${NOT_PROSE[@]}"; then
       echo "merge-gate: REFUSED, code changed after the reviewed commit ($record)." >&2
-      echo "Reviewed $reviewed, but files outside the plain-prose list differ at HEAD" >&2
-      echo "(prose-only changes such as README or knowledge/ do not count)." >&2
+      echo "Reviewed $reviewed, but files outside the plain-prose lists differ at HEAD" >&2
+      echo "(README and the like, and Markdown under knowledge/, plans and the other prose" >&2
+      echo "directories, do not count; any other file there does)." >&2
       echo "Re-run the reviewer so the record covers what merges; never re-date a record." >&2
       exit 1
     fi
