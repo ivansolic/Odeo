@@ -54,8 +54,9 @@ docs/evals/PRD-007.md
 artifact: PRD-007        # or covers: USR-001 USR-002 ... for a set (spec-gate matches these)
 type: prd
 branch: feature/usr-007-password-reset   # required for code/UI records; merge-gate matches on it
-reviewed_commit: 4f2a1c9  # the commit you actually read. merge-gate verifies no non-evals
-                          # file moved since, because a timestamp cannot tell that a record
+reviewed_commit: 4f2a1c9  # the commit you actually read. merge-gate verifies no file
+                          # outside its plain-prose lists (PROSE_FILES, PROSE_DIRS) moved
+                          # since, because a timestamp cannot tell that a record
                           # describes superseded text. Required on records dated 2026-08-05
                           # or later; earlier records are exempt (no hand migration).
                           # If the code moves, REGENERATE the record, never re-date it.
@@ -68,10 +69,8 @@ effort: high             # the judge's effort level (declared in the agent front
 build_model_as_dispatched: <model>  # CODE records only, after a for-me build: the model
 #                         the orchestrator dispatched the BUILDER on, handed to you the
 #                         same way the commit sha is. It lives HERE and not in the plan
-#                         because merge-gate compares every non-evals path against
-#                         reviewed_commit:, so a post-review plan edit would force a full
-#                         code re-review for one provenance line, while this file is
-#                         excluded from that comparison by construction. Named "as
+#                         because the approved plan is the contract and stays as
+#                         approved; provenance about the run belongs in the record. Named "as
 #                         dispatched", not "as ran": nobody here can verify which model
 #                         the vendor served, so it discloses what was REQUESTED. Omit it
 #                         when you were given no value; never guess one.
@@ -178,9 +177,20 @@ is shared automatically.
 The review loop is an autonomous loop, so it needs a declared stop, not a human asking
 "should this be the last round?" each time. It stops on the FIRST of these:
 
-1. **APPROVE**, or **PASS** where the reviewer uses that word. The verdict clears **the
-   threshold declared by the rubric for THAT artifact type**, with no criterion at 0 and
-   no Critical. The normal exit.
+1. **APPROVE**, **APPROVE WITH COMMENTS**, or **PASS** where the reviewer uses that word.
+   The verdict clears **the threshold declared by the rubric for THAT artifact type**, with
+   no criterion at 0 and no Critical. The normal exit, and it ends the loop below the max
+   score too: a score short of the max is reported with its ceiling, not chased with
+   another round. What happens to the remaining comments:
+   - **Prose comments** on a branch merge-gate reads (README and guides, and Markdown
+     under `knowledge/`, plans, research, examples, decisions: the `PROSE_FILES` and
+     `PROSE_DIRS` lists in `scripts/merge-gate.sh`) are fixed directly. A prose-only change
+     after the reviewed commit does not stale that record, so no new round is needed.
+   - **PRDs and stories are the exception.** spec-gate refuses a record older than the
+     document, so applying a comment to one costs one more pm-reviewer round, counted
+     toward the three-round cap below. Comments left unapplied are reported, not chased.
+   - **Code comments** (anything else, instruction files included) go to the follow-up list
+     in `.claude/tasks/todo.md`, not into another round on this branch.
 
    The number lives in the rubric and only there. It is not repeated in this file on
    purpose: the totals differ by type (code and UI are scored out of 12, skills and agent
@@ -235,6 +245,18 @@ the record does not approve; the loop simply stops spending rounds and gives the
 decision, which is where a judgment about cost belongs. And a **Critical always overrides**
 the cap: a security or data-loss finding is reported whenever it is found, including at
 round four, because a cap is a budget on attention, never a budget on safety.
+
+**A prose-only branch gets one round when it approves.** When every file a branch changes is
+on the plain-prose lists above (a knowledge entry, a README or guide fix, a plan), an approve
+in round one ends the loop and its comments are fixed directly: there is no code for a
+second look to protect, and the gate does not stale on prose. A REQUEST CHANGES verdict
+still needs a re-dispatch after the fixes, because the gate reads the record's verdict.
+
+**The record is committed once, when the loop ends.** Each round overwrites the uncommitted
+record (`docs/evals/<type>-<branch>.md`), and its `## History` section keeps every round's
+score and verdict, so one `chore(evals)` commit per branch carries the whole trajectory. A
+record committed per round only fills the history with copies of the same file.
+
 - Flag **volatile external facts** stated as current without a source (model
   names/versions, prices, "the latest X", benchmarks, ownership, recent dates): the
   artifact must cite a source or label them `unverified`, never assert them from memory.

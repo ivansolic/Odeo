@@ -44,19 +44,17 @@ model_plan:             # the judgment model and effort AS OF when the plan is w
                         # PLAN-TIME SNAPSHOT: never "corrected" after the gate, even if
                         # the session model changes later (the step recommends switching
                         # up for architecture-critical work, so it legitimately can). A
-                        # post-gate plan edit refuses the merge, and the eval record's own
+                        # post-gate plan edit voids the approval (it covers only the plan
+                        # as approved), and the eval record's own
                         # `model:` is authoritative for who judged.
   builder_tier: <tier word> effort <level>   # the APPROVED INTENT, a tier word, so it
                         # cannot go stale. Present at approval; the builder's contract
                         # requires THIS line. Raise it above the default when the
                         # output is itself judgment (wording, instructions, prose).
                         # The plan holds INTENT only and is immutable after the gate.
-                        # The resolved model NAME is NOT recorded here: merge-gate
-                        # compares every non-evals path against `reviewed_commit:`, so a
-                        # post-review plan edit refuses the merge and would force a full
-                        # code re-review for one provenance line. It goes in the eval
-                        # record as `build_model_as_dispatched:` instead, which that
-                        # comparison excludes by construction. Named "as dispatched",
+                        # The resolved model NAME is NOT recorded here, since the plan
+                        # is immutable after the gate. It goes in the eval record as
+                        # `build_model_as_dispatched:` instead. Named "as dispatched",
                         # not "as ran": nobody here can verify which model the vendor
                         # actually served, so it discloses what was requested rather
                         # than claiming what executed. Prior plans keep the older

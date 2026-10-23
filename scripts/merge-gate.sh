@@ -46,6 +46,22 @@ frontmatter_field() { # frontmatter_field <file> <field> -> prints normalized va
 # cwd-relative, and a subdir invocation must see the same truth as a root one.
 cd "$(git rev-parse --show-toplevel)"
 
+# Plain prose: a change ONLY to these paths after the reviewed commit does not make a
+# review stale (decided 2026-10-23, so a wording fix after an APPROVE costs no new round).
+# An ALLOWLIST on purpose: a path on no list counts as code. Instruction files that happen
+# to be Markdown (AGENTS.md, CLAUDE.md, global/, skills/, agents/, docs/eval-framework.md,
+# docs/plan-format.md) are deliberately absent, because they change what agents do, and so
+# is docs/checklists/, whose review-calibration scenarios are a test fixture.
+# Directories admit Markdown ONLY: a script dropped into knowledge/ or docs/examples/ is code.
+# docs/evals/ is excluded whole, as it always was (the records themselves).
+PROSE_FILES=(README.md INSTALL.md BEGINNERS-GUIDE.md WORKFLOW.md CONTRIBUTING.md ROADMAP.md
+  CODE_OF_CONDUCT.md CHANGELOG.md)
+PROSE_DIRS=(knowledge docs/plans docs/prds docs/stories docs/research docs/examples
+  docs/decisions)
+NOT_PROSE=(. ":(exclude)docs/evals")
+for p in "${PROSE_FILES[@]}"; do NOT_PROSE+=(":(exclude)$p"); done
+for p in "${PROSE_DIRS[@]}"; do NOT_PROSE+=(":(exclude,glob)$p/**/*.md"); done
+
 # 1. Not on main
 if [[ "$branch" == "main" || "$branch" == "master" ]]; then
   echo "merge-gate: REFUSED, you are on '$branch'. Merges run from the story branch." >&2
@@ -291,9 +307,11 @@ while IFS= read -r record; do
       echo "The review sits on a different line of history than what you are merging." >&2
       exit 1
     fi
-    if ! git diff --quiet "$reviewed" HEAD -- . ':(exclude)docs/evals'; then
+    if ! git diff --quiet "$reviewed" HEAD -- "${NOT_PROSE[@]}"; then
       echo "merge-gate: REFUSED, code changed after the reviewed commit ($record)." >&2
-      echo "Reviewed $reviewed, but non-evals files differ at HEAD." >&2
+      echo "Reviewed $reviewed, but files outside the plain-prose lists differ at HEAD" >&2
+      echo "(README and the like, and Markdown under knowledge/, plans and the other prose" >&2
+      echo "directories, do not count; any other file there does)." >&2
       echo "Re-run the reviewer so the record covers what merges; never re-date a record." >&2
       exit 1
     fi
@@ -301,14 +319,14 @@ while IFS= read -r record; do
 done <<< "$records"
 
 # 3d. Freshness (ordering, kept as a cheap backstop alongside the content anchor
-#     above): the newest record must not predate the last CODE commit.
+#     above): the newest record must not predate the last CODE (non-prose) commit.
 rec_time=0
 while IFS= read -r r; do
   [[ -n "$r" ]] || continue
   t="$(git log -1 --format=%ct -- "$r" 2>/dev/null || echo 0)"
   [[ "$t" -gt "$rec_time" ]] && rec_time="$t"
 done <<< "$records"
-last_code="$(git log -1 --format=%ct -- . ":(exclude)docs/evals" 2>/dev/null || echo 0)"
+last_code="$(git log -1 --format=%ct -- "${NOT_PROSE[@]}" 2>/dev/null || echo 0)"
 if [[ "$rec_time" -lt "$last_code" ]]; then
   echo "merge-gate: REFUSED, the review record is OLDER than the last code change." >&2
   echo "The code moved after the review; re-run the reviewer so it covers what merges." >&2
