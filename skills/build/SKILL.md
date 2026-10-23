@@ -250,11 +250,9 @@ once so a still editor is not mistaken for a stall. Live watching is with-me (Mo
    just the first: the review loop REGENERATES the record, so a later round would drop
    the field and the record the merge gate reads is the surviving one. No gate reads this
    field, so it is best-effort provenance: its absence is never evidence that a build ran
-   on the default. Do NOT write it back into the plan: `"${CLAUDE_PLUGIN_ROOT}/scripts/merge-gate.sh"`
-   compares every non-evals path against `reviewed_commit:`, so a post-review plan edit
-   refuses the merge and would force a full code re-review for a provenance line, which
-   nobody will pay twice. Eval records are excluded from that comparison by construction,
-   and their author regenerates them. Hand the reviewer the dispatched value the same way
+   on the default. Do NOT write it back into the plan: the approved plan is the contract
+   and stays as approved, and the eval record is where provenance about the run belongs;
+   its author regenerates it. Hand the reviewer the dispatched value the same way
    you already hand it the commit sha. If the dispatch REJECTS the named model, stop and
    ask; never fall back silently and never record a model the dispatch did not accept.
    If the user named no model, the builder's declared tier applies.

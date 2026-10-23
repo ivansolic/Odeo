@@ -73,9 +73,11 @@ enforced backstop for the map above.
 ## Quality gate (before handing to /odeo:build)
 Score the story set with the **`pm-reviewer`** agent against
 `${CLAUDE_PLUGIN_ROOT}/skills/stories/rubric.md`;
-eval record goes to `docs/evals/`. Below max score = fix the named gaps and
+eval record goes to `docs/evals/`. REQUEST CHANGES or FAIL = fix the named gaps and
 re-dispatch pm-reviewer to verify, looping automatically (${CLAUDE_PLUGIN_ROOT}/AGENTS.md review-loop
-rule, max 3 cycles); show first -> final score.
+rule, max 3 cycles); an approve ends the loop. To apply its remaining comments, edit the
+stories and re-dispatch once, because spec-gate refuses a record older than the document.
+Show first -> final score.
 
 ## Quality rules
 - Acceptance criteria are **observable and binary**; no "user-friendly."
