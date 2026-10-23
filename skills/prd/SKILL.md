@@ -43,11 +43,11 @@ stop for the session.
 
 ## Quality gate (before moving on)
 Score the PRD with the **`pm-reviewer`** agent against `${CLAUDE_PLUGIN_ROOT}/skills/prd/rubric.md`. It writes the eval record to
-`docs/evals/`. REQUEST CHANGES or FAIL = fix the named gaps and re-dispatch pm-reviewer
-to verify, automatically, looping to the ${CLAUDE_PLUGIN_ROOT}/AGENTS.md review-loop rule (max 3
-cycles); an approve ends the loop. To apply its remaining comments, edit the PRD and
-re-dispatch once, because spec-gate refuses a record older than the document. Show
-first -> final score. Then `/odeo:critique`, then `/odeo:stories`.
+`docs/evals/`. FAIL = fix the named gaps and re-dispatch pm-reviewer to verify,
+automatically, under the stop condition in `${CLAUDE_PLUGIN_ROOT}/docs/eval-framework.md`;
+a PASS ends the loop. Its remaining comments are optional: applying one edits the PRD, and
+spec-gate then needs a fresh review, so it costs one more pm-reviewer round, which counts
+toward the round cap. Show first -> final score. Then `/odeo:critique`, then `/odeo:stories`.
 
 ## Quality rules
 - Problem and outcome before solution; if you're listing features first, stop.

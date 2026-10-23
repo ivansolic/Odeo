@@ -252,7 +252,7 @@ once so a still editor is not mistaken for a stall. Live watching is with-me (Mo
    field, so it is best-effort provenance: its absence is never evidence that a build ran
    on the default. Do NOT write it back into the plan: the approved plan is the contract
    and stays as approved, and the eval record is where provenance about the run belongs;
-   its author regenerates it. Hand the reviewer the dispatched value the same way
+   code-reviewer regenerates it. Hand the reviewer the dispatched value the same way
    you already hand it the commit sha. If the dispatch REJECTS the named model, stop and
    ask; never fall back silently and never record a model the dispatch did not accept.
    If the user named no model, the builder's declared tier applies.

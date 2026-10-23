@@ -50,12 +50,17 @@ cd "$(git rev-parse --show-toplevel)"
 # review stale (decided 2026-10-23, so a wording fix after an APPROVE costs no new round).
 # An ALLOWLIST on purpose: a path on no list counts as code. Instruction files that happen
 # to be Markdown (AGENTS.md, CLAUDE.md, global/, skills/, agents/, docs/eval-framework.md,
-# docs/plan-format.md) are deliberately absent, because they change what agents do.
-PROSE_PATHS=(README.md INSTALL.md BEGINNERS-GUIDE.md WORKFLOW.md CONTRIBUTING.md ROADMAP.md
-  CODE_OF_CONDUCT.md CHANGELOG.md knowledge docs/evals docs/plans docs/prds docs/stories
-  docs/research docs/checklists docs/examples docs/decisions)
-NOT_PROSE=(.)
-for p in "${PROSE_PATHS[@]}"; do NOT_PROSE+=(":(exclude)$p"); done
+# docs/plan-format.md) are deliberately absent, because they change what agents do, and so
+# is docs/checklists/, whose review-calibration scenarios are a test fixture.
+# Directories admit Markdown ONLY: a script dropped into knowledge/ or docs/examples/ is code.
+# docs/evals/ is excluded whole, as it always was (the records themselves).
+PROSE_FILES=(README.md INSTALL.md BEGINNERS-GUIDE.md WORKFLOW.md CONTRIBUTING.md ROADMAP.md
+  CODE_OF_CONDUCT.md CHANGELOG.md)
+PROSE_DIRS=(knowledge docs/plans docs/prds docs/stories docs/research docs/examples
+  docs/decisions)
+NOT_PROSE=(. ":(exclude)docs/evals")
+for p in "${PROSE_FILES[@]}"; do NOT_PROSE+=(":(exclude)$p"); done
+for p in "${PROSE_DIRS[@]}"; do NOT_PROSE+=(":(exclude,glob)$p/**/*.md"); done
 
 # 1. Not on main
 if [[ "$branch" == "main" || "$branch" == "master" ]]; then

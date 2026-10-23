@@ -254,17 +254,20 @@ reviewed_commit: $sha"
 commit_at "$d" "$T3" rec-only
 check "an evals-only commit does not invalidate reviewed_commit" 0 "$d"; rm -rf "$d"
 
-# 17b. PROSE after the review. A change only to plain prose (the gate's PROSE_PATHS) after
+# 17b. PROSE after the review. A change only to plain prose (the gate's PROSE_FILES and PROSE_DIRS) after
 #      reviewed_commit, committed AFTER the record, must not refuse; anything else must,
 #      including instruction files that are Markdown (skills, AGENTS.md) and a path on no
 #      list (fail-closed). The change lands after the record, so the 3d ordering check is
 #      exercised too, not only the 3c content anchor.
-#      Mutations (observed failing, expected counts):
-#        PROSE_PATHS=(docs/evals), the behavior before 2026-10-23
-#                                        -> 4 FAIL (README, knowledge, plan, prose-dir delete)
-#        (Emptying the array instead aborts the gate under set -u on bash 3.2: refused,
-#        fail-closed, but it reddens 29 unrelated cases, so it attributes nothing.)
-#        PROSE_PATHS widened to '*.md'   -> 2 FAIL (skill, AGENTS.md)
+#      Mutations (observed failing 2026-10-23, expected counts):
+#        PROSE_FILES=(none) PROSE_DIRS=(none), the behavior before 2026-10-23
+#                     -> 5 FAIL (README, knowledge, plan, knowledge delete, nested knowledge)
+#        prose dirs excluded whole instead of :(exclude,glob)<dir>/**/*.md
+#                     -> 1 FAIL (the script under knowledge/)
+#        PROSE_FILES=("*.md")
+#                     -> 3 FAIL (skill, AGENTS.md, docs/checklists)
+#        (Emptying an array instead aborts the gate under set -u on bash 3.2: refused,
+#        fail-closed, but it reddens unrelated cases, so it attributes nothing.)
 T4='2026-01-01T13:00:00'
 after_review() { # after_review <label> <expected-exit> <shell change, run in the repo>
   local d sha
@@ -289,6 +292,11 @@ after_review "instruction after review: skills/ SKILL.md refuses" 1 'mkdir -p sk
 after_review "instruction after review: AGENTS.md refuses" 1 'echo a > AGENTS.md'
 after_review "unlisted path after review refuses (fail-closed)" 1 'echo n > notes.txt'
 after_review "code moved into a prose path after review refuses" 1 'git mv scripts/x.sh docs/plans/x.sh'
+# Prose DIRECTORIES admit Markdown only: a script dropped into one is code (round-1 review,
+# 2026-10-23: the directory form let knowledge/run.sh and docs/examples/app.ts through).
+after_review "a script added under knowledge/ after review refuses" 1 "echo 'echo x' > knowledge/run.sh"
+after_review "a nested knowledge/ Markdown file passes" 0 'mkdir -p knowledge/a && echo k > knowledge/a/b.md'
+after_review "docs/checklists/ is not prose (calibration fixtures) and refuses" 1 'mkdir -p docs/checklists && echo c > docs/checklists/c.md'
 
 # 18. Unresolvable reviewed_commit sha -> refuse (deny by default).
 d="$(make_repo)"; ( cd "$d" && git checkout -qb feature/x && echo b >> a.txt && git add -A ) >/dev/null 2>&1

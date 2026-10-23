@@ -54,9 +54,9 @@ docs/evals/PRD-007.md
 artifact: PRD-007        # or covers: USR-001 USR-002 ... for a set (spec-gate matches these)
 type: prd
 branch: feature/usr-007-password-reset   # required for code/UI records; merge-gate matches on it
-reviewed_commit: 4f2a1c9  # the commit you actually read. merge-gate verifies no file outside
-                          # its plain-prose list (PROSE_PATHS) moved since, because a
-                          # timestamp cannot tell that a record
+reviewed_commit: 4f2a1c9  # the commit you actually read. merge-gate verifies no file
+                          # outside its plain-prose lists (PROSE_FILES, PROSE_DIRS) moved
+                          # since, because a timestamp cannot tell that a record
                           # describes superseded text. Required on records dated 2026-08-05
                           # or later; earlier records are exempt (no hand migration).
                           # If the code moves, REGENERATE the record, never re-date it.
@@ -182,10 +182,13 @@ The review loop is an autonomous loop, so it needs a declared stop, not a human 
    no criterion at 0 and no Critical. The normal exit, and it ends the loop below the max
    score too: a score short of the max is reported with its ceiling, not chased with
    another round. What happens to the remaining comments:
-   - **Prose comments** (README, guides, `knowledge/`, plans, PRDs, stories, research,
-     checklists, examples, decisions: the `PROSE_PATHS` list in `scripts/merge-gate.sh`)
-     are fixed directly. A prose-only change after the reviewed commit does not stale the
-     record, so no new round is needed.
+   - **Prose comments** on a branch merge-gate reads (README and guides, and Markdown
+     under `knowledge/`, plans, research, examples, decisions: the `PROSE_FILES` and
+     `PROSE_DIRS` lists in `scripts/merge-gate.sh`) are fixed directly. A prose-only change
+     after the reviewed commit does not stale that record, so no new round is needed.
+   - **PRDs and stories are the exception.** spec-gate refuses a record older than the
+     document, so applying a comment to one costs one more pm-reviewer round, counted
+     toward the three-round cap below. Comments left unapplied are reported, not chased.
    - **Code comments** (anything else, instruction files included) go to the follow-up list
      in `.claude/tasks/todo.md`, not into another round on this branch.
 
@@ -243,10 +246,11 @@ decision, which is where a judgment about cost belongs. And a **Critical always 
 the cap: a security or data-loss finding is reported whenever it is found, including at
 round four, because a cap is a budget on attention, never a budget on safety.
 
-**A prose-only branch gets one round.** When every file a branch changes is on the plain-prose
-list above (a knowledge entry, a README or guide fix, a plan), the review runs once and its
-findings are fixed directly, with no second round: there is no code for a second look to
-protect, and the gate does not stale on prose.
+**A prose-only branch gets one round when it approves.** When every file a branch changes is
+on the plain-prose lists above (a knowledge entry, a README or guide fix, a plan), an approve
+in round one ends the loop and its comments are fixed directly: there is no code for a
+second look to protect, and the gate does not stale on prose. A REQUEST CHANGES verdict
+still needs a re-dispatch after the fixes, because the gate reads the record's verdict.
 
 **The record is committed once, when the loop ends.** Each round overwrites the uncommitted
 record (`docs/evals/<type>-<branch>.md`), and its `## History` section keeps every round's
