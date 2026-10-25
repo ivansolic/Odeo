@@ -124,9 +124,9 @@ In, the thin slice (each item is referred to by its name elsewhere in this docum
    which model to use (decided 2026-10-25).
 5. **Instructions:** AGENTS.md keeps the rules a PM workflow and Odeo's own maintenance
    need; build rules and the model policy leave. The baseline Odeo adds to every session
-   keeps only PM rules: communication, PM practice, honesty and privacy; git discipline,
-   code style, testing, code security and the cut agents leave it (R17, decided
-   2026-10-25).
+   keeps only PM rules: communication, PM practice, honesty and privacy; the
+   product-terms preference is described once, in AGENTS.md; git discipline, code style,
+   testing, code security and the cut agents leave it (R17, decided 2026-10-25).
 6. **Repositioning:** plugin description, README, ROADMAP, guide and system map say who
    Odeo is for and that it ends with a delivery-ready package.
 7. **Pilot:** 3 handoffs on real ideas, across at least two build setups; the transcript
@@ -139,6 +139,9 @@ In, the thin slice (each item is referred to by its name elsewhere in this docum
    interview, the stack presets and the design layer leave it; it asks what the product
    is, whether to teach product terms as it goes, and the product's security and data
    facts (R16, decided 2026-10-25).
+10. **Consistency check in `prd`:** before a PRD is saved, every decision in it is
+   checked against the whole project, so a renamed, merged or removed item is not left in
+   its old form elsewhere (R18, decided 2026-10-25).
 
 Side change in the same release, outside the thin slice (it does not test the outcome;
 the maintainer asked for it, decided 2026-10-25):
@@ -155,10 +158,12 @@ Out (non-goals):
 - Changing what the PM skills produce: their rubrics and document shapes stay. The only
   edits to remaining PM skills are the ones the items above require: removing model
   remarks (No model policy), removing pointers to cut items (R2), leading with the core
-  path and letting the user start each skill by asking (Core path, R15), the one
-  `setup` skill that no longer installs the pre-push guard and says so (One setup, R4,
-  R16), and the prototype sharing change (the side change). The review-record format
-  loses its two model fields (No model policy) and nothing else.
+  path and letting the user start each skill by asking (Core path, R15), the one `setup`
+  skill that no longer installs the pre-push guard and says so (One setup, R4, R16),
+  re-pointing every reference to the two merged setup skills to `setup` and `prd` reading
+  the product facts `setup` records (R16), the consistency check in `prd` (R18), and the
+  prototype sharing change (the side change). The review-record format loses its two
+  model fields (No model policy) and nothing else.
 - A Codex or other host port.
 - Migration tooling for outside users of the build half (none known).
 - A public launch campaign or demo; whether and how to launch is decided after the
@@ -245,19 +250,25 @@ Out (non-goals):
   and conventions, offers a stack preset, and maps an existing codebase with an agent the
   cut removes. AC: one `setup` skill prepares a place for product documents, either a new
   folder or inside an existing one; it creates the document folders, sets the output
-  language, and starts version history where none exists, because the spec gate reads
-  review freshness from it, and its first commit holds only the files `setup` created,
-  never files that were already in the folder; it installs the secret scan on commit
-  (R4); it asks three things: what the product is (who it is for and the outcome it
-  produces), whether to teach product terms as it goes (the plain explanation first, then
-  the term in a short aside, such as ICP, North Star or RICE; default yes, one answer
-  turns it off), and the product's security and data facts (which personal data it
-  handles, who its users are and where, whether they log in), which feed every PRD's
-  security pre-mortem; it asks nothing about a stack, build or test commands and offers
-  no stack preset, design layer or knowledge folder; in an existing folder it overwrites
-  no file the user has, and in an existing project instruction file it adds the language
-  line and replaces nothing; creating a remote repository and pushing to it stays an
-  offer that runs only after the privacy scan and the user's explicit yes (R15).
+  language (taken from the parent folder's setting, else the user's global default, and
+  never asked; `/odeo:language` changes it later), and starts version history where none
+  exists, because the spec gate reads review freshness from it, and its first commit
+  holds only the files `setup` created, never files that were already in the folder; it
+  installs the secret scan on commit (R4); it asks three things: what the product is (who
+  it is for and the outcome it produces), whether to teach product terms as it goes (the
+  plain explanation first, then the term in a short aside, such as ICP, North Star or
+  RICE; default yes, one answer turns it off), and the product's security and data facts
+  (which personal data it handles, who its users are and where, whether they log in,
+  known compliance requirements, and what is most worth protecting); it records all three
+  answers in the project's instruction file, and `prd` reads the security and data facts
+  from there for every security pre-mortem; it asks nothing about a stack, build or test
+  commands and offers no stack preset, design layer or knowledge folder; in an existing
+  folder it overwrites no file the user has, and in an existing project instruction file
+  it adds its own lines (language, product, terms preference, security and data facts)
+  and replaces nothing; creating a remote repository and pushing to it stays an offer
+  that runs only after the privacy scan and the user's explicit yes (R15); after the
+  release no shipped skill, agent, instruction file or script output names `new-project`
+  or `setup-project`.
 - **R17 A PM baseline in every session.** Today, once Odeo is installed, every session in
   every project receives a 232-line baseline (unless the user's own global instructions
   already carry its security section) whose sections are mostly about building software:
@@ -268,10 +279,21 @@ Out (non-goals):
   without approval), and every section of it belongs to one of these four groups, so
   nothing about git branches, code style, tests, code security, plan formats, bug fixing,
   the task ledger, community knowledge or an agent the cut removes remains; every rule a
-  remaining skill relies on is in that skill or in AGENTS.md; the communication rules
-  point to `setup` for the product-terms preference (R16), which teaches product terms
-  rather than technical ones; in the pilot this is checked on a machine whose own global
-  instructions do not already carry the baseline.
+  remaining skill relies on is in that skill or in AGENTS.md; the product-terms
+  preference (R16) is described once, in AGENTS.md, which the baseline points to, and
+  neither describes an aside for technical terms; in the pilot this is checked on a
+  machine whose own global instructions do not already carry the baseline.
+- **R18 Decisions checked across the project.** Today `prd` has no step that checks a
+  decision against the rest of the document or the project. In this PRD, a decision
+  carried into one place and left in its old form in another was the most frequent review
+  finding, in four of eight rounds (3, 4, 7 and 8), the last one outside the document
+  (two skills and AGENTS.md still naming the merged setup skills). AC: before a PRD is
+  saved, `prd` lists every item the new or changed decisions rename, merge, move or
+  remove, searches the PRD and the whole project for each name, and shows the user every
+  place that still carries the old form, with its path and line, and either the edit that
+  fixes it or a note that it is left for a story; a decision with no such item says so in
+  one line; on PRD-002 at its round-8 state, the check names the AGENTS.md line and the
+  three skills that still point to `setup-project`.
 
 ## 7. Risks & dependencies
 - **Value:** the PM half alone is not compelling; founders want one tool that also
@@ -280,10 +302,10 @@ Out (non-goals):
 - **Usability:** a package that is complete for one builder is thin for another (a human
   developer wants different detail than a build tool). Detect: H3, the second build setup
   in the pilot.
-- **Feasibility:** low for the cut, which is mostly removal; medium for the new work,
-  the package step, quick shares that keep their link (R13), lasting shares (R14) and a
-  new trigger description for every remaining skill (R15), one `setup` from two skills
-  (R16) and a shorter session baseline (R17).
+- **Feasibility:** low for the cut, which is mostly removal; medium for the new work, the
+  package step, quick shares that keep their link (R13), lasting shares (R14) and a new
+  trigger description for every remaining skill (R15), one `setup` from two skills (R16),
+  a shorter session baseline (R17) and a consistency step in `prd` (R18).
 - **Weight (from the critique):** the rigor that sets Odeo apart is also slow; a founder
   who meets several review rounds on a first PRD stops before the package. Detect: in the
   three pilot sessions, any that produce one document and never reach the package.
@@ -362,3 +384,7 @@ Decisions, in order:
 - 2026-10-25, round 8: `setup` asks what the product is, whether to teach product terms
   (default yes) and the product's security and data facts; its first commit holds only
   its own files and an offered push runs the privacy scan first.
+- 2026-10-25, round 9: `setup` records its answers in the project's instruction file and
+  `prd` reads the security facts from there; no shipped file names the two merged setup
+  skills; the product-terms preference is described once, in AGENTS.md; `prd` gains a
+  step that checks every decision against the whole project before saving (R18).
