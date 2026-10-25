@@ -11,7 +11,8 @@ date: 2026-10-25
 Odeo is two products in one plugin: a product-management workflow (discovery, strategy,
 PRD, critique, stories, outcome, go-to-market) and a software-delivery workflow (build,
 merge, review loops, git gates). The delivery half carries most of the complexity, while
-building is already well served by dedicated development tools, and it blurs who Odeo is
+building is, by assumption (section 3), already well served by dedicated development
+tools, and it blurs who Odeo is
 for.
 
 Who hurts:
@@ -86,54 +87,57 @@ Success metrics (targets):
   issue or message reports one; the near-zero adoption above makes this likely to hold.
 
 ## 5. Scope
-In (the thin slice):
+In, the thin slice (each item is referred to by its name elsewhere in this document):
 1. **Delivery-ready package:** one Odeo step that, after the stories pass their review,
    assembles a package any builder can start from (the PRD, the stories with their
    acceptance criteria, and a short brief of what is decided and what is open), checks
    it is complete, and tells the user it is ready for delivery. Plain Markdown in the
    project, readable by a person or any tool. No build tool is named or assumed.
-2. **Cut:** 16 skills (build, merge, deploy, ci, commit-push, optimize,
-   worktree-parallel-check, focus, sync-docs, test-driven-development, ux-design,
-   setup-design, query, and the three code/design/plan second-opinion skills) leave the
-   plugin, with 7 agents (architect, builder, code-reviewer, design-reviewer,
-   architecture-reviewer, codebase-analyst, debugger) and the build-only scripts
-   (merge-gate, boundary-check, focus-check). The copy on a tagged archive branch is
-   not maintained (decided 2026-10-23); the maintainer's own merge gate and
-   code-reviewer are kept and maintained separately as repository-only tooling (R6).
-   `prototype`, `ux-writing` and `second-opinion-pm` stay (decided 2026-10-23), and so do
-   `spec-gate` (the package's documents passed their review) and `coverage-check`
-   (every PRD requirement has a story), because the package needs both (decided
-   2026-10-25).
-7. **Core path for founders:** the front door is a short path, PRD, critique, stories,
+2. **Core path:** the front door for founders is a short path, PRD, critique, stories,
    package; `/odeo:guide`, the README and `/odeo:start` lead with it. The other PM skills
-   stay, unchanged, as extras reached when needed (decided 2026-10-25).
-8. **No model policy:** agents run on the session's model; review records lose
+   stay as extras reached when needed (decided 2026-10-25).
+3. **Cut:** 16 skills (build, merge, deploy, ci, commit-push, optimize,
+   worktree-parallel-check, focus, sync-docs, test-driven-development, ux-design,
+   setup-design, query, and the three code/design/plan second-opinion skills), 7 agents
+   (architect, builder, code-reviewer, design-reviewer, architecture-reviewer,
+   codebase-analyst, debugger) and 3 build-only scripts (merge-gate, boundary-check,
+   focus-check) leave the plugin. A copy goes to a tagged archive branch and is not
+   maintained (decided 2026-10-23). What stays: `prototype`, `ux-writing` and
+   `second-opinion-pm` (decided 2026-10-23); `spec-gate` and `coverage-check`, which the
+   package needs (decided 2026-10-25); the scripts remaining skills use (R11). The
+   maintainer's own merge gate, code-reviewer and pre-push guard for this repository are
+   kept and maintained as repository-only tooling (R6).
+4. **No model policy:** agents run on the session's model; review records lose
    `model_tier` and `model_waiver`; `spec-gate` stops checking a tier; the model-policy
-   section of AGENTS.md and the lint rule on model names go, and nothing in the plugin
-   says anything about which model to use (decided 2026-10-25).
-9. **Prototype shares that last as long as the review needs:** the person sharing a
-   prototype chooses how long the share stays open, beyond an hour when a review takes
-   longer, and can extend it without sending a new link; it still always ends on its own
-   (decided 2026-10-25).
-3. **Repositioning:** plugin description, README, ROADMAP, guide and system map say who
+   section of AGENTS.md, the lint rule on model names and every model remark in the
+   remaining skills (for example `setup-project`, `start`) go. Nothing in the plugin says
+   which model to use (decided 2026-10-25).
+5. **Instructions:** AGENTS.md keeps the rules a PM workflow and Odeo's own maintenance
+   need; build rules and the model policy leave.
+6. **Repositioning:** plugin description, README, ROADMAP, guide and system map say who
    Odeo is for and that it ends with a delivery-ready package.
-4. **Instructions:** AGENTS.md keeps the rules a PM workflow and Odeo's own maintenance
-   need; build rules leave with the build half.
-5. **Pilot:** 3 handoffs on real ideas, across at least two build setups, transcripts or
+7. **Pilot:** 3 handoffs on real ideas, across at least two build setups, transcripts or
    notes kept as evidence.
-6. **One release:** the prepared, unpublished 0.5.0 (review-loop and merge-gate changes)
-   is not published on its own; its PM-relevant parts ship with the cut release
-   (decided 2026-10-23).
+8. **One release:** the prepared, unpublished 0.5.0 (review-loop and merge-gate changes)
+   is not published on its own; its PM-relevant parts ship with this release (decided
+   2026-10-23).
+
+Side change in the same release, outside the thin slice (it does not test the outcome;
+the maintainer asked for it, decided 2026-10-25):
+- **Longer prototype shares:** sharing a prototype can last as long as a review needs and
+  can be extended without a new link (R13).
 
 Out (non-goals):
 - Building, recommending or integrating any build tool.
-- Changing what the PM skills produce (rubrics and document shapes stay), beyond what the
-  package needs.
+- Changing what the PM skills produce: their rubrics and document shapes stay. The only
+  edits to remaining PM skills are the ones the items above require: removing model
+  remarks (No model policy), removing pointers to cut items (R2), leading with the core
+  path (Core path), and the prototype share change (the side change). The review-record
+  format loses its two model fields (No model policy) and nothing else.
 - A Codex or other host port.
 - Migration tooling for outside users of the build half (none known).
 - A public launch campaign or demo; whether and how to launch is decided after the
   pilot (open question 2).
-- Removing or rewriting PM skills beyond the core-path ordering.
 
 ## 6. Requirements & acceptance criteria
 - **R1 Delivery-ready package.** After stories pass review, the user gets one package and
@@ -143,24 +147,25 @@ Out (non-goals):
   confirms the PRD and stories carry a fresh passing review and `coverage-check` confirms
   every PRD requirement has a story; a builder in the pilot starts from it without the
   user copying or re-explaining anything; it names no build tool.
-- **R2 Clean cut.** The shipped plugin contains none of the skills, agents and scripts in
-  scope item 2. AC: the plugin's file list after install has none of them, and no
+- **R2 Clean cut.** The shipped plugin contains none of the skills, agents and scripts the
+  Cut item removes. AC: the plugin's file list after install has none of them, and no
   remaining skill, guide line or system-map row points to one.
 - **R3 Nothing PM is lost.** AC: every remaining PM skill passes its quality gate after
-  the cut, and `/odeo:guide` routes every PM question it routed before.
+  the release, and `/odeo:guide` routes every PM question it routed before.
 - **R4 Protection stays where it protects users.** Odeo keeps installing the secret-scan
   pre-commit hook in projects it creates, because PM documents (interviews, figures) can
-  hold secrets too; the pre-push guard goes with the build half (decided 2026-10-23). AC:
-  a new project's pre-commit refuses a planted secret; the privacy scan still runs before
-  anything leaves the machine (`/odeo:contribute-lesson`, shared prototypes); the release
-  notes and `/odeo:new-project` name the push guard as no longer installed.
+  hold secrets too; the pre-push guard it installed in users' projects is no longer
+  installed (decided 2026-10-23). AC: a new project's pre-commit refuses a planted secret;
+  the privacy scan still runs before anything leaves the machine (`/odeo:contribute-lesson`,
+  shared prototypes); the release notes and `/odeo:new-project` name the push guard as no
+  longer installed.
 - **R5 Clear positioning.** AC: the plugin description, README opening and ROADMAP name
   founders, entrepreneurs and PMs, and describe the end point as a package ready for
   delivery to any builder, with no build tool named.
-- **R6 Odeo can still maintain itself.** The maintainer's own merge gate and code-reviewer
-  move to a repository-only folder that the publish step strips, so they keep working on
-  this repository and never reach users. AC: the repository's tests, lint, publish guard,
-  merge gate and code review for its scripts keep working, and the published tree
+- **R6 Odeo can still maintain itself.** The maintainer's own merge gate, code-reviewer
+  and pre-push guard for this repository move to a repository-only folder that the
+  publish step strips. AC: on this repository the tests, lint, publish guard, merge gate,
+  pre-push guard and code review for its scripts keep working, and the published tree
   contains none of them.
 - **R7 The package is scanned.** AC: before the package is handed over, the privacy scan
   runs on it, and a planted e-mail address or key produces a warning the user must answer.
@@ -171,55 +176,58 @@ Out (non-goals):
   notes by path and never copies them; its summarized findings carry no person's name; a
   pilot package built from an interview synthesis with planted names contains none.
 - **R10 The archive stays private.** AC: the archive branch exists only on the private
-  remote, and a push of it to the public remote is refused.
+  remote, and this repository's pre-push guard (kept under R6) refuses a push of it to
+  the public remote.
 - **R11 Scripts that remaining skills use stay.** AC: `share-tunnel.sh` (used by
   `prototype`) and `second-opinion.sh` (used by `second-opinion-pm`) ship in the plugin,
   and every remaining skill's script references resolve after install.
 - **R12 No model policy.** AC: no shipped agent, skill, rubric, record format, gate or
   instruction file mentions a model tier, a waiver or which model to use; `spec-gate`
   accepts a passing record without `model_tier`.
-- **R13 Shares last as long as needed, and always end.** AC: when sharing a prototype the
-  user is asked how long it stays open, and a duration of a full working day (8 hours) is
-  accepted; the share can be extended while it is open and the people it was sent to keep
-  the same link (whether today's re-run changes the link is to be verified first); every
-  share still announces its end time and closes on its own, and `/odeo:start` lists
-  shares that are still open.
+- **R13 Longer shares that keep their link (side change).** Today extending a share means
+  starting a new tunnel, and a new tunnel always gets a new address ("The hostname changes
+  each time you create a Quick Tunnel", Cloudflare Quick Tunnels docs, read 2026-10-25).
+  AC: when sharing, the user chooses how long the share stays open, up to 8 hours in
+  total; an open share can be extended up to that total by moving its end time while the
+  same tunnel keeps running, so the link stays the same; every share announces its end
+  time, closes on its own, and stays listed by `/odeo:start` while open.
 
 ## 7. Risks & dependencies
 - **Value:** the PM half alone is not compelling; founders want one tool that also
-  builds. Detect: H2 signals; mitigation is a package good enough to start any build.
+  builds. Detect: H2 signals within 60 days; mitigation is a package good enough to
+  start any build.
 - **Usability:** a package that is complete for one builder is thin for another (a human
   developer wants different detail than a build tool). Detect: H3, the second build setup
   in the pilot.
 - **Feasibility:** low; this is mostly removal, plus one step.
 - **Weight (from the critique):** the rigor that sets Odeo apart is also slow; a founder
-  who meets several review rounds on a first PRD stops before the package. Detect:
-  sessions that produce one document and never a second step. Mitigation in scope: the
-  core path (scope item 7).
+  who meets several review rounds on a first PRD stops before the package. Detect: in the
+  three pilot sessions, any that produce one document and never reach the package.
+  Mitigation in scope: the Core path.
 - **Reach (from the critique):** nobody outside the maintainer finds it, since launch is
-  out of this slice. Detect: repository traffic and installs stay near zero for 30 days
-  after the release.
+  out of this slice. Detect: the same 60-day window as H2, repository traffic and
+  installs.
 - **Security pre-mortem** (the cut removes protections users had). "It is six months
   later and a user leaked a secret through a project Odeo set up. What was the hole?"
   - Odeo stopped installing its pre-commit secret scan into new projects, and nothing
     told the user. **Requirement (R4):** the secret-scan pre-commit hook stays; the
     dropped pre-push guard is named in the release notes and in `/odeo:new-project`.
-  - The package carried private data (customer names, figures from interviews) to a
-    builder or into a repository that is later pushed publicly. **Requirement (R7):** the
-    privacy scan runs on the package before it is handed over.
+  - The package carried private data to a builder or into a repository that is later
+    pushed publicly. **Requirement (R7):** the privacy scan runs on the package before
+    it is handed over.
   - Old git hooks in existing projects point at scripts the new release no longer ships
     and silently stop scanning. **Requirement (R8):** the session-start check that already
     names outdated guards also names guards whose scripts were removed.
   - Interviewee names and quotes from an interview synthesis travelled in the package; the
     privacy scan matches patterns and does not recognize personal names.
     **Requirement (R9):** the package refers to raw notes and its findings carry no names.
-  - The archive branch, which holds internal paths, was pushed to the public remote once
-    the pre-push guard left with the build half. **Requirement (R10):** private only.
-  - A shared prototype's tunnel broke or stayed open because its script was cut with the
-    build half. **Requirement (R11):** scripts that remaining skills use stay.
-  - A longer share (R13) was forgotten and a prototype with seed data stayed public for
-    a day. **Requirement (R13):** every share announces its end time, closes on its own,
-    and stays listed by `/odeo:start` while open; prototypes keep using seed data only.
+  - The archive branch, which holds internal paths, was pushed to the public remote.
+    **Requirement (R10):** private only, refused by this repository's own pre-push guard.
+  - A shared prototype's tunnel broke because its script was cut with the build half.
+    **Requirement (R11):** scripts that remaining skills use stay.
+  - A longer share was forgotten and a prototype stayed public for hours. **Requirement
+    (R13):** at most 8 hours in total, an announced end time, automatic close, and a
+    listing in `/odeo:start` while open; prototypes keep using seed data only.
 
 ## 8. Open questions
 1. **What the brief holds beyond the PRD and stories:** priorities, constraints, known
@@ -227,10 +235,11 @@ Out (non-goals):
 2. **Audience of the first release:** the maintainer's own work, or a public launch with
    positioning and a short demo?
 
-Decided 2026-10-23 by the maintainer (were open questions in v1): the build half goes to
-an archive branch; `prototype`, `ux-writing` and `second-opinion-pm` stay, `query` goes;
-the secret-scan pre-commit hook stays; the prepared 0.5.0 ships only as part of the cut.
-Decided 2026-10-25: Odeo names no build tool; the package is ready for any builder.
-After `/odeo:critique` (2026-10-25): spec-gate and coverage-check stay as PM checks; a
-core path for founders; R9 to R11 from the security pre-mortem; no model policy at all
-(R12); prototype shares longer than an hour and extendable without a new link (R13).
+Decisions, in order:
+- 2026-10-23: the build half goes to an archive branch; `prototype`, `ux-writing` and
+  `second-opinion-pm` stay, `query` goes; the secret-scan pre-commit hook stays; the
+  prepared 0.5.0 ships only as part of this release.
+- 2026-10-25: Odeo names no build tool; the package is ready for any builder.
+- 2026-10-25, after `/odeo:critique`: `spec-gate` and `coverage-check` stay; the Core path;
+  R9 to R11 from the security pre-mortem; no model policy at all; longer prototype shares
+  as a side change.
