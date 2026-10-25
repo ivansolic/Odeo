@@ -18,7 +18,7 @@ Who hurts:
   2026-10-22/23 in this repository: 41 of the last 100 commits were review records of
   delivery work; 72 code-reviewer runs in 30 days, about 1.5M tokens each (13 runs of one
   session, about 20M tokens); 7 of the 10 agents (75% of agent text) and 16 of the 67
-  skills (36% of skill text) serve delivery; phases 1 and 2 of the October slimming were
+  skills (33% of skill text) serve delivery; phases 1 and 2 of the October slimming were
   spent almost entirely on delivery machinery (merge-gate, review loop, bin wrappers).
 - **Founders, entrepreneurs and PMs** looking for rigorous product work, who meet a
   plugin described as "PM-to-Dev workflow" and a guide full of git branches, worktrees
@@ -39,8 +39,11 @@ and stories, and hands them to Superpowers without re-explaining what was decide
 Success metrics (targets):
 - **Clean handoff (primary):** in 3 of 3 pilot handoffs, Superpowers' `brainstorming`
   echoes the request correctly and its one opening question is about something the PRD
-  and stories leave open, never about something they already decide. Measured by reading
-  the transcript of each pilot against the handed-over documents.
+  and stories leave open, never about something they already decide. "Echoes correctly"
+  means its summary names the same problem, outcome and in-scope items as the handed-over
+  documents and adds no scope they do not contain. Measured by reading the transcript of
+  each pilot against the documents. The maintainer runs the pilots, and at least one of the
+  three ideas comes from a person who is not the maintainer.
 - **Focus:** the shipped plugin contains no build, merge or code-review skill or agent
   (0 of each), and its README and ROADMAP name founders, entrepreneurs and PMs as the
   audience.
@@ -69,7 +72,7 @@ Success metrics (targets):
   users install.
 
 ## 4. Hypotheses & assumptions
-- **H1 (riskiest): the handoff can be clean without new machinery.** Superpowers'
+- **H1 (riskiest): the handoff can be clean without new machinery.** Risk: Superpowers'
   brainstorming re-asks or second-guesses what the PRD settled, and the user ends up
   re-deciding scope. Wrong if: in a pilot its opening question is answered by the
   handed-over documents, or its echo misstates the scope.
@@ -87,17 +90,22 @@ In (the thin slice):
 1. **Handoff step:** one Odeo skill that, after stories pass their review, writes a
    handoff document Superpowers can start from, and tells the user the one command to run
    next. One document, one command.
-2. **Cut:** build, merge, deploy, CI, commit-push, optimize, worktree-parallel-check,
-   focus, sync-docs, test-driven-development, ux-design, setup-design and the three
-   code/design/plan second-opinion skills leave the plugin, with the agents architect,
-   builder, code-reviewer, design-reviewer, architecture-reviewer, codebase-analyst and
-   debugger, and the build-only scripts (merge-gate, spec-gate, boundary-check,
-   coverage-check, focus-check).
+2. **Cut:** 16 skills (build, merge, deploy, ci, commit-push, optimize,
+   worktree-parallel-check, focus, sync-docs, test-driven-development, ux-design,
+   setup-design, query, and the three code/design/plan second-opinion skills) leave the
+   plugin, with 7 agents (architect, builder, code-reviewer, design-reviewer,
+   architecture-reviewer, codebase-analyst, debugger) and the build-only scripts
+   (merge-gate, spec-gate, boundary-check, coverage-check, focus-check). They go to a
+   tagged archive branch in this repository and are not maintained (decided 2026-10-23).
+   `prototype`, `ux-writing` and `second-opinion-pm` stay (decided 2026-10-23).
 3. **Repositioning:** plugin description, README, ROADMAP, guide and system map say who
    Odeo is for and where the build continues.
 4. **Instructions:** AGENTS.md keeps the rules a PM workflow and Odeo's own maintenance
    need; build rules leave with the build half.
 5. **Pilot:** 3 handoffs to Superpowers on real ideas, transcripts kept as evidence.
+6. **One release:** the prepared, unpublished 0.5.0 (review-loop and merge-gate changes)
+   is not published on its own; its PM-relevant parts ship with the cut release
+   (decided 2026-10-23).
 
 Out (non-goals):
 - Building or maintaining a replacement build plugin.
@@ -116,14 +124,25 @@ Out (non-goals):
   remaining skill, guide line or system-map row points to one.
 - **R3 Nothing PM is lost.** AC: every remaining PM skill passes its quality gate after
   the cut, and `/odeo:guide` routes every PM question it routed before.
-- **R4 Protection stays where it protects users.** AC: the privacy scan still runs before
-  anything leaves the machine (`/odeo:contribute-lesson`, shared prototypes), and users
-  are told plainly which git protections Odeo no longer installs (see section 7).
+- **R4 Protection stays where it protects users.** Odeo keeps installing the secret-scan
+  pre-commit hook in projects it creates, because PM documents (interviews, figures) can
+  hold secrets too; the pre-push guard goes with the build half (decided 2026-10-23). AC:
+  a new project's pre-commit refuses a planted secret; the privacy scan still runs before
+  anything leaves the machine (`/odeo:contribute-lesson`, shared prototypes); the release
+  notes and `/odeo:new-project` name the push guard as no longer installed.
 - **R5 Clear positioning.** AC: the plugin description, README opening and ROADMAP name
   founders, entrepreneurs and PMs, and name Superpowers as the place the build continues.
-- **R6 Odeo can still maintain itself.** AC: the repository's own tests, lint, publish
-  guard and code review for its scripts keep working, as repository tooling outside the
-  shipped plugin.
+- **R6 Odeo can still maintain itself.** The maintainer's own merge gate and code-reviewer
+  move to a repository-only folder that the publish step strips, so they keep working on
+  this repository and never reach users. AC: the repository's tests, lint, publish guard,
+  merge gate and code review for its scripts keep working, and the published tree
+  contains none of them.
+- **R7 The handoff document is scanned.** AC: before the handoff document is written into
+  a code repository, the privacy scan runs on it, and a planted e-mail address or key in
+  the document produces a warning the user must answer.
+- **R8 Removed scripts are named.** AC: when an existing project's git hook points to a
+  script the release no longer ships, the session-start check names that hook and the
+  one command that refreshes it.
 
 ## 7. Risks & dependencies
 - **Value:** the PM half alone is not compelling; founders want one tool that also
@@ -135,30 +154,24 @@ Out (non-goals):
 - **Feasibility:** low; this is mostly removal, plus one skill.
 - **Security pre-mortem** (the cut removes protections users had). "It is six months
   later and a user leaked a secret through a project Odeo set up. What was the hole?"
-  - Odeo stopped installing its pre-commit secret scan and pre-push guard into new
-    projects, and nothing told the user. **Requirement:** R4 names the change in the
-    release notes and in `/odeo:new-project`, and either keeps installing the secret-scan
-    pre-commit hook (it protects PM documents too) or points to Superpowers or another
-    tool that does. Decide in Open question 3.
+  - Odeo stopped installing its pre-commit secret scan into new projects, and nothing
+    told the user. **Requirement (R4):** the secret-scan pre-commit hook stays; the
+    dropped pre-push guard is named in the release notes and in `/odeo:new-project`.
   - A handoff document carried private data (customer names, figures from interviews)
-    into a repository that is later pushed publicly. **Requirement:** the handoff step
-    reuses the existing privacy scan on the handoff document and warns before writing it
-    into a code repository.
+    into a repository that is later pushed publicly. **Requirement (R7):** the handoff
+    step runs the existing privacy scan on the handoff document and warns before writing
+    it into a code repository.
   - Old git hooks in existing projects point at scripts the new release no longer ships
-    and silently stop scanning. **Requirement:** the session-start check that already
+    and silently stop scanning. **Requirement (R8):** the session-start check that already
     names outdated guards also names guards whose scripts were removed.
 
 ## 8. Open questions
-1. **Fate of the build half:** an archive branch in this repository, or a separate
-   `odeo-build` plugin in the same marketplace? (Archive is cheaper; a plugin keeps it
-   usable for anyone who wants it.)
-2. **Borderline skills:** `prototype` (a founder testing an idea), `ux-writing`, `query`
-   and `second-opinion-pm` are PM-adjacent. Keep, move, or drop each?
-3. **Git protections:** does Odeo keep installing the secret-scan pre-commit hook in
-   projects it creates, or leave all git protection to the build tool?
-4. **Handoff target:** Superpowers' `brainstorming` (re-reads and confirms the spec) or
-   straight to `writing-plans` (treats it as final)? The pilot should try both.
-5. **Pending release 0.5.0** (review-loop changes, prepared, not pushed): publish before
-   the cut, fold into the cut release, or drop?
-6. **Audience of the first release:** the maintainer's own work, or a public launch with
+1. **Handoff target:** Superpowers' `brainstorming` (re-reads and confirms the spec) or
+   straight to `writing-plans` (treats it as final)? The pilot tries both and keeps the
+   one that meets the clean-handoff metric.
+2. **Audience of the first release:** the maintainer's own work, or a public launch with
    positioning and a short demo?
+
+Decided 2026-10-23 by the maintainer (were open questions in v1): the build half goes to
+an archive branch; `prototype`, `ux-writing` and `second-opinion-pm` stay, `query` goes;
+the secret-scan pre-commit hook stays; the prepared 0.5.0 ships only as part of the cut.
