@@ -95,7 +95,9 @@ In, the thin slice (each item is referred to by its name elsewhere in this docum
    project, readable by a person or any tool. No build tool is named or assumed.
 2. **Core path:** the front door for founders is a short path, PRD, critique, stories,
    package; `/odeo:guide`, the README and `/odeo:start` lead with it. The other PM skills
-   stay as extras reached when needed (decided 2026-10-25).
+   stay as extras reached when needed (decided 2026-10-25). The user moves along it by
+   asking in their own words ("write the stories") or by saying yes to an offered next
+   step; typing a command is possible but never required (R15, decided 2026-10-25).
 3. **Cut:** 16 skills (build, merge, deploy, ci, commit-push, optimize,
    worktree-parallel-check, focus, sync-docs, test-driven-development, ux-design,
    setup-design, query, and the three code/design/plan second-opinion skills), 7 agents
@@ -129,17 +131,19 @@ the maintainer asked for it, decided 2026-10-25):
   last as long as a review needs and be extended without a new link (R13), and a
   *lasting share* that is published once and keeps the same link after the machine is
   off and after the prototype is updated, the way a shared document link works (R14).
-  Odeo publishes the lasting share to a place the user already has (their host's own
-  sharing, or a static hosting account they choose) and does not bundle or name one.
+  Odeo publishes the lasting share to a place the user already has (the sharing built
+  into the tool they work in, or a static hosting account they choose), only where every
+  R14 check holds, and does not bundle or name one.
 
 Out (non-goals):
 - Building, recommending or integrating any build tool.
 - Changing what the PM skills produce: their rubrics and document shapes stay. The only
   edits to remaining PM skills are the ones the items above require: removing model
   remarks (No model policy), removing pointers to cut items (R2), leading with the core
-  path (Core path), `new-project` no longer installing the pre-push guard and saying so
-  (R4), and the prototype sharing change (the side change). The review-record
-  format loses its two model fields (No model policy) and nothing else.
+  path and letting the user start each skill by asking (Core path, R15), `new-project`
+  no longer installing the pre-push guard and saying so (R4), and the prototype sharing
+  change (the side change). The review-record format loses its two model fields (No
+  model policy) and nothing else.
 - A Codex or other host port.
 - Migration tooling for outside users of the build half (none known).
 - A public launch campaign or demo; whether and how to launch is decided after the
@@ -197,14 +201,28 @@ Out (non-goals):
   total; an open share can be extended up to that total by moving its end time while the
   same tunnel keeps running, so the link stays the same; every share announces its end
   time, closes on its own, and stays listed by `/odeo:start` while open.
-- **R14 Lasting shares (side change).** A lasting share does not close on its own, so its
-  protection is access and consent rather than time. AC: the user approves each
+- **R14 Lasting shares (side change).** Today `prototype` already offers a preview
+  deploy for sharing over days: it needs an account with a hosting service, is recorded
+  in the project's share list, recommends password protection where the service offers
+  it, and is deleted by hand. R14 builds on that step rather than adding a second one. A
+  lasting share does not close on its own, so its protection is access and consent
+  rather than time. AC: Odeo publishes only to a place where every check below holds,
+  and says so when the user's chosen place cannot meet one; the user approves each
   publication before anything leaves the machine; the privacy scan runs on the prototype
   first and a planted e-mail address or key blocks the publication until the user answers;
   the share is private to the user until they share it; after the user's machine is off
   and after an update, the same link shows the current prototype; `/odeo:start` lists
   every lasting share; one command withdraws a share, and the link stops working; the
   prototype uses seed data only.
+- **R15 Start a skill by asking (Core path).** Today 41 of the 51 skills that remain
+  after the cut start only when the user types their command; asking in words ("write
+  the stories for this PRD") gets a request to type it instead. AC: every remaining
+  skill starts when the user asks for it in words or says yes to an offer of it, and in
+  the pilot transcripts no skill starts without one of the two; each step that sends
+  something off the machine or makes it public (sharing a lesson with the community, a
+  quick or lasting prototype share) still asks for the user's explicit yes before it
+  happens, whoever started the skill; integrating into this repository's main branch
+  stays the maintainer's own command (R6).
 
 ## 7. Risks & dependencies
 - **Value:** the PM half alone is not compelling; founders want one tool that also
@@ -213,7 +231,9 @@ Out (non-goals):
 - **Usability:** a package that is complete for one builder is thin for another (a human
   developer wants different detail than a build tool). Detect: H3, the second build setup
   in the pilot.
-- **Feasibility:** low; this is mostly removal, plus one step.
+- **Feasibility:** low for the cut, which is mostly removal; medium for the new work,
+  the package step, quick shares that keep their link (R13), lasting shares (R14) and a
+  new trigger description for every remaining skill (R15).
 - **Weight (from the critique):** the rigor that sets Odeo apart is also slow; a founder
   who meets several review rounds on a first PRD stops before the package. Detect: in the
   three pilot sessions, any that produce one document and never reach the package.
@@ -246,6 +266,10 @@ Out (non-goals):
     review, with real customer data pasted into the prototype. **Requirement (R14):**
     approval before each publication, the privacy scan first, private until shared, seed
     data only, listed in `/odeo:start`, and one command to withdraw it.
+  - The assistant started a prototype share or a community contribution on its own
+    reading of the conversation, because skills no longer wait for a typed command.
+    **Requirement (R15):** a skill starts only on the user's request or yes, and every
+    step that sends something off the machine still asks for an explicit yes first.
 
 ## 8. Open questions
 1. **What the brief holds beyond the PRD and stories:** priorities, constraints, known
@@ -264,3 +288,6 @@ Decisions, in order:
   as a side change.
 - 2026-10-25, round 5: prototype sharing in two modes, quick and lasting, the lasting one
   keeping its link like a shared document (R14).
+- 2026-10-25, round 6: every remaining skill can be started by asking in words or by a
+  yes to an offer, not only by a typed command; steps that send anything off the machine
+  keep their own approval (R15).
