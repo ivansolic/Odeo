@@ -52,10 +52,13 @@ Success metrics (targets):
   quality gate after the cut (pm-reviewer and skill-reviewer records unchanged or better).
 
 ## 3. Context
-- Building is well served elsewhere: dedicated development tools and plugins plan,
-  implement, test and review code. They all start from the same thing, a clear
-  specification, and that is what Odeo should hand them. Odeo does not choose or name a
-  build tool for the user.
+- Assumption, not measured: building is well served elsewhere, by dedicated development
+  tools and plugins that plan, implement, test and review code, and they all start from
+  the same thing, a clear specification. That is what Odeo should hand them. Odeo does not
+  choose or name a build tool for the user.
+- The real alternative for the user is a general assistant asked to "write me a PRD".
+  Odeo's answer is rigor (reviewed documents, traced requirements, a pre-mortem), which
+  also costs time; the cut keeps that rigor and removes the build machinery around it.
 - Odeo's own data on what is used (session transcripts since 2026-09-23, all projects on
   the maintainer's machine): `/odeo:merge` 19 runs, `/odeo:learn` 4, `/odeo:stories`,
   `/odeo:guide` and `/odeo:research` 1 to 2 each; the build agents (architect, builder)
@@ -94,9 +97,24 @@ In (the thin slice):
    setup-design, query, and the three code/design/plan second-opinion skills) leave the
    plugin, with 7 agents (architect, builder, code-reviewer, design-reviewer,
    architecture-reviewer, codebase-analyst, debugger) and the build-only scripts
-   (merge-gate, spec-gate, boundary-check, coverage-check, focus-check). They go to a
-   tagged archive branch in this repository and are not maintained (decided 2026-10-23).
-   `prototype`, `ux-writing` and `second-opinion-pm` stay (decided 2026-10-23).
+   (merge-gate, boundary-check, focus-check). The copy on a tagged archive branch is
+   not maintained (decided 2026-10-23); the maintainer's own merge gate and
+   code-reviewer are kept and maintained separately as repository-only tooling (R6).
+   `prototype`, `ux-writing` and `second-opinion-pm` stay (decided 2026-10-23), and so do
+   `spec-gate` (the package's documents passed their review) and `coverage-check`
+   (every PRD requirement has a story), because the package needs both (decided
+   2026-10-25).
+7. **Core path for founders:** the front door is a short path, PRD, critique, stories,
+   package; `/odeo:guide`, the README and `/odeo:start` lead with it. The other PM skills
+   stay, unchanged, as extras reached when needed (decided 2026-10-25).
+8. **No model policy:** agents run on the session's model; review records lose
+   `model_tier` and `model_waiver`; `spec-gate` stops checking a tier; the model-policy
+   section of AGENTS.md and the lint rule on model names go, and nothing in the plugin
+   says anything about which model to use (decided 2026-10-25).
+9. **Prototype shares that last as long as the review needs:** the person sharing a
+   prototype chooses how long the share stays open, beyond an hour when a review takes
+   longer, and can extend it without sending a new link; it still always ends on its own
+   (decided 2026-10-25).
 3. **Repositioning:** plugin description, README, ROADMAP, guide and system map say who
    Odeo is for and that it ends with a delivery-ready package.
 4. **Instructions:** AGENTS.md keeps the rules a PM workflow and Odeo's own maintenance
@@ -113,13 +131,18 @@ Out (non-goals):
   package needs.
 - A Codex or other host port.
 - Migration tooling for outside users of the build half (none known).
+- A public launch campaign or demo; whether and how to launch is decided after the
+  pilot (open question 2).
+- Removing or rewriting PM skills beyond the core-path ordering.
 
 ## 6. Requirements & acceptance criteria
 - **R1 Delivery-ready package.** After stories pass review, the user gets one package and
   is told it is ready for delivery. AC: the package states the problem, the outcome and
   its metric, the scope with non-goals, the stories with their acceptance criteria, and a
-  list of what is decided and what is still open; a builder in the pilot starts from it
-  without the user copying or re-explaining anything; it names no build tool.
+  list of what is decided and what is still open; it is assembled only when `spec-gate`
+  confirms the PRD and stories carry a fresh passing review and `coverage-check` confirms
+  every PRD requirement has a story; a builder in the pilot starts from it without the
+  user copying or re-explaining anything; it names no build tool.
 - **R2 Clean cut.** The shipped plugin contains none of the skills, agents and scripts in
   scope item 2. AC: the plugin's file list after install has none of them, and no
   remaining skill, guide line or system-map row points to one.
@@ -144,6 +167,23 @@ Out (non-goals):
 - **R8 Removed scripts are named.** AC: when an existing project's git hook points to a
   script the release no longer ships, the session-start check names that hook and the
   one command that refreshes it.
+- **R9 No interviewee data in the package.** AC: the package refers to raw interview
+  notes by path and never copies them; its summarized findings carry no person's name; a
+  pilot package built from an interview synthesis with planted names contains none.
+- **R10 The archive stays private.** AC: the archive branch exists only on the private
+  remote, and a push of it to the public remote is refused.
+- **R11 Scripts that remaining skills use stay.** AC: `share-tunnel.sh` (used by
+  `prototype`) and `second-opinion.sh` (used by `second-opinion-pm`) ship in the plugin,
+  and every remaining skill's script references resolve after install.
+- **R12 No model policy.** AC: no shipped agent, skill, rubric, record format, gate or
+  instruction file mentions a model tier, a waiver or which model to use; `spec-gate`
+  accepts a passing record without `model_tier`.
+- **R13 Shares last as long as needed, and always end.** AC: when sharing a prototype the
+  user is asked how long it stays open, and a duration of a full working day (8 hours) is
+  accepted; the share can be extended while it is open and the people it was sent to keep
+  the same link (whether today's re-run changes the link is to be verified first); every
+  share still announces its end time and closes on its own, and `/odeo:start` lists
+  shares that are still open.
 
 ## 7. Risks & dependencies
 - **Value:** the PM half alone is not compelling; founders want one tool that also
@@ -152,6 +192,13 @@ Out (non-goals):
   developer wants different detail than a build tool). Detect: H3, the second build setup
   in the pilot.
 - **Feasibility:** low; this is mostly removal, plus one step.
+- **Weight (from the critique):** the rigor that sets Odeo apart is also slow; a founder
+  who meets several review rounds on a first PRD stops before the package. Detect:
+  sessions that produce one document and never a second step. Mitigation in scope: the
+  core path (scope item 7).
+- **Reach (from the critique):** nobody outside the maintainer finds it, since launch is
+  out of this slice. Detect: repository traffic and installs stay near zero for 30 days
+  after the release.
 - **Security pre-mortem** (the cut removes protections users had). "It is six months
   later and a user leaked a secret through a project Odeo set up. What was the hole?"
   - Odeo stopped installing its pre-commit secret scan into new projects, and nothing
@@ -163,6 +210,16 @@ Out (non-goals):
   - Old git hooks in existing projects point at scripts the new release no longer ships
     and silently stop scanning. **Requirement (R8):** the session-start check that already
     names outdated guards also names guards whose scripts were removed.
+  - Interviewee names and quotes from an interview synthesis travelled in the package; the
+    privacy scan matches patterns and does not recognize personal names.
+    **Requirement (R9):** the package refers to raw notes and its findings carry no names.
+  - The archive branch, which holds internal paths, was pushed to the public remote once
+    the pre-push guard left with the build half. **Requirement (R10):** private only.
+  - A shared prototype's tunnel broke or stayed open because its script was cut with the
+    build half. **Requirement (R11):** scripts that remaining skills use stay.
+  - A longer share (R13) was forgotten and a prototype with seed data stayed public for
+    a day. **Requirement (R13):** every share announces its end time, closes on its own,
+    and stays listed by `/odeo:start` while open; prototypes keep using seed data only.
 
 ## 8. Open questions
 1. **What the brief holds beyond the PRD and stories:** priorities, constraints, known
@@ -174,3 +231,6 @@ Decided 2026-10-23 by the maintainer (were open questions in v1): the build half
 an archive branch; `prototype`, `ux-writing` and `second-opinion-pm` stay, `query` goes;
 the secret-scan pre-commit hook stays; the prepared 0.5.0 ships only as part of the cut.
 Decided 2026-10-25: Odeo names no build tool; the package is ready for any builder.
+After `/odeo:critique` (2026-10-25): spec-gate and coverage-check stay as PM checks; a
+core path for founders; R9 to R11 from the security pre-mortem; no model policy at all
+(R12); prototype shares longer than an hour and extendable without a new link (R13).
