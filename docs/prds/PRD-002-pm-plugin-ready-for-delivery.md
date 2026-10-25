@@ -109,8 +109,9 @@ In, the thin slice (each item is referred to by its name elsewhere in this docum
    the community knowledge, and the pre-push guard Odeo installed in users' projects is
    no longer installed (R4). The knowledge skills were built for solved technical
    problems (verified by passing tests, checked against the code); the shared community
-   base holds 5 entries, all technical, and is the one way someone else's text reaches a
-   session unreviewed (read 2026-10-25; decided 2026-10-25). A copy goes to a tagged
+   base holds no lessons, only five empty technical categories, and is the one way
+   someone else's text reaches a session unreviewed (local copy read 2026-10-25; decided
+   2026-10-25). A copy goes to a tagged
    archive branch and is not maintained (decided 2026-10-23). What stays: `prototype`,
    `ux-writing` and `second-opinion-pm` (decided 2026-10-23); `spec-gate` and
    `coverage-check`, which the package needs (decided 2026-10-25); the scripts remaining
@@ -135,7 +136,9 @@ In, the thin slice (each item is referred to by its name elsewhere in this docum
    2026-10-23).
 9. **One setup:** `new-project` and `setup-project` become one `setup` skill that
    prepares a place for product documents, new or inside an existing folder; the stack
-   interview, the stack presets and the design layer leave it (R16, decided 2026-10-25).
+   interview, the stack presets and the design layer leave it; it asks what the product
+   is, whether to teach product terms as it goes, and the product's security and data
+   facts (R16, decided 2026-10-25).
 
 Side change in the same release, outside the thin slice (it does not test the outcome;
 the maintainer asked for it, decided 2026-10-25):
@@ -236,27 +239,39 @@ Out (non-goals):
   remote repository `setup` offers to create) still asks for the user's explicit yes
   before it happens, whoever started the skill; integrating into this repository's main
   branch stays the maintainer's own command (R6).
-- **R16 One setup.** Today `new-project` scaffolds a code project (git with the push
-  and commit guards, a design layer for interfaces, a knowledge folder) and hands over
-  to `setup-project`, which interviews the user about the stack, the build and test
-  commands and conventions, offers a stack preset, and maps an existing codebase with an
-  agent the cut removes. AC: one `setup` skill prepares a place for product documents,
-  either a new folder or inside an existing one; it creates the document folders, sets
-  the output language, and starts version history where none exists, because the spec
-  gate reads review freshness from it; it installs the secret scan on commit (R4); it
-  asks nothing about a stack, build or test commands and offers no stack preset, design
-  layer or knowledge folder; in an existing folder it overwrites no file the user has;
-  creating a remote repository and pushing to it stays an offer that runs only after
-  the user's explicit yes (R15).
-- **R17 A PM baseline in every session.** Today, once Odeo is installed, every session
-  in every project receives a 232-line baseline whose sections are mostly about
-  building software: git discipline, code style, testing, a security baseline for code,
-  the community knowledge base, and when to call the code and architecture reviewers.
-  AC: the baseline Odeo adds to every session contains the communication, PM practice,
-  honesty and privacy rules (secrets and personal data stay out of documents, nothing
-  leaves the machine without approval), and no rule about git branches, code style,
-  tests, code security, community knowledge or an agent the cut removes; every rule a
-  remaining skill relies on is in that skill or in AGENTS.md.
+- **R16 One setup.** Today `new-project` scaffolds a code project (git with the push and
+  commit guards, a design layer for interfaces, a knowledge folder) and hands over to
+  `setup-project`, which interviews the user about the stack, the build and test commands
+  and conventions, offers a stack preset, and maps an existing codebase with an agent the
+  cut removes. AC: one `setup` skill prepares a place for product documents, either a new
+  folder or inside an existing one; it creates the document folders, sets the output
+  language, and starts version history where none exists, because the spec gate reads
+  review freshness from it, and its first commit holds only the files `setup` created,
+  never files that were already in the folder; it installs the secret scan on commit
+  (R4); it asks three things: what the product is (who it is for and the outcome it
+  produces), whether to teach product terms as it goes (the plain explanation first, then
+  the term in a short aside, such as ICP, North Star or RICE; default yes, one answer
+  turns it off), and the product's security and data facts (which personal data it
+  handles, who its users are and where, whether they log in), which feed every PRD's
+  security pre-mortem; it asks nothing about a stack, build or test commands and offers
+  no stack preset, design layer or knowledge folder; in an existing folder it overwrites
+  no file the user has, and in an existing project instruction file it adds the language
+  line and replaces nothing; creating a remote repository and pushing to it stays an
+  offer that runs only after the privacy scan and the user's explicit yes (R15).
+- **R17 A PM baseline in every session.** Today, once Odeo is installed, every session in
+  every project receives a 232-line baseline (unless the user's own global instructions
+  already carry its security section) whose sections are mostly about building software:
+  git discipline, code style, testing, a security baseline for code, the community
+  knowledge base, and when to call the code and architecture reviewers. AC: the baseline
+  Odeo adds to every session contains the communication, PM practice, honesty and privacy
+  rules (secrets and personal data stay out of documents, nothing leaves the machine
+  without approval), and every section of it belongs to one of these four groups, so
+  nothing about git branches, code style, tests, code security, plan formats, bug fixing,
+  the task ledger, community knowledge or an agent the cut removes remains; every rule a
+  remaining skill relies on is in that skill or in AGENTS.md; the communication rules
+  point to `setup` for the product-terms preference (R16), which teaches product terms
+  rather than technical ones; in the pilot this is checked on a machine whose own global
+  instructions do not already carry the baseline.
 
 ## 7. Risks & dependencies
 - **Value:** the PM half alone is not compelling; founders want one tool that also
@@ -305,6 +320,11 @@ Out (non-goals):
     reading of the conversation, because skills no longer wait for a typed command.
     **Requirement (R15):** a skill starts only on the user's request or yes, and every
     step that sends something off the machine still asks for an explicit yes first.
+  - `setup` started version history in a founder's existing folder and its first commit
+    took in interview recordings and a customer spreadsheet that were already there;
+    the folder was later pushed. The secret scan finds keys, not personal data.
+    **Requirement (R16):** the first commit holds only the files `setup` created, and
+    a push it offers runs the privacy scan first.
   - Slimming the session baseline also dropped the rule that keeps secrets and personal
     data out of documents, and a founder pasted customer records into a PRD.
     **Requirement (R17):** the baseline keeps the privacy rules; only the rules about
@@ -339,3 +359,6 @@ Decisions, in order:
   skills go to the archive with the build half, and product knowledge across projects
   becomes open question 3; the tools for improving and reviewing skills and agents stay
   in the plugin.
+- 2026-10-25, round 8: `setup` asks what the product is, whether to teach product terms
+  (default yes) and the product's security and data facts; its first commit holds only
+  its own files and an offered push runs the privacy scan first.
