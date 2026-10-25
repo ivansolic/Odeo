@@ -101,8 +101,9 @@ In, the thin slice (each item is referred to by its name elsewhere in this docum
    setup-design, query, and the three code/design/plan second-opinion skills), 7 agents
    (architect, builder, code-reviewer, design-reviewer, architecture-reviewer,
    codebase-analyst, debugger) and 3 build-only scripts (merge-gate, boundary-check,
-   focus-check) leave the plugin. A copy goes to a tagged archive branch and is not
-   maintained (decided 2026-10-23). What stays: `prototype`, `ux-writing` and
+   focus-check) leave the plugin, and the pre-push guard Odeo installed in users'
+   projects is no longer installed (R4). A copy goes to a tagged archive branch and is
+   not maintained (decided 2026-10-23). What stays: `prototype`, `ux-writing` and
    `second-opinion-pm` (decided 2026-10-23); `spec-gate` and `coverage-check`, which the
    package needs (decided 2026-10-25); the scripts remaining skills use (R11). The
    maintainer's own merge gate, code-reviewer and pre-push guard for this repository are
@@ -124,15 +125,20 @@ In, the thin slice (each item is referred to by its name elsewhere in this docum
 
 Side change in the same release, outside the thin slice (it does not test the outcome;
 the maintainer asked for it, decided 2026-10-25):
-- **Longer prototype shares:** sharing a prototype can last as long as a review needs and
-  can be extended without a new link (R13).
+- **Prototype sharing in two modes:** a *quick share* from the user's machine that can
+  last as long as a review needs and be extended without a new link (R13), and a
+  *lasting share* that is published once and keeps the same link after the machine is
+  off and after the prototype is updated, the way a shared document link works (R14).
+  Odeo publishes the lasting share to a place the user already has (their host's own
+  sharing, or a static hosting account they choose) and does not bundle or name one.
 
 Out (non-goals):
 - Building, recommending or integrating any build tool.
 - Changing what the PM skills produce: their rubrics and document shapes stay. The only
   edits to remaining PM skills are the ones the items above require: removing model
   remarks (No model policy), removing pointers to cut items (R2), leading with the core
-  path (Core path), and the prototype share change (the side change). The review-record
+  path (Core path), `new-project` no longer installing the pre-push guard and saying so
+  (R4), and the prototype sharing change (the side change). The review-record
   format loses its two model fields (No model policy) and nothing else.
 - A Codex or other host port.
 - Migration tooling for outside users of the build half (none known).
@@ -191,6 +197,14 @@ Out (non-goals):
   total; an open share can be extended up to that total by moving its end time while the
   same tunnel keeps running, so the link stays the same; every share announces its end
   time, closes on its own, and stays listed by `/odeo:start` while open.
+- **R14 Lasting shares (side change).** A lasting share does not close on its own, so its
+  protection is access and consent rather than time. AC: the user approves each
+  publication before anything leaves the machine; the privacy scan runs on the prototype
+  first and a planted e-mail address or key blocks the publication until the user answers;
+  the share is private to the user until they share it; after the user's machine is off
+  and after an update, the same link shows the current prototype; `/odeo:start` lists
+  every lasting share; one command withdraws a share, and the link stops working; the
+  prototype uses seed data only.
 
 ## 7. Risks & dependencies
 - **Value:** the PM half alone is not compelling; founders want one tool that also
@@ -228,6 +242,10 @@ Out (non-goals):
   - A longer share was forgotten and a prototype stayed public for hours. **Requirement
     (R13):** at most 8 hours in total, an announced end time, automatic close, and a
     listing in `/odeo:start` while open; prototypes keep using seed data only.
+  - A lasting share, which never closes on its own, stayed reachable for months after the
+    review, with real customer data pasted into the prototype. **Requirement (R14):**
+    approval before each publication, the privacy scan first, private until shared, seed
+    data only, listed in `/odeo:start`, and one command to withdraw it.
 
 ## 8. Open questions
 1. **What the brief holds beyond the PRD and stories:** priorities, constraints, known
@@ -237,9 +255,12 @@ Out (non-goals):
 
 Decisions, in order:
 - 2026-10-23: the build half goes to an archive branch; `prototype`, `ux-writing` and
-  `second-opinion-pm` stay, `query` goes; the secret-scan pre-commit hook stays; the
-  prepared 0.5.0 ships only as part of this release.
+  `second-opinion-pm` stay, `query` goes; the secret-scan pre-commit hook stays and the
+  pre-push guard in users' projects goes; the prepared 0.5.0 ships only as part of this
+  release.
 - 2026-10-25: Odeo names no build tool; the package is ready for any builder.
 - 2026-10-25, after `/odeo:critique`: `spec-gate` and `coverage-check` stay; the Core path;
   R9 to R11 from the security pre-mortem; no model policy at all; longer prototype shares
   as a side change.
+- 2026-10-25, round 5: prototype sharing in two modes, quick and lasting, the lasting one
+  keeping its link like a shared document (R14).
