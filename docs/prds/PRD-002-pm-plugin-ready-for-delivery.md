@@ -95,35 +95,47 @@ In, the thin slice (each item is referred to by its name elsewhere in this docum
    project, readable by a person or any tool. No build tool is named or assumed.
 2. **Core path:** the front door for founders is a short path, PRD, critique, stories,
    package; `/odeo:guide`, the README and `/odeo:start` lead with it. The other PM skills
-   stay as extras reached when needed (decided 2026-10-25). The user moves along it by
-   asking in their own words ("write the stories") or by saying yes to an offered next
-   step; typing a command is possible but never required (R15, decided 2026-10-25).
-3. **Cut:** 16 skills (build, merge, deploy, ci, commit-push, optimize,
+   stay as extras reached when needed (decided 2026-10-25). The user moves along it, and
+   reaches any other skill, by asking in their own words ("write the stories") or by
+   saying yes to an offered next step; typing a command is possible but never required
+   (R15, decided 2026-10-25).
+3. **Cut:** 20 skills (build, merge, deploy, ci, commit-push, optimize,
    worktree-parallel-check, focus, sync-docs, test-driven-development, ux-design,
-   setup-design, query, and the three code/design/plan second-opinion skills), 7 agents
-   (architect, builder, code-reviewer, design-reviewer, architecture-reviewer,
-   codebase-analyst, debugger) and 3 build-only scripts (merge-gate, boundary-check,
-   focus-check) leave the plugin, and the pre-push guard Odeo installed in users'
-   projects is no longer installed (R4). A copy goes to a tagged archive branch and is
-   not maintained (decided 2026-10-23). What stays: `prototype`, `ux-writing` and
-   `second-opinion-pm` (decided 2026-10-23); `spec-gate` and `coverage-check`, which the
-   package needs (decided 2026-10-25); the scripts remaining skills use (R11). The
-   maintainer's own merge gate, code-reviewer and pre-push guard for this repository are
-   kept and maintained as repository-only tooling (R6).
+   setup-design, query, the three code/design/plan second-opinion skills, and the four
+   knowledge skills learn, knowledge-refresh, contribute-lesson and sync-community), 7
+   agents (architect, builder, code-reviewer, design-reviewer, architecture-reviewer,
+   codebase-analyst, debugger) and 4 scripts (merge-gate, boundary-check, focus-check,
+   community-sync) leave the plugin, together with the session-start reminder to refresh
+   the community knowledge, and the pre-push guard Odeo installed in users' projects is
+   no longer installed (R4). The knowledge skills were built for solved technical
+   problems (verified by passing tests, checked against the code); the shared community
+   base holds 5 entries, all technical, and is the one way someone else's text reaches a
+   session unreviewed (read 2026-10-25; decided 2026-10-25). A copy goes to a tagged
+   archive branch and is not maintained (decided 2026-10-23). What stays: `prototype`,
+   `ux-writing` and `second-opinion-pm` (decided 2026-10-23); `spec-gate` and
+   `coverage-check`, which the package needs (decided 2026-10-25); the scripts remaining
+   skills use (R11). The maintainer's own merge gate, code-reviewer and pre-push guard
+   for this repository are kept and maintained as repository-only tooling (R6).
 4. **No model policy:** agents run on the session's model; review records lose
    `model_tier` and `model_waiver`; `spec-gate` stops checking a tier; the model-policy
    section of AGENTS.md, the lint rule on model names and every model remark in the
-   remaining skills (for example `setup-project`, `start`) go. Nothing in the plugin says
+   remaining skills (for example `setup`, `start`) go. Nothing in the plugin says
    which model to use (decided 2026-10-25).
 5. **Instructions:** AGENTS.md keeps the rules a PM workflow and Odeo's own maintenance
-   need; build rules and the model policy leave.
+   need; build rules and the model policy leave. The baseline Odeo adds to every session
+   keeps only PM rules: communication, PM practice, honesty and privacy; git discipline,
+   code style, testing, code security and the cut agents leave it (R17, decided
+   2026-10-25).
 6. **Repositioning:** plugin description, README, ROADMAP, guide and system map say who
    Odeo is for and that it ends with a delivery-ready package.
-7. **Pilot:** 3 handoffs on real ideas, across at least two build setups, transcripts or
-   notes kept as evidence.
+7. **Pilot:** 3 handoffs on real ideas, across at least two build setups; the transcript
+   of each Odeo session is kept, and a transcript or notes of each build, as evidence.
 8. **One release:** the prepared, unpublished 0.5.0 (review-loop and merge-gate changes)
    is not published on its own; its PM-relevant parts ship with this release (decided
    2026-10-23).
+9. **One setup:** `new-project` and `setup-project` become one `setup` skill that
+   prepares a place for product documents, new or inside an existing folder; the stack
+   interview, the stack presets and the design layer leave it (R16, decided 2026-10-25).
 
 Side change in the same release, outside the thin slice (it does not test the outcome;
 the maintainer asked for it, decided 2026-10-25):
@@ -140,10 +152,10 @@ Out (non-goals):
 - Changing what the PM skills produce: their rubrics and document shapes stay. The only
   edits to remaining PM skills are the ones the items above require: removing model
   remarks (No model policy), removing pointers to cut items (R2), leading with the core
-  path and letting the user start each skill by asking (Core path, R15), `new-project`
-  no longer installing the pre-push guard and saying so (R4), and the prototype sharing
-  change (the side change). The review-record format loses its two model fields (No
-  model policy) and nothing else.
+  path and letting the user start each skill by asking (Core path, R15), the one
+  `setup` skill that no longer installs the pre-push guard and says so (One setup, R4,
+  R16), and the prototype sharing change (the side change). The review-record format
+  loses its two model fields (No model policy) and nothing else.
 - A Codex or other host port.
 - Migration tooling for outside users of the build half (none known).
 - A public launch campaign or demo; whether and how to launch is decided after the
@@ -163,12 +175,12 @@ Out (non-goals):
 - **R3 Nothing PM is lost.** AC: every remaining PM skill passes its quality gate after
   the release, and `/odeo:guide` routes every PM question it routed before.
 - **R4 Protection stays where it protects users.** Odeo keeps installing the secret-scan
-  pre-commit hook in projects it creates, because PM documents (interviews, figures) can
-  hold secrets too; the pre-push guard it installed in users' projects is no longer
-  installed (decided 2026-10-23). AC: a new project's pre-commit refuses a planted secret;
-  the privacy scan still runs before anything leaves the machine (`/odeo:contribute-lesson`,
-  shared prototypes); the release notes and `/odeo:new-project` name the push guard as no
-  longer installed.
+  pre-commit hook in the places for product documents it sets up, because PM documents
+  (interviews, figures) can hold secrets too; the pre-push guard it installed in users'
+  projects is no longer installed (decided 2026-10-23). AC: a place `setup` prepares
+  refuses a planted secret on commit; the privacy scan still runs before anything leaves
+  the machine (shared prototypes, the package under R7); the release notes and `setup`
+  name the push guard as no longer installed.
 - **R5 Clear positioning.** AC: the plugin description, README opening and ROADMAP name
   founders, entrepreneurs and PMs, and describe the end point as a package ready for
   delivery to any builder, with no build tool named.
@@ -210,19 +222,41 @@ Out (non-goals):
   and says so when the user's chosen place cannot meet one; the user approves each
   publication before anything leaves the machine; the privacy scan runs on the prototype
   first and a planted e-mail address or key blocks the publication until the user answers;
-  the share is private to the user until they share it; after the user's machine is off
+  the share is private to the user until they share it, and nobody without the link (and
+  the password, where the place offers one) can reach it; after the user's machine is off
   and after an update, the same link shows the current prototype; `/odeo:start` lists
   every lasting share; one command withdraws a share, and the link stops working; the
   prototype uses seed data only.
-- **R15 Start a skill by asking (Core path).** Today 41 of the 51 skills that remain
-  after the cut start only when the user types their command; asking in words ("write
-  the stories for this PRD") gets a request to type it instead. AC: every remaining
-  skill starts when the user asks for it in words or says yes to an offer of it, and in
-  the pilot transcripts no skill starts without one of the two; each step that sends
-  something off the machine or makes it public (sharing a lesson with the community, a
-  quick or lasting prototype share) still asks for the user's explicit yes before it
-  happens, whoever started the skill; integrating into this repository's main branch
-  stays the maintainer's own command (R6).
+- **R15 Start a skill by asking (Core path).** Today 37 of the 47 skills that remain
+  after the cut start only when the user types their command; asking in words ("write the
+  stories for this PRD") gets a request to type it instead. AC: every remaining skill
+  starts when the user asks for it in words or says yes to an offer of it, and in the
+  pilot transcripts no skill starts without one of the two; each step that sends
+  something off the machine or makes it public (a quick or lasting prototype share, a
+  remote repository `setup` offers to create) still asks for the user's explicit yes
+  before it happens, whoever started the skill; integrating into this repository's main
+  branch stays the maintainer's own command (R6).
+- **R16 One setup.** Today `new-project` scaffolds a code project (git with the push
+  and commit guards, a design layer for interfaces, a knowledge folder) and hands over
+  to `setup-project`, which interviews the user about the stack, the build and test
+  commands and conventions, offers a stack preset, and maps an existing codebase with an
+  agent the cut removes. AC: one `setup` skill prepares a place for product documents,
+  either a new folder or inside an existing one; it creates the document folders, sets
+  the output language, and starts version history where none exists, because the spec
+  gate reads review freshness from it; it installs the secret scan on commit (R4); it
+  asks nothing about a stack, build or test commands and offers no stack preset, design
+  layer or knowledge folder; in an existing folder it overwrites no file the user has;
+  creating a remote repository and pushing to it stays an offer that runs only after
+  the user's explicit yes (R15).
+- **R17 A PM baseline in every session.** Today, once Odeo is installed, every session
+  in every project receives a 232-line baseline whose sections are mostly about
+  building software: git discipline, code style, testing, a security baseline for code,
+  the community knowledge base, and when to call the code and architecture reviewers.
+  AC: the baseline Odeo adds to every session contains the communication, PM practice,
+  honesty and privacy rules (secrets and personal data stay out of documents, nothing
+  leaves the machine without approval), and no rule about git branches, code style,
+  tests, code security, community knowledge or an agent the cut removes; every rule a
+  remaining skill relies on is in that skill or in AGENTS.md.
 
 ## 7. Risks & dependencies
 - **Value:** the PM half alone is not compelling; founders want one tool that also
@@ -233,7 +267,8 @@ Out (non-goals):
   in the pilot.
 - **Feasibility:** low for the cut, which is mostly removal; medium for the new work,
   the package step, quick shares that keep their link (R13), lasting shares (R14) and a
-  new trigger description for every remaining skill (R15).
+  new trigger description for every remaining skill (R15), one `setup` from two skills
+  (R16) and a shorter session baseline (R17).
 - **Weight (from the critique):** the rigor that sets Odeo apart is also slow; a founder
   who meets several review rounds on a first PRD stops before the package. Detect: in the
   three pilot sessions, any that produce one document and never reach the package.
@@ -245,7 +280,7 @@ Out (non-goals):
   later and a user leaked a secret through a project Odeo set up. What was the hole?"
   - Odeo stopped installing its pre-commit secret scan into new projects, and nothing
     told the user. **Requirement (R4):** the secret-scan pre-commit hook stays; the
-    dropped pre-push guard is named in the release notes and in `/odeo:new-project`.
+    dropped pre-push guard is named in the release notes and in `setup`.
   - The package carried private data to a builder or into a repository that is later
     pushed publicly. **Requirement (R7):** the privacy scan runs on the package before
     it is handed over.
@@ -266,16 +301,24 @@ Out (non-goals):
     review, with real customer data pasted into the prototype. **Requirement (R14):**
     approval before each publication, the privacy scan first, private until shared, seed
     data only, listed in `/odeo:start`, and one command to withdraw it.
-  - The assistant started a prototype share or a community contribution on its own
+  - The assistant started a prototype share or pushed a new repository on its own
     reading of the conversation, because skills no longer wait for a typed command.
     **Requirement (R15):** a skill starts only on the user's request or yes, and every
     step that sends something off the machine still asks for an explicit yes first.
+  - Slimming the session baseline also dropped the rule that keeps secrets and personal
+    data out of documents, and a founder pasted customer records into a PRD.
+    **Requirement (R17):** the baseline keeps the privacy rules; only the rules about
+    building software leave.
 
 ## 8. Open questions
 1. **What the brief holds beyond the PRD and stories:** priorities, constraints, known
    edge cases, a glossary? The pilot shows what builders actually ask for.
 2. **Audience of the first release:** the maintainer's own work, or a public launch with
    positioning and a short demo?
+3. **Product knowledge across projects:** do founders want Odeo to remember verified
+   insights (research findings, decisions, market facts, each with its source) from one
+   project to the next? If the pilot shows it, a PM version of the cut `learn` skill is
+   specified then; until then `retro` captures lessons per project.
 
 Decisions, in order:
 - 2026-10-23: the build half goes to an archive branch; `prototype`, `ux-writing` and
@@ -291,3 +334,8 @@ Decisions, in order:
 - 2026-10-25, round 6: every remaining skill can be started by asking in words or by a
   yes to an offer, not only by a typed command; steps that send anything off the machine
   keep their own approval (R15).
+- 2026-10-25, round 7: `new-project` and `setup-project` become one `setup` for product
+  documents (R16); the session baseline keeps only PM rules (R17); the four knowledge
+  skills go to the archive with the build half, and product knowledge across projects
+  becomes open question 3; the tools for improving and reviewing skills and agents stay
+  in the plugin.
