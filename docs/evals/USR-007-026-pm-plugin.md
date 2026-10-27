@@ -1,6 +1,7 @@
 ---
 covers: USR-007 USR-008 USR-009 USR-010 USR-011 USR-012 USR-013 USR-014 USR-015 USR-016 USR-017 USR-018 USR-019 USR-020 USR-021 USR-022 USR-023 USR-024 USR-025 USR-026 USR-027 USR-028
 type: stories
+branch: docs/stories-prd-002
 artifact_version: 4
 date: 2026-10-27
 scorer: pm-reviewer
@@ -328,3 +329,11 @@ Trajectory across four rounds: 6/8 -> 6/8 -> 6/8 -> 7/8, PASS each time.
     Any further round needs the maintainer's approval.
   - The tier "strongest" reflects the Opus-class model my context reports. I did not
     re-check it against the live lineup.
+- Reissued 2026-10-27 (claude-opus-5-5, strongest, effort high) to add the missing `branch:
+  docs/stories-prd-002` frontmatter field, no rescoring. Round-4 scores, verdict and
+  `reviewed_commit: ad694d6` are unchanged. I have no shell, so I could not run `git diff
+  ad694d6 HEAD -- docs/stories/` myself. The dispatcher reports it empty at HEAD f6b0684. What
+  I could check agrees: the HEAD reflog shows f6b0684 as the only commit after ad694d6, a
+  `chore(evals)` commit for this record, and the story lines this record quotes (USR-022 AC3,
+  AC5 and estimate, USR-028 AC1) read as quoted. The gate's own `reviewed_commit:` check is
+  the deterministic backstop if anything did move.
