@@ -49,6 +49,16 @@ exactly like the stdin-swallowing bug the shim once had, and would have sent the
 wrong place. Fix, now in the helper above: redirect on the backgrounded command itself,
 `"$@" <&0 &` (measured: 3 bytes arrive).
 
+## Related trap: a suite runner built on `timeout` goes all red on macOS
+Measured 2026-10-27 at the USR-008 merge: `for t in tests/*.test.sh; do timeout 300 bash "$t"
+|| echo "FAILED $t"; done` reported all 40 suites FAILED. Nothing had run: `timeout` is not
+installed, so every iteration exited 127 ("command not found") and `||` read that as a failed
+suite. One suite run directly passed. Before trusting a runner, check the tool exists
+(`command -v timeout`) and treat "every suite failed at once" as a broken runner until one
+suite is run by hand. For whole suites that do not re-exec themselves, `perl -e 'alarm 300;
+exec @ARGV' bash "$t"` worked (40 of 40 green); for a command that may exec in a loop, use
+`bounded` above.
+
 ## Prevention
 Prove the watchdog on a real infinite exec loop BEFORE trusting it
 (`printf '#!/usr/bin/env bash\nexec "$0"\n'`); expect rc=143 after ~10s. And a positive
