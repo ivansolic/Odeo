@@ -2,7 +2,7 @@
 artifact: USR-008
 type: code
 branch: refactor/maintainer-tools-repo-only
-reviewed_commit: 7cd8bb4
+reviewed_commit: 53a7676
 date: 2026-10-27
 scorer: code-reviewer
 model: claude-opus-5-5
@@ -11,10 +11,36 @@ effort: high
 scores: { correctness: 2, security: 2, performance: 2, readability: 2, testing: 1, conventions: 2 }
 total: 11/12
 verdict: APPROVE WITH COMMENTS
-previous_total: 8/12
+previous_total: 11/12
 ---
 
-# Code review: USR-008, maintainer tools move to .claude/ (round 2, 7cd8bb4)
+# Code review: USR-008, maintainer tools move to .claude/ (round 2 record, regenerated at 53a7676)
+
+## Why this record was regenerated
+The round 2 record reviewed 7cd8bb4. Two commits landed after it: ce98773 (the eval records
+only) and 53a7676, which changes one number in `README.md:239`, "38 suites, 1517 assertions"
+to "38 suites, 1523 assertions". I verified the delta myself:
+`git diff 7cd8bb4 53a7676 -- . ':(exclude)docs/evals'` is exactly that one line, nothing
+else outside `docs/evals/`. `git grep` finds no other 1517 left in the tree.
+
+The drift was a miss in my round 2 review. Round 1's fix (7cd8bb4) added 6 assertions to
+`tests/skills-lint.test.sh` and did not update the README count. I ran
+`docs-claims-check.sh` WITHOUT `--assertions` (see Verified below), so the assertion count was
+never checked and I recorded "matches the tree". It did not. The mode that catches it is the
+slow one, and I skipped it. Lesson for this reviewer: when a fix adds test cases, run
+`docs-claims-check.sh --assertions` before recording the claims as matching.
+
+Claims check at 53a7676, run by me: `bash scripts/docs-claims-check.sh --assertions`, rc 0,
+about 5.5 minutes. Programs 25, suites 38, programs with own suite 25, assertions 1523
+(2 assertions in 1 case of `tests/ledger-backup.test.sh` were skipped on this shell, which
+refuses SHELLOPTS from the environment, and added back by the check). "every countable claim
+matches the tree".
+
+Effect on scores: none. The fix is correct and complete, and it is a docs number only. The
+round 2 Important finding (migrator test covers 2 of 4 retired names) is untouched by this
+delta and still open, so testing stays at 1. Verdict unchanged.
+
+## Round 2 review (7cd8bb4), carried forward unchanged
 
 Base b783368. Plan: USR-008 section of the approved plan (magical-wondering-micali).
 Round 1 reviewed d3a0b46 (REQUEST CHANGES 8/12). This round reviews the fix commit 7cd8bb4
@@ -101,7 +127,8 @@ Nitpicks:
 - `tests/skills-lint.test.sh` 94/0.
 - `.claude/maintainer/tests/merge-gate.test.sh` 88/0, `boundary-check.test.sh` 4/0.
 - `tests/odeo-migrate-legacy.test.sh` ALL PASS; `tests/maintainer-tools.test.sh` rc 0 (24 ok).
-- `docs-claims-check.sh` (without `--assertions`) matches the tree.
+- `docs-claims-check.sh` (without `--assertions`) matches the tree. This was not enough: the
+  assertion count had drifted (1517 documented, 1523 real). Fixed in 53a7676, see above.
 - Lint mutations M1 to M6 (C5b, C6, C7, C11, C12, C13): each turned exactly its own case RED.
   The scratch copy also failed the "actual repo" self-check, but that failure was there with
   no mutation applied, because the scratch tree holds only scripts/ and tests/.
@@ -124,3 +151,7 @@ Nitpicks:
 - Round 2, 7cd8bb4: APPROVE WITH COMMENTS, 11/12. All six round 1 items fixed and verified
   (mutations, temp-clone gate runs). New: 1 Important (migrator test covers 2 of 4 retired
   names, mutation-proven) and 6 nitpicks.
+- Record regenerated at 53a7676: APPROVE WITH COMMENTS, 11/12 (same). Delta is the README
+  assertion count 1517 -> 1523, a drift my round 2 missed because I ran the claims check
+  without `--assertions`. Verified with `--assertions`: rc 0, assertions = 1523. Regression:
+  same.
