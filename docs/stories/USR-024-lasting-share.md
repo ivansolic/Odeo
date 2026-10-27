@@ -2,7 +2,7 @@
 id: USR-024
 title: A lasting prototype share keeps its link like a shared document
 prd: PRD-002
-order: 18
+order: 19
 depends_on: USR-009
 covers: R14
 ---

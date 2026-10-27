@@ -2,7 +2,7 @@
 id: USR-027
 title: Judge the pilot
 prd: PRD-002
-order: 21
+order: 22
 depends_on: USR-026
 covers: R1
 ---

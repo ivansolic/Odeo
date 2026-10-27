@@ -2,7 +2,7 @@
 id: USR-026
 title: Run one pilot handoff
 prd: PRD-002
-order: 20
+order: 21
 depends_on: USR-025
 covers: R1 R15
 ---

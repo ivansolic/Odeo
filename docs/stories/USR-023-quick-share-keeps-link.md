@@ -2,7 +2,7 @@
 id: USR-023
 title: A quick prototype share can last longer and keep its link
 prd: PRD-002
-order: 17
+order: 18
 depends_on: USR-009
 covers: R13 R4
 ---

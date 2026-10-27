@@ -20,13 +20,12 @@ Odeo's scripts while users never install build tooling.
   gate here.
 - The published tree built by the publish step contains none of these maintainer tools, and
   the publish guard refuses a published tree that does.
-- Nothing a user installs refers to these tools: a search of the shipped plugin for their
-  names finds none.
 
 **Verification note (this repo):** move them under one repository-only folder that
 `docs/internal-paths.txt` denylists; the merge-gate and pre-push tests keep running from the
 new paths (RED first: a test that points at the old path fails after the move until
-updated).
+updated). Leftover mentions of these tools in published files are cleaned by USR-022 and
+guarded by USR-028.
 
 ## INVEST / size
 ~1 day. Before the cut, so the tools the maintainer needs are safe before the build half is
