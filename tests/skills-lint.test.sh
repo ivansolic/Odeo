@@ -72,6 +72,13 @@ d="$(clean_root)"; mkskill "$d" eps "disable-model-invocation: true\n" "Uses scr
 check "C5 flags missing referenced script" 1 "$d"; rm -rf "$d"
 d="$(clean_root)"; mkskill "$d" eps "disable-model-invocation: true\n" "Uses scripts." "Run \${CLAUDE_PLUGIN_ROOT}/scripts/privacy-scan.sh first."
 check "C5 passes existing script reference" 0 "$d"; rm -rf "$d"
+# The maintainer tools are repo-only (USR-008): a script that lives under .claude/maintainer/
+# counts as existing until the mentions of it in published files are cleaned (USR-022). A name
+# that exists nowhere is still flagged (the ghost case above). Mutation: drop the
+# .claude/maintainer/ test from C5 in scripts/skills-lint.sh -> this case goes RED (1 FAIL).
+d="$(clean_root)"; mkdir -p "$d/.claude/maintainer"; touch "$d/.claude/maintainer/merge-gate.sh"
+mkskill "$d" eps "disable-model-invocation: true\n" "Uses scripts." "Run merge-gate.sh first."
+check "C5 counts a repo-only maintainer script as existing" 0 "$d"; rm -rf "$d"
 
 # C6: reviewer agent without the single-verdict contract -> fail
 d="$(clean_root)"; printf -- '---\nname: pm-reviewer\n---\nScores documents.\noutput_language: prose follows it, see ${CLAUDE_PLUGIN_ROOT}/AGENTS.md Guardrails 7.\n' > "$d/agents/pm-reviewer.md"

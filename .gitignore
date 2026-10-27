@@ -40,3 +40,7 @@ docs/checklists/skills-alignment-pass.md
 # committed. They are kept out of the PUBLIC repo by the clean-snapshot-at-publish
 # step + an enforced pre-push guard (see the internal-path denylist), NOT by
 # gitignore.
+
+# Repo-local Claude Code state (the moved maintainer tools under .claude/ ARE tracked).
+.claude/settings.local.json
+.claude/worktrees/

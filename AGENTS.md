@@ -209,8 +209,9 @@ Every rule below is tagged: **[E] enforced**, a mechanism physically stops it
 holds it, layered with verifiers and the human gate. Skills and agents REFERENCE
 these rules; they do not restate them. A rule that is not written here (or in the
 baseline above) does not exist.
-The programs named below (`merge-gate.sh`, `privacy-scan.sh` and the rest) ship in the
-`scripts/` directory next to this file: the plugin root is the directory that holds this
+The programs named below (`privacy-scan.sh` and the rest) ship in the
+`scripts/` directory next to this file (`merge-gate.sh` and `boundary-check.sh` are the
+maintainer's own tools, in `.claude/maintainer/`, and are not shipped): the plugin root is the directory that holds this
 AGENTS.md. Run them by that absolute path. Skills and agents write it as
 `${CLAUDE_PLUGIN_ROOT}/scripts/<name>`, which Claude Code fills in when it loads them; the
 variable is NOT set in the shell, so never type it into a command yourself.

@@ -46,19 +46,27 @@ case "${1:-}" in
 esac
 [ "$#" -le 1 ] || { echo "usage: odeo-migrate-legacy.sh [--apply]" >&2; exit 2; }
 
+# Odeo-owned items that no longer sit in the plugin's skills/, agents/ or scripts/ folders
+# (they moved to the maintainer's repo-only tooling, USR-008). A legacy install.sh copy of
+# one is still Odeo's, so it moves aside like the rest; a folder scan alone would miss it.
+RETIRED_SKILLS="merge"
+RETIRED_AGENTS="code-reviewer.md"
+RETIRED_BIN="merge-gate.sh boundary-check.sh"
+retired() { local r; for r in $2; do echo "$ROOT/$1/$r"; done; }
+
 # candidates: prints every install.sh-placed path (relative to $HOME) that exists now
 candidates() {
   local d n f
-  for d in "$ROOT"/skills/*/; do
+  for d in "$ROOT"/skills/*/ $(retired skills "$RETIRED_SKILLS"); do
     n="$(basename "$d")"; f=".claude/skills/$n"
     { [ -e "$HOME/$f" ] || [ -L "$HOME/$f" ]; } && echo "$f"
   done
-  for d in "$ROOT"/agents/*.md "$ROOT/docs/agent-rubric.md"; do
+  for d in "$ROOT"/agents/*.md "$ROOT/docs/agent-rubric.md" $(retired agents "$RETIRED_AGENTS"); do
     n="$(basename "$d")"; f=".claude/agents/$n"
     { [ -e "$HOME/$f" ] || [ -L "$HOME/$f" ]; } && echo "$f"
   done
   # the plugin's programs live in scripts/; install.sh copied each one to ~/bin/<name>
-  for d in "$ROOT"/scripts/*; do
+  for d in "$ROOT"/scripts/* $(retired scripts "$RETIRED_BIN"); do
     n="$(basename "$d")"; f="bin/$n"
     { [ -e "$HOME/$f" ] || [ -L "$HOME/$f" ]; } || continue
     # our own shim, recognised by its line 2 only (a stale copy of THIS script contains the
@@ -119,7 +127,7 @@ outdated_shims() {
   return 0
 }
 
-items="$(candidates)"
+items="$(candidates | awk '!seen[$0]++')"   # deduplicated: a retired name may still sit in a folder
 stale="$(outdated_shims)"
 if [ -z "$items" ] && [ -z "$stale" ]; then
   echo "odeo-migrate-legacy: nothing to migrate, no install.sh copies found in $HOME."

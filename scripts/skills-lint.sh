@@ -95,8 +95,8 @@ done
 orefs="$(printf '%s\n' "$c5_all" | sed -E 's/[a-z0-9_.-]+\.test\.sh/ /g' \
          | grep -oE '\b[a-z][a-z0-9_-]*(\.[a-z0-9_-]+)*\.sh\b' | sort -u)"
 for r in $orefs; do
-  [[ -f "$ROOT/scripts/$r" || -f "$ROOT/$r" ]] \
-    || viol C5 "referenced script does not exist: $r (searched scripts/ and repo root)"
+  [[ -f "$ROOT/scripts/$r" || -f "$ROOT/$r" || -f "$ROOT/.claude/maintainer/$r" ]] \
+    || viol C5 "referenced script does not exist: $r (searched scripts/, .claude/maintainer/ and repo root)"
 done
 
 # C6. Reviewer agents carry the single-verdict contract
