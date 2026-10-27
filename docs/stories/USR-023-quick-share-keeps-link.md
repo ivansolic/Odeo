@@ -4,7 +4,7 @@ title: A quick prototype share can last longer and keep its link
 prd: PRD-002
 order: 17
 depends_on: USR-009
-covers: R13
+covers: R13 R4
 ---
 
 # USR-023: A quick prototype share can last longer and keep its link
@@ -17,6 +17,8 @@ reviewers already have.
 - When sharing, the user chooses how long the share stays open, up to 8 hours in total; a
   longer request is refused with the limit stated.
 - Every share announces its end time when it opens.
+- The privacy scan runs on the prototype before a share opens; a planted e-mail address or
+  key stops the share until the user answers.
 - An open share can be extended up to the 8-hour total by moving its end time; the link
   stays the same and reviewers already on it are not disconnected.
 - An extension past the 8-hour total is refused with the limit stated.
@@ -31,4 +33,4 @@ override.
 ## INVEST / size
 ~1 day.
 
-Traceability: `R13 -> USR-023`.
+Traceability: `R13 -> USR-023, R4 -> USR-023`.

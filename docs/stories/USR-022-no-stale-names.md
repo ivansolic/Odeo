@@ -18,9 +18,9 @@ cannot reach users however it slips in.
   names any item the cut removes or one of the two merged setup skills.
 - Dated history records (review records, older PRDs, stories and plans) are exempt and the
   check says which paths it exempts.
-- Run on today's tree before the cut, it fails and names, among others, the install guide's
-  final check, the system map, the README, the guide, language, start and brainstorm skills,
-  the session baseline, the project template and the bug-report template.
+- Run on commit 2c3f8ab (before the cut), it fails and names, among others, the install
+  guide's final check, the system map, the README, the guide, language, start and brainstorm
+  skills, the session baseline, the project template and the bug-report template.
 - After the cut, setup merge and guide stories, it passes.
 - Planting one removed name into a skill makes it fail again.
 

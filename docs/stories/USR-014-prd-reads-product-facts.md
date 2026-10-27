@@ -17,8 +17,6 @@ product.
 - When the project instruction file holds the product's security and data facts, the PRD's
   security pre-mortem names them (for example the personal data and the login method)
   without asking the user again.
-- When the facts are missing, the PRD asks for them once and offers to save them where setup
-  would.
 - The PRD's document shape and rubric are unchanged.
 
 ## INVEST / size

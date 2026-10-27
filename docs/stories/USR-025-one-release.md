@@ -23,7 +23,11 @@ keep, so that I know what left, what replaced it and what to refresh.
 - The guide routes every PM question it routed before the release; the list of questions
   compared is kept with the release.
 - The release reaches the public repository only through the publish step, after the
-  maintainer's yes, on a branch named for what it contains (not a date).
+  maintainer's yes, on a branch whose name starts with `publish/`, describes the release and
+  contains no date.
+
+**Verification note (this repo):** the branch-name rule is the maintainer's decision of
+2026-10-27, made in the conversation.
 
 ## INVEST / size
 ~1 day.

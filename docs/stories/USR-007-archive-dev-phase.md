@@ -15,7 +15,8 @@ its own plugin later without it ever becoming public.
 
 ## Acceptance criteria (observable, binary)
 - A private repository holds this repository's complete history up to the last commit before
-  the cut, including the prepared, unpublished 0.5.0 changes.
+  the cut, that commit carrying a tag that names it as the dev phase archive, including the
+  prepared, unpublished 0.5.0 changes.
 - The repository is private: opening it while signed out, or as another account, shows no
   content.
 - The repository is created only after the maintainer says yes to its name and visibility in
@@ -27,9 +28,10 @@ its own plugin later without it ever becoming public.
   branch with one command that the archive's description states.
 
 **Verification note (this repo):** the archive is a separate private GitHub repository
-(maintainer decision 2026-10-25), which satisfies R10's "private only"; PRD-002 still says
-"archive branch". Verify the refusal by attempting a dry-run push of an archive ref to
-`origin` and showing the guard's exit code.
+(maintainer decision 2026-10-25), which was made in the conversation, which also asked that
+the archive can be restored from or become its own plugin; it satisfies R10's "private
+only"; PRD-002 still says "archive branch". Verify the refusal by attempting a dry-run push
+of an archive ref to `origin` and showing the guard's exit code.
 
 ## INVEST / size
 ~0.5 day. First, because every later story deletes from the tree this archive preserves.

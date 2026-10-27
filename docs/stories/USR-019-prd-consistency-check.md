@@ -23,9 +23,11 @@ left behind in another document.
   and older PRDs.
 - It states its known limit: it searches by name, so a copy written in other words can be
   missed.
-- Replayed on PRD-002 at its round-8 state, it returns every published file that still names
-  the two merged setup skills, including the AGENTS.md line, the guide, language, start and
-  brainstorm skills, the README and the install guide, and marks review records as history.
+- Replayed on PRD-002 at its round-8 state, it returns every file a full-text search for the
+  two merged setup skills' names returns at that commit (the list is fixed in the test:
+  among them AGENTS.md, the brainstorm, language and start skills, the README, the three
+  guides, the system map, the session baseline and the project template), and marks review
+  records as history.
 
 **Verification note (this repo):** the replay uses commit 55dca67 as a fixture; the expected
 list comes from a full-text search at that commit, written into the test before the step

@@ -20,7 +20,8 @@ rules I never use.
   nothing leaves the machine without approval.
 - Nothing about git branches, code style, tests, code security, plan formats, bug fixing,
   the task ledger, community knowledge or a removed agent remains in it.
-- Every rule a remaining skill relies on is written in that skill or in AGENTS.md.
+- No remaining skill refers to a baseline section that no longer exists; the check lists
+  every such reference it found, and the list is empty.
 - The product-terms preference is described in one place, AGENTS.md, and the baseline points
   to it.
 - No published file describes that preference as an aside for technical terms (today the

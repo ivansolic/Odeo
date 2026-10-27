@@ -3,7 +3,7 @@ id: USR-016
 title: Start any skill by asking for it
 prd: PRD-002
 order: 10
-depends_on: USR-009
+depends_on: USR-009, USR-012
 covers: R15
 ---
 

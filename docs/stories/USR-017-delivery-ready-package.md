@@ -24,8 +24,6 @@ re-explaining anything.
 - The package is not created while any PRD requirement has no story, and the user is told
   which requirement.
 - The package names no build tool.
-- Re-running the package step after a story changes produces an updated package and says
-  what changed.
 
 **Verification note (this repo):** assembled only after `spec-gate.sh` and
 `coverage-check.sh` both exit 0 (test: one stale record and one uncovered requirement each

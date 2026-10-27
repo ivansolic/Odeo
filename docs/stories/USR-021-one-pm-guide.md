@@ -9,8 +9,8 @@ covers: R2 R16
 
 # USR-021: One guide for the PM workflow
 
-**Card:** As a founder new to Odeo, I want one short guide that installs Odeo and walks the
-core path, so that I am not handed three long guides written for building software.
+**Card:** As a founder new to Odeo, I want a short install guide and one guide that walks
+the core path, so that I am not handed three long guides written for building software.
 
 ## Acceptance criteria (observable, binary)
 - The install guide covers only what a PM needs: Claude, the Odeo plugin, and version
@@ -23,8 +23,8 @@ core path, so that I am not handed three long guides written for building softwa
   without a copy.
 - The README links only to guides that exist.
 
-**Verification note (this repo):** maintainer decision 2026-10-27: one PM guide; INSTALL.md
-is shortened, WORKFLOW.md and BEGINNERS-GUIDE.md merge into it.
+**Verification note (this repo):** maintainer decision 2026-10-27: one PM guide (made in the
+conversation); INSTALL.md is shortened, WORKFLOW.md and BEGINNERS-GUIDE.md merge into it.
 
 ## INVEST / size
 ~1 day.

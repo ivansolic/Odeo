@@ -26,7 +26,9 @@ so that I am not offered build, merge, deploy or code-review steps I will never 
 
 **Verification note (this repo):** remove the files, the hook entry, and every pointer;
 `skills-lint.sh` reference check (scripts referenced by a skill must exist) covers the
-fourth AC. The enforced name check that keeps this true comes in USR-022.
+fourth AC. This story also writes the list of every removed name into one file in the
+repository, which the name check in USR-022 reads. The enforced name check that keeps this
+true comes in USR-022.
 
 ## INVEST / size
 ~1.5 days (mostly removal and pointer cleanup).
