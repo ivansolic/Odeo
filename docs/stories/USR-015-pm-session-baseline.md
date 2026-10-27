@@ -22,6 +22,9 @@ rules I never use.
   the task ledger, community knowledge or a removed agent remains in it.
 - No remaining skill refers to a baseline section that no longer exists; the check lists
   every such reference it found, and the list is empty.
+- For every reference to a baseline section that a remaining skill held at commit 2c3f8ab,
+  the rule it pointed to still exists afterwards in that skill or in AGENTS.md; the list of
+  those references and where each rule now lives is kept with the check.
 - The product-terms preference is described in one place, AGENTS.md, and the baseline points
   to it.
 - No published file describes that preference as an aside for technical terms (today the

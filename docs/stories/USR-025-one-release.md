@@ -16,8 +16,12 @@ keep, so that I know what left, what replaced it and what to refresh.
 - The release notes name the removed skills, the merged setup, the private archive, the end
   of the model policy, and that the pre-push guard is no longer installed while the secret
   scan on commit stays.
-- The PM-relevant parts of the prepared 0.5.0 are in this release and 0.5.0 is not published
-  on its own.
+- The prepared 0.5.0 is not published on its own; its changes are handled as follows, and
+  the release notes say so: the review loop ends at an approve, with or without comments
+  (ships); a PRD or story edited after an approve costs one more review (ships); the review
+  record is committed once per branch (ships); the merge gate treats prose changes after a
+  review as not stale (stays in the maintainer's repository-only tooling, USR-008); the
+  build skill and plan-format wording (leave with the cut, kept in the archive).
 - Every remaining PM skill still passes its review, and every changed skill has a passing
   skill review.
 - The guide routes every PM question it routed before the release; the list of questions

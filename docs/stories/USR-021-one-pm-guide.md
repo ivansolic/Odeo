@@ -17,8 +17,7 @@ the core path, so that I am not handed three long guides written for building so
   history for documents; its final check lists only skills that exist.
 - The workflow guide and the beginners' guide are replaced by one guide that walks the core
   path from idea to package.
-- Neither guide names a removed or merged skill, or describes building, merging, testing
-  code or worktrees.
+- Neither guide describes building, merging, testing code or worktrees.
 - The development sections of the old guides are kept in the private archive, not deleted
   without a copy.
 - The README links only to guides that exist.

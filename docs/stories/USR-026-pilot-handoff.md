@@ -15,8 +15,9 @@ it to a builder, so that I see whether the package is enough for the builder to 
 ## Acceptance criteria (observable, binary)
 - One real idea goes from idea to package in Odeo, and the transcript of that Odeo session
   is kept.
-- The package goes to one builder (a developer or a build tool), and a transcript or notes
-  of the build are kept.
+- The package goes to one builder (a developer or a build tool), and a transcript of the
+  build conversation is kept; when the builder is a person, every message the user sent them
+  is kept word for word.
 - The builder starts from the package alone; the transcript shows the user did not copy
   content into the conversation or re-explain anything the package states.
 - Each of the builder's first questions is marked either "left open by the package" or

@@ -26,7 +26,8 @@ works like sharing a document.
   prototype.
 - The session-start overview lists every lasting share.
 - One request withdraws a share, and afterwards the link no longer shows the prototype.
-- The prototype uses seed data only.
+- When the user says the prototype holds real or personal data, Odeo does not publish it and
+  asks for it to be replaced with seed data first.
 
 **Verification note (this repo):** today the prototype skill already offers a preview
 deploy, records it in the share list, recommends a password and is deleted by hand; Odeo

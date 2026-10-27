@@ -15,9 +15,8 @@ so that I am not offered build, merge, deploy or code-review steps I will never 
 ## Acceptance criteria (observable, binary)
 - After install, the plugin's file list contains none of the 20 skills, 7 agents and 4
   scripts the Cut item names, and no session-start reminder about community knowledge.
-- No remaining skill, guide answer or system-map row points to a removed item; asking the
-  guide how to build or merge says that Odeo ends with a package ready for delivery and does
-  not name a removed command.
+- Asking the guide how to build or merge says that Odeo ends with a package ready for
+  delivery and does not name a removed command.
 - Sharing a prototype still opens a tunnel, and a second opinion on a PM document still
   runs, because the scripts those two skills use still ship.
 - Every script that a remaining skill names exists in the installed plugin.

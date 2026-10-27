@@ -17,10 +17,11 @@ within a minute whether it is for me.
 - The plugin description, the README opening and the ROADMAP name founders, entrepreneurs
   and PMs and describe the end point as a package ready for delivery to any builder.
 - None of them names a build tool.
-- The guide's first answer to "where do I start", the README's first workflow section and
-  the session-start overview name only PRD, critique, stories and package; other PM skills
-  appear after them, under a separate heading.
-- The system map lists only skills that exist.
+- The guide's first answer to "where do I start", the README's first workflow section name
+  only PRD, critique, stories and package; other PM skills appear after them, under a
+  separate heading.
+- The session-start overview names the four core steps first, and any other skill only under
+  a heading of its own.
 
 ## INVEST / size
 ~0.5 day.
