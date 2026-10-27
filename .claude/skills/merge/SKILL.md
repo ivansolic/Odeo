@@ -17,12 +17,18 @@ human floor.
 - You are on the story's feature branch.
 
 ## Steps
-0. **The gate (ENFORCED, run it first and STOP on non-zero):** `".claude/maintainer/merge-gate.sh"`.
-   It refuses deterministically when: you're on main, the
-   working tree is dirty, no review record exists in `docs/evals/` for this
-   branch, or a DO-NOT-TOUCH boundary was violated (`".claude/maintainer/boundary-check.sh"`). Fix
-   what it names (usually: run the reviewers so the record exists), re-run, only
-   then continue.
+0. **The gate (ENFORCED, run it first and STOP on non-zero).** Run main's copy of the gate,
+   never the branch's own: a branch that edits the gate must not be the one that judges it.
+   ```
+   g="$(mktemp -d)" && git archive main .claude/maintainer | tar -x -C "$g" \
+     && "$g/.claude/maintainer/merge-gate.sh"
+   ```
+   If main has no `.claude/maintainer/` yet (the one branch that introduces it), say so and use
+   the installed plugin's `merge-gate.sh` instead; never the branch's copy.
+   The gate refuses deterministically when: you're on main, the working tree is dirty, no
+   review record exists in `docs/evals/` for this branch, or a DO-NOT-TOUCH boundary was
+   violated (`boundary-check.sh`, which sits next to the gate). Fix what it names (usually:
+   run the reviewers so the record exists), re-run, only then continue.
 1. `git fetch origin` (get the latest main).
 1b. **Confirm `origin/main` is this branch's upstream BEFORE rebasing onto it.** Ask about
    LINEAGE, not about how big the gap is: a gap is normal, a separate lineage is not.

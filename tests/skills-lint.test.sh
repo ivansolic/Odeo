@@ -79,6 +79,32 @@ check "C5 passes existing script reference" 0 "$d"; rm -rf "$d"
 d="$(clean_root)"; mkdir -p "$d/.claude/maintainer"; touch "$d/.claude/maintainer/merge-gate.sh"
 mkskill "$d" eps "disable-model-invocation: true\n" "Uses scripts." "Run merge-gate.sh first."
 check "C5 counts a repo-only maintainer script as existing" 0 "$d"; rm -rf "$d"
+# A skill that RUNS a program by its plugin path must find it in scripts/: the maintainer
+# folder is only a fallback for bare names, never for ${CLAUDE_PLUGIN_ROOT}/scripts/<name>,
+# because a user's plugin install has no .claude/maintainer/. Mutation: drop the plugin-path
+# pass from C5 in scripts/skills-lint.sh -> this case goes RED (1 FAIL).
+d="$(clean_root)"; mkdir -p "$d/.claude/maintainer"; touch "$d/.claude/maintainer/merge-gate.sh"
+mkskill "$d" eps "disable-model-invocation: true\n" "Uses scripts." "Run \${CLAUDE_PLUGIN_ROOT}/scripts/merge-gate.sh first."
+check "C5 flags a plugin-path run of a script that only exists repo-only" 1 "$d"; rm -rf "$d"
+# The repo-only agent and skill are still checked by the CONTENT rules (C6 single verdict, C7
+# dashes, C11 version pins, C12 effort, C13 output language); only the plugin-path rules
+# (C14, C15, C16) do not apply to them. Each case asserts the NAMED rule fired, not just exit 1.
+# Mutation: drop .claude/agents and .claude/skills from the rule's file list -> that case RED.
+flags() { # flags <name> <rule> <root>
+  local out; out="$(bash "$LINT" "$3" 2>&1)"
+  if printf '%s\n' "$out" | grep -q "LINT \[$2\]"; then echo "ok   - $1"; pass=$((pass+1));
+  else echo "FAIL - $1 (no LINT [$2] in the output)"; fail=$((fail+1)); fi
+}
+d="$(clean_root)"; mkdir -p "$d/.claude/agents"; printf -- '---\nname: code-reviewer\neffort: high\n---\nWrites records. output_language Guardrails 7\n' > "$d/.claude/agents/code-reviewer.md"
+flags "C6 reaches a repo-only code-reviewer without the single-verdict contract" C6 "$d"; rm -rf "$d"
+d="$(clean_root)"; mkdir -p "$d/.claude/skills/merge"; printf -- '---\ndescription: x\ndisable-model-invocation: true\n---\nA dash \342\200\224 here.\n' > "$d/.claude/skills/merge/SKILL.md"
+flags "C7 reaches a dash in a repo-only skill" C7 "$d"; rm -rf "$d"
+d="$(clean_root)"; mkdir -p "$d/.claude/agents"; printf -- '---\nname: code-reviewer\n---\nOnly you History output_language Guardrails 7\n' > "$d/.claude/agents/code-reviewer.md"
+flags "C12 reaches a repo-only agent without effort" C12 "$d"; rm -rf "$d"
+d="$(clean_root)"; mkdir -p "$d/.claude/agents"; printf -- '---\nname: code-reviewer\neffort: high\n---\nOnly you History\n' > "$d/.claude/agents/code-reviewer.md"
+flags "C13 reaches a repo-only agent without the output-language rule" C13 "$d"; rm -rf "$d"
+d="$(clean_root)"; mkdir -p "$d/.claude/skills/merge"; printf -- '---\ndescription: x\ndisable-model-invocation: true\n---\nRuns on sonnet-4 today.\n' > "$d/.claude/skills/merge/SKILL.md"
+flags "C11 reaches a version-pinned model name in a repo-only skill" C11 "$d"; rm -rf "$d"
 
 # C6: reviewer agent without the single-verdict contract -> fail
 d="$(clean_root)"; printf -- '---\nname: pm-reviewer\n---\nScores documents.\noutput_language: prose follows it, see ${CLAUDE_PLUGIN_ROOT}/AGENTS.md Guardrails 7.\n' > "$d/agents/pm-reviewer.md"

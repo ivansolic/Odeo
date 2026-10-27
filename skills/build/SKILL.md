@@ -272,7 +272,7 @@ once so a still editor is not mistaken for a stall. Live watching is with-me (Mo
    score, not two separate asks.
 
 ### B6. Present per story
-Before presenting, run `"${CLAUDE_PLUGIN_ROOT}/scripts/boundary-check.sh"` in the story's worktree (ENFORCED): if
+Before presenting, run the boundary check (`boundary-check.sh`, kept in this repository under `.claude/maintainer/` and not shipped with the plugin) in the story's worktree (ENFORCED): if
 the builder touched a DO-NOT-TOUCH path, the result is blocked and goes back to
 the builder, it never reaches you dirty. Then present: summary + diff,
 success-signal checklist (pass/fail each), contract adherence (any deviations

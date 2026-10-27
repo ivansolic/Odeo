@@ -99,16 +99,33 @@ for r in $orefs; do
     || viol C5 "referenced script does not exist: $r (searched scripts/, .claude/maintainer/ and repo root)"
 done
 
+# C5b. A program RUN by its plugin path (${CLAUDE_PLUGIN_ROOT}/scripts/<name>) must be in
+#      scripts/: a user's plugin install has no .claude/maintainer/, so the repo-only fallback
+#      above is for bare names in prose, never for a command a skill tells Claude to run.
+prefs="$(printf '%s\n' "$c5_all" | grep -oE 'CLAUDE_PLUGIN_ROOT\}/scripts/[a-z][a-z0-9_.-]*\.sh' | sed 's#.*/scripts/##' | sort -u)"
+for r in $prefs; do
+  [[ -f "$ROOT/scripts/$r" ]] \
+    || viol C5 "run by its plugin path but not in scripts/: $r (a repo-only tool does not ship)"
+done
+
+# The maintainer's own agent and skills live under .claude/ and are repo-only: the content
+# rules below (C6, C7, C11, C12, C13) reach them; the plugin-path rules (C14, C15, C16) do not,
+# because they cite files by repo path on purpose.
+LOCAL_AGENT_FILES=(); LOCAL_SKILL_FILES=()
+while IFS= read -r f; do LOCAL_AGENT_FILES+=("$f"); done < <(ls "$ROOT"/.claude/agents/*.md 2>/dev/null)
+while IFS= read -r f; do LOCAL_SKILL_FILES+=("$f"); done < <(ls "$ROOT"/.claude/skills/*/SKILL.md 2>/dev/null)
+
 # C6. Reviewer agents carry the single-verdict contract
 for name in code-reviewer design-reviewer pm-reviewer skill-reviewer; do
-  f="$ROOT/agents/$name.md"
-  [[ -f "$f" ]] || continue
-  { grep -q "Only you" "$f" && grep -q "History" "$f"; } \
-    || viol C6 "$f: missing the single-verdict contract ('Only you' + History)"
+  for f in "$ROOT/agents/$name.md" "$ROOT/.claude/agents/$name.md"; do
+    [[ -f "$f" ]] || continue
+    { grep -q "Only you" "$f" && grep -q "History" "$f"; } \
+      || viol C6 "$f: missing the single-verdict contract ('Only you' + History)"
+  done
 done
 
 # C7. No em/en dashes in the system's instruction files
-dash_hits="$(grep -rlE $'—|–' "$ROOT/skills" "$ROOT/agents" "$ROOT/AGENTS.md" "$ROOT/global/CLAUDE.md" 2>/dev/null || true)"
+dash_hits="$(grep -rlE $'—|–' "$ROOT/skills" "$ROOT/agents" "$ROOT/.claude/agents" "$ROOT/.claude/skills" "$ROOT/AGENTS.md" "$ROOT/global/CLAUDE.md" 2>/dev/null || true)"
 for f in $dash_hits; do
   viol C7 "$f: contains an em/en dash (style rule: commas, colons, periods)"
 done
@@ -132,7 +149,7 @@ done
 #      NOTE: alternation covers the Anthropic family; extend it with each
 #      host's model-family words at port time (portability backlog).
 #      tiers to the newest; files must speak in tiers.
-ver_hits="$(grep -rliE '(opus|sonnet|haiku|fable)[- ][0-9]' "$ROOT/skills" "$ROOT/agents" "$ROOT/AGENTS.md" "$ROOT/global/CLAUDE.md" 2>/dev/null || true)"
+ver_hits="$(grep -rliE '(opus|sonnet|haiku|fable)[- ][0-9]' "$ROOT/skills" "$ROOT/agents" "$ROOT/.claude/agents" "$ROOT/.claude/skills" "$ROOT/AGENTS.md" "$ROOT/global/CLAUDE.md" 2>/dev/null || true)"
 for f in $ver_hits; do
   viol C11 "$f: contains a version-pinned model name/id (use tier words; the harness resolves versions)"
 done
@@ -162,7 +179,7 @@ is_agent_definition() {
 }
 
 if [[ -d "$ROOT/agents" ]]; then
-  for f in "$ROOT"/agents/*.md; do
+  for f in "$ROOT"/agents/*.md "${LOCAL_AGENT_FILES[@]:+${LOCAL_AGENT_FILES[@]}}"; do
     [[ -f "$f" ]] || continue
     is_agent_definition "$f" || continue
     fm="$(agent_frontmatter "$f")"
@@ -193,8 +210,8 @@ for name in prd stories critique research product-signal build; do
   [[ -f "$f" ]] || continue
   c13_check "$f" "skills/$name/SKILL.md"
 done
-if [[ -d "$ROOT/agents" ]]; then
-  for f in "$ROOT"/agents/*.md; do
+if [[ -d "$ROOT/agents" || ${#LOCAL_AGENT_FILES[@]} -gt 0 ]]; then
+  for f in "$ROOT"/agents/*.md "${LOCAL_AGENT_FILES[@]:+${LOCAL_AGENT_FILES[@]}}"; do
     [[ -f "$f" ]] || continue
     is_agent_definition "$f" || continue
     c13_check "$f" "$(basename "$f")"

@@ -41,6 +41,9 @@ docs/checklists/skills-alignment-pass.md
 # step + an enforced pre-push guard (see the internal-path denylist), NOT by
 # gitignore.
 
-# Repo-local Claude Code state (the moved maintainer tools under .claude/ ARE tracked).
-.claude/settings.local.json
-.claude/worktrees/
+# Repo-local Claude Code state: everything under .claude/ is ignored except the maintainer's
+# own tools (USR-008), so new tool state Claude Code writes there is never committed by default.
+.claude/*
+!.claude/maintainer/
+!.claude/agents/
+!.claude/skills/

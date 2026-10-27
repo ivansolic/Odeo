@@ -52,22 +52,21 @@ esac
 RETIRED_SKILLS="merge"
 RETIRED_AGENTS="code-reviewer.md"
 RETIRED_BIN="merge-gate.sh boundary-check.sh"
-retired() { local r; for r in $2; do echo "$ROOT/$1/$r"; done; }
 
 # candidates: prints every install.sh-placed path (relative to $HOME) that exists now
 candidates() {
   local d n f
-  for d in "$ROOT"/skills/*/ $(retired skills "$RETIRED_SKILLS"); do
-    n="$(basename "$d")"; f=".claude/skills/$n"
+  for n in "$ROOT"/skills/*/ $RETIRED_SKILLS; do
+    n="$(basename "$n")"; f=".claude/skills/$n"
     { [ -e "$HOME/$f" ] || [ -L "$HOME/$f" ]; } && echo "$f"
   done
-  for d in "$ROOT"/agents/*.md "$ROOT/docs/agent-rubric.md" $(retired agents "$RETIRED_AGENTS"); do
-    n="$(basename "$d")"; f=".claude/agents/$n"
+  for n in "$ROOT"/agents/*.md "$ROOT/docs/agent-rubric.md" $RETIRED_AGENTS; do
+    n="$(basename "$n")"; f=".claude/agents/$n"
     { [ -e "$HOME/$f" ] || [ -L "$HOME/$f" ]; } && echo "$f"
   done
   # the plugin's programs live in scripts/; install.sh copied each one to ~/bin/<name>
-  for d in "$ROOT"/scripts/* $(retired scripts "$RETIRED_BIN"); do
-    n="$(basename "$d")"; f="bin/$n"
+  for n in "$ROOT"/scripts/* $RETIRED_BIN; do
+    n="$(basename "$n")"; f="bin/$n"
     { [ -e "$HOME/$f" ] || [ -L "$HOME/$f" ]; } || continue
     # our own shim, recognised by its line 2 only (a stale copy of THIS script contains the
     # marker text too, and must move like any other install.sh copy)

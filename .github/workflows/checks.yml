@@ -33,7 +33,9 @@ jobs:
         # every suite runs, even after a failure, and the failures are named at the end
         run: |
           failed=""
-          for t in tests/*.test.sh; do
+          # the maintainer's own suites live under .claude/ (repo-only; a public snapshot has none)
+          shopt -s nullglob
+          for t in tests/*.test.sh .claude/maintainer/tests/*.test.sh; do
             echo "::group::$t"
             if bash "$t"; then echo "PASS $t"; else echo "FAIL $t"; failed="$failed $t"; fi
             echo "::endgroup::"
