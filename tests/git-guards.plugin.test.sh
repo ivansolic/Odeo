@@ -85,14 +85,8 @@ rc="$(commit_in "$repo")"
 [ "$rc" != 0 ] && ok "blocking secret-scan refuses the commit" || bad "commit went through a blocking scan"
 stub "$cache/0.3.0/scripts" newer 0
 
-# 4) pre-push to the public remote (publish marker set) finds publish-guard in the cache
-git init -q --bare "$TMP/public.git"; git -C "$repo" remote add origin "$TMP/public.git"
-git -C "$repo" switch -q -c feature/x
-# contract A runs only in a project that publishes through a snapshot, which this marks
-mkdir -p "$repo/docs"; printf 'docs/plans/\n' > "$repo/docs/internal-paths.txt"
-: > "$LOG"
-( cd "$repo" && HOME="$HOME_T" PATH="$CLEAN_PATH" CLAUDE_PUBLISH_SNAPSHOT=1 git push -q origin feature/x 2>"$TMP/err" )
-assert_contains "pre-push used the cached publish-guard" "publish-guard.sh newer" "$(cat "$LOG")"
+# 4) the pre-push lookup of publish-guard.sh moved with the pre-push guard to
+#    .claude/maintainer/tests/pre-push-lookup.test.sh (USR-009)
 
 # 5) in-place plugin (a clone, no cache): the install-time directory is used
 rm -rf "$HOME_T/.claude/plugins"
