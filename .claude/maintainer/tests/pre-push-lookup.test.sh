@@ -52,6 +52,15 @@ sed 's/^ODEO_HOOKS_VERSION=2$/ODEO_HOOKS_VERSION=3/' "$gr/.git/hooks/pre-push" >
 cp "$TMP/v3" "$gr/.git/hooks/pre-push"; cp "$TMP/v3" "$gr/.git/hooks/pre-commit"
 [ -z "$(legacy "$gr")" ] && ok "a newer hook version -> silent" || bad "a newer hook version was reported"
 printf '#!/usr/bin/env bash\nodeo_tool() {\n  ls -1td "$HOME"/.claude/plugins/cache/*/odeo/*/bin\n}\n' > "$gr/.git/hooks/pre-push"
-assert_contains "an old 0.2.x pre-push hook -> refresh nudge" "install-git-guards.sh" "$(legacy "$gr")"
+out="$(legacy "$gr")"
+assert_contains "an old 0.2.x pre-push hook -> says the push guard is no longer installed" "no longer installs a push guard" "$out"
+assert_contains "an old pre-push hook -> names the file the user may remove" ".git/hooks/pre-push" "$out"
+case "$out" in *install-git-guards.sh*) bad "an old pre-push hook was sent to the installer, which no longer writes it";; *) ok "an old pre-push hook is not sent to the installer";; esac
+# an outdated pre-commit gets the refresh advice, naming pre-commit only
+printf '#!/usr/bin/env bash\nodeo_tool() {\n  ls -1td "$HOME"/.claude/plugins/cache/*/odeo/*/bin\n}\n' > "$gr/.git/hooks/pre-commit"
+rm -f "$gr/.git/hooks/pre-push"
+out="$(legacy "$gr")"
+assert_contains "an old pre-commit hook -> refresh nudge" "install-git-guards.sh" "$out"
+case "$out" in *pre-push*) bad "the pre-commit refresh advice mentions pre-push";; *) ok "the pre-commit refresh advice names only pre-commit";; esac
 
 [ "$fail" -eq 0 ] && echo "ALL PASS" || { echo "SOME FAILED"; exit 1; }

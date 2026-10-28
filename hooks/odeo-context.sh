@@ -229,8 +229,10 @@ outdated_guards() {
 
 guards_nudge() { # guards_nudge <outdated_guards output>
   printf '%s' "Odeo: some git guards were written by an older Odeo. Old git hooks may run a script named like Odeo's from PATH instead of Odeo's own, and since releases after Odeo 0.3.5 ship no bin/, once no older copy is left in the plugin cache, 0.2.x hooks commit WITHOUT their secret scan (they only warn) while old ~/bin shims block every commit and push of the projects that call them. Tell the user once and offer to refresh them, only after they say yes:"
-  case "$1" in *hook:*)
-    printf ' in this repository run `"%s/scripts/install-git-guards.sh"` (it rewrites .git/hooks/pre-commit and pre-push);' "$ROOT" ;; esac
+  case "$1" in *hook:pre-commit*)
+    printf ' in this repository run `"%s/scripts/install-git-guards.sh"` (it rewrites .git/hooks/pre-commit);' "$ROOT" ;; esac
+  case "$1" in *hook:pre-push*)
+    printf ' the pre-push hook in this repository comes from an older Odeo, which no longer installs a push guard, so there is nothing to refresh: the user may remove it or move it aside (.git/hooks/pre-push), but do not move it yourself;' ;; esac
   case "$1" in *shim:*)
     printf ' for the ~/bin shims run `"%s/scripts/odeo-migrate-legacy.sh" --apply` (the old shim is kept in ~/.claude/odeo-legacy-<timestamp>/);' "$ROOT" ;; esac
   printf '\n'
