@@ -35,9 +35,9 @@ the scaffold)? Ask plainly:
 2. Dev-rigor default (step H below) comes from the test state: few or no tests
    -> suggest `Test-after`.
 
-**NEW path:** continue with the interview (step 3).
+**NEW path:** continue with the interview (step 2).
 
-## 3. Interview, ask in small groups, wait for each answer
+## 2. Interview, ask in small groups, wait for each answer
 
 Ask these groups one at a time. Keep questions plain; a non-engineer should be
 able to answer. Offer examples. Accept "I don't know / none" gracefully.
@@ -76,7 +76,7 @@ user explicitly asks for your recommendation, give it, with your reasoning.
 Record the user's choice in the `## Architecture` section of CLAUDE.md. Do not
 add a recommendation there unless the user asked for one.
 
-**F. Commands** (critical, the TDD skill and auto-verify loop use these):
+**F. Commands** (critical, whoever builds the project runs exactly these):
 - How do you start the app (dev)? Run tests? Run backend tests separately? Lint?
   Typecheck? Build? Any DB commands (migrate/generate/studio)?
 - If the user doesn't know, infer sensible defaults from the stack and the
@@ -101,19 +101,17 @@ context-aware default:
 >    fixes), tests-after for UI (the balanced default for new projects).
 >  - **Test-after**, code first, tests right after, everywhere (fastest start;
 >    the sensible default on an existing codebase that has few or no tests).
->  Whichever you pick, nothing merges without tests and review, this only sets
->  the ORDER."
+>  This only sets the ORDER in which tests are written; it is recorded for
+>  whoever builds the project."
 Default: **new project -> TDD-lite; existing codebase with few/no tests ->
 Test-after.** Record the choice in CLAUDE.md's Conventions section as
-`dev_rigor: tdd | tdd-lite | test-after` with a one-line meaning. The architect
-and builder read it.
+`dev_rigor: tdd | tdd-lite | test-after` with a one-line meaning.
 
 **H2. Where should the thinking run? (model preference, semantic)**
 Resolve the CURRENT model lineup live (ask the harness/session what tiers and
 prices exist right now, never recite from this file), then ask:
 > "On which model should the thinking run, planning, discovery, reviews?
->  (Code execution rides the builder's pinned execution tier, see ${CLAUDE_PLUGIN_ROOT}/AGENTS.md
->  Model policy; this choice is for judgment.)
+>  (This choice is for judgment work; see ${CLAUDE_PLUGIN_ROOT}/AGENTS.md Model policy.)
 >  - **strongest**, the top tier that exists (name + price as resolved now)
 >  - **strong-default**, the strongest standard-price tier (name it now)
 >  This is a DEFAULT, not a lock: /model overrides it any moment, and one
@@ -169,7 +167,7 @@ secure default and mark it `# TODO: confirm` (e.g. retention: "until account
 deletion # TODO: confirm"). Never write "no security needed", if the project
 truly handles no personal data, record that explicitly and keep the checkpoints.
 
-## 4. Fill in CLAUDE.md
+## 3. Fill in CLAUDE.md
 Replace every `[...]` placeholder in the Stack, Architecture, Commands, Project
 Structure, Conventions, Security & Data, and Don't sections with the answers. For anything the user left
 open, put a sensible stack-appropriate default and mark it `# TODO: confirm`.
@@ -177,11 +175,11 @@ open, put a sensible stack-appropriate default and mark it `# TODO: confirm`.
 Leave the Git Workflow and Product Documentation sections as they are (they're
 stack-agnostic). Update `_Last updated:_` to today's date.
 
-## 5. Confirm and finalize
+## 4. Confirm and finalize
 - Show the user the filled CLAUDE.md (or a summary of each section).
 - Ask for corrections; apply them.
 - Remind them: "You can rerun `/odeo:setup-project` anytime, or just edit CLAUDE.md
-  directly. The TDD skill will use the Commands you set here."
+  directly."
 
 ## Safety Rules
 - Never invent a stack, ask, or read the project's manifest and confirm.

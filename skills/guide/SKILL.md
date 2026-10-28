@@ -1,5 +1,5 @@
 ---
-description: Use when the user asks how to proceed, which command to use, what their options are, what the workflow is, or what's needed to achieve a goal ("how do I...", "what now", "which command", "where do I start with X", "can this system do Y"). Goal-driven navigation through the whole system, recommends the route, never executes without an explicit yes.
+description: Use when the user asks how to proceed, which command to use, what their options are, what the workflow is, or what's needed to achieve a goal ("how do I...", "what now", "which command", "where do I start with X", "can this system do Y", "how do I build, merge or deploy this").
 ---
 
 # Guide (the anytime advisor)
@@ -14,7 +14,7 @@ missing before they can start. You advise; you do not execute (unless they say
    catalog of everything that exists (commands, agents, loops, decision trees).
    Recommend ONLY what is on the map, never invent commands or capabilities.
 2. **Read the project state** (like `/odeo:start` does): what exists in `docs/`
-   (PRDs, stories, plans, evals, signals), git state. The route starts FROM where
+   (PRDs, stories, research, evals, signals), git state. The route starts FROM where
    they actually are.
 3. **Locate the goal on the lifecycle** and build the route:
    - the command(s) in order, each with one plain line on what it does,
@@ -41,14 +41,6 @@ missing before they can start. You advise; you do not execute (unless they say
 - If the system has no skill for the goal: say so plainly, name the closest
   alternative or the manual path. Never pretend a capability exists.
 - If the goal is ambiguous, ask ONE clarifying question before routing.
-
-## Known environment notes (route around them, don't rediscover them)
-- The built-in `/security-review` needs `origin/HEAD`. A repo created locally
-  and pushed later doesn't have it until `git remote set-head origin -a` runs
-  once (init/merge do this; if the user hits "ambiguous argument 'origin/HEAD'",
-  that one command is the fix).
-- Watch-mode test runners (bare `vitest`) never exit; the project's commands
-  should be the non-interactive forms (`vitest run`).
 
 ## Rules for yourself
 - Read-only until an explicit yes.
