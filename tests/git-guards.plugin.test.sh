@@ -14,7 +14,7 @@
 #   M1 no cache lookup          -> 4 FAIL (cases 2, 3, 7, 8; measured 2026-10-28). Case 1 stays
 #                                  green under M1 because the install-time dir IS the newest
 #                                  version; case 1 is attributed by M2, not M1.
-#   M2 cache read oldest first  -> 4 FAIL (cases 1, 2, 3, 4)
+#   M2 cache read oldest first  -> 2 FAIL (cases 2, 3; measured 2026-10-28)
 #   M3 no install-time dir      -> 1 FAIL (case 5)
 #   M4 no install-time config dir -> 1 FAIL (case 7)
 # Observed failing (2026-09-29), after the move to scripts/:

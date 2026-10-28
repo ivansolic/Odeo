@@ -220,7 +220,7 @@ printf '#!/bin/sh\nexit 0\n' > "$xc/0.3.2/scripts/secret-scan.sh"; cp "$xc/0.3.2
 chmod +x "$xc/0.3.2/scripts/"*.sh
 assert_empty "a hook that finds its program in the recorded config dir -> silent" "$(legacy "$ch" "$gx")"
 # a NEWER hook version is not called older (the nudge would offer a downgrade)
-# (the pre-push variant of this case lives in .claude/maintainer/tests/odeo-context.pre-push.test.sh)
+# (the pre-push variant of this case lives in .claude/maintainer/tests/pre-push-lookup.test.sh (case 2))
 ( cd "$gr" && HOME="$ch" bash "$ROOT/scripts/install-git-guards.sh" >/dev/null )
 sed 's/^ODEO_HOOKS_VERSION=2$/ODEO_HOOKS_VERSION=3/' "$gr/.git/hooks/pre-commit" > "$TMP/v3" && cp "$TMP/v3" "$gr/.git/hooks/pre-commit"
 assert_empty "a newer hook version -> silent" "$(legacy "$ch" "$gr")"
