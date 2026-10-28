@@ -10,7 +10,7 @@
 #   M2 remove the ".claude/" line from docs/internal-paths.txt            -> 6 FAIL
 #   M3 git mv .claude/agents/code-reviewer.md agents/code-reviewer.md     -> 2 FAIL
 set -uo pipefail
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
 cd "$ROOT" || exit 2
 fail=0
 ok() { echo "ok: $1"; }

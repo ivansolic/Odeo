@@ -236,7 +236,7 @@ Odeo/
 ├── global/
 │   └── CLAUDE.md             ← user-global baseline, delivered at session start by the plugin
 ├── tests/
-│   └── *.test.sh             ← 37 suites, 1481 assertions. 23 of the 23 programs have their
+│   └── *.test.sh             ← 35 suites, 1481 assertions. 23 of the 23 programs have their
 │                               own suite; the remaining suites are cross-cutting rather than
 │                               per-program. The number is the same on every machine: a case
 │                               a machine cannot run (as root, in a shell that refuses what it
