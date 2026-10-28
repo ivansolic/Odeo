@@ -27,35 +27,15 @@ the scaffold)? Ask plainly:
 >  (I should learn how it's already built)?"
 
 **EXISTING path (onboarding an established codebase):**
-1. **Dispatch the `codebase-analyst` agent** (read-only, own context) to map the
-   repo: stack, architecture, modules, conventions, test state, risky areas, and
-   proposed DO-NOT-TOUCH boundaries.
-2. Save its map as `docs/codebase-map.md`.
-3. **Confirm the boundaries with the user** (plain language): "these interfaces/
-   folders look like they shouldn't be touched, correct? anything to add?" The
-   confirmed list is binding for the architect and builder.
-4. Fill CLAUDE.md **from the map** (their real stack, their conventions), then
-   continue the interview below ONLY for what the map couldn't tell (Security &
-   Data facts, house rules, preferences). Never impose our conventions over
-   theirs; the codebase's existing style wins.
-5. Dev-rigor default (step H below) comes from the test state: few or no tests
+1. Read the project's own manifest and README yourself (stack, test setup, folder layout)
+   and fill CLAUDE.md **from what is there** (their real stack, their conventions), then
+   continue the interview below ONLY for what the files couldn't tell (Security & Data
+   facts, house rules, preferences). Never impose our conventions over theirs; the
+   codebase's existing style wins.
+2. Dev-rigor default (step H below) comes from the test state: few or no tests
    -> suggest `Test-after`.
 
-**NEW path:** continue with step 2 (preset or interview) as usual.
-
-## 2. Preset shortcut, only when one actually fits
-Check `ls ${CLAUDE_PLUGIN_ROOT}/project-templates/presets/` QUIETLY. Mention a preset ONLY if it
-matches the stack the user has described or implied (e.g. they said "Angular and
-NestJS" and `angular-nest-mysql` exists):
-> "There's a ready-made preset for that stack, want me to start from it and
->  tweak, instead of the questions?"
-If nothing matches (or the user hasn't named a stack yet), say nothing about
-presets, advertising an irrelevant preset only confuses, and go straight to the
-interview (step 3).
-
-If they take a preset:
-- Copy it over `CLAUDE.md`: `cp ${CLAUDE_PLUGIN_ROOT}/project-templates/presets/<name>.md CLAUDE.md`
-- Jump to step 5 (confirm + per-project details).
+**NEW path:** continue with the interview (step 3).
 
 ## 3. Interview, ask in small groups, wait for each answer
 
@@ -202,10 +182,6 @@ stack-agnostic). Update `_Last updated:_` to today's date.
 - Ask for corrections; apply them.
 - Remind them: "You can rerun `/odeo:setup-project` anytime, or just edit CLAUDE.md
   directly. The TDD skill will use the Commands you set here."
-- If the repo has a GitHub remote (or as soon as it gets one), offer CI once:
-  "want every pull request tested automatically? `/odeo:ci` generates the workflow
-  from the Commands you just set, about two minutes." (Setup can wait; the
-  offer should not be pushy, /odeo:merge re-offers when it matters.)
 
 ## Safety Rules
 - Never invent a stack, ask, or read the project's manifest and confirm.

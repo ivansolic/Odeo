@@ -2,13 +2,15 @@
 #
 # init-project.sh, initialize a new Claude-ready project.
 #
-# Scaffolds only the PROJECT-SPECIFIC parts (CLAUDE.md, docs/, tasks/, knowledge/,
-# design/). The commands, agents, and skills come from the installed
-# Odeo plugin, so they are available in every project automatically,
+# Scaffolds only the PROJECT-SPECIFIC parts (CLAUDE.md, docs/, tasks/). The skills and
+# agents come from the installed Odeo plugin, so they are available in every project automatically,
 # no per-project copies to drift.
 #
 # Usage:
-#   init-project.sh <project-name> [--no-ui]
+#   init-project.sh <project-name> [--language <code>]
+#
+# --ui and --no-ui are still accepted and do nothing (callers written before the design
+# layer left the plugin pass them).
 #
 # Templates come from the plugin's own project-templates/, next to this script's scripts/
 # (the layout Claude Code copies into the plugin cache). CLAUDE_TEMPLATES_DIR overrides.
@@ -17,7 +19,6 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TEMPLATES_DIR="${CLAUDE_TEMPLATES_DIR:-$SCRIPT_DIR/../project-templates}"
-HAS_UI=""          # empty = ask; true/false = set explicitly by a flag
 PROJECT_NAME=""
 LANGUAGE=""        # empty = ask interactively or use the en default
 
@@ -26,8 +27,7 @@ LANGUAGE=""        # empty = ask interactively or use the en default
 # it has no mechanism to advance past the value to the next argument.
 while [ "$#" -gt 0 ]; do
   case "$1" in
-    --no-ui|--no-design) HAS_UI=false; shift ;;
-    --ui)       HAS_UI=true; shift ;;
+    --no-ui|--no-design|--ui) shift ;;   # accepted, no effect: the design layer left the plugin
     --language) [ "$#" -ge 2 ] || { echo "--language needs a value (en|de|hr|fr)" >&2; exit 1; }
                 LANGUAGE="$2"; shift 2 ;;
     -*)         echo "Unknown option: $1" >&2; exit 1 ;;
@@ -36,10 +36,9 @@ while [ "$#" -gt 0 ]; do
 done
 
 if [[ -z "$PROJECT_NAME" ]]; then
-  echo "Usage: init-project.sh <project-name> [--no-ui]"
+  echo "Usage: init-project.sh <project-name> [--language <code>]"
   echo ""
   echo "Example: init-project.sh my-startup"
-  echo "         init-project.sh my-api --no-ui   (backend-only: skip the design layer)"
   exit 1
 fi
 
@@ -69,9 +68,6 @@ REQUIRED_TEMPLATES=(
   "tasks/todo.md"
   "tasks/lessons.md"
   "docs/ADR-TEMPLATE.md"
-  "design/tokens.json"
-  "design/README.md"
-  "knowledge/README.md"
 )
 
 MISSING=()
@@ -96,16 +92,6 @@ if [[ -n "$LANGUAGE" ]]; then
     en|de|hr|fr) ;;
     *) echo "Unknown language: $LANGUAGE (allowed: en de hr fr)" >&2; exit 1 ;;
   esac
-fi
-
-# Resolve whether this project has a UI (controls the design layer)
-if [[ -z "$HAS_UI" ]]; then
-  if [[ -t 0 ]]; then
-    read -r -p "Will this project have a UI? [Y/n] " _ans || _ans=""
-    case "$_ans" in [Nn]*) HAS_UI=false ;; *) HAS_UI=true ;; esac
-  else
-    HAS_UI=true   # non-interactive default: include the design layer
-  fi
 fi
 
 # Resolve the output language. A flag value was already validated above.
@@ -157,7 +143,7 @@ fi
 git commit --allow-empty -m "chore: initial commit" -q
 git branch -M main
 
-echo "  → installing git guards (no direct push to main; secret scan on commit)"
+echo "  → installing git guards (secret scan on commit)"
 # Only the installer shipped next to this script, never one from PATH, where the user's
 # environment can hold a script of the same name.
 if [[ -x "$SCRIPT_DIR/install-git-guards.sh" ]]; then
@@ -169,14 +155,12 @@ fi
 echo "  → creating folder structure"
 mkdir -p .claude/tasks
 mkdir -p docs/prds docs/stories docs/decisions docs/research docs/templates docs/evals docs/plans
-mkdir -p knowledge
 
 echo "  → copying project templates"
 cp "$TEMPLATES_DIR/CLAUDE.md" CLAUDE.md
 cp "$TEMPLATES_DIR/tasks/todo.md" .claude/tasks/todo.md
 cp "$TEMPLATES_DIR/tasks/lessons.md" .claude/tasks/lessons.md
 cp "$TEMPLATES_DIR/docs/ADR-TEMPLATE.md" docs/templates/ADR-TEMPLATE.md
-cp "$TEMPLATES_DIR/knowledge/README.md" knowledge/README.md
 
 # Curated permission allowlist: read-only git, test/lint/typecheck/build, and
 # editor reveals run without a prompt; everything else still asks. Cuts prompt
@@ -184,14 +168,6 @@ cp "$TEMPLATES_DIR/knowledge/README.md" knowledge/README.md
 if [[ -f "$TEMPLATES_DIR/claude-settings.json" ]]; then
   echo "  → seeding .claude/settings.json (safe-command allowlist)"
   cp "$TEMPLATES_DIR/claude-settings.json" .claude/settings.json
-fi
-
-# Design layer (only for UI projects). The design-reviewer agent and /odeo:setup-design
-# come from the plugin; here we only seed the project's token source of truth.
-if $HAS_UI; then
-  mkdir -p design
-  cp "$TEMPLATES_DIR/design/tokens.json" design/tokens.json
-  cp "$TEMPLATES_DIR/design/README.md" design/README.md
 fi
 
 # Persist the chosen output language as the canonical single line.
@@ -244,7 +220,6 @@ coverage/
 # Claude local-only files
 CLAUDE.local.md
 .claude/local/
-.claude/focus-zone
 
 # The build ledger. Deliberately NOT committed: todo.md carries session state and lessons.md
 # every correction this project has learned, and both would otherwise ride along into any
@@ -269,23 +244,18 @@ git commit -m "chore: scaffold Claude-ready project structure" -q
 echo ""
 echo "✅ Project '$PROJECT_NAME' initialized."
 echo ""
-echo "Structure (project-specific files; commands/agents/skills come from the plugin):"
+echo "Structure (project-specific files; skills and agents come from the plugin):"
 echo "  $PROJECT_NAME/"
 echo "  ├── CLAUDE.md            (project config: stack, commands, conventions, Security & Data)"
 echo "  ├── .claude/tasks/       (todo.md, lessons.md)"
-echo "  ├── knowledge/           (reusable solved problems)"
-if $HAS_UI; then echo "  ├── design/              (tokens.json, design system source of truth)"; fi
 echo "  └── docs/                (prds, stories, decisions, research, templates)"
 echo ""
 echo "Available everywhere from the Odeo plugin:"
-echo "  build:    /odeo:build /odeo:merge /odeo:ci /odeo:commit-push /odeo:optimize /odeo:worktree-parallel-check"
 echo "  PM:       /odeo:brainstorm /odeo:prd /odeo:critique /odeo:stories /odeo:prioritize /odeo:roadmap ... (full set:"
 echo "            discovery, strategy, planning, metrics, launch, see the system map)"
-echo "  learning: /odeo:learn /odeo:retro /odeo:outcome /odeo:knowledge-refresh /odeo:product-signal /odeo:improve"
+echo "  learning: /odeo:retro /odeo:outcome /odeo:product-signal /odeo:improve"
 echo "  navigate: /odeo:start (where am I + what's next)  ·  or just ask \"how do I...\" (/odeo:guide)"
-echo "  agents:   architect, builder, codebase-analyst + reviewers (code, pm, skill,"
-echo "            architecture$( $HAS_UI && echo ', design' )) + debugger"
-echo "  auto:     test-driven-development$( $HAS_UI && echo ', ux-design, ux-writing' )"
+echo "  writing:  ux-writing (applies automatically to interface text)"
 echo ""
 echo "Next steps:"
 echo "  cd $PROJECT_NAME"
@@ -294,10 +264,6 @@ echo "  git remote set-head origin -a    (one-time; lets tools resolve origin/HE
 echo "                                    e.g. the built-in /security-review needs it)"
 echo "  claude"
 echo ""
-echo "Then, first thing inside Claude, configure the project for your stack:"
-echo "  > /odeo:setup-project   (stack, commands, conventions → fills CLAUDE.md)"
-if $HAS_UI; then
-  echo "After the PM phase, before building UI, set up the design system:"
-  echo "  > /odeo:setup-design    (ingest your tokens or generate from PRD/personas → tokens.json)"
-fi
+echo "Then, first thing inside Claude, configure the project:"
+echo "  > /odeo:setup-project   (fills CLAUDE.md for your project)"
 echo ""

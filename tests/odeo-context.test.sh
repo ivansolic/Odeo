@@ -31,18 +31,6 @@
 #   M19 exact version match instead of a number        -> 2 FAIL (case 4e, newer version)
 #   M20 baked values used without the plain-path filter -> 1 FAIL (case 4e, space in path)
 #   M21 recorded config root dropped from hook_finds (the round-3 bug) -> 1 FAIL (case 4e, config X)
-# Observed failing (2026-09-30), the community knowledge reminder:
-#   M24 no 14-day rate limit on the reminder            -> 1 FAIL (case 4f, repeats)
-#   M25 staleness check inverted                        -> 8 FAIL (case 4f)
-#   M26 a missing copy counts as fresh                  -> 3 FAIL (case 4f)
-#   M27 no guard for a missing CLAUDE_PLUGIN_DATA        -> 1 FAIL (case 4f, no data dir)
-#   M28 community also registered on SubagentStart      -> 1 FAIL (case 7)
-#   M29 no .git/HEAD fallback without a stamp           -> 1 FAIL (case 4f, old clone)
-#   M30 reminder shown although it could not be recorded -> 1 FAIL (case 4f, read-only data)
-#   M31 a copy with no stamp and no HEAD stays silent   -> 1 FAIL (case 4f, no HEAD)
-#   M32 no FETCH_HEAD fallback (HEAD dates the copy)    -> 2 FAIL (case 4f, fetched copy)
-#   M33 HEAD tried before FETCH_HEAD                    -> 2 FAIL (case 4f, fetched copy; measured on d063c95)
-#   M34 an empty FETCH_HEAD counts (-s back to -f)      -> 1 FAIL (case 4f, failed fetch)
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 HOOK="$ROOT/hooks/odeo-context.sh"
@@ -232,7 +220,7 @@ printf '#!/bin/sh\nexit 0\n' > "$xc/0.3.2/scripts/secret-scan.sh"; cp "$xc/0.3.2
 chmod +x "$xc/0.3.2/scripts/"*.sh
 assert_empty "a hook that finds its program in the recorded config dir -> silent" "$(legacy "$ch" "$gx")"
 # a NEWER hook version is not called older (the nudge would offer a downgrade)
-# (the pre-push variant of this case lives in .claude/maintainer/tests/pre-push-lookup.test.sh)
+# (the pre-push variant of this case lives in .claude/maintainer/tests/odeo-context.pre-push.test.sh)
 ( cd "$gr" && HOME="$ch" bash "$ROOT/scripts/install-git-guards.sh" >/dev/null )
 sed 's/^ODEO_HOOKS_VERSION=2$/ODEO_HOOKS_VERSION=3/' "$gr/.git/hooks/pre-commit" > "$TMP/v3" && cp "$TMP/v3" "$gr/.git/hooks/pre-commit"
 assert_empty "a newer hook version -> silent" "$(legacy "$ch" "$gr")"
@@ -246,86 +234,11 @@ assert_absent "no hook advice without an old hook" "install-git-guards" "$out"
 printf '#!/usr/bin/env bash\n# odeo-migrate-legacy shim: current\nls -1td "$HOME"/.claude/plugins/cache/*/odeo/*/scripts\n' > "$sh/bin/secret-scan.sh"
 assert_empty "a current shim -> silent" "$(legacy "$sh")"
 
-# 4f) community knowledge reminder: a missing copy, or one not synced for 14 days, is named
-#     once, then silent for 14 days whatever the user did (never nags); silent when there is
-#     no plugin data dir to remember that in
-# age <path> <days>: sets the mtime <days> days into the past
-age() { python3 -c 'import os, sys, time; t = time.time() - float(sys.argv[2]) * 86400; os.utime(sys.argv[1], (t, t))' "$1" "$2"; }
-# community <home> [data dir]: runs the mode with that HOME and (when given) plugin data dir
-community() {
-  if [ -n "${2:-}" ]; then HOME="$1" CLAUDE_PLUGIN_DATA="$2" "$HOOK" community SessionStart
-  else ( unset CLAUDE_PLUGIN_DATA; HOME="$1" "$HOOK" community SessionStart ); fi
-}
-# fresh_case <name>: a home holding a git copy synced "now" (stamp and HEAD current), and
-# an empty data dir; prints the home, whose data dir is <home>/data
-fresh_case() {
-  local h="$TMP/cm-$1"; mkdir -p "$h/data"; git init -q "$h/.claude/community-knowledge"
-  : > "$h/.claude/community-knowledge/.git/odeo-last-sync"; printf '%s' "$h"
-}
-REMIND="/odeo:sync-community"
-# the instrument first: a planted stale copy MUST produce the reminder, or every silent
-# case below proves nothing
-h="$(fresh_case stale)"; age "$h/.claude/community-knowledge/.git/odeo-last-sync" 15
-out="$(community "$h" "$h/data")"; rc=$?
-assert_exit "community: exit 0" 0 "$rc"
-c="$(ctx "$out")"
-assert_contains "community: a copy synced 15 days ago -> reminder" "$REMIND" "$c"
-assert_contains "community: the reminder is a SessionStart context" "SessionStart" "$c"
-assert_contains "community: says it is stale, not missing" "not been refreshed" "$c"
-assert_contains "community: never runs it on its own" "never run it yourself" "$c"
-assert_empty "community: the same reminder is not repeated next session" "$(community "$h" "$h/data")"
-age "$h/data/community-reminded" 15
-assert_contains "community: reminded 15 days ago -> reminds again" "$REMIND" "$(ctx "$(community "$h" "$h/data")")"
-h="$(fresh_case recent)"
-assert_empty "community: a copy synced now -> silent" "$(community "$h" "$h/data")"
-age "$h/.claude/community-knowledge/.git/odeo-last-sync" 13
-assert_empty "community: a copy synced 13 days ago -> silent" "$(community "$h" "$h/data")"
-h="$(fresh_case nostamp)"; rm "$h/.claude/community-knowledge/.git/odeo-last-sync"
-assert_empty "community: no stamp, cloned now (HEAD) -> silent" "$(community "$h" "$h/data")"
-age "$h/.claude/community-knowledge/.git/HEAD" 15
-assert_contains "community: no stamp, cloned 15 days ago -> reminder" "$REMIND" "$(ctx "$(community "$h" "$h/data")")"
-# a copy synced before the stamp existed: the last fetch (FETCH_HEAD, written by every
-# successful fetch) dates it, not the clone (HEAD, which a fast-forward never rewrites).
-# A successful fetch writes a non-empty FETCH_HEAD; a FAILED one empties it to 0 bytes
-# with a new date (measured, git 2.50.1), so only a non-empty one counts.
-fh_line="0123456789abcdef0123456789abcdef01234567		branch 'main' of /some/remote"
-h="$(fresh_case fetchhead)"; rm "$h/.claude/community-knowledge/.git/odeo-last-sync"
-age "$h/.claude/community-knowledge/.git/HEAD" 15; printf '%s\n' "$fh_line" > "$h/.claude/community-knowledge/.git/FETCH_HEAD"
-assert_empty "community: no stamp, fetched now, cloned 15 days ago -> silent" "$(community "$h" "$h/data")"
-age "$h/.claude/community-knowledge/.git/FETCH_HEAD" 15; touch "$h/.claude/community-knowledge/.git/HEAD"
-assert_contains "community: no stamp, fetched 15 days ago, HEAD newer -> reminder (the fetch decides)" "$REMIND" "$(ctx "$(community "$h" "$h/data")")"
-h="$(fresh_case failedfetch)"; rm "$h/.claude/community-knowledge/.git/odeo-last-sync"
-age "$h/.claude/community-knowledge/.git/HEAD" 15; : > "$h/.claude/community-knowledge/.git/FETCH_HEAD"
-assert_contains "community: no stamp, an EMPTY FETCH_HEAD from a failed fetch now, cloned 15 days ago -> reminder" "$REMIND" "$(ctx "$(community "$h" "$h/data")")"
-h="$TMP/cm-missing"; mkdir -p "$h/data" "$h/.claude"
-c="$(ctx "$(community "$h" "$h/data")")"
-assert_contains "community: no copy -> reminder" "$REMIND" "$c"
-assert_contains "community: says it is not set up" "not set up" "$c"
-h="$TMP/cm-plain"; mkdir -p "$h/data" "$h/.claude/community-knowledge"
-assert_contains "community: a directory that is not a clone counts as missing" "not set up" "$(ctx "$(community "$h" "$h/data")")"
-h="$(fresh_case nodata)"; age "$h/.claude/community-knowledge/.git/odeo-last-sync" 15
-out="$(community "$h")"; rc=$?
-assert_exit "community: no plugin data dir -> still 0" 0 "$rc"
-assert_empty "community: no plugin data dir -> silent (it could not rate-limit)" "$out"
-# a data dir the hook cannot write to is the same case: a reminder it cannot record would
-# repeat every session, so it is skipped (root ignores the permission, so the case is too)
-if [ "$(id -u)" != 0 ]; then
-  h="$(fresh_case rodata)"; age "$h/.claude/community-knowledge/.git/odeo-last-sync" 15
-  chmod 500 "$h/data"; out="$(community "$h" "$h/data/sub" 2>/dev/null)"; rc=$?; chmod 700 "$h/data"
-  assert_exit "community: a data dir it cannot write -> still 0" 0 "$rc"
-  assert_empty "community: a data dir it cannot write -> silent (it could not rate-limit)" "$out"
-else
-  echo "SKIP 2 - running as root, a data dir it cannot write is still writable"
-fi
-# a clone with neither a stamp nor a HEAD cannot be dated: a reminder, not silence forever
-h="$(fresh_case nohead)"; rm "$h/.claude/community-knowledge/.git/odeo-last-sync" "$h/.claude/community-knowledge/.git/HEAD"
-assert_contains "community: no stamp and no HEAD -> reminder" "$REMIND" "$(ctx "$(community "$h" "$h/data")")"
-# the hook and community-sync.sh must name the same copy, or the reminder watches one
-# directory while the sync fills another
-cpath='$HOME/.claude/community-knowledge'
-grep -qF "COMMUNITY_DIR=\"$cpath\"" "$HOOK" && grep -qF "COMMUNITY_DIR=\"$cpath\"" "$ROOT/scripts/community-sync.sh" \
-  && ok "community: the hook and community-sync.sh name the same copy" \
-  || bad "community: the hook and community-sync.sh name different copies"
+# 4f) the community knowledge reminder left with the build half (USR-009): its mode is gone,
+#     so asking for it is a wiring error (exit 2) and prints nothing
+out="$("$HOOK" community SessionStart 2>/dev/null)"; rc=$?
+assert_exit "community mode removed -> usage error" 2 "$rc"
+assert_empty "community mode removed -> prints nothing" "$out"
 
 # 5) broken install (no global/CLAUDE.md, no language scripts): says so, still exit 0
 fake="$TMP/fake-plugin"; mkdir -p "$fake/hooks"; cp "$HOOK" "$fake/hooks/"
@@ -349,7 +262,7 @@ done
 
 # 7) hooks.json registers every part the real file needs, for BOTH events, and the
 #    language question for the main session only (a subagent must not ask the user)
-python3 - "$JSON" "$n" <<'EOF' && ok "hooks.json registers parts 1..$n for both events, language, legacy and community on SessionStart only" || { bad "hooks.json registration"; }
+python3 - "$JSON" "$n" <<'EOF' && ok "hooks.json registers parts 1..$n for both events, language and legacy on SessionStart only" || { bad "hooks.json registration"; }
 import json, re, sys
 hooks = json.load(open(sys.argv[1]))["hooks"]
 need = int(sys.argv[2])
@@ -362,7 +275,7 @@ for event in ("SessionStart", "SubagentStart"):
     assert all("${CLAUDE_PLUGIN_ROOT}/hooks/odeo-context.sh" in c for c in cmds(event))
 assert any(c.endswith("language SessionStart") for c in cmds("SessionStart"))
 assert any(c.endswith("legacy SessionStart") for c in cmds("SessionStart"))
-assert any(c.endswith("community SessionStart") for c in cmds("SessionStart"))
+assert not any("community" in c for c in cmds("SessionStart"))
 assert not any("language" in c or "legacy" in c or "community" in c for c in cmds("SubagentStart"))
 EOF
 if [ -x "$HOOK" ]; then ok "hook is executable"; else bad "hook is not executable"; fi

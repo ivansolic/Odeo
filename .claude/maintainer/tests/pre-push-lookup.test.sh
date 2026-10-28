@@ -8,7 +8,8 @@
 #
 # Mutation recipe (each mutant must go RED, then restore):
 #   M1 no cache lookup in the pre-push hook's odeo_tool -> case 1 FAIL
-#   M2 hook_version in hooks/odeo-context.sh compares with -eq instead of -lt -> case 2 FAIL
+#   M2 a hook version other than 2 counts as outdated (-ne instead of -lt in
+#      hooks/odeo-context.sh outdated_guards) -> case 2 FAIL
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
 INSTALLER="$ROOT/.claude/maintainer/install-git-guards.sh"

@@ -47,11 +47,16 @@ esac
 [ "$#" -le 1 ] || { echo "usage: odeo-migrate-legacy.sh [--apply]" >&2; exit 2; }
 
 # Odeo-owned items that no longer sit in the plugin's skills/, agents/ or scripts/ folders
-# (they moved to the maintainer's repo-only tooling, USR-008). A legacy install.sh copy of
-# one is still Odeo's, so it moves aside like the rest; a folder scan alone would miss it.
-RETIRED_SKILLS="merge"
-RETIRED_AGENTS="code-reviewer.md"
-RETIRED_BIN="merge-gate.sh boundary-check.sh"
+# (merge, code-reviewer and the merge gate moved to the maintainer's repo-only tooling in
+# USR-008; the rest of the build half left the plugin in USR-009, see docs/removed-items.txt).
+# A legacy install.sh copy of one is still Odeo's, so it moves aside like the rest; a folder
+# scan alone would miss it.
+RETIRED_SKILLS="merge build deploy ci commit-push optimize worktree-parallel-check focus sync-docs
+  test-driven-development ux-design setup-design query second-opinion-code second-opinion-design
+  second-opinion-plan learn knowledge-refresh contribute-lesson sync-community"
+RETIRED_AGENTS="code-reviewer.md architect.md builder.md design-reviewer.md architecture-reviewer.md
+  codebase-analyst.md debugger.md"
+RETIRED_BIN="merge-gate.sh boundary-check.sh focus-check.sh community-sync.sh"
 
 # candidates: prints every install.sh-placed path (relative to $HOME) that exists now
 candidates() {

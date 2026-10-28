@@ -11,7 +11,8 @@
 # (tests/fixtures/legacy-bin-wrapper.sh; the repo itself no longer ships bin/).
 #
 # Observed failing (2026-09-23), each mutant checked to differ from the original:
-#   M1 no cache lookup          -> 3 FAIL (cases 2, 3, 4). Case 1 stays green under M1 because
+#   M1 no cache lookup          -> 3 FAIL (cases 2, 3, 4). (Remeasured 2026-10-28 after the pre-push
+#                                  case 4 moved out: 4 FAIL, cases 2, 3, 7, 8.) Case 1 stays green under M1 because
 #                                  the install-time dir IS the newest version; case 1 is
 #                                  attributed by M2, not M1.
 #   M2 cache read oldest first  -> 4 FAIL (cases 1, 2, 3, 4)

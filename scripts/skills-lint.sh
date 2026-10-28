@@ -295,29 +295,6 @@ else
   done
 fi
 
-# C17. The plan layers are ONE list, written in two files that cannot point at each other:
-#      global/CLAUDE.md shapes session plans and is read where ${CLAUDE_PLUGIN_ROOT} is not
-#      substituted, docs/plan-format.md shapes /odeo:build plans. Each carries EXACTLY one
-#      `Plan layers:` line (a second one is a second list the model reads); a missing file,
-#      a missing or empty line, or two lists that differ after whitespace runs are collapsed,
-#      is flagged. It checks the NAMES of the layers, not the prose under them.
-# plan_layers sets PL_LIST and calls viol itself, so it is NEVER called inside $(...) or with
-# its output redirected: a subshell would lose `fail`, a redirect would swallow viol's message.
-plan_layers() { # plan_layers <rel-path>: sets PL_LIST to the normalised list; 1 + viol if it cannot
-  local f="$ROOT/$1" n
-  PL_LIST=""
-  if [[ ! -f "$f" ]]; then viol C17 "$1 is missing, so its 'Plan layers:' line cannot be read"; return 1; fi
-  n="$(grep -c '^Plan layers:' "$f")"
-  if [[ "$n" -ne 1 ]]; then viol C17 "$1 carries $n 'Plan layers:' lines, want 1"; return 1; fi
-  PL_LIST="$(grep '^Plan layers:' "$f" | sed -e 's/^Plan layers://' -e 's/[[:space:]]\{1,\}/ /g' -e 's/^ //' -e 's/ $//')"
-  if [[ -z "$PL_LIST" ]]; then viol C17 "$1 carries an empty 'Plan layers:' line"; return 1; fi
-}
-plan_layers global/CLAUDE.md; rc_g=$?; pl_global="$PL_LIST"
-plan_layers docs/plan-format.md; rc_f=$?; pl_format="$PL_LIST"
-if [[ $rc_g -eq 0 && $rc_f -eq 0 && "$pl_global" != "$pl_format" ]]; then
-  viol C17 "the plan layers differ: global/CLAUDE.md '$pl_global' vs docs/plan-format.md '$pl_format'"
-fi
-
 # C18. The research rubric defines its confidence words once, in its Definitions; inside the
 #      criteria (the fenced block) the bare lowercase word "unverified" is flagged, because
 #      the defined word is narrower (no nameable source) and the criteria mean "not verified".

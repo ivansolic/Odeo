@@ -30,20 +30,6 @@
 #       repo's pre-commit / pre-push hook, or a ~/bin shim, that searches only bin/): they
 #       work only while an Odeo 0.3.0 to 0.3.5 copy with its bin/ wrappers is still in the
 #       plugin cache (releases after 0.3.5 ship no bin/), so the user is asked to refresh them once.
-#   odeo-context.sh community SessionStart
-#       When the shared community knowledge (~/.claude/community-knowledge, the copy
-#       /odeo:sync-community keeps) is missing, or its last successful sync is 14 days old,
-#       asks Claude to offer /odeo:sync-community once, never to run it. The last sync is the
-#       stamp community-sync.sh writes on success; a copy without one is dated approximately,
-#       by its last fetch (a non-empty .git/FETCH_HEAD), else its clone time (.git/HEAD).
-#       Known gap, bounded: community-sync.sh fetches with --no-write-fetch-head where git
-#       supports it (2.29+), so its own attempts never write FETCH_HEAD. On older git, after
-#       a fetch run outside Odeo, or after a fetch by an earlier Odeo release, a copy with no
-#       stamp can carry a non-empty FETCH_HEAD without a completed sync, and the reminder can
-#       stay quiet up to 14 days. After a reminder it stays
-#       silent for 14 days, synced or not (state in CLAUDE_PLUGIN_DATA), so ignoring it is
-#       declining it; with no CLAUDE_PLUGIN_DATA it cannot remember and stays silent rather
-#       than repeat every session.
 #
 # Program paths: Claude Code does not substitute hook output, so every
 # ${CLAUDE_PLUGIN_ROOT} in the baseline and in the nudges below is replaced here with this
@@ -64,11 +50,9 @@ SET_GLOBAL="$ROOT/scripts/set-global-language.sh"
 USER_GLOBAL="${CLAUDE_GLOBAL_CONFIG:-${CLAUDE_CONFIG_DIR:-$HOME/.claude}/CLAUDE.md}"
 MARKER='## Security Baseline (non-negotiable'
 BUDGET=9200    # content chars per part; the header line keeps each part under 9,500
-COMMUNITY_DIR="$HOME/.claude/community-knowledge"   # the same path community-sync.sh uses
-COMMUNITY_DAYS=14
 
 usage() {
-  echo "usage: odeo-context.sh baseline <part> <SessionStart|SubagentStart> | language SessionStart | legacy SessionStart | community SessionStart" >&2
+  echo "usage: odeo-context.sh baseline <part> <SessionStart|SubagentStart> | language SessionStart | legacy SessionStart" >&2
   exit 2
 }
 
@@ -263,57 +247,6 @@ run_legacy() {
   } | emit_json SessionStart
 }
 
-# older_than_days <file> <days>: whether the file exists and was modified <days> or more ago
-# (find -mmin: both BSD and GNU support it, where stat flags differ; the one-minute-early
-# offset below was measured to fire at exactly <days> on BSD find, GNU was not measured)
-older_than_days() {
-  [ -n "$(find "$1" -prune -mmin +"$(( $2 * 1440 - 1 ))" 2>/dev/null)" ]
-}
-
-# community_state: prints "missing" or "stale" when a reminder is due, nothing when the copy
-# is fresh. A directory that is not a clone is missing: community-sync.sh replaces it.
-community_state() {
-  local last="$COMMUNITY_DIR/.git/odeo-last-sync"
-  [ -d "$COMMUNITY_DIR/.git" ] || { echo missing; return 0; }
-  # No stamp (synced only before it existed, or every sync since failed): the last fetch,
-  # else the clone. A fast-forward never rewrites HEAD, so HEAD alone would date a copy
-  # synced yesterday to its clone. Only a NON-EMPTY FETCH_HEAD counts: a failed fetch
-  # empties it to 0 bytes with a new date, which would make a failed sync look fresh.
-  if [ ! -f "$last" ]; then
-    last="$COMMUNITY_DIR/.git/HEAD"
-    [ -s "$COMMUNITY_DIR/.git/FETCH_HEAD" ] && last="$COMMUNITY_DIR/.git/FETCH_HEAD"
-  fi
-  # neither can be dated: remind rather than stay silent forever about a copy that
-  # community-sync.sh may not be able to refresh either
-  [ -e "$last" ] || { echo stale; return 0; }
-  older_than_days "$last" "$COMMUNITY_DAYS" && echo stale
-  return 0
-}
-
-community_nudge() { # community_nudge <missing|stale>
-  local what
-  case "$1" in
-    missing) what="is not set up yet on this machine" ;;
-    *)       what="has not been refreshed in $COMMUNITY_DAYS days or more" ;;
-  esac
-  printf 'Odeo: the shared community knowledge (the curated lessons of all contributors, ~/.claude/community-knowledge) %s. Tell the user once, in one line, and offer `/odeo:sync-community` to pull the latest; never run it yourself, only after they say yes. Odeo will not mention it again for %s days.\n' "$what" "$COMMUNITY_DAYS"
-}
-
-run_community() {
-  local state st
-  [ -n "${CLAUDE_PLUGIN_DATA:-}" ] || return 0
-  state="$CLAUDE_PLUGIN_DATA/community-reminded"
-  [ -f "$state" ] && ! older_than_days "$state" "$COMMUNITY_DAYS" && return 0
-  st="$(community_state)"
-  [ -n "$st" ] || return 0
-  # recorded BEFORE it is shown: a reminder that cannot be recorded would repeat every session
-  if ! { mkdir -p "$CLAUDE_PLUGIN_DATA" && : > "$state"; } 2>/dev/null; then
-    echo "odeo-context: cannot record the community reminder in $CLAUDE_PLUGIN_DATA; skipped" >&2
-    return 0
-  fi
-  community_nudge "$st" | emit_json SessionStart
-}
-
 run_baseline() { # run_baseline <part> <event>
   user_has_baseline && return 0
   if [ ! -f "$BASELINE" ]; then
@@ -375,9 +308,6 @@ case "${1:-}" in
   legacy)
     [ "$#" -eq 2 ] && [ "$2" = SessionStart ] || usage
     run_legacy ;;
-  community)
-    [ "$#" -eq 2 ] && [ "$2" = SessionStart ] || usage
-    run_community ;;
   *) usage ;;
 esac
 exit 0

@@ -36,11 +36,8 @@ if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
     say "$n extra git worktree(s) exist (git worktree list), fine if builds are in flight."
   fi
 
-  # 4. A /odeo:focus edit fence still active (carries into the next session otherwise)
+  # 4. The project root, used by the checks below
   root="$(git rev-parse --show-toplevel 2>/dev/null || true)"
-  if [[ -n "$root" && -s "$root/.claude/focus-zone" ]]; then
-    say "a /odeo:focus edit fence is still active on $(head -n1 "$root/.claude/focus-zone"); run /odeo:focus off to lift it."
-  fi
 
   # 5. The ledger backup has fallen behind the ledger.
   #    This is the only check here that speaks about something git cannot recover: todo.md and

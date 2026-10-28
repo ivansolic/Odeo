@@ -31,8 +31,10 @@ docs/plans/
 docs/prds/
 docs/stories/
 docs/research/
+# The one definition of what left the plugin with the build half (USR-009); USR-022 and
+# USR-028 read it, users never need it.
+docs/removed-items.txt
 # ADRs cite internal plans, evals and lessons as evidence, and record pre-launch
-# state; the RULES they decide ship publicly via docs/plan-format.md, the reasoning
-# stays here. Do not "restore" this to public: an ADR published without its
+# state; the reasoning stays here. Do not "restore" this to public: an ADR published without its
 # denylisted citations dangles every reference and leaks internal review scores.
 docs/decisions/

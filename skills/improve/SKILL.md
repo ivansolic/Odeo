@@ -37,9 +37,7 @@ keep or revert -> commit. The system may only get better, never silently worse.
    what regressed, the diff of the change.
 5. **The human decides**: KEEP (commit, versioned in git) or REVERT (discard,
    the old version stands). No evidence of improvement = recommend revert.
-6. **Offer the loop-closers**: if the kept change is universal, offer
-   `/odeo:contribute-lesson` (rubric/eval learnings are contributable); update the
-   eval baseline.
+6. **Close the loop**: update the eval baseline.
 
 ## Worked example
 Signal: last 5 PRDs scored 1/2 on "measurable outcome".

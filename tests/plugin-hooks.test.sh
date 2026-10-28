@@ -1,19 +1,20 @@
 #!/usr/bin/env bash
-# Tests the tool hooks in hooks/hooks.json (the focus fence and the end-of-turn sweep).
+# Tests the tool hooks in hooks/hooks.json (the end-of-turn sweep; the focus fence left with
+# the build half, USR-009).
 #
 # In a plugin install they cannot stay in the project template's .claude/settings.json:
 # those commands found the scripts through PATH, and Claude Code puts a plugin's bin/ on
 # the Bash tool's PATH only, so they would silently do nothing. hooks.json runs them via
-# ${CLAUDE_PLUGIN_ROOT} instead. focus-check is inert without a focus zone, so it runs in
-# every project; session-end-check is gated to Odeo projects (.claude/tasks/todo.md),
-# because a Stop hook fires after every reply and would otherwise report in all projects.
+# ${CLAUDE_PLUGIN_ROOT} instead. session-end-check is gated to Odeo projects
+# (.claude/tasks/todo.md), because a Stop hook fires after every reply and would otherwise
+# report in all projects.
 #
 # Each case runs the EXACT command string from hooks.json, with the two variables Claude
 # Code provides to hook processes (CLAUDE_PLUGIN_ROOT, CLAUDE_PROJECT_DIR).
 #
 # Observed failing (2026-09-23), each mutant checked to differ from the original:
 #   M1 drop the Odeo-project gate on Stop      -> 1 FAIL (case 2, silent outside)
-#   M2 narrow the matcher to Edit|Write        -> 1 FAIL (case 1, matcher)
+#   M2 re-add a PreToolUse focus-check entry to hooks/hooks.json -> 1 FAIL (case 1)
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 fail=0
@@ -38,18 +39,9 @@ run_hook() { # run_hook <command> <plugin-root> <project-dir> [stdin]
   ( cd "$3" && printf '%s' "${4:-}" | CLAUDE_PLUGIN_ROOT="$2" CLAUDE_PROJECT_DIR="$3" bash -c "$1" 2>&1 )
 }
 
-# 1) focus-check: registered on the edit tools, and a set zone DENIES an edit outside it
-spec="$(hook_cmd PreToolUse focus-check.sh)" || { bad "PreToolUse focus-check not registered exactly once"; spec=$'\n'; }
-matcher="${spec%%$'\n'*}"; cmd="${spec#*$'\n'}"
-[ "$matcher" = "Edit|Write|MultiEdit|NotebookEdit" ] && ok "focus-check matcher covers the edit tools" || bad "focus-check matcher is '$matcher'"
-proj="$TMP/proj"; mkdir -p "$proj/.claude" "$proj/zone" "$proj/elsewhere"; git init -q "$proj"
-printf '%s\n' "$(cd "$proj/zone" && pwd -P)" > "$proj/.claude/focus-zone"
-event="{\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"$(cd "$proj/elsewhere" && pwd -P)/a.ts\"}}"
-assert_contains "edit outside the zone is denied" '"deny"' "$(run_hook "$cmd" "$ROOT" "$proj" "$event")"
-event="{\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"$(cd "$proj/zone" && pwd -P)/a.ts\"}}"
-assert_empty "edit inside the zone is neutral" "$(run_hook "$cmd" "$ROOT" "$proj" "$event")"
-rm "$proj/.claude/focus-zone"
-assert_empty "no zone: neutral in any project" "$(run_hook "$cmd" "$ROOT" "$proj" "$event")"
+# 1) the focus fence is gone: no PreToolUse entry runs focus-check.sh
+if hook_cmd PreToolUse focus-check.sh >/dev/null 2>&1; then bad "a PreToolUse focus-check entry is still registered"
+else ok "no PreToolUse focus-check entry"; fi
 
 # 2) session-end-check: runs only in an Odeo project (stub root proves whether it ran)
 spec="$(hook_cmd Stop session-end-check.sh)" || { bad "Stop session-end-check not registered exactly once"; spec=$'\n'; }

@@ -1,0 +1,60 @@
+# removed-items.txt: the one definition of what left the plugin with the build half.
+#
+# PRD-002 Cut, maintainer decision 2026-10-27, implemented by USR-009. Every item below is
+# gone from the shipped plugin and restorable from the git tag `dev-phase-archive`.
+# USR-022 cleans prose mentions against this list and USR-028 checks leftovers against it.
+# Internal: never published (listed in docs/internal-paths.txt).
+#
+# Format: `<kind> <name-or-path>` per line; `#` lines and blank lines are ignored.
+#   skill  <name>   -> skills/<name>/
+#   agent  <name>   -> agents/<name>.md
+#   script <name>   -> scripts/<name>
+#   file   <path>   -> a file or a directory (trailing "/") at that repo-relative path
+#   hook   <name>   -> a hook entry that must not appear in hooks/hooks.json
+# merge, code-reviewer, merge-gate.sh and boundary-check.sh already left with USR-008 and
+# are listed for completeness.
+
+skill build
+skill deploy
+skill ci
+skill commit-push
+skill optimize
+skill worktree-parallel-check
+skill focus
+skill sync-docs
+skill test-driven-development
+skill ux-design
+skill setup-design
+skill query
+skill second-opinion-code
+skill second-opinion-design
+skill second-opinion-plan
+skill learn
+skill knowledge-refresh
+skill contribute-lesson
+skill sync-community
+skill merge
+
+agent architect
+agent builder
+agent design-reviewer
+agent architecture-reviewer
+agent codebase-analyst
+agent debugger
+agent code-reviewer
+
+script focus-check.sh
+script community-sync.sh
+script merge-gate.sh
+script boundary-check.sh
+
+file docs/plan-format.md
+file docs/decisions/ADR-001-plans-carry-contracts-not-code.md
+file project-templates/presets/
+file project-templates/design/
+file project-templates/knowledge/
+file tests/focus-check.test.sh
+file tests/community-sync.test.sh
+
+hook community
+hook focus-check

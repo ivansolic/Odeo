@@ -6,7 +6,7 @@
 # scanner is tested by tests/git-guards.plugin.test.sh.
 #
 # Mutation recipe (the mutant must go RED, then restore):
-#   M1 put the pre-push writer back into scripts/install-git-guards.sh   -> 2 FAIL
+#   M1 put the pre-push writer back into scripts/install-git-guards.sh   -> 4 FAIL
 #      (copy the pre-push block of .claude/maintainer/install-git-guards.sh)
 set -uo pipefail
 INSTALLER="$(cd "$(dirname "$0")/.." && pwd)/scripts/install-git-guards.sh"
