@@ -7,8 +7,10 @@
 # Maintainer tooling, not a shipped suite: it reads docs/removed-items.txt, which is
 # internal and absent from the published repository.
 #
-# Without the tag (a shallow clone) the archive cases print `SKIP <n> - <reason>`, which
-# scripts/docs-claims-check.sh adds back so the assertion total is the same on every machine.
+# Without the tag (a shallow clone) the archive cases print `SKIP <n> - <reason>`. That line is
+# informational here: scripts/docs-claims-check.sh adds SKIP counts back only for the suites in
+# tests/ (it runs tests/*.test.sh and nothing under .claude/maintainer/), so this suite's
+# output never reaches the README assertion total.
 #
 # Mutation recipe (each mutant must go RED, then restore):
 #   M1 git checkout dev-phase-archive -- skills/build                       -> 1 FAIL
