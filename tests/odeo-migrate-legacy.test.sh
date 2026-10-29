@@ -47,6 +47,9 @@
 #   M26 the line regex is `^.*$` (every line accepted)           -> 2 FAIL (case 22: no malformed line reported, and the count)
 #   M27 the line regex loses its ^ and $ anchors                  -> 1 FAIL (case 22: the count, 4 reported instead of 5, because
 #       the line with one stray character still contains a valid line)
+# Observed failing (2026-10-29), the retired agent and program names:
+#   M28 RETIRED_AGENTS without code-reviewer.md   -> 2 FAIL (case 2: moved, kept in legacy)
+#   M29 RETIRED_BIN without boundary-check.sh     -> 2 FAIL (case 2: moved, kept in legacy)
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 REAL_SCRIPT="$ROOT/scripts/odeo-migrate-legacy.sh"
@@ -78,6 +81,7 @@ fixture_list() {
 ')"
   for s in build merge research; do echo "skill $s $odeo"; done
   echo "agent builder $odeo"
+  echo "agent code-reviewer $odeo"
   echo "skill deploy $(sha_str 'old deploy v1
 ')"
   echo "agent architect $(sha_str 'old architect v1
@@ -107,9 +111,11 @@ make_home() {
   for s in build merge research; do mkdir -p "$h/.claude/skills/$s"; echo odeo > "$h/.claude/skills/$s/SKILL.md"; done
   mkdir -p "$h/.claude/skills/my-own"; echo mine > "$h/.claude/skills/my-own/SKILL.md"
   echo odeo > "$h/.claude/agents/builder.md"; echo mine > "$h/.claude/agents/my-agent.md"
+  echo odeo > "$h/.claude/agents/code-reviewer.md"   # retired to .claude/agents/ (RETIRED_AGENTS only)
   echo odeo > "$h/.claude/odeo-docs/plan-format.md"
   echo odeo > "$h/.claude-templates/CLAUDE.md"
   printf '#!/bin/sh\n' > "$h/bin/merge-gate.sh"; printf '#!/bin/sh\n' > "$h/bin/my-tool.sh"
+  printf '#!/bin/sh\n' > "$h/bin/boundary-check.sh"   # retired to .claude/maintainer/ (RETIRED_BIN only)
   printf '#!/bin/sh\nexit 0\n' > "$h/bin/secret-scan.sh"; chmod +x "$h/bin/secret-scan.sh"
   echo "# mine" > "$h/.claude/CLAUDE.md"; echo secret-terms > "$h/.claude/privacy-denylist.txt"
   echo lesson > "$h/.claude/community-knowledge/a.md"
@@ -130,7 +136,8 @@ assert_exit "apply -> 0" 0 "$rc"
 legacy="$(ls -d "$H"/.claude/odeo-legacy-* 2>/dev/null | head -1)"
 [ -n "$legacy" ] && ok "one legacy folder created" || bad "no legacy folder"
 for p in .claude/skills/build .claude/skills/merge .claude/skills/research .claude/agents/builder.md \
-         .claude/odeo-docs bin/merge-gate.sh .claude-templates; do
+         .claude/agents/code-reviewer.md .claude/odeo-docs bin/merge-gate.sh bin/boundary-check.sh \
+         .claude-templates; do
   gone "moved: $p" "$H/$p"; exists "kept in legacy: $p" "$legacy/$p"
 done
 for p in .claude/skills/my-own .claude/agents/my-agent.md bin/my-tool.sh .claude/CLAUDE.md \
