@@ -9,11 +9,23 @@
 # a move back. Nothing is ever deleted.
 #
 # What moves: ~/.claude/skills/<name> and ~/.claude/agents/<name>.md for every skill and
-# agent this plugin ships, ~/bin/<script> for every program in its scripts/, ~/.claude/odeo-docs
-# and ~/.claude-templates. What never moves: ~/.claude/CLAUDE.md (the user's own), the
-# community-knowledge mirror, the privacy deny-list, and anything with a name Odeo does
-# not ship. A user's own skill that happens to share an Odeo name is moved too (by name,
-# the only thing install.sh left to go by), which the dry run shows first.
+# agent this plugin has shipped, but ONLY when the content is a copy Odeo really shipped;
+# ~/bin/<script> for every program in its scripts/, ~/.claude/odeo-docs and ~/.claude-templates.
+# What never moves: ~/.claude/CLAUDE.md (the user's own), the community-knowledge mirror, the
+# privacy deny-list, and anything with a name Odeo does not ship.
+#
+# A skill or agent that merely SHARES an Odeo name is the user's own work and is left in place:
+# the dry run and --apply list it as "not recognised as Odeo's". Recognition is by content, not
+# by name: the SHA-256 of the skill's SKILL.md (or of the agent file) must be listed for that
+# exact kind and name in scripts/odeo-legacy-hashes.txt, which holds every version Odeo ever
+# committed (generated from git history by the maintainer's gen-legacy-hashes.sh). A symlink is
+# judged by what it resolves to; one that resolves to nothing readable is not recognised.
+# THE TRADEOFF: an Odeo skill the user hand-edited, or a copy from a version that was never
+# committed, matches nothing and also stays. It then loads next to the plugin's version, and the
+# dry run names it so the user can move it aside by hand. Leaving a user's own file is the safe
+# direction: a wrongly moved file is the one thing this script must not do. bin/ programs, docs
+# and templates are still moved by name, because those are not places a user keeps their own work
+# under a name Odeo happens to share.
 #
 # One exception keeps a guard alive: projects scaffolded before the plugin carry a
 # pre-commit / pre-push hook that calls ~/bin/secret-scan.sh and ~/bin/publish-guard.sh.
@@ -38,6 +50,45 @@ if [ ! -f "$ROOT/.claude-plugin/plugin.json" ]; then
   echo "Run the plugin's copy: \${CLAUDE_PLUGIN_ROOT}/scripts/odeo-migrate-legacy.sh." >&2
   exit 2
 fi
+# The list of every skill and agent file Odeo has shipped, as "<kind> <name> <sha256>" lines.
+# Without it nothing could be told apart from the user's own work, so this refuses (like the
+# check above) rather than fall back to moving by name. It is data from outside this script, so
+# each line is checked: a malformed one is skipped loudly and can only ever recognise LESS.
+HASH_LIST="$ROOT/scripts/odeo-legacy-hashes.txt"
+if [ ! -r "$HASH_LIST" ]; then
+  echo "odeo-migrate-legacy: the list of Odeo's own skill and agent versions is missing ($HASH_LIST); refusing," >&2
+  echo "because without it a skill of yours that shares an Odeo name could not be told from Odeo's. Reinstall the plugin." >&2
+  exit 2
+fi
+if command -v shasum >/dev/null 2>&1; then
+  sha256_file() { shasum -a 256 "$1" 2>/dev/null | awk '{print $1}'; }
+elif command -v sha256sum >/dev/null 2>&1; then
+  sha256_file() { sha256sum "$1" 2>/dev/null | awk '{print $1}'; }
+else
+  echo "odeo-migrate-legacy: neither shasum nor sha256sum is available, so Odeo's copies cannot be recognised; refusing." >&2
+  exit 2
+fi
+KNOWN=""; lineno=0
+while IFS= read -r line || [ -n "$line" ]; do
+  lineno=$((lineno + 1))
+  case "$line" in ""|"#"*) continue ;; esac
+  if printf '%s\n' "$line" | grep -Eq '^(skill|agent) [a-z0-9][a-z0-9-]* [0-9a-f]{64}$'; then
+    KNOWN="$KNOWN$line
+"
+  else
+    echo "odeo-migrate-legacy: malformed line $lineno in $HASH_LIST, skipped (it recognises nothing)." >&2
+  fi
+done < "$HASH_LIST"
+
+# known_copy <kind> <name> <file>: succeeds only when the sha256 of <file> is listed for exactly
+# this kind and name. An unreadable or missing file (a dangling link) has no hash: not recognised.
+known_copy() {
+  local h; h="$(sha256_file "$3")"
+  [ -n "$h" ] && printf '%s' "$KNOWN" | grep -Fxq -- "$1 $2 $h"
+}
+# plain_name <name>: a lowercase slug, checked before a name is turned into a path
+plain_name() { printf '%s\n' "$1" | grep -Eq '^[a-z0-9][a-z0-9-]*$'; }
+
 APPLY=false
 case "${1:-}" in
   "") ;;
@@ -58,28 +109,33 @@ RETIRED_AGENTS="code-reviewer.md architect.md builder.md design-reviewer.md arch
   codebase-analyst.md debugger.md"
 RETIRED_BIN="merge-gate.sh boundary-check.sh focus-check.sh community-sync.sh"
 
-# candidates: prints every install.sh-placed path (relative to $HOME) that exists now
-candidates() {
-  local d n f
+# scan: prints one line per install.sh-placed path (relative to $HOME) that exists now, as
+# "move <path>" or, for a skill or agent that carries an Odeo name but not Odeo's content,
+# "keep <path>". A skill is judged by its SKILL.md, an agent by its file.
+scan() {
+  local n f
   for n in "$ROOT"/skills/*/ $RETIRED_SKILLS; do
-    n="$(basename "$n")"; f=".claude/skills/$n"
-    { [ -e "$HOME/$f" ] || [ -L "$HOME/$f" ]; } && echo "$f"
+    n="$(basename "$n")"; plain_name "$n" || continue; f=".claude/skills/$n"
+    { [ -e "$HOME/$f" ] || [ -L "$HOME/$f" ]; } || continue
+    if known_copy skill "$n" "$HOME/$f/SKILL.md"; then echo "move $f"; else echo "keep $f"; fi
   done
   for n in "$ROOT"/agents/*.md "$ROOT/docs/agent-rubric.md" $RETIRED_AGENTS; do
-    n="$(basename "$n")"; f=".claude/agents/$n"
-    { [ -e "$HOME/$f" ] || [ -L "$HOME/$f" ]; } && echo "$f"
+    n="$(basename "$n")"; n="${n%.md}"; plain_name "$n" || continue; f=".claude/agents/$n.md"
+    { [ -e "$HOME/$f" ] || [ -L "$HOME/$f" ]; } || continue
+    if known_copy agent "$n" "$HOME/$f"; then echo "move $f"; else echo "keep $f"; fi
   done
   # the plugin's programs live in scripts/; install.sh copied each one to ~/bin/<name>
   for n in "$ROOT"/scripts/* $RETIRED_BIN; do
     n="$(basename "$n")"; f="bin/$n"
+    [ "$n" = "$(basename "$HASH_LIST")" ] && continue   # data for this script, never put in ~/bin
     { [ -e "$HOME/$f" ] || [ -L "$HOME/$f" ]; } || continue
     # our own shim, recognised by its line 2 only (a stale copy of THIS script contains the
     # marker text too, and must move like any other install.sh copy)
     [ ! -L "$HOME/$f" ] && sed -n 2p "$HOME/$f" 2>/dev/null | grep -q "$SHIM_MARKER" && continue
-    echo "$f"
+    echo "move $f"
   done
   for f in .claude/odeo-docs .claude-templates; do
-    { [ -e "$HOME/$f" ] || [ -L "$HOME/$f" ]; } && echo "$f"
+    { [ -e "$HOME/$f" ] || [ -L "$HOME/$f" ]; } && echo "move $f"
   done
   return 0
 }
@@ -131,10 +187,23 @@ outdated_shims() {
   return 0
 }
 
-items="$(candidates | awk '!seen[$0]++')"   # deduplicated: a retired name may still sit in a folder
+scanned="$(scan | awk '!seen[$0]++')"   # deduplicated: a retired name may still sit in a folder
+items="$(printf '%s\n' "$scanned" | sed -n 's/^move //p')"
+kept="$(printf '%s\n' "$scanned" | sed -n 's/^keep //p')"
 stale="$(outdated_shims)"
+
+# report_kept: what carries an Odeo name but is not Odeo's, and so was left where it is
+report_kept() {
+  [ -n "$kept" ] || return 0
+  echo "These share a name with an Odeo skill or agent but are not recognised as Odeo's (their content"
+  echo "matches no version Odeo shipped), so they stay where they are:"
+  printf '%s\n' "$kept" | sed "s|^|  ~/|"
+  echo "If one of them is an old Odeo copy you edited, move it aside yourself; otherwise it is yours."
+}
+
 if [ -z "$items" ] && [ -z "$stale" ]; then
   echo "odeo-migrate-legacy: nothing to migrate, no install.sh copies found in $HOME."
+  report_kept
   exit 0
 fi
 
@@ -145,6 +214,7 @@ if ! $APPLY; then
   fi
   [ -n "$stale" ] && printf 'These shims are outdated and would be refreshed in place: %s\n' \
     "$(printf '~/bin/%s ' $stale)"
+  report_kept
   echo "Run again with --apply to do it."
   exit 0
 fi
@@ -158,7 +228,7 @@ for n in $stale; do
   write_shim "$n" || { echo "odeo-migrate-legacy: could not write ~/bin/$n; the old one is in $legacy/bin" >&2; exit 1; }
   echo "odeo-migrate-legacy: refreshed the ~/bin/$n shim; the previous one is kept in $legacy/bin/."
 done
-[ -n "$items" ] || exit 0
+[ -n "$items" ] || { report_kept; exit 0; }
 
 moved=0
 while IFS= read -r f; do
@@ -181,4 +251,5 @@ for n in $SHIM_NAMES; do
   grep -q "$SHIM_MARKER" "$HOME/bin/$n" 2>/dev/null \
     && echo "~/bin/$n is now a shim that runs the plugin's copy, so projects created before the plugin keep their git guards."
 done
+report_kept
 exit 0

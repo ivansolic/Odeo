@@ -5,8 +5,9 @@
 # The guarantees are OUTCOMES, checked on a fake HOME: a dry run (the default) changes
 # nothing; --apply moves exactly the install.sh-placed items (Odeo's skill, agent and bin
 # names, odeo-docs, ~/.claude-templates) into one ~/.claude/odeo-legacy-<ts>/ folder;
-# everything else survives in place; and no file is ever deleted (the file count over
-# home is identical before and after).
+# everything else survives in place, including a skill or agent of the user's own that merely
+# shares an Odeo name (moved only when its content is a copy Odeo shipped); and no file is
+# ever deleted (the file count over home is identical before and after).
 #
 # Observed failing (2026-09-23), each mutant checked to differ from the original:
 #   M1 apply by default                      -> 3 FAIL (case 1)
@@ -26,6 +27,20 @@
 # Observed failing (2026-09-29), after the move to scripts/:
 #   M12 the bin/ wrapper (tests/fixtures/legacy-bin-wrapper.sh) exits 0 without forwarding -> 2 FAIL (case 16)
 #   M13 bounded() without the explicit <&0 (stdin becomes /dev/null) -> 1 FAIL (case 16)
+# Observed failing (2026-10-29), after skills and agents are moved only on a content match
+# (the fake roots carry a fixture hash list; case 23 uses the real list):
+#   M14 recognise by name only (known_copy always true)           -> 22 FAIL (cases 17-21, 23)
+#   M15 hash the skill DIRECTORY instead of its SKILL.md          -> 18 FAIL (cases 2, 3, 18, 19, 20, 23: nothing moves)
+#   M16 hash the plugin's copy of an agent, not the user's file   -> 6 FAIL (cases 2, 18, 23)
+#   M17 a bare set of hashes (kind and name not bound)            -> 4 FAIL (cases 20, 22)
+#   M18 the loader drops one list line (fixture line 4)           -> 2 FAIL (case 2: that entry no longer recognises its copy)
+#   M19 the REAL list loses the current `skill research` entry    -> 1 FAIL (case 23)
+#   M20 a missing list is tolerated (no refusal)                  -> 2 FAIL (case 22)
+#   M21 every skill is moved (the keep branch removed)            -> 20 FAIL (cases 17-21)
+#   M22 the bin/ scan also walks the list file                    -> 1 FAIL (case 24)
+#   M23 the left-in-place report is silent                        -> 11 FAIL (cases 17, 19, 21)
+#   M24 list lines are not validated                              -> 1 FAIL (case 22, the loud report only: matching is by exact
+#       whole line, so a malformed line could never recognise a copy anyway; the check is for the maintainer to see)
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 REAL_SCRIPT="$ROOT/scripts/odeo-migrate-legacy.sh"
@@ -426,6 +441,14 @@ if git -C "$ROOT" rev-parse -q --verify dev-phase-archive >/dev/null 2>&1 \
 else
   echo "skip: no dev-phase-archive tag in this clone (archived deploy skill not checked)"
 fi
+
+# 24) the hash list is data for the migration, never an install.sh program: a file of that name
+#     in ~/bin is not treated as one (the bin/ scan walks the plugin's scripts/ folder, where
+#     the list lives)
+H="$TMP/h24"; mkdir -p "$H/bin"; echo "mine" > "$H/bin/odeo-legacy-hashes.txt"
+out="$(HOME="$H" "$SCRIPT" 2>&1)"
+assert_contains "a ~/bin file named like the list is not a candidate" "nothing to migrate" "$out"
+exists "that file stays" "$H/bin/odeo-legacy-hashes.txt"
 
 # 6) unknown flag -> usage, exit 2, nothing moved
 H="$TMP/h6"; make_home "$H"; before="$(find "$H" | sort)"
