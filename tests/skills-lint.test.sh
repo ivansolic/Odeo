@@ -85,6 +85,27 @@ check "C5 counts a repo-only maintainer script as existing" 0 "$d"; rm -rf "$d"
 d="$(clean_root)"; mkdir -p "$d/.claude/maintainer"; touch "$d/.claude/maintainer/merge-gate.sh"
 mkskill "$d" eps "disable-model-invocation: true\n" "Uses scripts." "Run \${CLAUDE_PLUGIN_ROOT}/scripts/merge-gate.sh first."
 check "C5 flags a plugin-path run of a script that only exists repo-only" 1 "$d"; rm -rf "$d"
+# The same rule must hold for every way a command can spell the plugin root: the bare
+# $CLAUDE_PLUGIN_ROOT form, the quoted "${CLAUDE_PLUGIN_ROOT}"/ form, and a program that is not
+# a .sh file (scripts/token-report.py). Each case plants the program repo-only and asserts the
+# run by plugin path is flagged. Observed failing (2026-10-29) on the braced-.sh-only pattern
+# that C5b used before: each of the three was RED (rc=0, want 1). Mutations of the C5b pattern
+# in scripts/skills-lint.sh, each RED on exactly its own case (1 FAIL):
+#   M1 make the closing brace mandatory (braced-only match, as before) -> bare $VAR case
+#   M2 drop the optional closing quote                                  -> quoted-root case
+#   M3 restore the mandatory .sh suffix                                 -> token-report.py case
+d="$(clean_root)"; mkdir -p "$d/.claude/maintainer"; touch "$d/.claude/maintainer/x.sh"
+mkskill "$d" eps "disable-model-invocation: true\n" "Uses scripts." 'Run $CLAUDE_PLUGIN_ROOT/scripts/x.sh first.'
+check "C5 flags a bare \$CLAUDE_PLUGIN_ROOT run of a repo-only script" 1 "$d"; rm -rf "$d"
+d="$(clean_root)"; mkdir -p "$d/.claude/maintainer"; touch "$d/.claude/maintainer/x.sh"
+mkskill "$d" eps "disable-model-invocation: true\n" "Uses scripts." 'Run "${CLAUDE_PLUGIN_ROOT}"/scripts/x.sh first.'
+check "C5 flags a quoted-root run of a repo-only script" 1 "$d"; rm -rf "$d"
+d="$(clean_root)"
+mkskill "$d" eps "disable-model-invocation: true\n" "Uses scripts." 'Run python3 ${CLAUDE_PLUGIN_ROOT}/scripts/token-report.py first.'
+check "C5 flags a plugin-path run of a program that is not a .sh and does not exist" 1 "$d"; rm -rf "$d"
+d="$(clean_root)"; touch "$d/scripts/token-report.py"
+mkskill "$d" eps "disable-model-invocation: true\n" "Uses scripts." 'Run python3 ${CLAUDE_PLUGIN_ROOT}/scripts/token-report.py first.'
+check "C5 passes a plugin-path run of a non-.sh program that ships in scripts/" 0 "$d"; rm -rf "$d"
 # The repo-only agent and skill are still checked by the CONTENT rules (C6 single verdict, C7
 # dashes, C11 version pins, C12 effort, C13 output language); only the plugin-path rules
 # (C14, C15, C16) do not apply to them. Each case asserts the NAMED rule fired, not just exit 1.

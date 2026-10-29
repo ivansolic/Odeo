@@ -102,7 +102,10 @@ done
 # C5b. A program RUN by its plugin path (${CLAUDE_PLUGIN_ROOT}/scripts/<name>) must be in
 #      scripts/: a user's plugin install has no .claude/maintainer/, so the repo-only fallback
 #      above is for bare names in prose, never for a command a skill tells Claude to run.
-prefs="$(printf '%s\n' "$c5_all" | grep -oE 'CLAUDE_PLUGIN_ROOT\}/scripts/[a-z][a-z0-9_.-]*\.sh' | sed 's#.*/scripts/##' | sort -u)"
+#      Every spelling of the root counts: ${CLAUDE_PLUGIN_ROOT}, $CLAUDE_PLUGIN_ROOT and
+#      "${CLAUDE_PLUGIN_ROOT}"/, and any program name (token-report.py is not a .sh). The
+#      trailing strip drops sentence punctuation the name class would otherwise swallow.
+prefs="$(printf '%s\n' "$c5_all" | grep -oE 'CLAUDE_PLUGIN_ROOT\}?"?/scripts/[A-Za-z0-9_.-]+' | sed -E 's#.*/scripts/##; s#[.-]+$##' | sort -u)"
 for r in $prefs; do
   [[ -f "$ROOT/scripts/$r" ]] \
     || viol C5 "run by its plugin path but not in scripts/: $r (a repo-only tool does not ship)"
