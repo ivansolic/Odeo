@@ -121,6 +121,12 @@ d="$(clean_root)"; mkdir -p "$d/.claude/skills/merge"; printf -- '---\ndescripti
 flags "C7 reaches a dash in a repo-only skill" C7 "$d"; rm -rf "$d"
 d="$(clean_root)"; mkdir -p "$d/.claude/agents"; printf -- '---\nname: code-reviewer\n---\nOnly you History output_language Guardrails 7\n' > "$d/.claude/agents/code-reviewer.md"
 flags "C12 reaches a repo-only agent without effort" C12 "$d"; rm -rf "$d"
+# A root with NO agents/ dir at all, only repo-only definitions under .claude/agents/: C12 must
+# still check them, as C13 does (its guard is `agents/ exists OR a local definition exists`).
+# Observed failing (2026-10-29) with C12 guarded by `[[ -d agents ]]` alone. Mutation: restore
+# that guard -> this case goes RED (1 FAIL).
+d="$(clean_root)"; rm -rf "$d/agents"; mkdir -p "$d/.claude/agents"; printf -- '---\nname: code-reviewer\n---\nOnly you History output_language Guardrails 7\n' > "$d/.claude/agents/code-reviewer.md"
+flags "C12 reaches a repo-only agent when the root has no agents/ directory" C12 "$d"; rm -rf "$d"
 d="$(clean_root)"; mkdir -p "$d/.claude/agents"; printf -- '---\nname: code-reviewer\neffort: high\n---\nOnly you History\n' > "$d/.claude/agents/code-reviewer.md"
 flags "C13 reaches a repo-only agent without the output-language rule" C13 "$d"; rm -rf "$d"
 d="$(clean_root)"; mkdir -p "$d/.claude/skills/merge"; printf -- '---\ndescription: x\ndisable-model-invocation: true\n---\nRuns on sonnet-4 today.\n' > "$d/.claude/skills/merge/SKILL.md"

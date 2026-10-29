@@ -113,10 +113,10 @@ done
 
 # The maintainer's own agent and skills live under .claude/ and are repo-only: the content
 # rules below (C6, C7, C11, C12, C13) reach them; the plugin-path rules (C14, C15, C16) do not,
-# because they cite files by repo path on purpose.
-LOCAL_AGENT_FILES=(); LOCAL_SKILL_FILES=()
+# because they cite files by repo path on purpose. Only the agent list is kept as an array
+# (C12 and C13 test each definition); the skill rules (C7, C11) grep .claude/skills directly.
+LOCAL_AGENT_FILES=()
 while IFS= read -r f; do LOCAL_AGENT_FILES+=("$f"); done < <(ls "$ROOT"/.claude/agents/*.md 2>/dev/null)
-while IFS= read -r f; do LOCAL_SKILL_FILES+=("$f"); done < <(ls "$ROOT"/.claude/skills/*/SKILL.md 2>/dev/null)
 
 # C6. Reviewer agents carry the single-verdict contract
 for name in code-reviewer design-reviewer pm-reviewer skill-reviewer; do
@@ -181,7 +181,7 @@ is_agent_definition() {
   agent_frontmatter "$1" | grep -qE '^name:[[:space:]]*[^[:space:]]'
 }
 
-if [[ -d "$ROOT/agents" ]]; then
+if [[ -d "$ROOT/agents" || ${#LOCAL_AGENT_FILES[@]} -gt 0 ]]; then
   for f in "$ROOT"/agents/*.md "${LOCAL_AGENT_FILES[@]:+${LOCAL_AGENT_FILES[@]}}"; do
     [[ -f "$f" ]] || continue
     is_agent_definition "$f" || continue
