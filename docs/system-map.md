@@ -22,6 +22,7 @@ Odeo ends with a package ready for delivery: a reviewed PRD and stories (`/odeo:
 | `/odeo:new-project` | Create a new project folder from the plugin's templates (CLAUDE.md, docs, tasks), git on main, secret scan on commit installed. Then open it and run /odeo:setup-project. |
 | `/odeo:setup-project` | Configure a project: new (interview) or existing (reads its manifest and README); sets dev-rigor style and preferences. Once per project. |
 | `/odeo:start` | You-are-here: reads project state, tells you the next step + pending loop reminders. |
+| `/odeo:guide` | Ask how to reach a goal in plain words ("how do I...", "what now", "which command"): reads this map and your project state, returns the route (commands in order, missing prerequisites first, options with tradeoffs) and offers the first step. It advises and runs nothing until you say yes. Usable at any point, not only at setup. |
 | `/odeo:language` | Show or change the language generated documents are written in: `/odeo:language` reports the current language and where it is set, `/odeo:language de` sets this project, `/odeo:language de --global` sets your default for all projects (en, de, hr, fr). |
 
 ## 2. Discovery & research
