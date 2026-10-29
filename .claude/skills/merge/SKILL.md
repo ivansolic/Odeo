@@ -19,16 +19,23 @@ human floor.
 ## Steps
 0. **The gate (ENFORCED, run it first and STOP on non-zero).** Run main's copy of the gate,
    never the branch's own: a branch that edits the gate must not be the one that judges it.
+   Two different things can be missing, so check each and say which one it is:
+   - `git rev-parse -q --verify main` prints nothing: **there is no local `main` branch.**
+     Say so and stop (create or fetch it, then re-run).
+   - `git rev-parse -q --verify main:.claude/maintainer/merge-gate.sh` prints nothing:
+     **`main` exists but has no `.claude/maintainer/merge-gate.sh`.** Say so and stop; never
+     substitute the branch's copy or a plugin copy.
+
+   With both present, run the gate from a throwaway copy and remove it afterwards:
    ```
    g="$(mktemp -d)" && git archive main .claude/maintainer | tar -x -C "$g" \
-     && "$g/.claude/maintainer/merge-gate.sh"
+     && "$g/.claude/maintainer/merge-gate.sh"; rc=$?; rm -rf "$g"; (exit "$rc")
    ```
-   If main has no `.claude/maintainer/` yet (the one branch that introduces it), say so and use
-   the installed plugin's `merge-gate.sh` instead; never the branch's copy.
-   The gate refuses deterministically when: you're on main, the working tree is dirty, no
-   review record exists in `docs/evals/` for this branch, or a DO-NOT-TOUCH boundary was
-   violated (`boundary-check.sh`, which sits next to the gate). Fix what it names (usually:
-   run the reviewers so the record exists), re-run, only then continue.
+   What the gate refuses, and why, is stated once in AGENTS.md Guardrails 1 (the
+   `/odeo:merge` preconditions bullet); this file does not restate it. Fix what the gate
+   names (usually: run the reviewers so the record exists), re-run, only then continue.
+   If main's gate blocks a fix to the gate itself, stop and hand it to the human; never run
+   the branch's own copy to get past it.
 1. `git fetch origin` (get the latest main).
 1b. **Confirm `origin/main` is this branch's upstream BEFORE rebasing onto it.** Ask about
    LINEAGE, not about how big the gap is: a gap is normal, a separate lineage is not.
@@ -90,7 +97,7 @@ human floor.
 
 ## Worked example
 ```
-> /odeo:merge                          (on feature/usr-012-timer, reviewed, you approved)
+> /merge                               (on feature/usr-012-timer, reviewed, you approved)
 merge-gate: preconditions hold (branch 'feature/usr-012-timer', 1 record(s) checked: docs/evals/code-feature-usr-012-timer.md)
 upstream check: main is an ancestor of origin/main -> ordinary upstream, rebase applies
 fetch + rebase onto origin/main: clean
@@ -104,7 +111,7 @@ cleanup: back on main, branch deleted local + remote
 Same gate, different back half. Do not rebase, do not push the branch there, do not
 `git pull` main from it.
 ```
-> /odeo:merge                          (on docs/fix-the-thing, reviewed, you approved)
+> /merge                               (on docs/fix-the-thing, reviewed, you approved)
 merge-gate: preconditions hold (branch 'docs/fix-the-thing', 1 record(s) checked: docs/evals/skill-merge.md)
 upstream check: neither main nor origin/main is an ancestor of the other,
                 and a pre-push hook refuses this remote -> PUBLICATION, not upstream
