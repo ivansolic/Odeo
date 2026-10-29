@@ -13,8 +13,9 @@
 # Observed failing (2026-09-23), each mutant checked to differ from the original:
 #   M1 no cache lookup          -> 4 FAIL (cases 2, 3, 7, 8; measured 2026-10-28). Case 1 stays
 #                                  green under M1 because the install-time dir IS the newest
-#                                  version; case 1 is attributed by M2, not M1.
-#   M2 cache read oldest first  -> 2 FAIL (cases 2, 3; measured 2026-10-28)
+#                                  version; case 1 is attributed by M10, not M1 or M2.
+#   M2 cache read oldest first  -> 2 FAIL (cases 2, 3; measured 2026-10-28). Case 1 stays green
+#                                  under M2 too: only one cached version has a scripts/ dir.
 #   M3 no install-time dir      -> 1 FAIL (case 5)
 #   M4 no install-time config dir -> 1 FAIL (case 7)
 # Observed failing (2026-09-29), after the move to scripts/:
@@ -25,6 +26,11 @@
 #                                           -> 4 FAIL (case 10)
 #   M9 PATH lookup (command -v) restored first, as in 0.3.0 (the RED of case 11)
 #                                           -> 3 FAIL (case 11)
+# Observed failing (2026-10-29):
+#   M10 bin/ globs searched before the scripts/ globs (the 0.2.x layout wins over the current
+#       one; the old version's bin/ copy runs)
+#                                           -> 3 FAIL (cases 1, 2, 3); the only mutant found
+#                                              that turns case 1 RED
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 fail=0
