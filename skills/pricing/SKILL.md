@@ -1,6 +1,5 @@
 ---
 description: Design pricing grounded in customer value, not cost-plus or guesswork, covering value metric, model, tiers, and willingness-to-pay. Use when monetizing a product or feature. Based on value-based pricing (Madhavan Ramanujam, "Monetizing Innovation").
-disable-model-invocation: true
 ---
 
 # Pricing

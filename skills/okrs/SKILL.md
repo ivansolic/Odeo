@@ -1,6 +1,5 @@
 ---
-description: Set Objectives and Key Results, an ambitious qualitative objective with measurable, outcome-based key results; re-running it over existing OKRs becomes a check-in (actuals vs targets, status per KR). Use for quarterly/cycle goal-setting and periodic reviews. Based on the OKR method.
-disable-model-invocation: true
+description: Set Objectives and Key Results, an ambitious qualitative objective with measurable, outcome-based key results; re-running it over existing OKRs becomes a check-in (actuals vs targets, status per KR). Use when setting quarterly/cycle goals or reviewing progress on existing OKRs. Based on the OKR method.
 ---
 
 # OKRs

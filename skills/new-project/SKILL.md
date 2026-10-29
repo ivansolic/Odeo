@@ -1,6 +1,5 @@
 ---
-description: Create a new Claude-ready project folder with Odeo's structure (CLAUDE.md, docs/, tasks/, knowledge/, design/ for UI projects), a git repo on main and the git guards installed. Explicit command; run it once per new project, then open the folder and run /odeo:setup-project. Example: "/odeo:new-project my-app".
-disable-model-invocation: true
+description: Create a new Claude-ready project folder with Odeo's structure (CLAUDE.md, docs/, tasks/, knowledge/, design/ for UI projects), a git repo on main and the git guards installed. Use when the user wants a new project folder; run it once per new project, then open the folder and run /odeo:setup-project. Example: "/odeo:new-project my-app".
 ---
 
 # New project (scaffold a project from the plugin)

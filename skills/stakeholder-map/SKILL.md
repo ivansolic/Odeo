@@ -1,6 +1,5 @@
 ---
-description: Map stakeholders by power and interest and plan how to communicate with each, so the right people are aligned and there are no surprises. Use before a launch, a big decision, or in a multi-team effort. Based on the Power/Interest grid (Mendelow).
-disable-model-invocation: true
+description: Map stakeholders by power and interest and plan how to communicate with each, so the right people are aligned and there are no surprises. Use when preparing a launch, a big decision, or a multi-team effort. Based on the Power/Interest grid (Mendelow).
 ---
 
 # Stakeholder map

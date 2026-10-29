@@ -1,6 +1,5 @@
 ---
-description: End-of-session retro. Captures what was learned this session and routes each lesson to the right place, project-specific lessons to .claude/tasks/lessons.md, general rules as a proposed global CLAUDE.md update, then backs up the gitignored build ledger (todo.md, lessons.md) to wherever the project records, which writes OUTSIDE the repo. Run before wrapping up a working session.
-disable-model-invocation: true
+description: End-of-session retro. Captures what was learned this session and routes each lesson to the right place, project-specific lessons to .claude/tasks/lessons.md, general rules as a proposed global CLAUDE.md update, then backs up the gitignored build ledger (todo.md, lessons.md) to wherever the project records, which writes OUTSIDE the repo. Use when wrapping up a working session or the user asks for a retro.
 ---
 
 A short retrospective so learnings get captured while fresh, not only when a

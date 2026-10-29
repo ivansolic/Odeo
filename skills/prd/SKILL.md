@@ -1,6 +1,5 @@
 ---
-description: Write a problem-first Product Requirements Document, framed around a user outcome with measurable success criteria, not a feature list. Use once an idea has shape and you're ready to specify. Produces a structured PRD saved to docs/prds/. Includes a security pre-mortem for sensitive features.
-disable-model-invocation: true
+description: Write a problem-first Product Requirements Document, framed around a user outcome with measurable success criteria, not a feature list. Use when an idea has shape and is ready to be specified, or the user asks for a PRD. Produces a structured PRD saved to docs/prds/. Includes a security pre-mortem for sensitive features.
 ---
 
 # PRD (problem-first)

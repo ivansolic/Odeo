@@ -1,6 +1,5 @@
 ---
-description: Get a paid, independent SECOND OPINION on a PM document (PRD, user stories, strategy, roadmap, research, or a discovery artifact) from an external vendor model, then have OUR pm-reviewer compare the two reads. Explicit command (data leaves the machine and costs money); run it on a big bet, a sink-it assumption a critique surfaced, multi-epic scope, or a hard-to-reverse decision. Example: "second opinion on PRD-007".
-disable-model-invocation: true
+description: Get a paid, independent SECOND OPINION on a PM document (PRD, user stories, strategy, roadmap, research, or a discovery artifact) from an external vendor model, then have OUR pm-reviewer compare the two reads. Use when the user asks for a second opinion; data leaves the machine and costs money, so it always asks for an explicit yes before sending; run it on a big bet, a sink-it assumption a critique surfaced, multi-epic scope, or a hard-to-reverse decision. Example: "second opinion on PRD-007".
 ---
 
 # Second opinion (PM document)
@@ -16,8 +15,10 @@ live in `${CLAUDE_PLUGIN_ROOT}/docs/second-opinion-protocol.md` (read it; not re
   second read.
 - Covers everything `pm-reviewer` judges: PRD, stories, strategy, roadmap,
   research, GTM, and discovery artifacts (personas, opportunity trees, experiments).
-- Human-invoked only. Data leaves the machine and it costs money; it never
-  self-runs, and a skill offers it once at those triggers, never after a decline.
+- Starts only when the human asks for it or says yes to an offer. Data leaves the
+  machine and it costs money; it never self-runs, step 1's explicit yes is required
+  whoever started it, and a skill offers it once at those triggers, never after a
+  decline.
 - Not for: routine or low-stakes docs (our own review is enough); anything you
   have not consented to send. The pre-send scan blocks secrets/PII regardless.
 

@@ -1,6 +1,5 @@
 ---
-description: Planning orchestrator (portfolio altitude). Runs /odeo:prioritize then /odeo:roadmap with a gate between, choose which opportunities/epics to build and lay them on an outcome roadmap. Use after discovery/strategy, before speccing features.
-disable-model-invocation: true
+description: Planning orchestrator (portfolio altitude). Runs /odeo:prioritize then /odeo:roadmap with a gate between, choose which opportunities/epics to build and lay them on an outcome roadmap. Use when choosing which epics to build next, after discovery/strategy and before speccing features.
 ---
 
 # Plan (portfolio orchestrator)

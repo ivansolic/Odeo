@@ -1,6 +1,5 @@
 ---
 description: Create an honest competitive battlecard for a specific rival, where you win, where you don't, and how to handle objections, for sales, support, or a comparison page. Use when you keep competing against a named competitor. Standard sales-enablement practice.
-disable-model-invocation: true
 ---
 
 # Competitive battlecard

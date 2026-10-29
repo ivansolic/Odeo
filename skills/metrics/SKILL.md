@@ -1,6 +1,5 @@
 ---
 description: Define the metrics that matter, a North Star plus a small supporting set, tied to user value, not vanity. Use when setting up measurement for a product or feature, or to make an outcome in a PRD measurable. Based on North Star Metric thinking, the AARRR funnel, and the HEART framework.
-disable-model-invocation: true
 ---
 
 # Metrics

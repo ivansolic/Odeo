@@ -1,6 +1,5 @@
 ---
-description: Brainstorm cost-effective marketing, the channels, messaging, and campaigns to reach your target segment, prioritized by fit and effort. Use around launch or growth, after positioning. Based on segment-channel-message fit (STP) and the acquisition stage of AARRR.
-disable-model-invocation: true
+description: Brainstorm cost-effective marketing, the channels, messaging, and campaigns to reach your target segment, prioritized by fit and effort. Use when planning marketing around launch or growth, after positioning. Based on segment-channel-message fit (STP) and the acquisition stage of AARRR.
 ---
 
 # Marketing

@@ -1,6 +1,5 @@
 ---
-description: Post-ship outcome check for a shipped feature. Reads the PRD success criteria, gathers REAL available signals (analytics, errors, qualitative), compares actual vs intended, and gives a verdict (keep / iterate / kill / need-more-data). Run about a week after shipping, when there is real data. Closes the build loop. Never fabricates data.
-disable-model-invocation: true
+description: Post-ship outcome check for a shipped feature. Reads the PRD success criteria, gathers REAL available signals (analytics, errors, qualitative), compares actual vs intended, and gives a verdict (keep / iterate / kill / need-more-data). Use when a shipped feature has about a week of real data and its success should be judged. Closes the build loop. Never fabricates data.
 ---
 
 The loop most teams skip: did the thing we shipped actually solve the problem?

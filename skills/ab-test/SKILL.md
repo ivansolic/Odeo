@@ -1,6 +1,5 @@
 ---
-description: Evaluate an A/B test honestly, sample size, statistical significance, and a ship/iterate/stop call, without fooling yourself. Use to plan a test (how many users, how long) or to read a finished one. Based on controlled-experiment practice (Kohavi et al., "Trustworthy Online Controlled Experiments"); pairs with /odeo:experiments.
-disable-model-invocation: true
+description: Evaluate an A/B test honestly, sample size, statistical significance, and a ship/iterate/stop call, without fooling yourself. Use when planning an A/B test (how many users, how long) or reading a finished one. Based on controlled-experiment practice (Kohavi et al., "Trustworthy Online Controlled Experiments"); pairs with /odeo:experiments.
 ---
 
 # A/B test analysis

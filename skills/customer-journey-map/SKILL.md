@@ -1,6 +1,5 @@
 ---
-description: Map the customer's end-to-end journey, stages, actions, touchpoints, emotions, and pain points, to find where the experience breaks and where to focus. Use in discovery after personas, or when a flow feels disjointed. Based on customer-journey / service-design mapping (CX standard).
-disable-model-invocation: true
+description: Map the customer's end-to-end journey, stages, actions, touchpoints, emotions, and pain points, to find where the experience breaks and where to focus. Use when mapping a flow in discovery after personas, or when a flow feels disjointed. Based on customer-journey / service-design mapping (CX standard).
 ---
 
 # Customer journey map

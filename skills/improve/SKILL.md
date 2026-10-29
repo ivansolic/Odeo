@@ -1,6 +1,5 @@
 ---
 description: Use when a skill, rubric, or knowledge entry keeps underperforming (repeated eval drops on the same criterion) and you want to improve THE SYSTEM ITSELF with evidence, propose a change, test old vs new, keep or revert. You approve every applied change. Recurring loop, triggered by a nudge or by you.
-disable-model-invocation: true
 ---
 
 # Improve (evidence-based system improvement)

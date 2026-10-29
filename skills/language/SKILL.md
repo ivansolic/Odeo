@@ -1,6 +1,5 @@
 ---
-description: Show or change the language your generated documents are written in (PRDs, stories, plans, reviews). "/odeo:language" reports the current language and where it is set; "/odeo:language de" sets it for this project; "/odeo:language de --global" changes your default for all projects. Supported codes: en, de, hr, fr. Explicit command; code, filenames, commit messages, and every machine-read field stay English. Example: "/odeo:language hr".
-disable-model-invocation: true
+description: Show or change the language your generated documents are written in (PRDs, stories, plans, reviews). "/odeo:language" reports the current language and where it is set; "/odeo:language de" sets it for this project; "/odeo:language de --global" changes your default for all projects. Supported codes: en, de, hr, fr. Use when the user asks which language documents are written in, or to change it. Code, filenames, commit messages, and every machine-read field stay English. Example: "/odeo:language hr".
 ---
 
 # Language (show or change the output language)

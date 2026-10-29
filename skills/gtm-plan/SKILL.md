@@ -1,6 +1,5 @@
 ---
-description: Build a focused go-to-market PLAN, who you're launching to, the message, the channels, the motion, and how you'll know it worked. Use ahead of a launch or a new segment push. The single GTM artifact; the /odeo:go-to-market orchestrator runs the whole launch phase around it.
-disable-model-invocation: true
+description: Build a focused go-to-market PLAN, who you're launching to, the message, the channels, the motion, and how you'll know it worked. Use when preparing a launch or a new segment push. The single GTM artifact; the /odeo:go-to-market orchestrator runs the whole launch phase around it.
 ---
 
 # GTM plan

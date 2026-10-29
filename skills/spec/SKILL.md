@@ -1,6 +1,5 @@
 ---
-description: Specification orchestrator (feature altitude). Turns ONE chosen epic/slice into buildable work, /odeo:prd -> /odeo:critique -> /odeo:stories, with a gate between. Use after /odeo:plan picks the next epic, before /odeo:build. Stories inherit everything upstream.
-disable-model-invocation: true
+description: Specification orchestrator (feature altitude). Turns ONE chosen epic/slice into buildable work, /odeo:prd -> /odeo:critique -> /odeo:stories, with a gate between. Use when one chosen epic should go through PRD, critique and stories. Stories inherit everything upstream.
 ---
 
 # Spec (specification orchestrator)

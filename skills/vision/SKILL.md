@@ -1,6 +1,5 @@
 ---
-description: Articulate a product vision, the compelling future you are building toward, in a way that aligns and motivates. Use at the start of a product or a major bet, before strategy and PRDs. Based on modern product-vision practice.
-disable-model-invocation: true
+description: Articulate a product vision, the compelling future you are building toward, in a way that aligns and motivates. Use when starting a product or a major bet, before strategy and PRDs. Based on modern product-vision practice.
 ---
 
 # Product vision

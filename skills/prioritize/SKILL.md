@@ -1,6 +1,5 @@
 ---
 description: Prioritize features, opportunities, or stories with a transparent, comparable method (RICE), so sequencing is a defensible decision, not a loudest-voice one. Use when you have more to do than you can do. Based on the RICE framework; notes MoSCoW and value/effort.
-disable-model-invocation: true
 ---
 
 # Prioritize (RICE)

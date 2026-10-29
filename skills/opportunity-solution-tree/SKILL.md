@@ -1,6 +1,5 @@
 ---
-description: Build an Opportunity Solution Tree, a visual map from a desired OUTCOME down to opportunities (unmet needs), candidate solutions, then experiments. Keeps discovery outcome-driven and stops solution-jumping. Use during discovery once you have a target outcome and some user signal. Based on the continuous-discovery school.
-disable-model-invocation: true
+description: Build an Opportunity Solution Tree, a visual map from a desired OUTCOME down to opportunities (unmet needs), candidate solutions, then experiments. Keeps discovery outcome-driven and stops solution-jumping. Use when discovery has a target outcome and some user signal. Based on the continuous-discovery school.
 ---
 
 # Opportunity Solution Tree (OST)

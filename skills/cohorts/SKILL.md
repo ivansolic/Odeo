@@ -1,6 +1,5 @@
 ---
-description: Analyze cohorts, group users by when they started (or a shared trait) and track retention/engagement over time, to see if the product actually keeps people. Use post-launch or when judging retention/growth health. Based on cohort/retention analysis (standard growth practice).
-disable-model-invocation: true
+description: Analyze cohorts, group users by when they started (or a shared trait) and track retention/engagement over time, to see if the product actually keeps people. Use when judging retention or growth health after launch. Based on cohort/retention analysis (standard growth practice).
 ---
 
 # Cohort analysis

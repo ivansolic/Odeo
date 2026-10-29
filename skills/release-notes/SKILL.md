@@ -1,6 +1,5 @@
 ---
 description: Write user-facing release notes / changelog entries that lead with benefits and are scannable, not a raw commit dump. Use when shipping something users should notice. Turns shipped work into a clear "what's new and why you care."
-disable-model-invocation: true
 ---
 
 # Release notes

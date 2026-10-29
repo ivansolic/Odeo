@@ -1,6 +1,5 @@
 ---
-description: Segment the market and define the ideal customer profile (ICP) and beachhead, who to win first and why. Use early in strategy/PRD work, or when "everyone" is the supposed target. Covers segmentation, ICP, and a sober TAM/SAM/SOM.
-disable-model-invocation: true
+description: Segment the market and define the ideal customer profile (ICP) and beachhead, who to win first and why. Use when choosing who to win first in strategy/PRD work, or when "everyone" is the supposed target. Covers segmentation, ICP, and a sober TAM/SAM/SOM.
 ---
 
 # Market segments

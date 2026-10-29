@@ -1,6 +1,5 @@
 ---
-description: Position the product, the deliberate context you put it in so its value is obvious to the right buyer. Use before GTM/launch, or when people "don't get" what you do. Based on the modern positioning framework.
-disable-model-invocation: true
+description: Position the product, the deliberate context you put it in so its value is obvious to the right buyer. Use when preparing GTM/launch, or when people "don't get" what you do. Based on the modern positioning framework.
 ---
 
 # Positioning

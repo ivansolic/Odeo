@@ -1,6 +1,5 @@
 ---
-description: Turn raw user-interview or feedback notes into structured insights and opportunities (not a feature wishlist). Use after talking to users, or when you have a pile of feedback to make sense of. Based on continuous-discovery practice.
-disable-model-invocation: true
+description: Turn raw user-interview or feedback notes into structured insights and opportunities (not a feature wishlist). Use when you have interview notes or a pile of feedback to make sense of. Based on continuous-discovery practice.
 ---
 
 # Interview synthesis

@@ -1,6 +1,5 @@
 ---
 description: Design growth loops, self-reinforcing cycles where output feeds back into input, instead of one-way funnels. Use when planning sustainable growth beyond launch. Based on growth loops (Brian Balfour / Reforge).
-disable-model-invocation: true
 ---
 
 # Growth loops

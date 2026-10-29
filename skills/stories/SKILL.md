@@ -1,6 +1,5 @@
 ---
-description: Break a PRD into small, independent, testable user stories with observable acceptance criteria, ordered by dependency. Use after a PRD is critiqued and you're ready to hand work to the build, or standalone on any product (a PRD from elsewhere, a company feature). Produces stories in docs/stories/. Based on INVEST and the 3 C's.
-disable-model-invocation: true
+description: Break a PRD into small, independent, testable user stories with observable acceptance criteria, ordered by dependency. Use when a critiqued PRD should become user stories, or standalone on any product (a PRD from elsewhere, a company feature). Produces stories in docs/stories/. Based on INVEST and the 3 C's.
 ---
 
 # User stories

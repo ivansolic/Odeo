@@ -1,6 +1,5 @@
 ---
-description: Launch orchestrator (go-to-market phase). Runs /odeo:positioning -> /odeo:marketing -> /odeo:gtm-plan -> /odeo:release-notes with a gate between, to take a built feature/product to MARKET. This is market launch, NOT code deploy (that's /odeo:build -> /odeo:merge).
-disable-model-invocation: true
+description: Use when a built feature/product should be taken to market end to end. Launch orchestrator (go-to-market phase). Runs /odeo:positioning -> /odeo:marketing -> /odeo:gtm-plan -> /odeo:release-notes with a gate between, to take a built feature/product to MARKET. This is market launch, NOT code deploy (that's /odeo:build -> /odeo:merge).
 ---
 
 # Go-to-market (launch orchestrator)

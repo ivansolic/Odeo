@@ -1,6 +1,5 @@
 ---
-description: Weekly product-signal memo, gathers your users' feedback (tickets, calls, analytics, reviews), clusters it into themes, and compares against LAST week's memo (what's new, stronger, faded). Run about weekly; a nudge reminds you. Read-only gathering; never fabricates data. About the product you're building, not this system.
-disable-model-invocation: true
+description: Weekly product-signal memo, gathers your users' feedback (tickets, calls, analytics, reviews), clusters it into themes, and compares against LAST week's memo (what's new, stronger, faded). Use when the user wants the weekly read of user feedback; run about weekly, a nudge reminds you. Read-only gathering; never fabricates data. About the product you're building, not this system.
 ---
 
 # Product signal (the weekly listening loop)

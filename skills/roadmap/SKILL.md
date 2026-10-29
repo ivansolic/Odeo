@@ -1,6 +1,5 @@
 ---
-description: Sequence prioritized opportunities/epics into an outcome-based roadmap (now / next / later), so the product has direction over time, not a dated feature list. Use after /odeo:prioritize, at the portfolio altitude (above individual features). Based on outcome-based roadmapping (Melissa Perri; now/next/later popularized by ProdPad).
-disable-model-invocation: true
+description: Sequence prioritized opportunities/epics into an outcome-based roadmap (now / next / later), so the product has direction over time, not a dated feature list. Use when prioritized epics should be laid out over time, after /odeo:prioritize, at the portfolio altitude (above individual features). Based on outcome-based roadmapping (Melissa Perri; now/next/later popularized by ProdPad).
 ---
 
 # Roadmap

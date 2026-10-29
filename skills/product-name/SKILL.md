@@ -1,6 +1,5 @@
 ---
 description: Brainstorm product/feature/company names aligned to brand, audience, and meaning, then sanity-check ownability BEFORE you fall in love with one. Use when naming anything. Reflects a hard lesson: crowded spaces (AI especially) are saturated, so check before committing.
-disable-model-invocation: true
 ---
 
 # Product name

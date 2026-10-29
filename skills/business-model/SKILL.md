@@ -1,6 +1,5 @@
 ---
-description: Map the business model, how the product creates, delivers, and captures value, on one page, to pressure-test viability. Use early in strategy for a new product/venture. Based on the Business Model Canvas and Lean Canvas; covers the viability risk.
-disable-model-invocation: true
+description: Map the business model, how the product creates, delivers, and captures value, on one page, to pressure-test viability. Use when pressure-testing viability early in strategy for a new product/venture. Based on the Business Model Canvas and Lean Canvas; covers the viability risk.
 ---
 
 # Business model

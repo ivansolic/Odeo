@@ -1,6 +1,5 @@
 ---
 description: Build-to-learn discovery, spin up N disposable working prototypes in parallel (each in its own worktree, own port, running server), compare them live, kill the weak ones, and capture the winner's learnings as findings that feed the real build. Use when an idea is concrete enough to touch but you don't know which shape is right. Prototypes prove desirability; they never ship raw.
-disable-model-invocation: true
 ---
 
 # Prototype (taste at speed)

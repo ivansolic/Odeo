@@ -1,6 +1,5 @@
 ---
-description: Sharpen the value proposition, the explicit fit between what users need and what you offer. Use before a PRD or positioning, or when the pitch feels fuzzy. Based on the Value Proposition Canvas and Jobs-to-be-Done.
-disable-model-invocation: true
+description: Sharpen the value proposition, the explicit fit between what users need and what you offer. Use when preparing a PRD or positioning, or when the pitch feels fuzzy. Based on the Value Proposition Canvas and Jobs-to-be-Done.
 ---
 
 # Value proposition

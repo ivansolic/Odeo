@@ -1,6 +1,5 @@
 ---
 description: Map the competitive landscape and find your wedge, who else solves this, how, and where the gap is. Use when scoping a new product/feature, writing a PRD's context, or sharpening positioning. Grounded in competitive strategy basics (differentiation, the real alternative).
-disable-model-invocation: true
 ---
 
 # Competitor analysis

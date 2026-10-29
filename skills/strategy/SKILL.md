@@ -1,6 +1,5 @@
 ---
-description: Turn a vision into a product strategy, the focused sequence of bets and the insights behind them, that gets you there. Use after vision/research, before committing roadmaps. Based on insight-driven product strategy and focus-over-everything thinking.
-disable-model-invocation: true
+description: Turn a vision into a product strategy, the focused sequence of bets and the insights behind them, that gets you there. Use when a vision should become a strategy, after vision/research and before committing roadmaps. Based on insight-driven product strategy and focus-over-everything thinking.
 ---
 
 # Product strategy
