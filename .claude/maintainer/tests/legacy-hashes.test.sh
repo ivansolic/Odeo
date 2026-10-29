@@ -19,7 +19,7 @@
 #   M6 the name filter removed (any path accepted)    -> 2 FAIL (case 1: a non-slug name reached the list)
 #   M7 no shallow-clone refusal                       -> 1 FAIL (case 2)
 #   M8 the committed list loses one line              -> 1 FAIL (case 3: a version reachable here is missing from it)
-# (the list's own shape, and that it names everything shipped now, is tests/odeo-legacy-hashes.txt.test.sh)
+# (the list's own shape, and that it names everything shipped now, is tests/odeo-legacy-hashes.test.sh)
 # (git log needs no --root: log shows root commits by default, so that flag was dropped as dead.)
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"

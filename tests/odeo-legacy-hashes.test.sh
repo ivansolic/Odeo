@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Tests for scripts/odeo-legacy-hashes.txt, the list odeo-migrate-legacy.sh recognises Odeo's own
-# old skill and agent copies by. The suite is named after the file with its extension kept
-# (tests/<program>*.test.sh is how docs-claims-check pairs a program with its suite).
+# old skill and agent copies by. The file is data, not a program, so docs-claims-check does not
+# pair it with a suite by name (README: 23 of the 24 files in scripts/ have one).
 #
 # This is the part that needs no git history, so it also runs in a published snapshot: the list
 # exists, every line is "<kind> <name> <sha256>", it is sorted and unique, and it names every
