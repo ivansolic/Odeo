@@ -76,7 +76,7 @@ covers_id() { # covers_id <record-file> <id> -> 0 if a frontmatter token EQUALS 
 }
 
 
-# KEPT IN SYNC with scripts/merge-gate.sh (same helper, same contract).
+# KEPT IN SYNC with .claude/maintainer/merge-gate.sh (same helper, same contract).
 frontmatter_field() { # frontmatter_field <file> <field> -> prints normalized value
   local v
   v="$(awk -v fld="$2" '
