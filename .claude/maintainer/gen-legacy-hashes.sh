@@ -96,7 +96,7 @@ done
 } > "$tmp/out"
 
 if $WRITE; then
-  cp "$tmp/out" "$REPO/$LIST_REL" || { echo "gen-legacy-hashes: could not write $LIST_REL." >&2; exit 1; }
+  mkdir -p "$(dirname "$REPO/$LIST_REL")" && cp "$tmp/out" "$REPO/$LIST_REL" || { echo "gen-legacy-hashes: could not write $LIST_REL." >&2; exit 1; }
   echo "gen-legacy-hashes: wrote $LIST_REL ($(grep -vc '^#' "$tmp/out") entries)." >&2
 else
   cat "$tmp/out"

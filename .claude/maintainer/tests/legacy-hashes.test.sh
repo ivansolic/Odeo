@@ -5,7 +5,7 @@
 # Two kinds of case. (A) The generator on a SYNTHETIC repository, so its behaviour is pinned
 # by outcome and does not depend on this repo's history: every version at a shipped path across
 # ALL refs, the root commit, the working tree, name-bound pairs, bad names dropped, a shallow
-# clone refused. (B) The COMMITTED list against this repository: well formed, and not missing
+# clone refused. (B) The COMMITTED list against this repository: not missing
 # any version reachable here (the regenerate-and-diff proof, as a subset check because other
 # clones carry other refs, so an extra line is history this clone has pruned, never a defect;
 # a missing line is a skill version migrate would fail to recognise).
@@ -19,7 +19,7 @@
 #   M6 the name filter removed (any path accepted)    -> 2 FAIL (case 1: a non-slug name reached the list)
 #   M7 no shallow-clone refusal                       -> 1 FAIL (case 2)
 #   M8 the committed list loses one line              -> 1 FAIL (case 3: a version reachable here is missing from it)
-#   M9 the committed list gains a malformed line      -> 2 FAIL (case 4: format, and the order)
+# (the list's own shape, and that it names everything shipped now, is tests/odeo-legacy-hashes.txt.test.sh)
 # (git log needs no --root: log shows root commits by default, so that flag was dropped as dead.)
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
@@ -96,19 +96,5 @@ if [ "$(git -C "$ROOT" rev-parse --is-shallow-repository 2>/dev/null)" = "false"
 else
   echo "skip: this clone is shallow or has no history; the regenerate check does not apply"
 fi
-
-# 4) the committed list itself: present, well formed, sorted, unique, and it names every skill
-#    and agent this tree ships (hashed here, independently of the generator)
-[ -s "$LIST" ] && ok "list exists and is not empty" || bad "scripts/odeo-legacy-hashes.txt missing or empty"
-bad_lines="$(grep -vE '^#|^$' "$LIST" | grep -vcE '^(skill|agent) [a-z0-9][a-z0-9-]* [0-9a-f]{64}$')"
-[ "$bad_lines" = "0" ] && ok "every line is '<kind> <name> <sha256>'" || bad "$bad_lines malformed line(s) in the list"
-body="$(grep -vE '^#|^$' "$LIST")"
-[ "$body" = "$(printf '%s\n' "$body" | LC_ALL=C sort -u)" ] && ok "list is sorted and unique" || bad "list is not sorted/unique"
-for f in "$ROOT"/skills/*/SKILL.md "$ROOT"/agents/*.md "$ROOT/docs/agent-rubric.md"; do
-  rel="${f#"$ROOT"/}"
-  case "$rel" in skills/*) n="${rel#skills/}"; n="skill ${n%/SKILL.md}";; docs/*) n="agent agent-rubric";; *) n="${rel#agents/}"; n="agent ${n%.md}";; esac
-  h="$({ shasum -a 256 "$f" 2>/dev/null || sha256sum "$f"; } | awk '{print $1}')"
-  grep -qxF -- "$n $h" "$LIST" && ok "shipped now: $rel" || bad "shipped now but not in the list: $rel"
-done
 
 [ "$fail" -eq 0 ] && echo "ALL PASS" || { echo "SOME FAILED"; exit 1; }
