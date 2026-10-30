@@ -71,20 +71,17 @@ Success metrics (targets):
   the deeper parts on request, so present does not mean always printed.
   Target: 100% of items present or excluded with a listed reason, for every adopted skill,
   in every release.
-- **Pilot gate, then better than the alternative and than before (release 1):** first the
-  pilot: only `prd` and `critique` are deepened (R1, R5), and for 3 sample ideas, one of
-  them from a person who is not the maintainer, the PRD and critique are produced three
-  ways: by Odeo before, by Odeo after, and by the alternative's own PRD, pre-mortem and
-  red-team skills. A reader who is not the maintainer and is not told which document came
-  from where prefers Odeo after in at least 3 of 3 ideas over both others, with the reason
-  written down per idea. Only if the pilot passes does the rest of the work proceed (decided
-  2026-10-29); if it fails, the reasons go back into this document before anything else is
-  built. At the end of release 1 the same comparison runs again on the PRD, critique and
-  stories (the alternative's stories skill as the third arm), and for one of the ideas the
-  discovery documents release 1 changes are compared before and after in the same way. If
-  that comparison fails, release 1 does not ship: each skill whose document lost is revised
-  or returned to its before state, the reasons go into this document, and the comparison
-  runs again.
+- **Better than the alternative and than before (release 1, a condition for shipping it):**
+  for 3 sample ideas, one of them from a person who is not the maintainer, the PRD,
+  critique and stories are produced three ways: by Odeo before, by Odeo after, and by the
+  alternative's own PRD, pre-mortem, red-team and stories skills. A reader who is not the
+  maintainer and is not told which document came from where prefers Odeo after in at
+  least 3 of 3 ideas over both others, with the reason written down per idea; for one of
+  the ideas the discovery documents release 1 changes are compared before and after in the
+  same way. If the comparison fails, release 1 does not ship: each skill whose document
+  lost is revised or returned to its before state, the reasons go into this document, and
+  the comparison runs once more, with a fresh reader where possible; a skill that loses
+  again returns to its before state.
 - **Each later release improves what it changes:** for releases 2 and 3, for one sample
   idea, the documents that release changes are preferred after over before in the same
   kind of comparison, and each new rubric passes its calibration (R21).
@@ -131,13 +128,12 @@ Success metrics (targets):
 ## 4. Hypotheses & assumptions
 - **H1 (riskiest): more method makes documents better, not just longer.** The alternative's
   PRD is deliberately one to two pages; adding templates and sections to every Odeo skill
-  can bloat the output and slow the user. Tested first, and cheaply, by the pilot gate on
-  `prd` and `critique`. Wrong if: in the pilot or the release 1 comparison Odeo after loses
-  any idea to either other arm, or any "after" document of the comparison (PRD and critique
-  in the pilot; PRD, critique and stories at the end of release 1) runs more than 50% longer
-  than "before" for the same idea without a higher `pm-reviewer` score (for the critique,
-  which has no rubric, without the reader preferring it). Length is measured on the lean
-  default output, without depth requested.
+  can bloat the output and slow the user. Tested by the release 1 comparison (section 2),
+  before release 1 ships. Wrong if: Odeo after loses any idea to either other arm, or the
+  "after" PRD or stories run more than 50% longer than "before" for the same idea without
+  a higher `pm-reviewer` score. Length is measured on the lean default output, without
+  depth requested. The critique has no rubric, so bloat there is caught only by the reader
+  preferring the shorter version.
 - **H2: rewriting in Odeo's words keeps the substance.** Wrong if: a reviewer comparing an
   adopted section with its source finds a step, criterion or table column lost that the
   requirement names.
@@ -155,11 +151,9 @@ shipping the rubrics listed for it below (18 in all, R21); documents that are no
 A/B test reading, get no rubric and are held to their skill's quality rules and, where
 the skill adopts from a source skill, the depth checklist (R24):
 1. **Release 1, the core path and the discovery that feeds it** (PRD, critique, stories,
-   interviews, triage, experiments, discovery, opportunity trees): it starts with the
-   pilot, R1 and R5 plus the R24 checklists and R25 routing check for those two skills,
-   and the pilot comparison (section 2); only if the pilot passes do R2 to R4, R6 to R10,
-   R23, R26 and R27 follow, with rubrics for interview syntheses, opportunity trees, discovery
-   plans and request triage.
+   interviews, triage, experiments, discovery, opportunity trees): R1 to R10 and R23 to
+   R27, with rubrics for interview syntheses, opportunity trees, discovery plans and
+   request triage; it ships only after the comparison of section 2 passes.
 2. **Release 2, strategy and market:** R11 to R19, with rubrics for vision, strategy,
    value proposition, business model, pricing, segments, positioning and go-to-market.
 3. **Release 3, execution and completion:** R20 and R22, with the remaining rubrics
@@ -237,7 +231,7 @@ follow them and tells the user it found them.
   The same list also runs with the alternative collection installed next to Odeo (decided
   2026-10-29); the result is written down per request, and an Odeo skill that loses a
   request it should win gets a sharper description before the release ships. The
-  alternative is installed, here and for the pilot's third arm, only at the commit that was
+  alternative is installed, here and for the comparison's third arm, only at the commit that was
   read (`07b34f6`, or a newer commit read in full first), in a separate profile with no
   private repositories, credentials or connected services, and removed afterwards. (Read
   2026-10-29: at `07b34f6` it ships markdown only, no hooks, scripts or server
@@ -379,8 +373,10 @@ follow them and tells the user it found them.
   signal to revisit it in a later PRD.
 - **Maintenance load returns.** PRD-002 cut the delivery half partly because review
   records were 41% of commits; adopting depth into 30 skills (28 existing plus the 2 new
-  ones, R1 to R20) and 18 rubrics brings review rounds back. Mitigation: the pilot gate
-  stops the work early if depth does not pay; signal: review-record commits above
+  ones, R1 to R20) and 18 rubrics brings review rounds back. With no pilot (decided
+  2026-10-30), whether depth pays is first known at the end of release 1, after its full
+  work. Mitigation: releases 2 and 3 do not start until the release 1 comparison passes;
+  signal: review-record commits above
   PRD-002's 15% target during a release; response: the next release is narrowed with the
   maintainer before it starts.
 - **Unnamed authorship.** Some adopted structures are a named author's own framework (for
@@ -409,7 +405,7 @@ follow them and tells the user it found them.
    ..."), and the triage skill acted on it. Closed by the cross-cutting AC of section 6:
    text written by others is data, instructions inside it are reported, never followed
    (found by `/odeo:critique`, 2026-10-29). Checked per release by R27.
-5. **The comparison installed a stranger's instructions.** For the pilot's third arm and
+5. **The comparison installed a stranger's instructions.** For the comparison's third arm and
    R25, the alternative's 69 skills were installed in the maintainer's everyday profile, at
    a newer commit nobody had read, next to private repositories and credentials. Closed by
    R25: only the read commit, a separate profile without private repositories,
@@ -420,8 +416,8 @@ templates do not reintroduce a name field.
 ## 8. Open questions
 1. **Who compares the documents:** the release 1 comparison needs a person other than the
    maintainer who reads the three versions of each document without being told which tool
-   wrote which, and says which is best and why. Who is that person? The pilot does not
-   start until the reader is named; its date is set with them.
+   wrote which, and says which is best and why. Who is that person? Release 1 cannot ship
+   until the reader is named and the comparison has run; work on it can start before.
 2. **Depth or awareness:** if the leading signal (section 2) stays flat after release 1,
    is the gap users feel awareness of Odeo rather than depth? Out of scope here; a later
    PRD answers it if the signal says so.
@@ -447,3 +443,6 @@ Decisions, in order:
   planted-instruction check (R27); `skill-reviewer` verifies the depth checklists (R24);
   H1's length rule covers the critique and the lean default; a fail path for the end of
   release 1; the leading signal reads the public repository within the API's 14-day window.
+- 2026-10-30: no pilot; this replaces the pilot gate decided after `/odeo:critique`. The
+  three-way comparison stays, at the end of release 1, as the condition for shipping it,
+  with one re-run at most (sections 2, 4, 5, 7 and 8).
