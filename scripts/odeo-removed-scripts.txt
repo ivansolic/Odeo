@@ -1,0 +1,16 @@
+# odeo-removed-scripts.txt: programs an earlier Odeo release shipped in scripts/ (or bin/) and
+# the current one does not. Data, not a program: it is not executable, so it is never counted
+# among the programs.
+#
+# Two readers use it. hooks/odeo-context.sh names a git hook in the current repository whose
+# text mentions one of these names, because that hook no longer runs the check it was written
+# for. scripts/install-git-guards.sh moves such a pre-push hook aside when it refreshes the
+# hooks. Both only READ the hook files, they never run them.
+#
+# Format: one script name per line, sorted, no duplicates. Lines starting with # and blank
+# lines are comments. A name must match [a-z0-9][a-z0-9._-]*.sh; any other line is skipped
+# with a message on stderr. When a release drops another script, add its name here.
+boundary-check.sh
+community-sync.sh
+focus-check.sh
+merge-gate.sh
