@@ -7,6 +7,14 @@
 # It writes NO pre-push hook: the push guard is not installed into users' projects (PRD-002
 # R4). This repository's own push guard is written by .claude/maintainer/install-git-guards.sh.
 #
+# It is also the refresh the session-start check offers for a git hook that calls a script the
+# release no longer ships (scripts/odeo-removed-scripts.txt, PRD-002 R8): what it replaces is
+# KEPT, never deleted. A pre-commit that differs from the one it writes (an old Odeo hook, a
+# hook the user wrote, a symlink) is moved to pre-commit.odeo-old-<YYYYmmddHHMMSS>-<pid> in the
+# same hooks directory first, and a pre-push that mentions a removed script is moved aside the
+# same way. A pre-push that mentions none is the user's own and stays untouched. Hook files are
+# only read for this, never run. With core.hooksPath set, that directory is the one refreshed.
+#
 # Hooks live in .git/hooks (not versioned), so each clone runs this once.
 # init-project.sh runs it automatically for new projects.
 #
@@ -65,6 +73,49 @@ odeo_tool() { # odeo_tool <name>: prints the path of an Odeo script, nothing if 
 PREAMBLE
 }
 
+# The list of removed scripts, read the same way hooks/odeo-context.sh reads it. A line that is
+# not shaped like a script name is skipped with a message on stderr (a name becomes part of a
+# grep pattern below, so nothing else may get through); a missing list is reported by the
+# caller and is not an error: pre-commit is still installed.
+REMOVED_LIST="$SCRIPT_DIR/odeo-removed-scripts.txt"
+removed_scripts() {
+  local line re='^[a-z0-9][a-z0-9._-]*\.sh$'
+  while IFS= read -r line || [ -n "$line" ]; do
+    case "$line" in ''|'#'*) continue ;; esac
+    if [[ "$line" =~ $re ]]; then printf '%s\n' "$line"
+    else printf 'install-git-guards: skipped a line of odeo-removed-scripts.txt that is not a script name: %q\n' "$line" >&2
+    fi
+  done < "$REMOVED_LIST"
+}
+
+# hook_removed <hook> <names>: the first removed script the hook's text mentions as a whole
+# token ("bin/merge-gate.sh" counts, "my-merge-gate.sh.bak" does not); nothing when none. The
+# hook is only READ. Same matching as hooks/odeo-context.sh, whose session-start message
+# points here.
+hook_removed() {
+  local n before='(^|[^A-Za-z0-9._-])' after='($|[^A-Za-z0-9._-]|[.]($|[^A-Za-z0-9_-]))'
+  while IFS= read -r n; do
+    [ -n "$n" ] || continue
+    if grep -aqE -- "$before${n//./[.]}$after" "$1" 2>/dev/null; then printf '%s' "$n"; return 0; fi
+  done <<< "$2"
+  return 0
+}
+
+# move_aside <hook> <reason>: keeps the hook as <hook>.odeo-old-<time>-<pid> next to it. A moved
+# link stays a link, and an existing file of that name is never overwritten.
+STAMP="$(date +%Y%m%d%H%M%S)-$$"
+move_aside() {
+  local to="$hooks_dir/$1.odeo-old-$STAMP"
+  if [ -e "$to" ] || [ -L "$to" ]; then
+    echo "install-git-guards: $to already exists; not overwriting it." >&2; exit 1
+  fi
+  mv "$hooks_dir/$1" "$to"
+  echo "install-git-guards: moved the old $1 aside to $to ($2). Nothing was deleted."
+}
+
+# The new hook is written beside the old one first, so the old one can be compared and kept.
+new_hook="$hooks_dir/pre-commit.odeo-new-$$"
+trap 'rm -f "$new_hook"' EXIT
 { hook_preamble; cat <<'HOOK'
 # Enforced guardrail: staged secrets block the commit (secret-scan.sh).
 scan="$(odeo_tool secret-scan.sh)"
@@ -76,7 +127,23 @@ else
 fi
 exit 0
 HOOK
-} > "$hooks_dir/pre-commit"
-chmod +x "$hooks_dir/pre-commit"
+} > "$new_hook"
+chmod +x "$new_hook"
+
+# keep what is replaced: any pre-commit that differs from the new one, a symlink always
+if [ -L "$hooks_dir/pre-commit" ] || { [ -e "$hooks_dir/pre-commit" ] && ! cmp -s "$hooks_dir/pre-commit" "$new_hook"; }; then
+  move_aside pre-commit "it differs from the secret-scan hook installed now; merge any checks of your own back in by hand"
+fi
+mv "$new_hook" "$hooks_dir/pre-commit"
+
+# a pre-push that mentions a removed script no longer runs the check it was written for
+if [ -e "$hooks_dir/pre-push" ] || [ -L "$hooks_dir/pre-push" ]; then
+  if [ ! -f "$REMOVED_LIST" ]; then
+    echo "install-git-guards: could not check pre-push for removed scripts ($REMOVED_LIST not found); it was left in place."
+  else
+    hit="$(hook_removed "$hooks_dir/pre-push" "$(removed_scripts)")"
+    [ -z "$hit" ] || move_aside pre-push "it mentions $hit, which this Odeo release no longer ships"
+  fi
+fi
 
 echo "install-git-guards: pre-commit (secret scan) installed."

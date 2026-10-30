@@ -276,6 +276,11 @@ assert_absent "removed scripts only: no claim that an older Odeo wrote the hook"
 [ ! -e "$ran" ] && ok "no hook was run by the check" || bad "the check RAN a hook (the marker exists)"
 # a second session with the same hooks names them again: one message per session, not per commit
 assert_contains "named again in the next session until refreshed" "pre-commit (merge-gate.sh)" "$(ctx "$(legacy "$ch" "$rr")")"
+# the command it names does what it says: afterwards the same repository is silent (the
+# moved-aside copies are not hooks, so they are not read)
+( cd "$rr" && HOME="$ch" bash "$ROOT/scripts/install-git-guards.sh" >/dev/null 2>&1 )
+assert_empty "after the refresh the same repository is silent" "$(legacy "$ch" "$rr")"
+[ -f "$rh/pre-commit.odeo-old-$(ls "$rh" | sed -n 's/^pre-commit\.odeo-old-//p' | head -1)" ] && ok "the old pre-commit is still there, moved aside" || bad "no moved-aside pre-commit after the refresh"
 
 # one hook, one script each: the other hook is not named
 r1="$TMP/removed-push-only"; git init -q "$r1"
