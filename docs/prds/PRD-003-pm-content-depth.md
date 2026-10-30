@@ -78,10 +78,14 @@ Success metrics (targets):
   maintainer and is not told which document came from where prefers Odeo after in at
   least 3 of 3 ideas over both others, with the reason written down per idea; for one of
   the ideas the discovery documents release 1 changes are compared before and after in the
-  same way. If the comparison fails, release 1 does not ship: each skill whose document
-  lost is revised or returned to its before state, the reasons go into this document, and
-  the comparison runs once more, with a fresh reader where possible; a skill that loses
-  again returns to its before state.
+  same way. A skill whose "after" PRD or stories run more than 50% longer than "before"
+  for the same idea without a higher `pm-reviewer` score counts as losing (H1). If the
+  comparison fails, release 1 does not ship: each skill whose document lost is revised,
+  the reasons go into this document, and the comparison runs once more, with a fresh
+  reader where possible. After that second run, a skill whose "after" still loses to
+  "before" returns to its before state; every other skill ships with release 1 (decided
+  2026-10-30), and whether releases 2 and 3 start is the maintainer's decision, taken with
+  the reader's written reasons.
 - **Each later release improves what it changes:** for releases 2 and 3, for one sample
   idea, the documents that release changes are preferred after over before in the same
   kind of comparison, and each new rubric passes its calibration (R21).
@@ -375,7 +379,8 @@ follow them and tells the user it found them.
   records were 41% of commits; adopting depth into 30 skills (28 existing plus the 2 new
   ones, R1 to R20) and 18 rubrics brings review rounds back. With no pilot (decided
   2026-10-30), whether depth pays is first known at the end of release 1, after its full
-  work. Mitigation: releases 2 and 3 do not start until the release 1 comparison passes;
+  work. Mitigation: releases 2 and 3 do not start until the release 1 comparison passes,
+  or, after a second failed run, until the maintainer decides (section 2);
   signal: review-record commits above
   PRD-002's 15% target during a release; response: the next release is narrowed with the
   maintainer before it starts.
@@ -446,3 +451,6 @@ Decisions, in order:
 - 2026-10-30: no pilot; this replaces the pilot gate decided after `/odeo:critique`. The
   three-way comparison stays, at the end of release 1, as the condition for shipping it,
   with one re-run at most (sections 2, 4, 5, 7 and 8).
+- 2026-10-30, after review round 6: after a second failed run, only skills whose "after"
+  loses to "before" return to their before state, the rest ship, and the maintainer
+  decides on releases 2 and 3; a length breach in H1 counts as losing (section 2).
