@@ -22,6 +22,8 @@ proven per skill instead of claimed.
   whether it is shown by default or on request (the lean default), or excluded with one reason from the closed list in PRD-003 section 2. A non-goal exclusion
   quotes the non-goal; an "already covered" exclusion quotes the Odeo rule or step; an
   "adds length" exclusion names the user decision it leaves unchanged.
+- Every adopted skill, asked without a request for depth, shows only the items its
+  checklist marks as default; the items marked on request appear when the user asks.
 - Each adopted method has a line naming the primary method source it was checked against.
 - No sentence of more than eight words in Odeo's skill is identical to the source; the
   check names every sentence that is.

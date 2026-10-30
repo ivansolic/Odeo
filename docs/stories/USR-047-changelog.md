@@ -14,7 +14,9 @@ on, so that an update never surprises me.
 
 ## Acceptance criteria (observable, binary)
 - The repository has a changelog with an unreleased section.
-- Each skill change of this release is recorded there in plain words.
+- Each skill change of this release is recorded there in plain words: each entry names
+  the skill by the command a user types and says what the user now gets; no entry names
+  a file path or an internal rule number.
 - A new version heading, written by the maintainer, marks the release.
 - A test fails when the plugin's version and the newest version heading disagree, and
   passes when they match; run on a deliberately mismatched pair, it fails.

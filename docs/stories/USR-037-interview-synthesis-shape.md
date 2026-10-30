@@ -16,7 +16,8 @@ across interviews are visible and nobody is named.
 ## Acceptance criteria (observable, binary)
 - Each interview is summarised in the same template.
 - A table shows, per assumption, which interviews confirm and which contradict it.
-- A contradiction within one interview is flagged.
+- A contradiction within one interview is flagged: run on sample notes where a
+  participant says one thing and later the opposite, the contradiction is flagged.
 - A cross-interview synthesis follows the per-interview summaries.
 - Participants appear by role or code; a name or contact detail in the notes does not
   appear in the saved output.

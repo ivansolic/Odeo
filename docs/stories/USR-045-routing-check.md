@@ -14,9 +14,10 @@ release, also with the alternative installed next to Odeo, so that asking for a 
 starts that skill and not its neighbour.
 
 ## Acceptance criteria (observable, binary)
-- A written list of sample requests exists with, for each skill, at least one request
-  that should start it, and requests that separate it from its two nearest neighbours,
-  including the two new skills against interview synthesis and product signal.
+- A written list of sample requests exists that names, for each skill, its two nearest
+  neighbours, and holds at least one request that should start the skill and requests
+  that separate it from each named neighbour; the two new skills name interview
+  synthesis and product signal among theirs.
 - Before the release, every request on the list is run and the skill that started is
   written down per request.
 - The same list is run with the alternative installed next to Odeo, and the result is
