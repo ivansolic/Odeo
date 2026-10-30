@@ -144,7 +144,8 @@ Security Baseline heading, yours is used and nothing is duplicated.
 > **Coming from the old `install.sh` setup?** Ask Claude to run the plugin's
 > `scripts/odeo-migrate-legacy.sh` (a dry run), then the same with `--apply`. It moves the old copies aside into
 > `~/.claude/odeo-legacy-<date>/`, deletes nothing, and never touches your own
-> `~/.claude/CLAUDE.md`. Projects you created before the plugin keep their secret scan:
+> `~/.claude/CLAUDE.md`. Anything not recognised as an Odeo copy stays where it is, and the
+> dry run lists it. Projects you created before the plugin keep their secret scan:
 > `~/bin/secret-scan.sh` becomes a small shim that runs the plugin's copy (and blocks if the
 > plugin is gone, rather than letting commits through unchecked).
 

@@ -90,7 +90,8 @@ no longer ships.
 every skill twice. After installing the plugin, ask Claude to run the plugin's
 `scripts/odeo-migrate-legacy.sh` (a dry run that lists what would move), then the same
 with `--apply`. It moves the copies aside into
-`~/.claude/odeo-legacy-<date>/` and deletes nothing. Odeo also reminds you once per
+`~/.claude/odeo-legacy-<date>/` and deletes nothing. Anything not recognised as an Odeo copy
+stays where it is, and the dry run lists it. Odeo also reminds you once per
 session while they are still there.
 
 ## Updating
