@@ -195,7 +195,7 @@ Odeo/
 │   ├── pm-reviewer.md        ← scores PM documents against rubrics
 │   ├── skill-reviewer.md     ← scores skills against the authoring standard
 │   └── agent-reviewer.md     ← scores agent definitions against the agent rubric (docs/agent-rubric.md)
-├── scripts/                  ← 24 executables: deterministic guards + scaffolding
+├── scripts/                  ← 23 executables: deterministic guards + scaffolding
 │   ├── init-project.sh       ← scaffolds the project-specific parts of a new project
 │   ├── community-sync.sh     ← clones or refreshes the community knowledge mirror
 │   ├── odeo-migrate-legacy.sh ← moves an old install.sh install aside (never deletes), but only
@@ -238,7 +238,7 @@ Odeo/
 ├── global/
 │   └── CLAUDE.md             ← user-global baseline, delivered at session start by the plugin
 ├── tests/
-│   └── *.test.sh             ← 36 suites, 1521 assertions. 23 of the 24 programs have their
+│   └── *.test.sh             ← 36 suites, 1524 assertions. 23 of the 23 programs have their
 │                               own suite; the remaining suites are cross-cutting rather than
 │                               per-program. The number is the same on every machine: a case
 │                               a machine cannot run (as root, in a shell that refuses what it

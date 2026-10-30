@@ -75,7 +75,9 @@ claim() {
 
 # --- the measurements, each derived from the tree, never hardcoded -------------------
 n_exec=0
-for f in scripts/*; do [[ -f "$f" ]] && n_exec=$((n_exec+1)); done
+# Only a file with the execute bit is a program: scripts/ also carries data files (the
+# migration's list of known skill hashes, mode 0644) that must not inflate the count.
+for f in scripts/*; do [[ -f "$f" && -x "$f" ]] && n_exec=$((n_exec+1)); done
 n_agents=$(ls agents/*.md 2>/dev/null | wc -l | tr -d ' ')
 n_suites=$(ls tests/*.test.sh 2>/dev/null | wc -l | tr -d ' ')
 
@@ -86,6 +88,7 @@ claim "test suites"     "$n_suites" '← [0-9]+ suites'
 # is the claim most likely to rot, because adding either a program or a suite moves it.
 n_have=0
 for p in scripts/*; do
+  [[ -f "$p" && -x "$p" ]] || continue
   b=$(basename "$p"); b="${b%.sh}"; b="${b%.py}"
   ls tests/"$b"*.test.sh >/dev/null 2>&1 && n_have=$((n_have+1))
 done

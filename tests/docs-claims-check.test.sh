@@ -215,6 +215,29 @@ out9="$( cd "$mini8" && sleep 5 | bash "$CHECK" --assertions 2>&1 )"; rc9=$?
   || bad "a suite saw the caller's open stdin (exit $rc9): $out9"
 rm -rf "$mini8"
 
+# 9. A DATA FILE IN scripts/ IS NOT AN EXECUTABLE. The migration's published list of known skill
+#    hashes lives in scripts/ (mode 0644) so the plugin ships it next to the program that reads
+#    it, and the check used to count every regular file, so README read "24 executables" for 23
+#    programs. Only files with the execute bit are programs, in both measurements: the executable
+#    count and the "programs with their own suite" count. The fixture has one program and one
+#    non-executable data file that, unlike a real list, also has a suite of its own name, so the
+#    second loop is exercised too. Observed failing (2026-10-30) before the execute-bit test:
+#    the check measured 2 executables and 2 programs with a suite against a README built for 1 and 1.
+mini9="$(mktemp -d)"; mkdir -p "$mini9/scripts" "$mini9/tests"
+printf '#!/usr/bin/env bash\necho hi\n' > "$mini9/scripts/foo.sh"; chmod +x "$mini9/scripts/foo.sh"
+printf 'skill a 0\n' > "$mini9/scripts/foo-data"; chmod 644 "$mini9/scripts/foo-data"
+printf '#!/usr/bin/env bash\necho "ok   - a"\n' > "$mini9/tests/foo.test.sh"
+printf '#!/usr/bin/env bash\necho "ok   - b"\n' > "$mini9/tests/foo-data.test.sh"
+printf '├── scripts/   ← 1 executables\n│   └── *.test.sh   ← 2 suites. 1 of the 1 programs have their own suite\n' > "$mini9/README.md"
+out10="$( cd "$mini9" && bash "$CHECK" 2>&1 )"; rc10=$?
+[[ "$rc10" -eq 0 ]] && ok "a non-executable data file in scripts/ is not counted (exit 0)" \
+  || bad "a data file in scripts/ was counted as a program (exit $rc10): $out10"
+case "$out10" in *"ok: scripts programs = 1"*) ok "and the executable count is 1";;
+  *) bad "the executable count is not 1: ${out10:-<empty>}";; esac
+case "$out10" in *"ok: programs with their own suite = 1"*) ok "and the programs-with-a-suite count is 1";;
+  *) bad "the programs-with-a-suite count is not 1: ${out10:-<empty>}";; esac
+rm -rf "$mini9"
+
 echo ""
 if [[ "$fail" -eq 0 ]]; then echo "docs-claims-check: all $pass assertions passed."; else echo "docs-claims-check: $fail FAILURE(S) above."; fi
 exit "$fail"
