@@ -22,7 +22,11 @@
 # judged by what it resolves to; one that resolves to nothing readable is not recognised.
 # THE TRADEOFF: an Odeo skill the user hand-edited, or a copy from a version that was never
 # committed, matches nothing and also stays. It then loads next to the plugin's version, and the
-# dry run names it so the user can move it aside by hand. Leaving a user's own file is the safe
+# dry run names it so the user can move it aside by hand. A copy that picked up CRLF line endings
+# (for example on Windows, before .gitattributes forced LF) matches nothing either and stays.
+# Only SKILL.md (or the agent file) is hashed, so a user's own extra file inside a recognised
+# skill folder moves with that folder: deliberate, and undoable by moving the folder back (case 18
+# of the suite asserts it). Leaving a user's own file is the safe
 # direction: a wrongly moved file is the one thing this script must not do. bin/ programs, docs
 # and templates are still moved by name, because those are not places a user keeps their own work
 # under a name Odeo happens to share.
@@ -69,10 +73,13 @@ else
   exit 2
 fi
 KNOWN=""; lineno=0
+# One regex, kept in a variable so the pattern's spaces need no quoting (bash 3.2 and 5 agree on
+# that form). Matching in the shell avoids a grep fork per list line, about 540 of them.
+LIST_LINE_RE='^(skill|agent) [a-z0-9][a-z0-9-]* [0-9a-f]{64}$'
 while IFS= read -r line || [ -n "$line" ]; do
   lineno=$((lineno + 1))
   case "$line" in ""|"#"*) continue ;; esac
-  if printf '%s\n' "$line" | grep -Eq '^(skill|agent) [a-z0-9][a-z0-9-]* [0-9a-f]{64}$'; then
+  if [[ "$line" =~ $LIST_LINE_RE ]]; then
     KNOWN="$KNOWN$line
 "
   else

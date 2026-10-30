@@ -41,6 +41,12 @@
 #   M23 the left-in-place report is silent                        -> 11 FAIL (cases 17, 19, 21)
 #   M24 list lines are not validated                              -> 1 FAIL (case 22, the loud report only: matching is by exact
 #       whole line, so a malformed line could never recognise a copy anyway; the check is for the maintainer to see)
+# Observed failing (2026-10-30), after the list loader matches each line in the shell
+# (`[[ "$line" =~ $LIST_LINE_RE ]]`) instead of forking grep per line:
+#   M25 the line regex wants 65 hex characters, not 64            -> 24 FAIL (cases 2, 3, 17-21, 22, 23: no valid line loads)
+#   M26 the line regex is `^.*$` (every line accepted)           -> 2 FAIL (case 22: no malformed line reported, and the count)
+#   M27 the line regex loses its ^ and $ anchors                  -> 1 FAIL (case 22: the count, 4 reported instead of 5, because
+#       the line with one stray character still contains a valid line)
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 REAL_SCRIPT="$ROOT/scripts/odeo-migrate-legacy.sh"
@@ -396,6 +402,8 @@ R22="$(fake_root "$TMP/root22")"
   echo "skill ../../escape $(sha_str 'odeo
 ')"
   echo "skill build not-a-hash"
+  echo "skill build $(sha_str 'odeo
+')0"   # a valid line with one stray character: only the anchors reject it
   echo "skill * $(sha_str 'odeo
 ')"
   echo "tool build $(sha_str 'odeo
@@ -407,6 +415,8 @@ H="$TMP/h22"; make_home "$H"
 out="$(HOME="$H" "$R22/scripts/odeo-migrate-legacy.sh" 2>&1)"; rc=$?
 assert_exit "a list with malformed lines still runs" 0 "$rc"
 assert_contains "malformed lines are reported" "malformed" "$out"
+n_bad="$(printf '%s\n' "$out" | grep -c 'malformed line')"
+[ "$n_bad" = 5 ] && ok "exactly the five malformed lines are reported" || bad "expected 5 malformed-line reports, got $n_bad"
 would_move="${out%%not recognised*}"
 assert_contains "the one valid line still recognises its skill" ".claude/skills/research" "$would_move"
 case "$would_move" in *skills/build*|*skills/merge*) bad "a malformed line recognised a skill";; *) ok "malformed lines recognise nothing";; esac
