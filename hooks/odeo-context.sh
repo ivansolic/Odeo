@@ -30,6 +30,11 @@
 #       repo's pre-commit / pre-push hook, or a ~/bin shim, that searches only bin/): they
 #       work only while an Odeo 0.3.0 to 0.3.5 copy with its bin/ wrappers is still in the
 #       plugin cache (releases after 0.3.5 ship no bin/), so the user is asked to refresh them once.
+#       It also names a pre-commit or pre-push hook of the current repo, whoever wrote it, whose
+#       text mentions a script the release no longer ships (scripts/odeo-removed-scripts.txt:
+#       such a hook silently stops running its check), with the one command that refreshes it,
+#       scripts/install-git-guards.sh, to be run only after the user says yes. Hook files are
+#       only READ here, never run, and one SessionStart message carries everything it names.
 #
 # Program paths: Claude Code does not substitute hook output, so every
 # ${CLAUDE_PLUGIN_ROOT} in the baseline and in the nudges below is replaced here with this
@@ -46,6 +51,7 @@ set -uo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BASELINE="$ROOT/global/CLAUDE.md"
 LANG_STATUS="$ROOT/scripts/language-status.sh"
+REMOVED_LIST="$ROOT/scripts/odeo-removed-scripts.txt"
 SET_GLOBAL="$ROOT/scripts/set-global-language.sh"
 USER_GLOBAL="${CLAUDE_GLOBAL_CONFIG:-${CLAUDE_CONFIG_DIR:-$HOME/.claude}/CLAUDE.md}"
 MARKER='## Security Baseline (non-negotiable'
@@ -199,24 +205,71 @@ hook_finds() {
   [ "$unknown" = 1 ]
 }
 
-# outdated_guards: prints one line per outdated Odeo git guard: the current repo's Odeo
-# hooks (they define odeo_tool) below ODEO_HOOKS_VERSION 2 (0.2.x searched only bin/,
-# 0.3.0 still looked up PATH first) or that can no longer find their program (the clone
-# they were installed from moved, the cache version was swept), and the ~/bin shims
-# (odeo-migrate-legacy.sh writes them, marker on line 2) that search only bin/. Nothing
-# when all are current.
+# removed_scripts: prints the script names in scripts/odeo-removed-scripts.txt, one per line.
+# Only a line shaped like a script name is used (it becomes part of a grep pattern in
+# hook_mentions, so nothing else may get through); any other line is skipped with a message on
+# stderr. A missing list is not an error for the session: the check then names nothing and the
+# session start still exits 0. scripts/install-git-guards.sh reads the same list the same way.
+removed_scripts() {
+  local line re='^[a-z0-9][a-z0-9._-]*\.sh$'
+  if [ ! -f "$REMOVED_LIST" ]; then
+    echo "odeo-context: $REMOVED_LIST not found; git hooks that call removed scripts cannot be named." >&2
+    return 0
+  fi
+  while IFS= read -r line || [ -n "$line" ]; do
+    case "$line" in ''|'#'*) continue ;; esac
+    if [[ "$line" =~ $re ]]; then printf '%s\n' "$line"
+    else printf 'odeo-context: skipped a line of odeo-removed-scripts.txt that is not a script name: %q\n' "$line" >&2
+    fi
+  done < "$REMOVED_LIST"
+}
+
+# hook_mentions <hook> <script>: whether the hook's TEXT carries <script> as a whole token,
+# so "my-merge-gate.sh" and "merge-gate.sh.bak" do not count but "bin/merge-gate.sh" and a
+# sentence-ending "merge-gate.sh." do. The hook is READ, never run (core.hooksPath can point at
+# a directory the project itself ships). <script> is a validated name, so its only special
+# character, the dot, is made literal with a bracket.
+hook_mentions() {
+  local before='(^|[^A-Za-z0-9._-])' after='($|[^A-Za-z0-9._-]|[.]($|[^A-Za-z0-9_-]))'
+  grep -aqE -- "$before${2//./[.]}$after" "$1" 2>/dev/null
+}
+
+# hook_removed <hook> <names>: the removed scripts the hook mentions, comma separated
+hook_removed() {
+  local n hits=""
+  while IFS= read -r n; do
+    [ -n "$n" ] && hook_mentions "$1" "$n" && hits="$hits${hits:+,}$n"
+  done <<< "$2"
+  printf '%s' "$hits"
+}
+
+# outdated_guards: prints one line per git guard that needs a refresh:
+#   hook:<hook>             an Odeo hook of the current repo (it defines odeo_tool) below
+#                           ODEO_HOOKS_VERSION 2 (0.2.x searched only bin/, 0.3.0 still looked
+#                           up PATH first) or that can no longer find its program (the clone it
+#                           was installed from moved, the cache version was swept)
+#   shim:<program>          a ~/bin shim (odeo-migrate-legacy.sh writes them, marker on line 2)
+#                           that searches only bin/
+#   removed:<hook>:<names>  a pre-commit or pre-push hook, Odeo's or not, whose text mentions
+#                           removed scripts (comma separated), see removed_scripts
+# Nothing when all are current.
 outdated_guards() {
-  local hooks f n
+  local hooks f n removed hits
   # --git-path honours core.hooksPath and worktrees; it prints a path relative to the repo
   if hooks="$(cd "${CLAUDE_PROJECT_DIR:-$PWD}" 2>/dev/null && f="$(git rev-parse --git-path hooks 2>/dev/null)" \
               && cd "$f" 2>/dev/null && pwd)"; then
+    removed="$(removed_scripts)"
     for f in pre-commit pre-push; do
-      [ -f "$hooks/$f" ] && grep -q '^odeo_tool()' "$hooks/$f" || continue
-      if [ "$(hook_version "$hooks/$f")" -lt 2 ]; then echo "hook:$f"
-      else
-        case "$f" in pre-commit) n=secret-scan.sh ;; *) n=publish-guard.sh ;; esac
-        hook_finds "$hooks/$f" "$n" || echo "hook:$f"
+      [ -f "$hooks/$f" ] || continue
+      if grep -q '^odeo_tool()' "$hooks/$f"; then
+        if [ "$(hook_version "$hooks/$f")" -lt 2 ]; then echo "hook:$f"
+        else
+          case "$f" in pre-commit) n=secret-scan.sh ;; *) n=publish-guard.sh ;; esac
+          hook_finds "$hooks/$f" "$n" || echo "hook:$f"
+        fi
       fi
+      hits="$(hook_removed "$hooks/$f" "$removed")"
+      [ -z "$hits" ] || echo "removed:$f:$hits"
     done
   fi
   for f in secret-scan.sh publish-guard.sh; do
@@ -227,14 +280,39 @@ outdated_guards() {
   return 0
 }
 
-guards_nudge() { # guards_nudge <outdated_guards output>
-  printf '%s' "Odeo: some git guards were written by an older Odeo. Old git hooks may run a script named like Odeo's from PATH instead of Odeo's own, and since releases after Odeo 0.3.5 ship no bin/, once no older copy is left in the plugin cache, 0.2.x hooks commit WITHOUT their secret scan (they only warn) while old ~/bin shims block every commit and push of the projects that call them. Tell the user once and offer to refresh them, only after they say yes:"
-  case "$1" in *hook:pre-commit*)
-    printf ' in this repository run `"%s/scripts/install-git-guards.sh"` (it rewrites .git/hooks/pre-commit);' "$ROOT" ;; esac
-  case "$1" in *hook:pre-push*)
-    printf ' the pre-push hook in this repository comes from an older Odeo, which no longer installs a push guard, so there is nothing to refresh: the user may remove it or move it aside (.git/hooks/pre-push), but do not move it yourself;' ;; esac
-  case "$1" in *shim:*)
-    printf ' for the ~/bin shims run `"%s/scripts/odeo-migrate-legacy.sh" --apply` (the old shim is kept in ~/.claude/odeo-legacy-<timestamp>/);' "$ROOT" ;; esac
+# removed_nudge <outdated_guards output> <lead>: the sentence about hooks that mention removed
+# scripts. It names each hook with its scripts, gives the one refresh command, and says it is
+# run only after the user agrees. <lead> opens it ("Odeo: " alone, " Separately: " after the
+# older-Odeo sentence). The refresh it names is scripts/install-git-guards.sh, which keeps a
+# copy of every hook it replaces.
+removed_nudge() {
+  local line hook names list=""
+  while IFS= read -r line; do
+    case "$line" in removed:*) ;; *) continue ;; esac
+    hook="${line#removed:}"; names="${hook#*:}"; hook="${hook%%:*}"
+    list="$list${list:+, }$hook (${names//,/, })"
+  done <<< "$1"
+  printf '%sin this repository, git hook text mentions a script that this Odeo release no longer ships, so the check it was written for may no longer run: %s. The match is on the name alone, so a comment that mentions it counts too; look at the hook before telling the user it is broken. Tell the user once and offer to refresh, only after they say yes: run `"%s/scripts/install-git-guards.sh"` (it installs a current pre-commit with the secret scan; a pre-commit that differs, and a pre-push that mentions a removed script, are moved aside to <hook>.odeo-old-<timestamp> in the same hooks directory and nothing is deleted; a pre-push that mentions none is left alone). Run it only after the user says yes: this session-start check runs nothing on its own and never runs the hooks.' \
+    "$2" "$list" "$ROOT"
+}
+
+# guards_nudge <outdated_guards output>: the older-Odeo sentence and its clauses only when an
+# old-style entry (hook: or shim:) exists, so a repository whose only finding is a removed
+# script is not told that an older Odeo wrote anything.
+guards_nudge() {
+  local old=0
+  case "$1" in *hook:*|*shim:*) old=1 ;; esac
+  if [ "$old" = 1 ]; then
+    printf '%s' "Odeo: some git guards were written by an older Odeo. Old git hooks may run a script named like Odeo's from PATH instead of Odeo's own, and since releases after Odeo 0.3.5 ship no bin/, once no older copy is left in the plugin cache, 0.2.x hooks commit WITHOUT their secret scan (they only warn) while old ~/bin shims block every commit and push of the projects that call them. Tell the user once and offer to refresh them, only after they say yes:"
+    case "$1" in *hook:pre-commit*)
+      printf ' in this repository run `"%s/scripts/install-git-guards.sh"` (it rewrites .git/hooks/pre-commit);' "$ROOT" ;; esac
+    case "$1" in *hook:pre-push*)
+      printf ' the pre-push hook in this repository comes from an older Odeo, which no longer installs a push guard, so there is nothing to refresh: the user may remove it or move it aside (.git/hooks/pre-push), but do not move it yourself;' ;; esac
+    case "$1" in *shim:*)
+      printf ' for the ~/bin shims run `"%s/scripts/odeo-migrate-legacy.sh" --apply` (the old shim is kept in ~/.claude/odeo-legacy-<timestamp>/);' "$ROOT" ;; esac
+  fi
+  case "$1" in *removed:*)
+    if [ "$old" = 1 ]; then removed_nudge "$1" ' Separately: '; else removed_nudge "$1" 'Odeo: '; fi ;; esac
   printf '\n'
 }
 

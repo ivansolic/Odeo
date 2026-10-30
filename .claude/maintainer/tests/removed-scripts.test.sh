@@ -16,7 +16,8 @@
 #   M1 a name removed from scripts/odeo-removed-scripts.txt                 -> 1 FAIL (list differs)
 #   M2 a name added to scripts/odeo-removed-scripts.txt only                -> 1 FAIL (list differs)
 #   M3 a `script` line added to docs/removed-items.txt only                 -> 1 FAIL (list differs)
-#   M4 a removed name written into the maintainer installer's pre-push text -> 1 FAIL (named)
+#   M4 a removed name written into the maintainer installer's pre-push text -> 2 FAIL (named, and session start names it)
+#   M5 hooks/odeo-context.sh calls every hook stale (match always true)    -> 1 FAIL (session start names the hooks)
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
 cd "$ROOT" || exit 2

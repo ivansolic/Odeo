@@ -31,6 +31,23 @@
 #   M19 exact version match instead of a number        -> 2 FAIL (case 4e, newer version)
 #   M20 baked values used without the plain-path filter -> 1 FAIL (case 4e, space in path)
 #   M21 recorded config root dropped from hook_finds (the round-3 bug) -> 1 FAIL (case 4e, config X)
+# Observed failing (2026-10-30), hooks that mention a removed script (case 4g, USR-010):
+#   M22 the list yields no names                        -> 17 FAIL
+#   M23 only pre-commit scanned                         -> 3 FAIL (pre-push alone, both hooks, old-style plus removed)
+#   M24 only pre-push scanned                           -> 15 FAIL (4e old pre-commit hooks go unnamed too)
+#   M25 substring match instead of a whole token        -> 4 FAIL (my-merge-gate.sh, merge-gate.sh.bak, ...)
+#   M26 the dot in a name not made literal              -> 1 FAIL (merge-gateXsh)
+#   M27 names hard-coded, the list file not read        -> 8 FAIL (a plugin copy with its own list)
+#   M28 the older-Odeo opening emitted for removed only -> 1 FAIL
+#   M29 the hook run, not only read                     -> 2 FAIL (the marker file; the run also swallowed the remaining names on stdin)
+#   M30 list lines used without validating them         -> 3 FAIL (invalid line must not become a pattern)
+#   M31 a missing list exits 1: SURVIVES, an equivalent mutant (the exit leaves only the
+#       command substitution that reads the list), so the exit-0 case guards the contract, not that line
+#   M32 only Odeo-written hooks checked                 -> 17 FAIL (the fixtures are the user's own hooks)
+#   M33 a sentence-ending period is not a boundary      -> 1 FAIL ("... merge-gate.sh.")
+#   M34 no "runs nothing on its own" in the message     -> 1 FAIL
+#   M35 refresh command not in the removed-script text  -> 2 FAIL
+#   M36 a second SessionStart emission                  -> 23 FAIL (every case that reads the output)
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 HOOK="$ROOT/hooks/odeo-context.sh"
@@ -233,6 +250,98 @@ assert_contains "a 0.2.x ~/bin shim -> refresh nudge" "$ROOT/scripts/odeo-migrat
 assert_absent "no hook advice without an old hook" "install-git-guards" "$out"
 printf '#!/usr/bin/env bash\n# odeo-migrate-legacy shim: current\nls -1td "$HOME"/.claude/plugins/cache/*/odeo/*/scripts\n' > "$sh/bin/secret-scan.sh"
 assert_empty "a current shim -> silent" "$(legacy "$sh")"
+
+# 4g) a git hook that mentions a script this release no longer ships (PRD-002 R8, USR-010) is
+#     named once, with the one command that refreshes it; the hook is only READ, never run.
+#     Whoever wrote the hook, Odeo or the user: a check that calls a missing program silently
+#     stops protecting the commit.
+mkhook() { printf '%b' "$2" > "$1"; chmod +x "$1"; }   # mkhook <file> <text>
+tree_sum() { ( cd "$1" && ls -A | LC_ALL=C sort; cksum * 2>/dev/null ); }   # names + content of a hooks dir
+rr="$TMP/removed-scripts"; git init -q "$rr"; rh="$rr/.git/hooks"
+ran="$TMP/hook-ran"
+mkhook "$rh/pre-commit" '#!/bin/sh\ntouch "'"$ran"'"\n"$HOME/bin/merge-gate.sh" || exit 1\n'
+mkhook "$rh/pre-push"   '#!/bin/sh\ntouch "'"$ran"'"\nexec boundary-check.sh "$@"\n'
+before="$(tree_sum "$rh")"
+raw="$(legacy "$ch" "$rr")"
+out="$(ctx "$raw")"
+assert_contains "a pre-commit that calls merge-gate.sh is named, with the script" "pre-commit (merge-gate.sh)" "$out"
+assert_contains "a pre-push that calls boundary-check.sh is named, with the script" "pre-push (boundary-check.sh)" "$out"
+assert_contains "the one refresh command is given" "\`\"$ROOT/scripts/install-git-guards.sh\"\`" "$out"
+assert_contains "the refresh waits for the user's yes" "only after the user says yes" "$out"
+assert_contains "the message says it runs nothing on its own" "runs nothing on its own" "$out"
+assert_absent "removed scripts only: no claim that an older Odeo wrote the hook" "written by an older Odeo" "$out"
+[ "$(printf '%s\n' "$raw" | wc -l | tr -d ' ')" = 1 ] && [ "${out%%$'\n'*}" = SessionStart ] \
+  && ok "exactly one SessionStart emission for two named hooks" || bad "expected exactly one SessionStart emission, got: $raw"
+[ "$(tree_sum "$rh")" = "$before" ] && ok "the hooks directory is byte-identical after the check" || bad "the check changed the hooks directory"
+[ ! -e "$ran" ] && ok "no hook was run by the check" || bad "the check RAN a hook (the marker exists)"
+# a second session with the same hooks names them again: one message per session, not per commit
+assert_contains "named again in the next session until refreshed" "pre-commit (merge-gate.sh)" "$(ctx "$(legacy "$ch" "$rr")")"
+
+# one hook, one script each: the other hook is not named
+r1="$TMP/removed-push-only"; git init -q "$r1"
+( cd "$r1" && HOME="$ch" bash "$ROOT/scripts/install-git-guards.sh" >/dev/null )
+mkhook "$r1/.git/hooks/pre-push" '#!/bin/sh\nboundary-check.sh\n'
+out="$(ctx "$(legacy "$ch" "$r1")")"
+assert_contains "a pre-push alone is named" "pre-push (boundary-check.sh)" "$out"
+assert_absent "a current pre-commit is not named beside it" "pre-commit (" "$out"
+r2="$TMP/removed-commit-only"; git init -q "$r2"
+mkhook "$r2/.git/hooks/pre-commit" '#!/bin/sh\nfocus-check.sh && community-sync.sh\n'
+out="$(ctx "$(legacy "$ch" "$r2")")"
+assert_contains "a pre-commit alone is named, with both scripts" "pre-commit (community-sync.sh, focus-check.sh)" "$out"
+assert_absent "no pre-push is named when there is none" "pre-push (" "$out"
+
+# current and foreign hooks stay silent
+r3="$TMP/removed-current"; git init -q "$r3"
+( cd "$r3" && HOME="$ch" bash "$ROOT/scripts/install-git-guards.sh" >/dev/null )
+assert_empty "current hooks -> silent" "$(legacy "$ch" "$r3")"
+mkhook "$r3/.git/hooks/pre-push" '#!/bin/sh\necho my own push hook; publish-guard.sh\n'
+assert_empty "a foreign hook that names no removed script -> silent" "$(legacy "$ch" "$r3")"
+
+# the name is matched as a whole token: a longer name, or the same letters with another
+# character where the dot is, is not the removed script
+for text in 'cp merge-gate.sh.bak /tmp' 'my-merge-gate.sh' 'old_merge-gate.sh' 'merge-gateXsh' 'merge-gate.shell'; do
+  mkhook "$r3/.git/hooks/pre-commit" "#!/bin/sh\n$text\n"
+  assert_empty "'$text' is not the removed script -> silent" "$(legacy "$ch" "$r3")"
+done
+for text in '"$HOME/bin/merge-gate.sh"' '# it used to call merge-gate.sh.' 'merge-gate.sh;ls' "'merge-gate.sh'"; do
+  mkhook "$r3/.git/hooks/pre-commit" "#!/bin/sh\n$text\n"
+  assert_contains "'$text' names the removed script" "pre-commit (merge-gate.sh)" "$(ctx "$(legacy "$ch" "$r3")")"
+done
+
+# core.hooksPath inside the project: the hooks dir git reports is the one read
+r4="$TMP/removed-hookspath"; git init -q "$r4"; mkdir -p "$r4/.githooks"
+git -C "$r4" config core.hooksPath .githooks
+mkhook "$r4/.githooks/pre-commit" '#!/bin/sh\nmerge-gate.sh\n'
+assert_contains "a hooks dir set by core.hooksPath is read" "pre-commit (merge-gate.sh)" "$(ctx "$(legacy "$ch" "$r4")")"
+
+# the list drives it: a plugin copy with its own list names ITS scripts, nothing else, and a
+# missing or damaged list never blocks the session
+fp="$TMP/list-plugin"; mkdir -p "$fp/hooks" "$fp/scripts"; cp "$HOOK" "$fp/hooks/"
+printf '# test list\nretired-tool.sh\nBad Name.sh\n../escape.sh\n.*\\.sh\nmerge-gate.sh|echo\n' > "$fp/scripts/odeo-removed-scripts.txt"
+r5="$TMP/removed-fakelist"; git init -q "$r5"
+mkhook "$r5/.git/hooks/pre-commit" '#!/bin/sh\nretired-tool.sh\n'
+err="$TMP/list.err"
+out="$(ctx "$(CLAUDE_PROJECT_DIR="$r5" GIT_CEILING_DIRECTORIES="$TMP" HOME="$ch" "$fp/hooks/odeo-context.sh" legacy SessionStart 2>"$err")")"
+assert_contains "a name from the list is named" "pre-commit (retired-tool.sh)" "$out"
+assert_contains "the command points at that plugin copy" "$fp/scripts/install-git-guards.sh" "$out"
+assert_contains "an invalid list line is skipped loudly, on stderr" "odeo-removed-scripts.txt" "$(cat "$err")"
+mkhook "$r5/.git/hooks/pre-commit" '#!/bin/sh\nmerge-gate.sh\n'
+assert_empty "a name that is not in the list is not named" "$(CLAUDE_PROJECT_DIR="$r5" GIT_CEILING_DIRECTORIES="$TMP" HOME="$ch" "$fp/hooks/odeo-context.sh" legacy SessionStart 2>/dev/null)"
+mkhook "$r5/.git/hooks/pre-commit" '#!/bin/sh\necho hello; ../escape.sh; Bad Name.sh; echo\n'
+assert_empty "an invalid list line never becomes a pattern" "$(CLAUDE_PROJECT_DIR="$r5" GIT_CEILING_DIRECTORIES="$TMP" HOME="$ch" "$fp/hooks/odeo-context.sh" legacy SessionStart 2>/dev/null)"
+rm "$fp/scripts/odeo-removed-scripts.txt"
+mkhook "$r5/.git/hooks/pre-commit" '#!/bin/sh\nmerge-gate.sh\n'
+out="$(CLAUDE_PROJECT_DIR="$r5" GIT_CEILING_DIRECTORIES="$TMP" HOME="$ch" "$fp/hooks/odeo-context.sh" legacy SessionStart 2>/dev/null)"; rc=$?
+assert_exit "no list -> the session start still exits 0" 0 "$rc"
+assert_empty "no list -> nothing is named" "$out"
+
+# old-style entries keep their wording, with the removed-script clause added behind them
+r6="$TMP/removed-and-old"; git init -q "$r6"
+old_hook "$r6/.git/hooks/pre-commit"
+mkhook "$r6/.git/hooks/pre-push" '#!/bin/sh\nmerge-gate.sh\n'
+out="$(ctx "$(legacy "$ch" "$r6")")"
+assert_contains "an old-style hook keeps the older-Odeo opening" "some git guards were written by an older Odeo" "$out"
+assert_contains "and the removed-script hook is named in the same message" "pre-push (merge-gate.sh)" "$out"
 
 # 4f) the community knowledge reminder left with the build half (USR-009): its mode is gone,
 #     so asking for it is a wiring error (exit 2) and prints nothing
