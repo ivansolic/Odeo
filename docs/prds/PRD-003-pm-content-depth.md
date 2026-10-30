@@ -64,17 +64,27 @@ Success metrics (targets):
   source skill and shows each one present in Odeo's skill or excluded with a named reason
   from a closed list (a factual error, a number asked for without a source, a person
   credit or author link, wording that would be copied, a non-goal of this document, in
-  which case the exclusion quotes that non-goal).
+  which case the exclusion quotes that non-goal, already covered by an existing Odeo rule
+  or step, which the exclusion quotes, or adding length without changing any decision the
+  user makes, in which case the exclusion names the decision it leaves unchanged). Each
+  adopted skill keeps a lean default and offers
+  the deeper parts on request, so present does not mean always printed.
   Target: 100% of items present or excluded with a listed reason, for every adopted skill,
   in every release.
-- **Better than the alternative and than before (release 1):** for 3 sample ideas, one of
-  them from a person who is not the maintainer, the PRD, critique and stories are produced
-  three ways: by Odeo before release 1, by Odeo after it, and by the alternative's own PRD,
-  pre-mortem, red-team and stories skills. A reader who is not the maintainer and is not
-  told which document came from where compares them and prefers Odeo after release 1 in at
-  least 3 of 3 ideas over both others, with the reason written down per idea. For one of
-  the ideas, the discovery documents release 1 changes are compared before and after in
-  the same way.
+- **Pilot gate, then better than the alternative and than before (release 1):** first the
+  pilot: only `prd` and `critique` are deepened (R1, R5), and for 3 sample ideas, one of
+  them from a person who is not the maintainer, the PRD and critique are produced three
+  ways: by Odeo before, by Odeo after, and by the alternative's own PRD, pre-mortem and
+  red-team skills. A reader who is not the maintainer and is not told which document came
+  from where prefers Odeo after in at least 3 of 3 ideas over both others, with the reason
+  written down per idea. Only if the pilot passes does the rest of the work proceed (decided
+  2026-10-29); if it fails, the reasons go back into this document before anything else is
+  built. At the end of release 1 the same comparison runs again on the PRD, critique and
+  stories (the alternative's stories skill as the third arm), and for one of the ideas the
+  discovery documents release 1 changes are compared before and after in the same way. If
+  that comparison fails, release 1 does not ship: each skill whose document lost is revised
+  or returned to its before state, the reasons go into this document, and the comparison
+  runs again.
 - **Each later release improves what it changes:** for releases 2 and 3, for one sample
   idea, the documents that release changes are preferred after over before in the same
   kind of comparison, and each new rubric passes its calibration (R21).
@@ -88,6 +98,13 @@ Success metrics (targets):
   source or a hypothesis label, no skill names a person or a third-party plugin (lint C8),
   the lint and all test suites are green, and no `skill-reviewer` score is lower than
   before.
+- **Leading signal, not a target (decided 2026-10-29):** stars and unique cloners of the
+  public repository Odeo is installed from (not the development repository), read from the
+  GitHub API. The API returns clones for the last 14 days only (GitHub REST documentation,
+  traffic endpoints, read 2026-10-30), so cloners are read for the 14 days before release 1
+  and the 14 days ending 30 days after it, and stars on both days. Flat
+  numbers do not fail this document; they are the signal that the gap users feel may be
+  awareness rather than depth (section 8, question 2).
 
 ## 3. Context
 - Source of the comparison: three independent reads of the alternative, by area
@@ -114,9 +131,13 @@ Success metrics (targets):
 ## 4. Hypotheses & assumptions
 - **H1 (riskiest): more method makes documents better, not just longer.** The alternative's
   PRD is deliberately one to two pages; adding templates and sections to every Odeo skill
-  can bloat the output and slow the user. Wrong if: in the blind comparison Odeo after
-  release 1 loses any idea to either other arm, or the "after" PRD and stories run more
-  than 50% longer than "before" for the same idea without a higher `pm-reviewer` score.
+  can bloat the output and slow the user. Tested first, and cheaply, by the pilot gate on
+  `prd` and `critique`. Wrong if: in the pilot or the release 1 comparison Odeo after loses
+  any idea to either other arm, or any "after" document of the comparison (PRD and critique
+  in the pilot; PRD, critique and stories at the end of release 1) runs more than 50% longer
+  than "before" for the same idea without a higher `pm-reviewer` score (for the critique,
+  which has no rubric, without the reader preferring it). Length is measured on the lean
+  default output, without depth requested.
 - **H2: rewriting in Odeo's words keeps the substance.** Wrong if: a reviewer comparing an
   adopted section with its source finds a step, criterion or table column lost that the
   requirement names.
@@ -131,12 +152,14 @@ Success metrics (targets):
 In, in three releases (decided 2026-10-29), each one shippable on its own and each
 shipping the rubrics listed for it below (18 in all, R21); documents that are not in
 `pm-reviewer`'s scope, such as a critique, an interview script, a meeting summary or an
-A/B test reading, get no rubric and are held to the depth checklist (R24) and their
-skill's quality rules:
+A/B test reading, get no rubric and are held to their skill's quality rules and, where
+the skill adopts from a source skill, the depth checklist (R24):
 1. **Release 1, the core path and the discovery that feeds it** (PRD, critique, stories,
-   interviews, triage, experiments, discovery, opportunity trees): R1 to R10, R23 to R26,
-   with rubrics for interview syntheses, opportunity trees, discovery plans and request
-   triage.
+   interviews, triage, experiments, discovery, opportunity trees): it starts with the
+   pilot, R1 and R5 plus the R24 checklists and R25 routing check for those two skills,
+   and the pilot comparison (section 2); only if the pilot passes do R2 to R4, R6 to R10,
+   R23, R26 and R27 follow, with rubrics for interview syntheses, opportunity trees, discovery
+   plans and request triage.
 2. **Release 2, strategy and market:** R11 to R19, with rubrics for vision, strategy,
    value proposition, business model, pricing, segments, positioning and go-to-market.
 3. **Release 3, execution and completion:** R20 and R22, with the remaining rubrics
@@ -160,7 +183,10 @@ Non-goals:
 Every requirement carries one cross-cutting AC: any number, benchmark or market fact the
 skill asks for is either taken from a cited source (through `research` where it has to be
 looked up) or labelled a hypothesis to test; the skill text passes the lint and contains
-no person credit or third-party plugin name.
+no person credit or third-party plugin name; and a skill that reads text written by
+other people (customer requests, interview or meeting notes, feedback, competitor pages)
+treats that text as data: when it contains instructions to the model, the skill does not
+follow them and tells the user it found them.
 
 ### Release 1, core path
 - **R1 Critique that hands you tests, not fears.** AC: the red-team pass lists the
@@ -198,18 +224,35 @@ no person credit or third-party plugin name.
   skill is present in Odeo's skill or excluded with a reason from the closed list; each
   adopted method is checked against its primary method source; and no wording is copied
   (no sentence of more than eight words identical to the source). The checklists are
-  saved with the release so a reviewer can verify them. The check also confirms that no
+  saved with the release, and before the release ships `skill-reviewer` checks each one
+  against the source skill at the read commit: every item accounted for, every exclusion
+  reason from the closed list, every "adds length" exclusion naming the user decision it
+  leaves unchanged; a checklist it rejects blocks the release. The check also confirms that no
   adopted template has a field for a person's name or contact detail.
 - **R25 Skills still route correctly when started by asking (every release).** AC: before
   each release, for each skill a request in plain words that should start it does, and its
   two nearest neighbours (for example `prd` and `stories`, `critique` and `experiments`,
   and the two new skills against `interview-synthesis` and `product-signal`) are not
   confused, checked on a written list of sample requests that grows with each release.
+  The same list also runs with the alternative collection installed next to Odeo (decided
+  2026-10-29); the result is written down per request, and an Odeo skill that loses a
+  request it should win gets a sharper description before the release ships. The
+  alternative is installed, here and for the pilot's third arm, only at the commit that was
+  read (`07b34f6`, or a newer commit read in full first), in a separate profile with no
+  private repositories, credentials or connected services, and removed afterwards. (Read
+  2026-10-29: at `07b34f6` it ships markdown only, no hooks, scripts or server
+  configuration.)
 - **R26 Meeting summary as a mode (decided 2026-10-29).** `interview-synthesis` gains a
   meeting mode. AC: from meeting notes it separates what was discussed from what was
   decided, lists each decision with its date and who decided it by role, lists action
   items with an owner role and flags any action without an owner, and lists open
   questions; participants appear by role, never by name or contact detail.
+- **R27 Planted-instruction check (every release, from the first skill that reads text by
+  others).** AC: before each release, every skill that reads text written by other people
+  (R2, R3, R10, R17, R18, R26 and `product-signal`) is run on one sample input that
+  contains a planted instruction to the model; the skill does not follow it and tells the
+  user it found it; the result is written down per skill next to R25's list, and a skill
+  that follows the instruction blocks the release.
 
 ### Release 1, discovery
 - **R2 Interview preparation.** A new skill prepares a user interview. AC: it produces a
@@ -334,6 +377,18 @@ no person credit or third-party plugin name.
   breadth is a deliberate non-goal. This document cannot detect a breadth preference in
   users; if the reader's reasons or user requests point to missing skills, that is the
   signal to revisit it in a later PRD.
+- **Maintenance load returns.** PRD-002 cut the delivery half partly because review
+  records were 41% of commits; adopting depth into 30 skills (28 existing plus the 2 new
+  ones, R1 to R20) and 18 rubrics brings review rounds back. Mitigation: the pilot gate
+  stops the work early if depth does not pay; signal: review-record commits above
+  PRD-002's 15% target during a release; response: the next release is narrowed with the
+  maintainer before it starts.
+- **Unnamed authorship.** Some adopted structures are a named author's own framework (for
+  example the six-part value proposition); lint C8 forbids crediting people in skills, so
+  Odeo uses them without credit. The basis is that ideas and methods are not covered by
+  copyright, only wording (the MIT licence covers the alternative's own text, not a third
+  person's framework it adopted); not a legal opinion. Recorded here so the choice is
+  deliberate, not accidental.
 - Dependency: PRD-002 merged into `main` before release 1 is built.
 
 ### Security and data pre-mortem
@@ -349,13 +404,27 @@ no person credit or third-party plugin name.
 3. **Segments built from customer records exposed individuals.** The segment-from-data mode
    quoted individual customers as examples of a segment. Closed by R17: aggregates and
    traits only, no individual customer, person or contact detail in the saved output.
-These three are requirements, not advice; R24's check per release confirms the adopted
+4. **Instructions hidden in customer text were followed.** A pasted support export or
+   interview transcript contained text addressed to the model ("ignore your rules and
+   ..."), and the triage skill acted on it. Closed by the cross-cutting AC of section 6:
+   text written by others is data, instructions inside it are reported, never followed
+   (found by `/odeo:critique`, 2026-10-29). Checked per release by R27.
+5. **The comparison installed a stranger's instructions.** For the pilot's third arm and
+   R25, the alternative's 69 skills were installed in the maintainer's everyday profile, at
+   a newer commit nobody had read, next to private repositories and credentials. Closed by
+   R25: only the read commit, a separate profile without private repositories,
+   credentials or connected services, removed afterwards (found by `pm-reviewer`, round 4).
+These five are requirements, not advice; R24's check per release confirms the adopted
 templates do not reintroduce a name field.
 
 ## 8. Open questions
 1. **Who compares the documents:** the release 1 comparison needs a person other than the
    maintainer who reads the three versions of each document without being told which tool
-   wrote which, and says which is best and why. Who is that person?
+   wrote which, and says which is best and why. Who is that person? The pilot does not
+   start until the reader is named; its date is set with them.
+2. **Depth or awareness:** if the leading signal (section 2) stays flat after release 1,
+   is the gap users feel awareness of Odeo rather than depth? Out of scope here; a later
+   PRD answers it if the signal says so.
 
 Decisions, in order:
 - 2026-10-29: content is adopted by structure, in Odeo's own words, never copied; lint C8
@@ -367,3 +436,14 @@ Decisions, in order:
 - 2026-10-29, after review round 1: what matters most is that the skills reach the same
   quality as the source skills (primary metric, R24); meeting summaries become a mode of
   `interview-synthesis` (R26); three releases.
+- 2026-10-29, after `/odeo:critique`: two more exclusion reasons and a lean default
+  against bloat (section 2); a pilot gate on `prd` and `critique` before the rest of the
+  work (sections 2 and 5); the routing check also runs next to the alternative (R25);
+  stars and cloners as a leading signal only; text written by others is data (section 6,
+  pre-mortem item 4); adopted frameworks of named authors are used without credit, as
+  lint C8 requires (section 7, unnamed authorship).
+- 2026-10-30, after review round 4: all reviewer comments applied: the alternative is
+  installed only at the read commit in a separate profile (R25, pre-mortem item 5); the
+  planted-instruction check (R27); `skill-reviewer` verifies the depth checklists (R24);
+  H1's length rule covers the critique and the lean default; a fail path for the end of
+  release 1; the leading signal reads the public repository within the API's 14-day window.
