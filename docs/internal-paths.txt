@@ -38,3 +38,5 @@ docs/removed-items.txt
 # state; the reasoning stays here. Do not "restore" this to public: an ADR published without its
 # denylisted citations dangles every reference and leaks internal review scores.
 docs/decisions/
+# Depth checklists name third-party source skills (lint C8): internal by design, never published.
+docs/depth-checklists/
