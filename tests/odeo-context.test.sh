@@ -302,7 +302,7 @@ assert_empty "current hooks -> silent" "$(legacy "$ch" "$r3")"
 mkhook "$r3/.git/hooks/pre-push" '#!/bin/sh\necho my own push hook; publish-guard.sh\n'
 assert_empty "a foreign hook that names no removed script -> silent" "$(legacy "$ch" "$r3")"
 
-# the name is matched as a whole token: a longer name, or the same letters with another
+# the name must stand alone: a longer name, or the same letters with another
 # character where the dot is, is not the removed script
 for text in 'cp merge-gate.sh.bak /tmp' 'my-merge-gate.sh' 'old_merge-gate.sh' 'merge-gateXsh' 'merge-gate.shell'; do
   mkhook "$r3/.git/hooks/pre-commit" "#!/bin/sh\n$text\n"

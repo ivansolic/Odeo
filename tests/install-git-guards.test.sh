@@ -69,7 +69,7 @@ removed_names() { grep -vE '^#|^$' "$LIST"; }
 asides() { ls -1 "$1" 2>/dev/null | grep -E "^$2\.odeo-old-[0-9]{14}-[0-9]+\$"; }  # asides <hooks-dir> <hook>
 same() { [ -f "$1" ] && [ -f "$2" ] && cmp -s "$1" "$2"; }   # both are files with equal bytes
 names_removed() { local n; while IFS= read -r n; do grep -aq -- "$n" "$1" && return 0; done <<< "$(removed_names)"; return 1; }
-SECRET="AKIA""IOSFODNN7EXAMPLE"   # built in two pieces: this file must not trip the secret scan itself
+PLANTED_KEY="AKIA""IOSFODNN7EXAMPLE"   # built in two pieces: this file must not trip the secret scan itself
 ch="$TMP/clean-home"; mkdir -p "$ch"
 
 old="$TMP/old-pre-commit"
@@ -86,7 +86,7 @@ assert_contains "the output still says the secret scan is installed" "pre-commit
 names_removed "$rf/.git/hooks/pre-commit" && bad "the new pre-commit still names a removed script" || ok "the new pre-commit names no removed script"
 [ -x "$rf/.git/hooks/pre-commit" ] && ok "the new pre-commit is executable" || bad "the new pre-commit is not executable"
 # end to end: the refreshed hook still blocks a planted secret on `git commit`, and lets a clean commit through
-( cd "$rf" && printf 'const key = "%s"\n' "$SECRET" > leak.ts && git add leak.ts )
+( cd "$rf" && printf 'const key = "%s"\n' "$PLANTED_KEY" > leak.ts && git add leak.ts )
 rc="$( cd "$rf" && HOME="$ch" git commit -q -m leak >/dev/null 2>&1; echo $? )"
 [ "$rc" != 0 ] && ok "git commit with a planted secret is refused after the refresh" || bad "a planted secret was committed after the refresh"
 ( cd "$rf" && git rm -q --cached leak.ts && rm leak.ts && printf 'hello\n' > ok.txt && git add ok.txt )
