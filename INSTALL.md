@@ -140,6 +140,10 @@ Security Baseline heading, yours is used and nothing is duplicated.
 > in `bin/`, which releases after 0.3.5 no longer ship, so they find a program only while
 > an older Odeo copy is still in the plugin cache. Odeo names the refresh command once per
 > session in such a project and runs it only after you say yes.
+>
+> A `pre-commit` or `pre-push` hook of your own that mentions a script the release no longer
+> ships is named the same way. The refresh keeps whatever it replaces as
+> `<hook>.odeo-old-<time>` in the same hooks directory and deletes nothing.
 
 > **Coming from the old `install.sh` setup?** Ask Claude to run the plugin's
 > `scripts/odeo-migrate-legacy.sh` (a dry run), then the same with `--apply`. It moves the old copies aside into

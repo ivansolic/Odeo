@@ -117,6 +117,10 @@ from your environment or the project could stand in for the secret scan, and 0.2
 (and the `~/bin` shims of an old `install.sh` setup) look only in `bin/`, which releases after 0.3.5 no longer ship, so they find a program
 only while an older Odeo copy is still in the plugin cache. In each such project Odeo names the command at session start (it
 rewrites `.git/hooks/pre-commit` and `pre-push`), and it only runs it after you say yes.
+A `pre-commit` or `pre-push` hook of your own that mentions a script the release no longer ships
+(the names are in `scripts/odeo-removed-scripts.txt`) is named the same way, because it no longer
+runs the check it was written for. The refresh keeps whatever it replaces as
+`<hook>.odeo-old-<time>` in the same hooks directory and deletes nothing.
 
 **For maintainers:** users receive a new version only when `version` in
 `.claude-plugin/plugin.json` goes up, so bump it with every release, then publish through
@@ -202,7 +206,9 @@ Odeo/
 │   ├── odeo-migrate-legacy.sh ← moves an old install.sh install aside (never deletes), but only
 │   │                           skills and agents whose content is a copy Odeo shipped
 │   ├── odeo-legacy-hashes.txt ← data, not a program: the sha256 of every skill and agent version Odeo shipped
-│   ├── install-git-guards.sh ← installs the pre-commit secret-scan hook into a repo
+│   ├── odeo-removed-scripts.txt ← data, not a program: the scripts the release no longer ships; a git hook that
+│   │                           still mentions one is named at session start
+│   ├── install-git-guards.sh ← installs the pre-commit secret-scan hook into a repo, keeping a copy of any hook it replaces
 │   ├── token-report.py       ← session token usage (the one non-bash tool here)
 │   │                           gates (exit codes, no judgment; each one blocks something):
 │   ├── merge-gate.sh         ← /odeo:merge preconditions (branch, clean tree, EVERY review approves)
