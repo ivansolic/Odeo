@@ -94,7 +94,7 @@ if [ "$(git -C "$ROOT" rev-parse --is-shallow-repository 2>/dev/null)" = "false"
   [ -z "$missing" ] && ok "committed list holds every version reachable in this clone" \
     || bad "committed list is missing $(printf '%s\n' "$missing" | wc -l | tr -d ' ') version(s); run gen-legacy-hashes.sh --write"
 else
-  echo "skip: this clone is shallow or has no history; the regenerate check does not apply"
+  echo "SKIP 1 - this clone is shallow or has no history; the regenerate check does not apply"
 fi
 
 [ "$fail" -eq 0 ] && echo "ALL PASS" || { echo "SOME FAILED"; exit 1; }

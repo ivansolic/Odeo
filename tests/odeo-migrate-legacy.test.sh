@@ -449,7 +449,7 @@ if git -C "$ROOT" rev-parse -q --verify dev-phase-archive >/dev/null 2>&1 \
   out="$(HOME="$H" "$REAL_SCRIPT" 2>&1)"
   case "${out%%not recognised*}" in *skills/deploy*) ok "real list recognises the archived deploy skill";; *) bad "real list does not recognise the archived deploy skill";; esac
 else
-  echo "skip: no dev-phase-archive tag in this clone (archived deploy skill not checked)"
+  echo "SKIP 1 - no dev-phase-archive tag in this clone (archived deploy skill not checked)"
 fi
 
 # 24) the hash list is data for the migration, never an install.sh program: a file of that name
