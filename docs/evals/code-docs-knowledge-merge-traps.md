@@ -2,8 +2,8 @@
 artifact: docs-knowledge-merge-traps
 type: code
 branch: docs/knowledge-merge-traps
-reviewed_commit: f34113c
-date: 2026-10-29
+reviewed_commit: a4766aa
+date: 2026-11-03
 scorer: code-reviewer
 model: claude-sonnet-5-5 (Sonnet 5.5)
 model_tier: strong
@@ -13,12 +13,31 @@ total: 12/12
 verdict: APPROVE WITH COMMENTS
 ---
 
-# Code review: docs/knowledge-merge-traps (round 1)
+# Code review: docs/knowledge-merge-traps (round 2, regenerated after rebase)
 
-Scope: `git diff main...docs/knowledge-merge-traps`, one commit (f34113c), two Markdown files:
-the new `knowledge/review/claims-count-needs-assertions-flag.md` and an added section in
-`knowledge/testing/watchdog-by-pid-not-alarm.md`. Output language: en (handed at dispatch).
-No previous record exists for this branch.
+Scope: `git diff main...docs/knowledge-merge-traps` at a4766aa. Two commits on top of the new
+local main (67bed61 content, a4766aa the previous record). Files changed vs main: the two
+knowledge files and this record. Output language: en (handed at dispatch).
+
+Why this record exists: the branch was rebased onto the new local main, so the round 1 anchor
+(f34113c) no longer exists in this history. Regenerated, not re-dated.
+
+## Rebase check
+- `git diff f34113c HEAD -- knowledge/review/claims-count-needs-assertions-flag.md
+  knowledge/testing/watchdog-by-pid-not-alarm.md` is empty (0 lines): both knowledge files are
+  byte-identical to what round 1 reviewed.
+- `git diff main...HEAD --name-only` lists exactly three paths: the two knowledge files and
+  `docs/evals/code-docs-knowledge-merge-traps.md`. Nothing else rode along. (The large
+  f34113c..HEAD diff is the new main underneath, not this branch.)
+- Dependencies re-checked because the rebase moved them: `scripts/docs-claims-check.sh` still
+  accepts only `--assertions` (lines 15, 28), still prints `skipped: assertion count (re-run
+  with --assertions; it runs every suite)` when the flag is absent (line 149, was 146), and the
+  drift line format at line 71 is unchanged (`DRIFTED: <label> , README says N, the tree has
+  M`). The entry's claims about these are still true. The README total moving to 1618 does not
+  touch the entry: it cites only the historical USR-008 figures (1517 to 1523), which are
+  labelled as such. "Counts only executable files" affects the file-counting half of the plain
+  run, which the entry describes only generally ("counts files"), so it stays accurate.
+- No non-ASCII bytes in either knowledge file (grep found none), so no em or en dashes.
 
 ## Verdict
 APPROVE WITH COMMENTS
@@ -29,76 +48,39 @@ None.
 ## Important (should fix)
 None.
 
-## Nitpicks (optional)
+## Nitpicks (optional, carried from round 1, still open, none blocks)
 - `knowledge/testing/watchdog-by-pid-not-alarm.md:54-55`: the example loop globs
-  `tests/*.test.sh`, which matches 38 suites in this repo, but the text says "all 40 suites
-  FAILED". The 40 only adds up if the 2 suites under `.claude/maintainer/tests/` were in the
-  run, and the loop shown would not have run them. A reader re-deriving the number gets 38.
-  **Fix:** write the loop as it was run (both globs), or say "all 40 suites (tests/ plus
-  .claude/maintainer/tests/)".
-- `knowledge/review/claims-count-needs-assertions-flag.md:38-40`: the "re-stales review
-  records" cost is true for the installed 0.3.5 gate (`merge-gate.sh:294` excludes only
-  `docs/evals`), but this repo's own maintainer gate exempts README and Markdown under
-  `knowledge/` (`.claude/maintainer/merge-gate.sh:294-313`). The entry does not say which
-  gate bit at USR-008. **Fix:** one clause naming the gate the merge ran under, so a reader
-  on the repo-local gate does not over-read the cost.
-- `knowledge/review/claims-count-needs-assertions-flag.md:27`: "about 5 to 6 minutes" is
-  not reproduced here (I did not run the full suite). It is stated as a duration, not a
-  measurement. **Fix (optional):** "measured at about 5 to 6 minutes on 2026-10-27".
-
-## Claims verified against the repo
-- `scripts/docs-claims-check.sh` without the flag prints
-  `skipped: assertion count (re-run with --assertions; it runs every suite)` (line 146), then
-  a blank line, then `every countable claim matches the tree.` (line 175). The entry's "one
-  line above the green summary" is accurate in substance. Only `--assertions` reaches the
-  assertion claim (line 144).
-- The drift line format `DRIFTED: <label> , README says N, the tree has M` matches line 71
-  exactly, including the space before the comma.
-- The plain run counts files (executables, agents, suites, programs with a suite); the
-  `--assertions` run executes the suites, counts `ok` lines and adds `SKIP <n>` cases back
-  (lines 94 to 135). The "Why it works" section is correct.
-- README: 1517 to 1523 at 53a7676, a one-line change; the tree has 38 suites, matching the
-  README.
-- "1521 executed + 2 skipped in tests/ledger-backup.test.sh on this shell": I ran that suite
-  (non-root). It prints one `SKIP 2 - this shell refuses SHELLOPTS from the environment...`
-  line and 206 `ok` lines, so the skipped count of 2 and the file are right. The 1521 sum
-  across suites I did not recompute.
-- `timeout` is not installed here (`command not found`, rc 127) and
-  `timeout 3 true || echo FAILED` prints FAILED, which confirms the all-red mechanism.
-  `perl -e 'alarm 2; exec @ARGV' bash -c 'exit 3'` passes the exit code through (rc 3), so
-  the suggested substitute works for a non-looping suite. The entry's advice is consistent
-  with the existing text ("`timeout` (not on macOS by default)", the exec-restarts-the-alarm
-  limit) and points to `bounded` for exec loops.
-
-## Convention checks
-- No non-ASCII bytes in either file, so no em or en dashes. No line over 100 characters.
-- `language-guard.sh` on both paths, the branch name and the commit subject: "machine
-  surfaces clean".
-- Frontmatter has all seven sibling fields (module, tags, problem_type, provenance,
-  reuse_count, created, plus the H1), and the section layout (Problem, Symptoms, What didn't
-  work, Solution, Why it works, Prevention, Example) matches existing entries such as
-  `flaky-is-a-hypothesis.md`. The new file sits in `knowledge/review/` beside its siblings.
-- No private paths, people names, emails or secrets. `knowledge/` stays internal
-  (`docs/internal-paths.txt:18`).
-- The added watchdog section is placed before `## Prevention` and does not disturb the
-  existing sections. It has no `reuse_count` bump, which is correct for an addition.
+  `tests/*.test.sh` but the text says "all 40 suites FAILED". That figure was measured at the
+  time and needs both globs (`tests/` plus `.claude/maintainer/tests/`); the loop as shown
+  covers only the first (37 suites in the tree today). **Fix:** show both globs or say "all 40
+  suites (tests/ plus .claude/maintainer/tests/)".
+- `knowledge/review/claims-count-needs-assertions-flag.md:38-40`: "re-stales review records
+  under the installed 0.3.5 merge gate" is right for that gate, but this repo's maintainer gate
+  exempts README and Markdown under `knowledge/`. **Fix:** one clause naming which gate bit at
+  USR-008.
+- `knowledge/review/claims-count-needs-assertions-flag.md:27`: "about 5 to 6 minutes" is a
+  duration, not a dated measurement. **Fix (optional):** "measured at about 5 to 6 minutes on
+  2026-10-27".
 
 ## Scores
 correctness 2/2 · security 2/2 · performance 2/2 · readability 2/2 ·
 testing 2/2 · conventions 2/2  -> total 12/12  (threshold: >=9, no zero)
 
 ## Ceiling
-12/12, reached. The verdict is APPROVE WITH COMMENTS rather than APPROVE because of three
-optional nitpicks; none would send a reader to a wrong action. Testing is scored on the
-docs-only change as 2: no code ships, and the claims were checked behaviorally above.
+12/12, reached. APPROVE WITH COMMENTS rather than APPROVE only because of the three optional
+nitpicks, none of which would send a reader to a wrong action. Testing is 2 for a docs-only
+change: no code ships, and the behavioral claims were verified in round 1 and re-checked above
+against the dependency that moved.
 
 ## What's good
-- Every behavioral claim carries a measurement or a pointer to the exact output string, and
-  the quoted strings match the script character for character.
-- The new watchdog section carries its own detection rule ("every suite failed at once means
-  a broken runner") and a scoped substitute, rather than a bare warning.
-- The entry names the structural point (a "skipped:" line means "not checked") instead of
-  only retelling the incident.
+- Every behavioral claim points at an exact output string or a dated measurement, and the
+  quoted strings still match the script after the rebase.
+- The watchdog section carries its own detection rule ("every suite failed at once means a
+  broken runner") and a scoped substitute, not a bare warning.
+- The claims entry states the structural point: a "skipped:" line means "not checked".
 
 ## History
-- Round 1 at f34113c: 12/12, APPROVE WITH COMMENTS. First review of this branch.
+- Round 1 at f34113c (2026-10-29): 12/12, APPROVE WITH COMMENTS. First review of this branch.
+- Round 2 at a4766aa (2026-11-03): regenerated after rebase onto the new local main. Content
+  verified unchanged by diff; scores and verdict unchanged; same three nitpicks remain open.
+  Regression note: same.
