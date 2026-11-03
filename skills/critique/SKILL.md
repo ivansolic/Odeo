@@ -32,6 +32,7 @@ pre-mortem technique).
    in one sentence in the output.
 5. **Do not invent doubt.** Treat a claim as at risk unless the plan cites evidence for
    it. When a claim is well supported, say so and move it to What holds up.
+   That claim stays in the ranked table but gets no kill test.
 6. **For each claim still standing as a risk:** Strongest case, Fails if, Evidence this
    week (which number, report or customer call would settle it), Kill criterion, Cheapest
    test. Fails if says when the claim is false; the Kill criterion is the decision: the
@@ -45,8 +46,27 @@ A worked example with real values: `example.md`.
 
 ## Pass 2, Pre-mortem (assume failure)
 > "It's 6 months later and this shipped and failed. What happened?"
-List the **top 3 failure modes** ranked by likelihood, and for each: the **leading signal**
-you'd see early, and the cheapest way to test it now.
+1. **Imagine it shipped and failed, then look for causes in five areas:** technical,
+   users, business, operations, dependencies. Push past the obvious: the most dangerous
+   risks are the ones nobody raises. A risk that rests on a market fact gets it checked
+   with `/odeo:research` or marked unverified.
+2. **Put every risk in exactly one group.** Real threat: there is evidence or clear logic
+   for it. Overblown worry: say why it is overblown and what would turn it into a real
+   threat. Unspoken worry: nobody is checking it, so say how to check it before launch and
+   how to raise it with the team. When unsure, call it a real threat.
+3. **Put every real threat in exactly one timing bucket:** must fix before launch, fix
+   within 30 days, or watch. A watched threat names its trigger, the early signal that
+   would move it up.
+4. **Give every must-fix threat** a likelihood and an impact (high, medium or low), a
+   mitigation specific enough to assign, an owner written as a role (product, engineering,
+   support, legal), never a person's name, and "by when" as a point in the plan (for
+   example "before beta"), never an invented calendar date.
+5. **Make the launch call:** go, phase or delay, with the reason. Many must-fix threats
+   mean phase or delay.
+6. **No blame; the goal is readiness.** Re-run the pre-mortem before launch to check the
+   must-fix items, and route that re-run into the follow-ups (see Output).
+
+Rule: at most 3 items per group.
 
 ## Security pre-mortem (required for sensitive features)
 If it touches auth, PII, payments, uploads, or anything private:
@@ -69,19 +89,33 @@ Top pick this week: claim <N>
 ### What holds up
 ### What I could not judge
 ## Pre-mortem
+### Must fix before launch
+| # | Risk | Likelihood | Impact | Mitigation | Owner role | By when |
+### Fix within 30 days
+| # | Risk | Likelihood | Impact | Response | Owner role |
+### Watch
+(per risk: the trigger that would move it up)
+### Overblown worries
+(per worry: why it is overblown, what would make it real)
+### Unspoken worries
+(per worry: how to check it, how to raise it)
+Launch call: go | phase | delay, <reason>
 ## Security pre-mortem   (only when the feature is sensitive)
 More on request: a second model's view, an experiment for the top claim, a rewrite of
-the riskiest section.
+the riskiest section, test scenarios for the riskiest areas, a launch checklist.
 ## Next steps            (only when the user asked for depth or next steps)
 ```
 
-**On request.** The last line above offers the deeper parts; print them only when the
-user asks, under `## Next steps`:
+**On request.** The `More on request` line above offers the deeper parts; print them
+only when the user asks, under `## Next steps`:
 - A second model's opinion: `/odeo:second-opinion-pm`.
 - Turn the top claim into an experiment: `/odeo:experiments`.
 - Run the pre-mortem alone, or rewrite the riskiest section of the plan.
+- Test scenarios for the riskiest areas.
+- A launch checklist: must-fix items closed, an owner for each 30-day item, triggers
+  being watched, a way to roll back, support told what is coming.
 
-Revise the PRD; capture security findings as requirements. Re-run if changes were large.
+Revise the PRD; capture security findings as requirements.
 
 **Route the follow-ups so they survive the session.** Any finding the user wants
 to act on but not now (a test to run, a gate to satisfy, an assumption to check)
@@ -93,7 +127,7 @@ written down. If the PRD was revised, open the revised file in the editor
 ## Quality rules
 - Be genuinely adversarial; a soft critique is useless. Attack the strongest version, not a strawman.
 - The top-ranked claim is the **one to test this week** (step 4); name it in the Top pick line.
-- Every failure mode gets a **leading signal** you could detect early.
+- Every watched threat gets a **trigger** you could detect early.
 - **Write the body in the project's output language; mechanics stay English.** Before
   writing, resolve it with `"${CLAUDE_PLUGIN_ROOT}/scripts/resolve-language.sh" <project-dir>` (the project's
   `output_language` setting) and write the document BODY in that language. The whole

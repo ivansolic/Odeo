@@ -4,8 +4,8 @@ Fictional plan: "Add a paid tier at 12 EUR per seat per month to a team retrospe
 tool. Target: 4% of active teams convert within 60 days of launch." All numbers below
 are illustrative (hypothesis), not facts.
 
-Dropped, not listed: "the tier is called Plus". It is a naming choice, and changing it
-would not change the decision. This line exists only to teach the rule.
+Note for the reader, not part of the output: the plan also says "the tier is called
+Plus". That is a naming choice, so the critique below leaves it out without mentioning it.
 
 ## Red team
 
@@ -46,9 +46,38 @@ export is the one thing they cannot get elsewhere.
 ### What holds up
 **3. Teams stay active.** The plan cites 12-week retention for the last three monthly
 cohorts, and all are above 60 percent. The plan states its evidence, so this is not
-treated as at risk.
+treated as at risk. It stays in the ranked table above but gets no kill test.
 
 ### What I could not judge
 Whether 12 EUR is the right price. The plan names no competitor prices and no
 willingness-to-pay data, and nothing in it lets me rank price against the other claims.
 Get it from `/odeo:research` before setting the number.
+
+## Pre-mortem
+
+### Must fix before launch
+| # | Risk | Likelihood | Impact | Mitigation | Owner role | By when |
+|---|------|------------|--------|------------|------------|---------|
+| 1 | Admins cannot buy: the upgrade needs a second approver and the tool has no invoice option | High | High | Add pay-by-invoice for team plans and a "send this quote to your approver" link | Product | Before beta |
+
+### Fix within 30 days
+| # | Risk | Likelihood | Impact | Response | Owner role |
+|---|------|------------|--------|----------|------------|
+| 2 | Support cannot tell a failed payment from a lapsed plan, so paying teams lose history | Medium | Medium | Write one support macro and show payment status on the team page | Support |
+
+### Watch
+- Free-tier teams drop sharply after the paywall appears. Trigger: weekly active teams
+  fall more than 10 percent (proposal) below the 4-week average before launch.
+
+### Overblown worries
+- "Teams will leave for a free competitor." Overblown: the plan's retention figures show
+  teams stay for the shared retro history, not the price alone. It becomes real if
+  churn among the first 100 upgraded teams passes the free-tier churn.
+
+### Unspoken worries
+- Nobody owns the tax and invoice rules for teams outside the home country. Check: ask
+  legal one question, "which countries need local invoice details at 12 EUR?" Raise it
+  in the next planning meeting as a launch blocker candidate.
+
+Launch call: phase, release to 10 percent of teams first, because the must-fix approval
+gap would hide real demand behind a purchase process we have not built.
