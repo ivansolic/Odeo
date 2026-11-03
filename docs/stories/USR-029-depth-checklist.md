@@ -28,8 +28,8 @@ proven per skill instead of claimed.
 - No sentence of more than eight words in Odeo's skill is identical to the source; the
   check names every sentence that is.
 - No adopted template has a field for a person's name or contact detail.
-- Before the release ships, `skill-reviewer` checks each saved checklist against the
-  source skill at the recorded commit and passes or rejects it; a rejected checklist
+- Before the release ships, the maintainer's adoption reviewer (never published) checks
+  each saved checklist against the source skill at the recorded commit and passes or rejects it; a rejected checklist
   blocks the release.
 - A sample checklist with one source item neither present nor excluded is rejected.
 - The recorded commit is `07b34f6`, the commit PRD-003 was written from, or a newer commit

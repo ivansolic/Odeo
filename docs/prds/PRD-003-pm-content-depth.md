@@ -222,8 +222,8 @@ follow them and tells the user it found them.
   skill is present in Odeo's skill or excluded with a reason from the closed list; each
   adopted method is checked against its primary method source; and no wording is copied
   (no sentence of more than eight words identical to the source). The checklists are
-  saved with the release, and before the release ships `skill-reviewer` checks each one
-  against the source skill at the read commit: every item accounted for, every exclusion
+  saved with the release, and before the release ships the maintainer's adoption reviewer
+  (never published) checks each one against the source skill at the read commit: every item accounted for, every exclusion
   reason from the closed list, every "adds length" exclusion naming the user decision it
   leaves unchanged; a checklist it rejects blocks the release. The check also confirms that no
   adopted template has a field for a person's name or contact detail.
@@ -454,3 +454,6 @@ Decisions, in order:
 - 2026-10-30, after review round 6: after a second failed run, only skills whose "after"
   loses to "before" return to their before state, the rest ship, and the maintainer
   decides on releases 2 and 3; a length breach in H1 counts as losing (section 2).
+- 2026-11-03: the depth checklist check (R24) moves from the public `skill-reviewer` to a
+  maintainer-only reviewer that is never published, so the public plugin carries no trace
+  of adopting from source skills; this replaces the 2026-10-30 round 4 wording.
