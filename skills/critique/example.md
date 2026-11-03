@@ -61,7 +61,7 @@ Get it from `/odeo:research` before setting the number.
 | 1 | Admins cannot buy: the upgrade needs a second approver and the tool has no invoice option | High | High | Add pay-by-invoice for team plans and a "send this quote to your approver" link | Product | Before beta |
 
 ### Fix within 30 days
-| # | Risk | Likelihood | Impact | Response | Owner role |
+| # | Risk | Likelihood | Impact | Mitigation | Owner role |
 |---|------|------------|--------|----------|------------|
 | 2 | Support cannot tell a failed payment from a lapsed plan, so paying teams lose history | Medium | Medium | Write one support macro and show payment status on the team page | Support |
 

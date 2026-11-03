@@ -78,8 +78,8 @@ fact or benchmark is cited or marked unverified (`${CLAUDE_PLUGIN_ROOT}/AGENTS.m
 Guardrails 6). A worked example of both passes with real values: `example.md`.
 
 ## Output
-In chat, always this shape, in this order. The headings are structural labels and stay
-English (Guardrails 7):
+In chat, always this shape, in this order; an empty section says "None." The headings are
+structural labels and stay English (Guardrails 7):
 
 ```
 ## Red team
@@ -103,7 +103,7 @@ Top pick this week: claim <N>
 ### Unspoken worries
 (per worry: how to check it, how to raise it)
 Launch call: go | phase | delay, <reason>
-Before launch: re-run the pre-mortem on must-fix <numbers>
+Before launch: re-run the pre-mortem on must-fix <numbers>   (none open: re-run if the plan changes)
 ## Security pre-mortem   (only when the feature is sensitive)
 More on request: a second model's view, an experiment for the top claim, a rewrite of
 the riskiest section, test scenarios for the riskiest areas, a launch checklist.
