@@ -18,9 +18,9 @@ source_commit: 07b34f6
 | Step 5: say plainly when a claim is well reasoned; never invent a weakness | decision rule | present | Pass 1 step 5: "Do not invent doubt. ... When a claim is well supported, say so and move it to What holds up." | default |
 | Step 6: per surviving claim, Fails if | template section | present | Pass 1 step 6 and Output `### Kill tests`: "Fails if" | default |
 | Step 6: per surviving claim, evidence to get this week | template section | present | Pass 1 step 6: "Evidence this week (which number, report or customer call would settle it)" | default |
-| Step 6: per surviving claim, kill criterion | template section | present | Pass 1 step 6: "Kill criterion (the threshold at which you stop or change course)" | default |
+| Step 6: per surviving claim, kill criterion | template section | present | Pass 1 step 6: "the Kill criterion is the decision: the result on this week's evidence at which you stop or change the plan, and what changes." | default |
 | Step 6: per surviving claim, cheapest test | template section | present | Pass 1 step 6: "Cheapest test" | default |
-| Step 7: optional second model, only when the user asks | step | present | Pass 1, On request: "A second model's opinion: `/odeo:second-opinion-pm`." | on request |
+| Step 7: optional second model, only when the user asks | step | present | Output, last default line: "More on request: a second model's view, an experiment for the top claim, a rewrite of the riskiest section." and On request: "A second model's opinion: `/odeo:second-opinion-pm`." | on request |
 | Step 8: output title line naming the plan in one line | template section | excluded | adding length without changing any decision the user makes; leaves unchanged the decision which claim to test first, since the user just named the plan when asking |  |
 | Step 8: Top Kill-Assumptions, ranked, 3 to 5 at most | template section | present | Output `### Claims ranked` table and "Rules: at most 5 claims" | default |
 | Step 8: Claim field per kill-assumption | template section | present | Output `### Claims ranked`: column "Claim" | default |
@@ -31,7 +31,7 @@ source_commit: 07b34f6
 | Note: no strawmanning | decision rule | present | Pass 1 step 2: "never a weaker version"; Quality rules: "Attack the strongest version, not a strawman." | default |
 | Note: no generic risk lists, every item specific to this plan | decision rule | present | Pass 1: "specific to this plan, no generic risks." | default |
 | Note: no fabrication, if it is sound say so | decision rule | present | Pass 1 step 5: "Do not invent doubt." | default |
-| Note: rank ruthlessly, the cheapest high-impact test is the point | decision rule | present | Pass 1 step 4 ranking rule; Quality rules: "The top-ranked claim is the one assumption that would sink it; that's where to focus." | default |
+| Note: rank ruthlessly, the cheapest high-impact test is the point | decision rule | present | Pass 1 step 4 ranking rule; Quality rules: "The top-ranked claim is the one to test this week (step 4); name it in the Top pick line." | default |
 | Note: end with what to do, not only what to fear | decision rule | present | Output `### Kill tests` (a test, evidence and threshold per claim) and "Route the follow-ups so they survive the session" | default |
 | Further reading: three links to the author's articles | template section | excluded | a person credit or author link |  |
 

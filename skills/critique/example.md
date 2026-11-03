@@ -28,9 +28,10 @@ card-approval limits, and the admin already owns the tool choice.
   else's sign-off.
 - Evidence this week: 8 short calls with admins of active teams, one question: "Who signs
   off on this amount?"
-- Kill criterion: fewer than 15 of 200 admins click the upgrade button in a fake-door
-  test over 10 days.
-- Cheapest test: the fake-door button plus the 8 calls; no billing code.
+- Kill criterion (proposal): 5 or more of the 8 admins name a second approver. Then
+  stop the per-seat plan and price per team on an invoice instead.
+- Cheapest test: the 8 calls first; if they pass, a fake-door upgrade button for 10
+  days, no billing code.
 
 **2. Teams pay for history and export.**
 Strongest case: the 20 percent of teams that reopen old retros show a real need, and
@@ -38,8 +39,8 @@ export is the one thing they cannot get elsewhere.
 - Fails if: fewer than 1 in 10 active teams opened a retro older than 30 days in the
   last 60 days.
 - Evidence this week: one query on retro-open events by retro age, last 60 days.
-- Kill criterion: under 10 percent of teams use history; then change the paywall, not
-  the price.
+- Kill criterion (proposal): the query confirms the Fails if. Then move history out of
+  the paid tier and gate export alone, keeping the price.
 - Cheapest test: the query, plus asking 5 admins which gated feature they would miss.
 
 ### What holds up

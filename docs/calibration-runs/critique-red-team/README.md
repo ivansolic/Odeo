@@ -21,3 +21,6 @@ red-team pass (PRD-003 R1). Run the critique on each one and save the output as 
 - `run-a-depth.md`: request "go deeper and tell me what I could do next", before that fix.
   The on-request items appear (under a `## Next` heading the fix has since named).
 - `run-b-lean-2.md`: sample-b after the fix. Same headings, no on-request items (GREEN).
+- `run-b-lean-3.md`: after review round 2 (ranking rule and top pick lines, strongest case
+  in each kill test, one default "More on request" line, proposals and unverified facts
+  labelled). Shape followed, the offer line present, no `## Next steps` section (GREEN).

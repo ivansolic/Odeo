@@ -11,7 +11,7 @@ repeat that skill only where the command states the item itself.
 
 | item | kind | status | where in the Odeo skill, or the exclusion reason | shown |
 |---|---|---|---|---|
-| Invocation examples: a pasted PRD, a one-line bet, "the current doc" | worked example | present | `skills/critique/example.md` (a worked red team on a one-paragraph plan with real values) | default |
+| Invocation examples: a pasted PRD, a one-line bet, "the current doc" | worked example | excluded | already covered by an existing Odeo rule or step: the skill's trigger "critique, red-team, poke holes in, stress-test, or pre-mortem a PRD, strategy, or product direction" (description) starts it from a pasted PRD, a strategy or a bare direction |  |
 | Step 1: accept the plan in any form (PRD, roadmap, strategy memo, one-line bet, uploaded doc, the doc in context) | step | excluded | already covered by an existing Odeo rule or step: the skill's trigger "critique, red-team, poke holes in, stress-test, or pre-mortem a PRD, strategy, or product direction" (description) takes a PRD, a strategy or a bare direction as input |  |
 | Step 2: apply the red-team skill: keep only load-bearing claims | step | present | Pass 1 step 1: "Keep only the claims the plan stands on: if the claim is false, the decision changes." | default |
 | Step 2: steelman each claim, then attack the steelman | step | present | Pass 1 step 2: "write the strongest case for it, then attack that case, never a weaker version." | default |
@@ -23,14 +23,14 @@ repeat that skill only where the command states the item itself.
 | Step 3: per claim, Claim / Fails if / Evidence this week / Kill criterion / Cheapest test | template section | present | Output `### Claims ranked` ("Claim" column) and `### Kill tests` ("Fails if / Evidence this week / Kill criterion / Cheapest test") | default |
 | Step 3: What's Well-Reasoned section | template section | present | Output `### What holds up` | default |
 | Step 3: What I Couldn't Assess section | template section | present | Output `### What I could not judge` | default |
-| Step 4: offer to turn the top kill-assumption into an experiment this week | step | present | Pass 1, On request: "Turn the top claim into an experiment: `/odeo:experiments`." | on request |
-| Step 4: offer to run a pre-mortem to complement it | step | present | Pass 1, On request: "Run the pre-mortem alone" (and Pass 2 runs it by default) | on request |
-| Step 4: offer to rewrite the riskiest section of the plan | step | present | Pass 1, On request: "rewrite the riskiest section of the plan" | on request |
+| Step 4: offer to turn the top kill-assumption into an experiment this week | step | present | Output, last default line: "More on request: a second model's view, an experiment for the top claim, a rewrite of the riskiest section." and On request: "Turn the top claim into an experiment: `/odeo:experiments`." | on request |
+| Step 4: offer to run a pre-mortem to complement it | step | present | Output, last default line: "More on request: a second model's view, an experiment for the top claim, a rewrite of the riskiest section." and On request: "Run the pre-mortem alone" (and Pass 2 runs it by default) | on request |
+| Step 4: offer to rewrite the riskiest section of the plan | step | present | Output, last default line: "More on request: a second model's view, an experiment for the top claim, a rewrite of the riskiest section." and On request: "rewrite the riskiest section of the plan" | on request |
 | Note: lead with the ranking | decision rule | present | Output: `### Claims ranked` is the first section under `## Red team` | default |
 | Note: five real kill-assumptions beat twenty generic risks, cut ruthlessly | decision rule | present | Pass 1: "Rules: at most 5 claims; specific to this plan, no generic risks." | default |
 | Note: distinct from the pre-mortem | decision rule | present | Intro: "Two passes: a red-team that attacks the logic, and a pre-mortem that imagines failure and works backward" | default |
-| Note: if the plan is strong, say so and name the one thing still worth checking | decision rule | present | Pass 1 step 5: "When a claim is well supported, say so"; Quality rules: "The top-ranked claim is the one assumption that would sink it; that's where to focus." | default |
-| Note: ask the user before adding a second model | decision rule | present | Pass 1, On request only: "Leave these out entirely unless the user asks for more depth or next steps" | on request |
+| Note: if the plan is strong, say so and name the one thing still worth checking | decision rule | present | Pass 1 step 5: "When a claim is well supported, say so"; Quality rules: "The top-ranked claim is the one to test this week (step 4); name it in the Top pick line." | default |
+| Note: ask the user before adding a second model | decision rule | present | Output, On request: "print them only when the user asks, under `## Next steps`" | on request |
 
 Primary method source: as in `critique-1.md` (Key Assumptions Check, "A Tradecraft
 Primer", March 2009; assumptions check, assumptions review and devil's advocacy, UK "Red

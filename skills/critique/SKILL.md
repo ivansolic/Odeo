@@ -11,12 +11,13 @@ pre-mortem technique).
 ## When to use
 - After a `/odeo:prd` or `/odeo:strategy` draft, before committing to build.
 - Re-run if the revisions are large.
+- Not for code, a single story or a second model's read (that is `/odeo:second-opinion-pm`).
 
 ## Pass 1, Red-team (attack it)
 1. **List what the plan takes for granted:** who the user is, how the market behaves,
-   what limits the team, why the mechanism works, how long it takes. Keep only the claims the plan stands on: if
-   the claim is false, the decision changes. Drop cosmetic ones (style, naming,
-   wording) and do not list them at all. Look for claims in five places: the problem
+   what limits the team, why the mechanism works, how long it takes. Keep only the
+   claims the plan stands on: if the claim is false, the decision changes. Drop cosmetic
+   ones (style, naming, wording) and do not list them at all. Look for claims in five places: the problem
    (real, urgent, whose evidence?), the assumptions, the outcome or metric (measurable,
    gameable?), the scope (is the MVP minimal?), the alternative (why not keep doing what
    they do today?).
@@ -31,17 +32,14 @@ pre-mortem technique).
    in one sentence in the output.
 5. **Do not invent doubt.** Treat a claim as at risk unless the plan cites evidence for
    it. When a claim is well supported, say so and move it to What holds up.
-6. **For each claim still standing as a risk:** Fails if, Evidence this week (which
-   number, report or customer call would settle it), Kill criterion (the threshold at which you stop
-   or change course), Cheapest test.
+6. **For each claim still standing as a risk:** Strongest case, Fails if, Evidence this
+   week (which number, report or customer call would settle it), Kill criterion, Cheapest
+   test. Fails if says when the claim is false; the Kill criterion is the decision: the
+   result on this week's evidence at which you stop or change the plan, and what changes.
 
-Rules: at most 5 claims; specific to this plan, no generic risks.
-
-**On request only.** Leave these out entirely unless the user asks for more depth or
-next steps; then list them under `## Next steps`:
-- A second model's opinion: `/odeo:second-opinion-pm`.
-- Turn the top claim into an experiment: `/odeo:experiments`.
-- Run the pre-mortem alone, or rewrite the riskiest section of the plan.
+Rules: at most 5 claims; specific to this plan, no generic risks. A threshold you propose
+is labelled as a proposal, and a market fact or benchmark is cited or marked unverified
+(`${CLAUDE_PLUGIN_ROOT}/AGENTS.md` Guardrails 6).
 
 A worked example with real values: `example.md`.
 
@@ -62,16 +60,26 @@ English (Guardrails 7):
 
 ```
 ## Red team
+Ranking rule: <one sentence>
 ### Claims ranked
 | # | Claim | Impact if wrong | Likelihood wrong | Cost to test |
+Top pick this week: claim <N>
 ### Kill tests
-(per claim: Fails if / Evidence this week / Kill criterion / Cheapest test)
+(per claim: Strongest case / Fails if / Evidence this week / Kill criterion / Cheapest test)
 ### What holds up
 ### What I could not judge
 ## Pre-mortem
 ## Security pre-mortem   (only when the feature is sensitive)
+More on request: a second model's view, an experiment for the top claim, a rewrite of
+the riskiest section.
 ## Next steps            (only when the user asked for depth or next steps)
 ```
+
+**On request.** The last line above offers the deeper parts; print them only when the
+user asks, under `## Next steps`:
+- A second model's opinion: `/odeo:second-opinion-pm`.
+- Turn the top claim into an experiment: `/odeo:experiments`.
+- Run the pre-mortem alone, or rewrite the riskiest section of the plan.
 
 Revise the PRD; capture security findings as requirements. Re-run if changes were large.
 
@@ -84,7 +92,7 @@ written down. If the PRD was revised, open the revised file in the editor
 
 ## Quality rules
 - Be genuinely adversarial; a soft critique is useless. Attack the strongest version, not a strawman.
-- The top-ranked claim is the **one assumption** that would sink it; that's where to focus.
+- The top-ranked claim is the **one to test this week** (step 4); name it in the Top pick line.
 - Every failure mode gets a **leading signal** you could detect early.
 - **Write the body in the project's output language; mechanics stay English.** Before
   writing, resolve it with `"${CLAUDE_PLUGIN_ROOT}/scripts/resolve-language.sh" <project-dir>` (the project's
