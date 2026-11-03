@@ -81,6 +81,6 @@ which must print nothing.
   <source-skill-file>` for each adopted file. The threshold is 9 consecutive identical words
   (case and punctuation ignored), so no run of more than eight words is identical. Exit 1
   prints every shared run and blocks the release until reworded.
-- **Review before release.** `skill-reviewer` in adoption check mode verifies each
-  checklist against the source skill at the recorded commit and the Odeo skill, and writes
+- **Review before release.** `adoption-reviewer` (maintainer agent in `.claude/agents/`, never
+  published) verifies each checklist against the source skill at the recorded commit and the Odeo skill, and writes
   `docs/evals/adoption-<skill>.md`. A FAIL blocks the release.

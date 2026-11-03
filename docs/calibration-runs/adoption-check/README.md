@@ -2,8 +2,11 @@
 
 Two depth checklists in the `docs/depth-checklists/README.md` format, written against the
 source pre-mortem skill (commit `07b34f6`) and `skills/critique/SKILL.md` as it is today.
-They calibrate `skill-reviewer`'s adoption check mode (PRD-003 R24, USR-029). Both must be
-REJECTED.
+They calibrate the maintainer agent `adoption-reviewer` (PRD-003 R24, USR-029). Both must be
+REJECTED. The `run-strained.md` and `run-missing-item.md` outputs were produced by
+`skill-reviewer`'s adoption check mode before it moved to the maintainer agent
+`adoption-reviewer` (2026-11-03); the `-2` runs are the same fixtures through
+`adoption-reviewer`.
 
 - `critique-strained.md`: every source item is listed, but many exclusions are strained:
   "already covered" quotes that are only related (the three risk groups, the urgency
