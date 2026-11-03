@@ -34,7 +34,10 @@ hooks_dir="$(git rev-parse --git-path hooks)"
 # (core.hooksPath = .githooks). Replacing a hook there would change a file the whole team
 # shares and leave a kept copy to be committed with it, so nothing is touched: the user merges
 # the secret scan into that hook by hand. Checked before anything is created or moved.
-abs_hooks="$(cd "$(dirname "$hooks_dir")" 2>/dev/null && pwd -P)/$(basename "$hooks_dir")"
+# resolve the nearest directory that exists, then append the part that does not yet
+probe="$hooks_dir"; rest=""
+while [ ! -e "$probe" ] && [ "$probe" != "." ] && [ "$probe" != "/" ]; do rest="/$(basename "$probe")$rest"; probe="$(dirname "$probe")"; done
+abs_hooks="$(cd "$probe" && pwd -P)$rest"
 work_top="$(cd "$(git rev-parse --show-toplevel)" && pwd -P)"
 common_git="$(cd "$(git rev-parse --git-common-dir)" && pwd -P)"
 case "$abs_hooks/" in

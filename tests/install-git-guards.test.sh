@@ -24,6 +24,8 @@
 #   I11 the new hook ignores the secret scan result           -> 1 FAIL (the planted secret is committed)
 #   I12 hooks directory fixed to .git/hooks                   -> 1 FAIL (the outside-the-repo hooksPath case)
 #   I16 the refusal for a hooksPath inside the work tree off  -> 4 FAIL
+#   I18 the missing-parent climb replaced by dirname only        -> 1 FAIL
+#   I19 work-tree prefix matched without the trailing slash      -> 1 FAIL
 #   I17 .githooks created before the refusal check            -> 1 FAIL
 #   I13 a missing list not reported                           -> 1 FAIL
 #   I14 the new hook not executable                           -> 6 FAIL
@@ -147,6 +149,13 @@ assert_contains "the refusal says nothing was changed and what to do" "Nothing w
 # a project that does not exist yet in .githooks is refused too (nothing is created)
 hp2="$TMP/hookspath2"; git init -q "$hp2"; git -C "$hp2" config core.hooksPath .githooks
 ( cd "$hp2" && HOME="$ch" bash "$INSTALLER" ) >/dev/null 2>&1; [ ! -e "$hp2/.githooks" ] && ok "core.hooksPath inside the repo: the directory is not even created" || bad "core.hooksPath inside the repo: .githooks was created"
+# a missing parent directory inside the project is refused too, and nothing is created
+hp3="$TMP/hookspath3"; git init -q "$hp3"; git -C "$hp3" config core.hooksPath tools/githooks
+( cd "$hp3" && HOME="$ch" bash "$INSTALLER" ) >/dev/null 2>&1; hp3rc=$?
+{ [ "$hp3rc" = 3 ] && [ ! -e "$hp3/tools" ]; } && ok "core.hooksPath in a missing subdirectory of the repo: refused, nothing created" || bad "core.hooksPath in a missing subdirectory: exit $hp3rc or tools/ created"
+# a sibling directory that shares the repo path as a prefix is outside the project
+hp4="$TMP/hookspath4"; git init -q "$hp4"; mkdir -p "$hp4-hooks"; git -C "$hp4" config core.hooksPath "$hp4-hooks"
+( cd "$hp4" && HOME="$ch" bash "$INSTALLER" ) >/dev/null 2>&1; [ -x "$hp4-hooks/pre-commit" ] && ok "core.hooksPath in a sibling directory sharing the repo path prefix: installed" || bad "a sibling directory with the repo path as prefix was treated as inside the repo"
 # core.hooksPath outside the project: handled the same way, nothing is written under .git/hooks
 op="$TMP/hookspath-out"; git init -q "$op"; mkdir -p "$TMP/shared-hooks"; git -C "$op" config core.hooksPath "$TMP/shared-hooks"
 cp "$old" "$TMP/shared-hooks/pre-commit"
