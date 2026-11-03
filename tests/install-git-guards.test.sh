@@ -22,7 +22,9 @@
 #   I9  list lines used without validation                    -> 2 FAIL
 #   I10 the dot in a name not made literal                    -> 1 FAIL (boundary-checkXsh)
 #   I11 the new hook ignores the secret scan result           -> 1 FAIL (the planted secret is committed)
-#   I12 hooks directory fixed to .git/hooks                   -> 3 FAIL (both core.hooksPath cases)
+#   I12 hooks directory fixed to .git/hooks                   -> 1 FAIL (the outside-the-repo hooksPath case)
+#   I16 the refusal for a hooksPath inside the work tree off  -> 4 FAIL
+#   I17 .githooks created before the refusal check            -> 1 FAIL
 #   I13 a missing list not reported                           -> 1 FAIL
 #   I14 the new hook not executable                           -> 6 FAIL
 #   I15 an existing aside file overwritten: SURVIVES. The branch only fires when two runs share
@@ -133,12 +135,18 @@ for text in 'echo mine' 'cp merge-gate.sh.bak /tmp' 'my-boundary-check.sh' 'boun
     && ok "a pre-push saying '$text' is left in place" || bad "a pre-push saying '$text' was moved or changed"
 done
 
-# core.hooksPath inside the project: that directory is the one refreshed
+# core.hooksPath inside the project (a versioned hooks directory): refused, nothing touched
 hp="$TMP/hookspath"; git init -q "$hp"; mkdir -p "$hp/.githooks"; git -C "$hp" config core.hooksPath .githooks
 cp "$old" "$hp/.githooks/pre-commit"; printf '#!/bin/sh\nmerge-gate.sh\n' > "$hp/.githooks/pre-push"
-( cd "$hp" && HOME="$ch" bash "$INSTALLER" ) >/dev/null 2>&1
-[ -n "$(asides "$hp/.githooks" pre-commit)" ] && [ -n "$(asides "$hp/.githooks" pre-push)" ] && ok "core.hooksPath inside the repo: both old hooks moved aside there" || bad "core.hooksPath inside the repo: the old hooks were not moved aside in .githooks"
-{ [ -x "$hp/.githooks/pre-commit" ] && [ ! -e "$hp/.git/hooks/pre-commit" ]; } && ok "the new pre-commit is written where core.hooksPath points, not in .git/hooks" || bad "the new pre-commit went to the wrong directory"
+cp "$hp/.githooks/pre-commit" "$TMP/hp-pc"; cp "$hp/.githooks/pre-push" "$TMP/hp-pp"
+hpout="$( cd "$hp" && HOME="$ch" bash "$INSTALLER" 2>&1 )"; hprc=$?
+[ "$hprc" = 3 ] && ok "core.hooksPath inside the repo: refused with exit 3" || bad "core.hooksPath inside the repo: exit $hprc, expected 3"
+{ cmp -s "$TMP/hp-pc" "$hp/.githooks/pre-commit" && cmp -s "$TMP/hp-pp" "$hp/.githooks/pre-push" && [ -z "$(ls "$hp/.githooks" | grep odeo-)" ] && [ ! -e "$hp/.git/hooks/pre-commit" ]; } \
+  && ok "core.hooksPath inside the repo: no hook changed, no copy left, nothing written under .git/hooks" || bad "core.hooksPath inside the repo: the installer touched files"
+assert_contains "the refusal says nothing was changed and what to do" "Nothing was changed or moved" "$hpout"
+# a project that does not exist yet in .githooks is refused too (nothing is created)
+hp2="$TMP/hookspath2"; git init -q "$hp2"; git -C "$hp2" config core.hooksPath .githooks
+( cd "$hp2" && HOME="$ch" bash "$INSTALLER" ) >/dev/null 2>&1; [ ! -e "$hp2/.githooks" ] && ok "core.hooksPath inside the repo: the directory is not even created" || bad "core.hooksPath inside the repo: .githooks was created"
 # core.hooksPath outside the project: handled the same way, nothing is written under .git/hooks
 op="$TMP/hookspath-out"; git init -q "$op"; mkdir -p "$TMP/shared-hooks"; git -C "$op" config core.hooksPath "$TMP/shared-hooks"
 cp "$old" "$TMP/shared-hooks/pre-commit"

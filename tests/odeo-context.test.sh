@@ -48,6 +48,9 @@
 #   M34 no "runs nothing on its own" in the message     -> 1 FAIL
 #   M35 refresh command not in the removed-script text  -> 2 FAIL
 #   M36 a second SessionStart emission                  -> 23 FAIL (every case that reads the output)
+#   M37 the "a comment counts too" caveat deleted      -> 1 FAIL
+#   M38 the "other checks stop" sentence deleted       -> 1 FAIL
+#   M39 the "refuses inside the project" sentence deleted -> 1 FAIL
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 HOOK="$ROOT/hooks/odeo-context.sh"
@@ -269,6 +272,9 @@ assert_contains "a pre-push that calls boundary-check.sh is named, with the scri
 assert_contains "the one refresh command is given" "\`\"$ROOT/scripts/install-git-guards.sh\"\`" "$out"
 assert_contains "the refresh waits for the user's yes" "only after the user says yes" "$out"
 assert_contains "the message says it runs nothing on its own" "runs nothing on its own" "$out"
+assert_contains "the message says a comment that mentions the script counts too" "a comment that mentions it counts too" "$out"
+assert_contains "the message says the other checks of the replaced pre-commit stop" "every other check in the replaced pre-commit" "$out"
+assert_contains "the message says a versioned hooks directory is refused" "the refresh refuses and changes nothing" "$out"
 assert_absent "removed scripts only: no claim that an older Odeo wrote the hook" "written by an older Odeo" "$out"
 [ "$(printf '%s\n' "$raw" | wc -l | tr -d ' ')" = 1 ] && [ "${out%%$'\n'*}" = SessionStart ] \
   && ok "exactly one SessionStart emission for two named hooks" || bad "expected exactly one SessionStart emission, got: $raw"

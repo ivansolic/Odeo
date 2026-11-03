@@ -13,13 +13,15 @@
 # hook the user wrote, a symlink) is moved to pre-commit.odeo-old-<YYYYmmddHHMMSS>-<pid> in the
 # same hooks directory first, and a pre-push that mentions a removed script is moved aside the
 # same way. A pre-push that mentions none is the user's own and stays untouched. Hook files are
-# only read for this, never run. With core.hooksPath set, that directory is the one refreshed.
+# only read for this, never run. With core.hooksPath set, that directory is the one refreshed,
+# unless it lies inside the project's working tree (a versioned hooks directory): then it
+# refuses and touches nothing.
 #
 # Hooks live in .git/hooks (not versioned), so each clone runs this once.
 # init-project.sh runs it automatically for new projects.
 #
 # Usage: install-git-guards.sh   (inside a git repo)
-# Exit:  0 installed · 2 not a git repo
+# Exit:  0 installed · 2 not a git repo · 3 core.hooksPath is inside the working tree (refused)
 
 set -euo pipefail
 
@@ -27,6 +29,20 @@ git rev-parse --is-inside-work-tree >/dev/null 2>&1 || {
   echo "install-git-guards: not a git repository" >&2; exit 2; }
 
 hooks_dir="$(git rev-parse --git-path hooks)"
+
+# A hooks directory inside the working tree but outside .git is versioned with the project
+# (core.hooksPath = .githooks). Replacing a hook there would change a file the whole team
+# shares and leave a kept copy to be committed with it, so nothing is touched: the user merges
+# the secret scan into that hook by hand. Checked before anything is created or moved.
+abs_hooks="$(cd "$(dirname "$hooks_dir")" 2>/dev/null && pwd -P)/$(basename "$hooks_dir")"
+work_top="$(cd "$(git rev-parse --show-toplevel)" && pwd -P)"
+common_git="$(cd "$(git rev-parse --git-common-dir)" && pwd -P)"
+case "$abs_hooks/" in
+  "$common_git"/*) ;;
+  "$work_top"/*)
+    echo "install-git-guards: core.hooksPath points at $hooks_dir, inside this project's working tree, so its hooks are shared with your team. Nothing was changed or moved. Add the secret scan to that hook yourself (it should run secret-scan.sh from the Odeo plugin), or point core.hooksPath at a directory outside the project and run this again." >&2
+    exit 3 ;;
+esac
 mkdir -p "$hooks_dir"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 

@@ -292,7 +292,7 @@ removed_nudge() {
     hook="${line#removed:}"; names="${hook#*:}"; hook="${hook%%:*}"
     list="$list${list:+, }$hook (${names//,/, })"
   done <<< "$1"
-  printf '%sin this repository, git hook text mentions a script that this Odeo release no longer ships, so the check it was written for may no longer run: %s. The match is on the name alone, so a comment that mentions it counts too; look at the hook before telling the user it is broken. Tell the user once and offer to refresh, only after they say yes: run `"%s/scripts/install-git-guards.sh"` (it installs a current pre-commit with the secret scan; a pre-commit that differs, and a pre-push that mentions a removed script, are moved aside to <hook>.odeo-old-<timestamp> in the same hooks directory and nothing is deleted; a pre-push that mentions none is left alone). Run it only after the user says yes: this session-start check runs nothing on its own and never runs the hooks.' \
+  printf '%sin this repository, git hook text mentions a script that this Odeo release no longer ships, so the check it was written for may no longer run: %s. The match is on the name alone, so a comment that mentions it counts too; look at the hook before telling the user it is broken. Tell the user once and offer to refresh, only after they say yes: run `"%s/scripts/install-git-guards.sh"` (it installs a current pre-commit with the secret scan; a pre-commit that differs, and a pre-push that mentions a removed script, are moved aside to <hook>.odeo-old-<timestamp> in the same hooks directory and nothing is deleted; a pre-push that mentions none is left alone). Tell the user that the replacement hook runs only the secret scan, so every other check in the replaced pre-commit, such as a lint or a test run, stops until they merge it back by hand from the kept copy. If core.hooksPath points inside the project, the refresh refuses and changes nothing; then the user adds the secret scan to that hook themselves. Run it only after the user says yes: this session-start check runs nothing on its own and never runs the hooks.' \
     "$2" "$list" "$ROOT"
 }
 
@@ -305,9 +305,9 @@ guards_nudge() {
   if [ "$old" = 1 ]; then
     printf '%s' "Odeo: some git guards were written by an older Odeo. Old git hooks may run a script named like Odeo's from PATH instead of Odeo's own, and since releases after Odeo 0.3.5 ship no bin/, once no older copy is left in the plugin cache, 0.2.x hooks commit WITHOUT their secret scan (they only warn) while old ~/bin shims block every commit and push of the projects that call them. Tell the user once and offer to refresh them, only after they say yes:"
     case "$1" in *hook:pre-commit*)
-      printf ' in this repository run `"%s/scripts/install-git-guards.sh"` (it rewrites .git/hooks/pre-commit);' "$ROOT" ;; esac
+      printf ' in this repository run `"%s/scripts/install-git-guards.sh"` (it writes a current pre-commit in the repository'\''s hooks directory and keeps the old one beside it as pre-commit.odeo-old-<timestamp>);' "$ROOT" ;; esac
     case "$1" in *hook:pre-push*)
-      printf ' the pre-push hook in this repository comes from an older Odeo, which no longer installs a push guard, so there is nothing to refresh: the user may remove it or move it aside (.git/hooks/pre-push), but do not move it yourself;' ;; esac
+      printf ' the pre-push hook in this repository comes from an older Odeo, which no longer installs a push guard, so there is nothing to refresh unless it also mentions a removed script (then the refresh below moves it aside): the user may remove it or move it aside (.git/hooks/pre-push), but do not move it yourself;' ;; esac
     case "$1" in *shim:*)
       printf ' for the ~/bin shims run `"%s/scripts/odeo-migrate-legacy.sh" --apply` (the old shim is kept in ~/.claude/odeo-legacy-<timestamp>/);' "$ROOT" ;; esac
   fi
