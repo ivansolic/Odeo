@@ -38,11 +38,7 @@ pre-mortem technique).
    test. Fails if says when the claim is false; the Kill criterion is the decision: the
    result on this week's evidence at which you stop or change the plan, and what changes.
 
-Rules: at most 5 claims; specific to this plan, no generic risks. A threshold you propose
-is labelled as a proposal, and a market fact or benchmark is cited or marked unverified
-(`${CLAUDE_PLUGIN_ROOT}/AGENTS.md` Guardrails 6).
-
-A worked example with real values: `example.md`.
+Rules: at most 5 claims; specific to this plan, no generic risks.
 
 ## Pass 2, Pre-mortem (assume failure)
 > "It's 6 months later and this shipped and failed. What happened?"
@@ -55,24 +51,31 @@ A worked example with real values: `example.md`.
    threat. Unspoken worry: nobody is checking it, so say how to check it before launch and
    how to raise it with the team. When unsure, call it a real threat.
 3. **Put every real threat in exactly one timing bucket:** must fix before launch, fix
-   within 30 days, or watch. A watched threat names its trigger, the early signal that
-   would move it up.
+   within 30 days, or watch. A 30-day threat gets a likelihood, an impact, a mitigation
+   and an owner role. A watched threat names its trigger, the early signal that would move
+   it up.
 4. **Give every must-fix threat** a likelihood and an impact (high, medium or low), a
    mitigation specific enough to assign, an owner written as a role (product, engineering,
    support, legal), never a person's name, and "by when" as a point in the plan (for
    example "before beta"), never an invented calendar date.
 5. **Make the launch call:** go, phase or delay, with the reason. Many must-fix threats
    mean phase or delay.
-6. **No blame; the goal is readiness.** Re-run the pre-mortem before launch to check the
-   must-fix items, and route that re-run into the follow-ups (see Output).
+6. **No blame; the goal is readiness.** Always end with the `Before launch:` line: re-run
+   the pre-mortem on the must-fix items. When the user acts on the critique, that re-run
+   becomes a follow-up (see Output).
 
-Rule: at most 3 items per group.
+Rule: at most 3 real threats in total across the three timing buckets, at most 3
+overblown worries and at most 3 unspoken worries.
 
 ## Security pre-mortem (required for sensitive features)
 If it touches auth, PII, payments, uploads, or anything private:
 > "It's 6 months later and we had a breach/leak through this. What was the hole? Where
 > does the data live, who can reach it, what's the worst path in?"
 List the top 3 attack/leak scenarios and what the design must include to close them.
+
+**Both passes:** a threshold or trigger you propose is labelled as a proposal, and a market
+fact or benchmark is cited or marked unverified (`${CLAUDE_PLUGIN_ROOT}/AGENTS.md`
+Guardrails 6). A worked example of both passes with real values: `example.md`.
 
 ## Output
 In chat, always this shape, in this order. The headings are structural labels and stay
@@ -92,7 +95,7 @@ Top pick this week: claim <N>
 ### Must fix before launch
 | # | Risk | Likelihood | Impact | Mitigation | Owner role | By when |
 ### Fix within 30 days
-| # | Risk | Likelihood | Impact | Response | Owner role |
+| # | Risk | Likelihood | Impact | Mitigation | Owner role |
 ### Watch
 (per risk: the trigger that would move it up)
 ### Overblown worries
@@ -100,6 +103,7 @@ Top pick this week: claim <N>
 ### Unspoken worries
 (per worry: how to check it, how to raise it)
 Launch call: go | phase | delay, <reason>
+Before launch: re-run the pre-mortem on must-fix <numbers>
 ## Security pre-mortem   (only when the feature is sensitive)
 More on request: a second model's view, an experiment for the top claim, a rewrite of
 the riskiest section, test scenarios for the riskiest areas, a launch checklist.

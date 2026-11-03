@@ -38,3 +38,10 @@ red-team pass (PRD-003 R1). Run the critique on each one and save the output as 
 - `run-a-premortem.md` still mentions the planted colour sentence as "dropped as cosmetic
   and not listed". It is not a ranked claim, but it is noise copied from the worked
   example, whose teaching line was then marked as a note for the reader, not output.
+- `run-a-premortem-2.md`, `run-b-premortem-3.md`: after skill-reviewer round 4 fixes (at
+  most 3 real threats in total, a `Before launch:` re-run line, one word "Mitigation" in
+  both tables, the example gains a security pre-mortem). Real threats: 3 in sample-a (2
+  must-fix, 1 watch) and 3 in sample-b; both end the pre-mortem with the launch call and the
+  re-run line; same headings in the same order; the planted colour sentence does not
+  appear. Words: sample-a 1742 (before USR-030 and USR-031: 2415; first pre-mortem draft:
+  2708), sample-b 1774.

@@ -1,4 +1,4 @@
-# Worked example: Red team part
+# Worked example: Red team and pre-mortem
 
 Fictional plan: "Add a paid tier at 12 EUR per seat per month to a team retrospective
 tool. Target: 4% of active teams convert within 60 days of launch." All numbers below
@@ -81,3 +81,17 @@ Get it from `/odeo:research` before setting the number.
 
 Launch call: phase, release to 10 percent of teams first, because the must-fix approval
 gap would hide real demand behind a purchase process we have not built.
+Before launch: re-run the pre-mortem on must-fix 1.
+
+## Security pre-mortem
+The plan adds payments and invoices, so this section is required.
+1. **Invoice links that anyone can open.** Invoices carry the company name, address and
+   amount. Design must include: invoice pages behind login, or links that expire and
+   cannot be guessed.
+2. **A former admin keeps billing access.** Design must include: billing rights end when
+   the admin role is removed, checked on every billing request.
+3. **Card data in our logs.** Design must include: card details handled only by the
+   payment provider's hosted form, never stored or logged by us.
+
+More on request: a second model's view, an experiment for the top claim, a rewrite of
+the riskiest section, test scenarios for the riskiest areas, a launch checklist.

@@ -20,7 +20,7 @@ source_commit: 07b34f6
 | Step 3: Elephants, unspoken concerns nobody validates, to investigate before launch | decision rule | present | Pass 2 step 2: "Unspoken worry: nobody is checking it, so say how to check it before launch and how to raise it with the team." | default |
 | Step 4: Launch-Blocking, must be solved before launch | decision rule | present | Pass 2 step 3: "must fix before launch"; Output `### Must fix before launch` | default |
 | Step 4: Fast-Follow, must be solved within 30 days after launch | decision rule | present | Pass 2 step 3: "fix within 30 days"; Output `### Fix within 30 days` | default |
-| Step 4: Track, monitor after launch and solve if it becomes an issue | decision rule | present | Pass 2 step 3: "or watch. A watched threat names its trigger, the early signal that would move it up." | default |
+| Step 4: Track, monitor after launch and solve if it becomes an issue | decision rule | present | Pass 2 step 3: "or watch. ... A watched threat names its trigger, the early signal that would move it up." | default |
 | Step 4: an example for each urgency class | worked example | present | `skills/critique/example.md`, Pre-mortem part: one must-fix row, one 30-day row and one watched risk with its trigger | default |
 | Step 5: for every launch-blocking risk, describe it clearly | template section | present | Output `### Must fix before launch`, column "Risk" | default |
 | Step 5: a concrete mitigation action | template section | present | Pass 2 step 4: "a mitigation specific enough to assign"; column "Mitigation" | default |
@@ -35,7 +35,7 @@ source_commit: 07b34f6
 | Note: honest and constructive, improve readiness, not assign blame | decision rule | present | Pass 2 step 6: "No blame; the goal is readiness." | default |
 | Note: default to Tiger when unsure | decision rule | present | Pass 2 step 2: "When unsure, call it a real threat." | default |
 | Note: involve cross-functional perspectives (engineering, design, go-to-market) | decision rule | present | Pass 2 step 1: "look for causes in five areas: technical, users, business, operations, dependencies" | default |
-| Note: revisit the pre-mortem 2 to 3 weeks before launch | decision rule | present | Pass 2 step 6: "Re-run the pre-mortem before launch to check the must-fix items, and route that re-run into the follow-ups." The interval of 2 to 3 weeks is not carried over: it is a number given without a source | default |
+| Note: revisit the pre-mortem 2 to 3 weeks before launch | decision rule | present | Pass 2 step 6: "Always end with the `Before launch:` line: re-run the pre-mortem on the must-fix items." Output: "Before launch: re-run the pre-mortem on must-fix <numbers>" The interval of 2 to 3 weeks is not carried over: it is a number given without a source | default |
 | Further reading: two links to the author's articles | template section | excluded | a person credit or author link |  |
 
 Primary method source: the pre-mortem pass was checked against "The Pre-Mortem Method",
