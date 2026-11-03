@@ -24,3 +24,17 @@ red-team pass (PRD-003 R1). Run the critique on each one and save the output as 
 - `run-b-lean-3.md`: after review round 2 (ranking rule and top pick lines, strongest case
   in each kill test, one default "More on request" line, proposals and unverified facts
   labelled). Shape followed, the offer line present, no `## Next steps` section (GREEN).
+
+## USR-031 runs (pre-mortem)
+
+- RED: `run-b-lean-3.md` (before USR-031) has a pre-mortem of three failure modes, with no
+  groups, no timing buckets, no owner and no launch call.
+- `run-b-premortem.md`: first draft of the wording; superseded (the 30-day table then had
+  no likelihood and impact).
+- `run-a-premortem.md`, `run-b-premortem-2.md`: final wording. Every risk sits in one
+  group, every real threat in one timing bucket, owners are roles, "by when" is a point in
+  the plan, the launch call ends the section, and both show the same headings in the same
+  order. Length: 113 and 98 lines (sample-a before USR-030 and USR-031: 94).
+- `run-a-premortem.md` still mentions the planted colour sentence as "dropped as cosmetic
+  and not listed". It is not a ranked claim, but it is noise copied from the worked
+  example, whose teaching line was then marked as a note for the reader, not output.

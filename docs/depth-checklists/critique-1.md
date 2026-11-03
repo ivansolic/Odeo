@@ -20,7 +20,7 @@ source_commit: 07b34f6
 | Step 6: per surviving claim, evidence to get this week | template section | present | Pass 1 step 6: "Evidence this week (which number, report or customer call would settle it)" | default |
 | Step 6: per surviving claim, kill criterion | template section | present | Pass 1 step 6: "the Kill criterion is the decision: the result on this week's evidence at which you stop or change the plan, and what changes." | default |
 | Step 6: per surviving claim, cheapest test | template section | present | Pass 1 step 6: "Cheapest test" | default |
-| Step 7: optional second model, only when the user asks | step | present | Output, last default line: "More on request: a second model's view, an experiment for the top claim, a rewrite of the riskiest section." and On request: "A second model's opinion: `/odeo:second-opinion-pm`." | on request |
+| Step 7: optional second model, only when the user asks | step | present | Output, last default line: "More on request: a second model's view, an experiment for the top claim, a rewrite of the riskiest section, ..." and On request: "A second model's opinion: `/odeo:second-opinion-pm`." | on request |
 | Step 8: output title line naming the plan in one line | template section | excluded | adding length without changing any decision the user makes; leaves unchanged the decision which claim to test first, since the user just named the plan when asking |  |
 | Step 8: Top Kill-Assumptions, ranked, 3 to 5 at most | template section | present | Output `### Claims ranked` table and "Rules: at most 5 claims" | default |
 | Step 8: Claim field per kill-assumption | template section | present | Output `### Claims ranked`: column "Claim" | default |
