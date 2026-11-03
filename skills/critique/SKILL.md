@@ -13,12 +13,37 @@ pre-mortem technique).
 - Re-run if the revisions are large.
 
 ## Pass 1, Red-team (attack it)
-Challenge, specifically and without mercy:
-- **The problem:** is it real, urgent, and worth solving? Whose evidence, or just a guess?
-- **The assumptions:** which single assumption, if wrong, collapses the whole thing?
-- **The outcome/metric:** is it truly measurable? Gameable? A vanity metric?
-- **Scope:** is the "MVP" actually minimal, or a wishlist? What can be cut and still test the bet?
-- **The alternative:** why won't users just keep doing what they do today?
+1. **List what the plan takes for granted:** who the user is, how the market behaves,
+   what limits the team, why the mechanism works, how long it takes. Keep only the claims the plan stands on: if
+   the claim is false, the decision changes. Drop cosmetic ones (style, naming,
+   wording) and do not list them at all. Look for claims in five places: the problem
+   (real, urgent, whose evidence?), the assumptions, the outcome or metric (measurable,
+   gameable?), the scope (is the MVP minimal?), the alternative (why not keep doing what
+   they do today?).
+2. **Strongest case first.** For each kept claim, write the strongest case for it, then
+   attack that case, never a weaker version.
+3. **Write each failure as "Fails if ..."** with a concrete, checkable condition. Good:
+   "Fails if fewer than 1 in 10 interviewed admins has paid for a similar tool in the
+   last year." Bad: "Fails if users don't care."
+4. **Rank the claims** on three measures, each high / medium / low and each shown per
+   claim: impact if wrong, likelihood it is wrong, cost to test. Top = high impact,
+   plausibly wrong, cheap to test: that is what to test this week. Say this ranking rule
+   in one sentence in the output.
+5. **Do not invent doubt.** Treat a claim as at risk unless the plan cites evidence for
+   it. When a claim is well supported, say so and move it to What holds up.
+6. **For each claim still standing as a risk:** Fails if, Evidence this week (which
+   number, report or customer call would settle it), Kill criterion (the threshold at which you stop
+   or change course), Cheapest test.
+
+Rules: at most 5 claims; specific to this plan, no generic risks.
+
+**On request only.** Leave these out entirely unless the user asks for more depth or
+next steps; then list them under `## Next steps`:
+- A second model's opinion: `/odeo:second-opinion-pm`.
+- Turn the top claim into an experiment: `/odeo:experiments`.
+- Run the pre-mortem alone, or rewrite the riskiest section of the plan.
+
+A worked example with real values: `example.md`.
 
 ## Pass 2, Pre-mortem (assume failure)
 > "It's 6 months later and this shipped and failed. What happened?"
@@ -32,8 +57,23 @@ If it touches auth, PII, payments, uploads, or anything private:
 List the top 3 attack/leak scenarios and what the design must include to close them.
 
 ## Output
-Findings + ranked failure modes + leading signals, in chat. Revise the PRD; capture
-security findings as requirements. Re-run if changes were large.
+In chat, always this shape, in this order. The headings are structural labels and stay
+English (Guardrails 7):
+
+```
+## Red team
+### Claims ranked
+| # | Claim | Impact if wrong | Likelihood wrong | Cost to test |
+### Kill tests
+(per claim: Fails if / Evidence this week / Kill criterion / Cheapest test)
+### What holds up
+### What I could not judge
+## Pre-mortem
+## Security pre-mortem   (only when the feature is sensitive)
+## Next steps            (only when the user asked for depth or next steps)
+```
+
+Revise the PRD; capture security findings as requirements. Re-run if changes were large.
 
 **Route the follow-ups so they survive the session.** Any finding the user wants
 to act on but not now (a test to run, a gate to satisfy, an assumption to check)
@@ -44,7 +84,7 @@ written down. If the PRD was revised, open the revised file in the editor
 
 ## Quality rules
 - Be genuinely adversarial; a soft critique is useless. Attack the strongest version, not a strawman.
-- Name the **one assumption** that would sink it; that's where to focus.
+- The top-ranked claim is the **one assumption** that would sink it; that's where to focus.
 - Every failure mode gets a **leading signal** you could detect early.
 - **Write the body in the project's output language; mechanics stay English.** Before
   writing, resolve it with `"${CLAUDE_PLUGIN_ROOT}/scripts/resolve-language.sh" <project-dir>` (the project's
