@@ -2,85 +2,70 @@
 artifact: usr-010-removed-scripts-named
 type: code
 branch: feature/usr-010-removed-scripts-named
-reviewed_commit: 9e320ca
+reviewed_commit: 56d9dd2
 date: 2026-11-03
 scorer: code-reviewer
 model: claude-sonnet-5-5 (Sonnet 5.5)
 model_tier: strong
 effort: high
-scores: { correctness: 1, security: 2, performance: 2, readability: 2, testing: 2, conventions: 2 }
-total: 11/12
+scores: { correctness: 2, security: 2, performance: 2, readability: 2, testing: 2, conventions: 2 }
+total: 12/12
 verdict: APPROVE WITH COMMENTS
-previous_total: 10/12
+previous_total: 11/12
 ---
 
 ## Scope reviewed
 
-Round 2: `git diff 6900e5b..9e320ca` (installer, session-start hook, two test files, README,
-INSTALL) plus whether each round-1 finding is closed. Round 1 (the delta ae7bd4e..6900e5b)
-stands for everything this delta does not touch; see History. I re-ran the four suites this
-branch touches (ALL PASS) and `docs-claims-check.sh` (clean). The known-RED
+Round 3: `git diff 9e320ca..56d9dd2` (the installer's hooks-directory guard and two new test
+cases; the rest of the range is the previous eval record). Rounds 1 and 2 stand for everything
+this delta does not touch; see History. I re-ran `tests/install-git-guards.test.sh` and
+`tests/odeo-context.test.sh` (ALL PASS) and `docs-claims-check.sh` (clean). The known-RED
 `legacy-hashes.test.sh` (USR-029, other branch) is not counted.
 
-## Round-1 findings: closure
+## Round-2 findings: closure
 
-- Important 1 (hooksPath into the versioned project): closed. `scripts/install-git-guards.sh`
-  now exits 3 before anything is created or moved when the hooks directory lies inside the work
-  tree and outside the common git dir. Probes: `.githooks` existing, `.githooks` missing, a
-  relative path run from a subdirectory, a symlink in the tree, and a linked worktree (hooks go to
-  the main `.git/hooks`, installed normally). One hole remains, see Important 1 below.
-- Important 2 (user's other checks stop): closed in the nudge, README and INSTALL; asserted.
-- Nitpick 3 (caveat asserted), 4 (stale clauses aligned), 8 (README wording): closed.
-- Nitpicks 5, 6, 7: left as follow-ups by decision; unchanged, not re-scored.
+- Important 1 (guard passes when the parent of the hooks directory is missing): closed. The
+  guard now climbs to the nearest existing ancestor and appends the missing part. Probes:
+  `tools/githooks` with no `tools/` (exit 3, nothing created), `a/b/c/` with a trailing slash
+  (exit 3), `newdir/../.githooks` (exit 3), a missing sibling outside the project
+  `../outside-missing/hooks` (installed, as it should be).
+- Nitpick 2 (Y4, sibling directory sharing the repo path prefix): closed by a test case.
+- Nitpick 3 (Y5, cosmetic clause wording) and follow-ups 5, 6, 7: left open by decision.
 
 ## Mutations run (each restored byte-identical)
 
 | id | mutation | result |
 |----|----------|--------|
-| Y1 | the `.git`-dir exemption removed (default hooks dir would count as inside the tree) | 24 FAIL |
-| Y2 | `pwd -P` replaced by `pwd` (symlinked tmp paths) | 4 FAIL |
-| Y3 | refusal exits 0 instead of 3 | 1 FAIL |
-| Y4 | work-tree prefix match without the trailing slash (`/x/proj-hooks` counts as inside `/x/proj`) | 0 FAIL, survives (finding 2) |
-| Y5 | the pre-push "unless it also mentions a removed script" clause deleted | 0 FAIL, survives (wording only) |
-
-The author's I16, I17 and M37-M39 were not re-run; Y1 and Y3 cover the same refusal paths and
-the new message assertions are present in the diff.
+| Z1 | the climb replaced by `dirname` only (the round-2 bug) | 1 FAIL |
+| Z2 | work-tree prefix matched without the trailing slash (Y4) | 1 FAIL |
+| Z3 | the `.` and `/` stop conditions removed from the loop | 0 FAIL, equivalent (both always exist, so the loop never reaches them) |
+| Z4 | missing parts appended in the wrong order | 0 FAIL, equivalent for the decision (only the prefix is compared) |
 
 ## Findings
 
-### Important
-1. `scripts/install-git-guards.sh:36`: the guard resolves the hooks directory through
-   `cd "$(dirname "$hooks_dir")"`. When the PARENT does not exist, that `cd` fails, the result
-   becomes `/<basename>`, and the guard passes. Probe: `core.hooksPath = tools/githooks` in a
-   project with no `tools/` directory: exit 0, `tools/githooks/pre-commit` created inside the
-   project. The documented promise is "nothing touched or created". Nothing of the team's is
-   replaced in this case (the directory did not exist), so the harm is a new untracked hook
-   directory, but the guard does not hold its stated invariant. Fix: climb to the nearest existing
-   ancestor (`d=$hooks_dir; while [ ! -e "$d" ]; do d=$(dirname "$d"); done`), resolve that with
-   `pwd -P`, and append the remainder; add a case with a missing parent to the test.
-
 ### Nitpicks
-2. Y4 survives: no test has a hooks directory whose name shares the work-tree path as a prefix
-   (`<repo>-hooks` beside `<repo>`). The shipped `"$work_top"/*` is correct; the mutant would
-   refuse a legitimate sibling directory. Add one case.
-3. Y5 survives: the pre-push clause wording is not asserted. Cosmetic.
-4. Follow-ups 5, 6 and 7 from round 1 remain open as agreed (window without a pre-commit between
-   the two moves; duplicated matcher in two files; message repeats on `/clear` and compaction).
+1. `scripts/install-git-guards.sh:40`: a `core.hooksPath` that names a regular file makes
+   `cd "$probe"` fail under `set -e`, so the script stops with a raw `cd: afile: Not a
+   directory` and exit 1. Nothing is touched, so it is safe, but the message does not say why.
+   Optional: test `[ -d "$probe" ]` and print "core.hooksPath is not a directory".
+2. Open by decision from rounds 1 and 2: the window with no pre-commit between the two moves, the
+   matcher duplicated in the installer and the hook, the message repeating on `/clear` and
+   compaction, and the unasserted pre-push clause wording (Y5).
 
 ## Scores
 
-correctness 1/2 · security 2/2 · performance 2/2 · readability 2/2 · testing 2/2 ·
-conventions 2/2 -> total 11/12 (threshold >=9, no zero)
+correctness 2/2 · security 2/2 · performance 2/2 · readability 2/2 · testing 2/2 ·
+conventions 2/2 -> total 12/12 (threshold >=9, no zero)
 
 ## Ceiling
 
-12/12 reachable. Correctness is held at 1 by Important 1.
+12/12, reached. No criterion is structurally capped.
 
 ## History
 
-Round 1 (6900e5b): 10/12, APPROVE WITH COMMENTS. Important: a core.hooksPath inside the
-versioned project had its tracked hook replaced and an untracked copy left; the nudge did not tell
-the user that other checks in a replaced pre-commit stop. Nitpicks: unasserted caveat, stale
-nudge clauses, window without a pre-commit, duplicated matcher, repeat on clear and compact,
-README wording. Trajectory: 10/12 -> 11/12; both Importants closed, one narrower hole found in
-the new guard.
+Round 1 (6900e5b): 10/12, APPROVE WITH COMMENTS. A core.hooksPath inside the versioned project
+had its tracked hook replaced; the nudge did not warn that other checks stop.
+Round 2 (9e320ca): 11/12, APPROVE WITH COMMENTS. Both closed; the new guard passed when the
+parent of the hooks directory was missing.
+Round 3 (56d9dd2): 12/12, APPROVE WITH COMMENTS. Trajectory 10 -> 11 -> 12; the loop ended on an
+approve with only nitpicks left.
