@@ -116,11 +116,12 @@ guards once. Their hooks look up Odeo's programs on PATH first, where a script o
 from your environment or the project could stand in for the secret scan, and 0.2.x hooks
 (and the `~/bin` shims of an old `install.sh` setup) look only in `bin/`, which releases after 0.3.5 no longer ship, so they find a program
 only while an older Odeo copy is still in the plugin cache. In each such project Odeo names the command at session start (it
-rewrites `.git/hooks/pre-commit` and `pre-push`), and it only runs it after you say yes.
+writes a current `pre-commit` and keeps the old one beside it), and it only runs it after you say yes.
 A `pre-commit` or `pre-push` hook of your own that mentions a script the release no longer ships
 (the names are in `scripts/odeo-removed-scripts.txt`) is named the same way, because it no longer
 runs the check it was written for. The refresh keeps whatever it replaces as
 `<hook>.odeo-old-<time>` in the same hooks directory and deletes nothing.
+The replacement runs only the secret scan, so any other check of your own in the replaced `pre-commit` stops until you merge it back from the kept copy. If `core.hooksPath` points inside the project (a hooks directory your team versions), the refresh refuses and changes nothing; you add the secret scan to that hook yourself.
 
 **For maintainers:** users receive a new version only when `version` in
 `.claude-plugin/plugin.json` goes up, so bump it with every release, then publish through
@@ -245,7 +246,7 @@ Odeo/
 ├── global/
 │   └── CLAUDE.md             ← user-global baseline, delivered at session start by the plugin
 ├── tests/
-│   └── *.test.sh             ← 37 suites, 1602 assertions. 23 of the 23 programs have their
+│   └── *.test.sh             ← 37 suites, 1607 assertions. 23 of the 23 programs have their
 │                               own suite; the remaining suites are cross-cutting rather than
 │                               per-program. The number is the same on every machine: a case
 │                               a machine cannot run (as root, in a shell that refuses what it

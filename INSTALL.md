@@ -144,6 +144,11 @@ Security Baseline heading, yours is used and nothing is duplicated.
 > A `pre-commit` or `pre-push` hook of your own that mentions a script the release no longer
 > ships is named the same way. The refresh keeps whatever it replaces as
 > `<hook>.odeo-old-<time>` in the same hooks directory and deletes nothing.
+>
+> The replacement runs only the secret scan, so any other check of your own in the replaced
+> `pre-commit` stops until you merge it back from the kept copy. If `core.hooksPath` points
+> inside the project (a hooks directory your team versions), the refresh refuses and changes
+> nothing; you add the secret scan to that hook yourself.
 
 > **Coming from the old `install.sh` setup?** Ask Claude to run the plugin's
 > `scripts/odeo-migrate-legacy.sh` (a dry run), then the same with `--apply`. It moves the old copies aside into
