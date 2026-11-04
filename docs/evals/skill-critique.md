@@ -2,119 +2,113 @@
 artifact: skills/critique
 type: skill
 branch: docs/prd-003-pm-content-depth
-reviewed_commit: 5067d5d
-artifact_version: 4
-date: 2026-11-03
+reviewed_commit: e8c3a25
+artifact_version: 5
+date: 2026-11-04
 scorer: skill-reviewer
 model: claude-opus-5-5
 model_tier: strongest
 effort: high
-scores: { trigger_clarity: 2, structure: 2, worked_example: 2, precision: 1, safety_integration: 2 }
-total: 9/10
+scores: { trigger_clarity: 2, structure: 2, worked_example: 2, precision: 2, safety_integration: 2 }
+total: 10/10
 verdict: PASS
 previous_total: 9/10
 ---
 
 ## Skill: critique  (auto-invoked)
 
-Scope: `skills/critique/SKILL.md` (142 lines) and `skills/critique/example.md` (97 lines) at
-commit 5067d5d, round 4, requested by the maintainer after reading round 3's three
-output-changing comments. The reviewer has no shell, so the change set was established by
-reading both files in full against the round 3 record (f8239c1), not from `git diff`. Out of
-scope as before: the `code -r` editor line in Output and the shared output-language
-paragraph. The calibration README, `run-a-premortem-2.md` and `run-b-premortem-3.md` were
-read as context; this review judges the files, not runtime behaviour.
+Scope: `skills/critique/SKILL.md` (142 lines) and `skills/critique/example.md` (97 lines) as
+they stand in the worktree on branch `docs/prd-003-pm-content-depth`, commit e8c3a25 (sha
+supplied by the dispatcher; the reviewer has no shell and did not resolve it). The branch
+was rebased onto main, so the round 4 record (5067d5d) no longer anchored the code. Scored
+fresh against `docs/skill-authoring-standard.md` and its rubric, reading both files in full,
+not carried over from the old record. Out of scope as in earlier rounds: the shared
+output-language paragraph's wording and the `code -r` editor line in Output (see Other
+checks). This review judges the files, not runtime behaviour.
 
 ## Scores
 - trigger clarity: 2, "Use when the user asks to critique, red-team, poke holes in,
   stress-test, or pre-mortem a PRD, strategy, or product direction before committing to
-  build it." Unchanged: auto-invoked, starts with "Use when", triggers only.
-- structure: 2, essence (7-9), When to use with the when-NOT line (14), numbered Pass 1
-  (16-41), numbered Pass 2 (43-68), Security pre-mortem (70-78), Output (80-129), Quality
-  rules (131-142). 142 lines, one supporting file, one level deep. Round 3 fix 4 applied:
-  `example.md` line 1 is now "Worked example: Red team and pre-mortem", and the pointer sits
-  after the Security pre-mortem in the "Both passes" paragraph (78), reachable from both
-  passes.
-- worked example: 2, `example.md` now models the whole shape with real values, including
-  the parts round 3 found missing: "## Security pre-mortem / The plan adds payments and
-  invoices, so this section is required." with three scenarios and what the design must
-  include (86-94), "Before launch: re-run the pre-mortem on must-fix 1." (84) and the
-  default More on request line (96-97). Directly imitable. The one stale column header is
-  counted under precision, where the standard places one-name-per-concept.
-- precision: 1, round 3 (a) and (b) are resolved and (c) is resolved in SKILL.md only:
-  (a) the cap now has a decidable unit, "Rule: at most 3 real threats in total across the
-  three timing buckets, at most 3 overblown worries and at most 3 unspoken worries." (67-68).
-  (b) the re-run has a slot: step 6 "Always end with the `Before launch:` line" (63) and the
-  shape line "Before launch: re-run the pre-mortem on must-fix <numbers>" (106).
-  (c) step 3 now says "A 30-day threat gets a likelihood, an impact, a mitigation and an
-  owner role." (54-55) and the shape's 30-day table says "Mitigation" (98). But `example.md`
-  line 64 still reads "| # | Risk | Likelihood | Impact | Response | Owner role |". The
-  example is the file agents imitate, the shape is declared "always this shape" with headings
-  as structural labels (81-82), and the standard asks for "one name per concept, everywhere".
-  So the folder still names one concept two ways, in a place that changes the output, and
-  the README's claim "one word 'Mitigation' in both tables" is true for SKILL.md but not for
-  the example. That single word is the only thing holding precision at 1; paths, commands
-  and every `/odeo:` name are exact, no TBDs.
-- safety integration: 2, the honesty rule now covers both passes: "**Both passes:** a
-  threshold or trigger you propose is labelled as a proposal, and a market fact or benchmark
-  is cited or marked unverified (`${CLAUDE_PLUGIN_ROOT}/AGENTS.md` Guardrails 6)." (76-78),
-  closing round 3 fix 5. Pass 2 keeps "checked with `/odeo:research` or marked unverified"
-  (47-48), plan-point deadlines "never an invented calendar date" (60) and role owners
-  "never a person's name" (59). Guardrails 7 referenced, not restated (82, 140). The example
-  now demonstrates the security pre-mortem instead of teaching its omission.
+  build it." (line 2). Auto-invoked (no `disable-model-invocation`), starts with "Use when",
+  lists only triggers and the words people use, no workflow summary.
+- structure: 2, essence (7-9), When to use with the when-NOT line "Not for code, a single
+  story or a second model's read" (14), numbered Pass 1 (16-41), numbered Pass 2 (43-68),
+  Security pre-mortem (70-74), Output (80-129), Quality rules (131-142). 142 lines, one
+  supporting file, referenced from SKILL.md line 78 ("A worked example of both passes with
+  real values: `example.md`."), which references nothing further: one level deep.
+- worked example: 2, `example.md` models the full output shape in order with real values:
+  ranking rule, ranked table with H/M/L per measure, "Top pick this week: claim 1.", kill
+  tests with "(proposal)" labels, What holds up, What I could not judge, both pre-mortem
+  tables, Watch with a labelled trigger, overblown and unspoken worries, "Launch call:
+  phase, ...", "Before launch: re-run the pre-mortem on must-fix 1.", a required Security
+  pre-mortem with three scenarios, and the default More on request line. Directly imitable.
+- precision: 2, the round 4 residual is closed: `example.md` line 64 now reads
+  "| # | Risk | Likelihood | Impact | Mitigation | Owner role |", matching SKILL.md line 98
+  and step 3 ("a likelihood, an impact, a mitigation and an owner role", 54-55), so one
+  concept has one name across the folder. The two optional nits from round 4 are also
+  closed: "an empty section says \"None.\"" (81) and the shape line "Before launch: re-run
+  the pre-mortem on must-fix <numbers>   (none open: re-run if the plan changes)" (106).
+  Caps have a decidable unit ("at most 3 real threats in total across the three timing
+  buckets", 67-68; "at most 5 claims", 41). Every command name resolves to an existing
+  skill and a `docs/system-map.md` entry (`/odeo:critique` 63, `/odeo:experiments` 38,
+  `/odeo:research` 39, `/odeo:strategy` 46, `/odeo:second-opinion-pm` 132); paths
+  (`.claude/tasks/todo.md`, `${CLAUDE_PLUGIN_ROOT}/scripts/resolve-language.sh`,
+  `${CLAUDE_PLUGIN_ROOT}/AGENTS.md`) are exact. The `<N>`, `<numbers>`, `<reason>` tokens
+  are slots in a declared output shape, not placeholders. No TBDs. Remaining wording nits
+  are listed as optional fixes and do not drop the criterion below "exact throughout".
+- safety integration: 2, "**Both passes:** a threshold or trigger you propose is labelled
+  as a proposal, and a market fact or benchmark is cited or marked unverified
+  (`${CLAUDE_PLUGIN_ROOT}/AGENTS.md` Guardrails 6)." (76-78), plus "checked with
+  `/odeo:research` or marked unverified" (47-48), "never a person's name" (59) and "never an
+  invented calendar date" (60). Guardrails 7 is referenced, not restated (82, 140-141). The
+  Security pre-mortem section applies the baseline's design-time pre-mortem for auth, PII,
+  payments and uploads (70-74). Ledger writes go to `.claude/tasks/todo.md` only for
+  findings "the user wants to act on" (124-126), consistent with AGENTS.md Guardrails 1,
+  which names `/odeo:critique` follow-ups as carrying the user's OK.
 
-## Total: 9/10   ## Verdict: PASS (threshold 8/10, no zero)
+## Total: 10/10   ## Verdict: PASS (threshold 8/10, no zero)
 
 ## Ceiling: 10/10
-Reachable. Nothing caps structurally; fix 1 (one word) restores precision to 2.
+Reached. Nothing caps structurally.
 
 ## Top fixes
-1. Precision, `example.md` line 64: change the header cell "Response" to "Mitigation", so
-   the 30-day table reads "| # | Risk | Likelihood | Impact | Mitigation | Owner role |",
-   matching SKILL.md line 98 and step 3. Correct the README line that claims "one word
-   'Mitigation' in both tables" only if it is meant to cover the example.
-2. Optional, precision nit, step 6 and shape line 106: say what the `Before launch:` line
-   prints when there is no must-fix threat, for example "Before launch: no must-fix items;
-   re-run the pre-mortem if the plan changes." Today "Always end with" plus "must-fix
-   <numbers>" has no defined form for an empty bucket. Neither run hits it, so this is a
-   gap in the text, not an observed failure.
-3. Optional, precision nit, shape: say how an empty timing bucket is printed. Both runs
-   independently wrote "None." under `### Fix within 30 days`, which is a sensible default;
-   one word in the shape ("(write None. when empty)") would make it the rule rather than
-   luck.
+None required. Optional wording nits, none of which changes the score:
+1. Line 106: write the empty-bucket form as the literal printed line rather than an
+   annotation, for example a second shape line
+   "Before launch: no must-fix items open; re-run the pre-mortem if the plan changes."
+   Today an agent has to compose the printed text from "(none open: re-run if the plan
+   changes)", so two runs may phrase it differently.
+2. Line 122, "Revise the PRD; capture security findings as requirements.": name the actor.
+   Read next to line 128 ("If the PRD was revised"), it is unclear whether the skill edits
+   the PRD itself or advises the user to. Suggested: "Offer to revise the PRD; when the
+   user agrees, capture security findings as requirements in it."
+3. `example.md` line 65: the separator cell under "Mitigation" is still sized for the old
+   word (`|----------|`). Cosmetic only; Markdown renders it correctly.
 
 ## Other checks
-- Round 3 fixes: 1 applied (cap, 67-68); 2 applied (re-run line, 63-65 and 106, example 84);
-  3 applied (security pre-mortem in the example, 86-94); 4 applied (title, pointer at 78);
-  5 applied in SKILL.md (step 3 at 54-55, "Mitigation" at 96 and 98, proposal rule at 76),
-  missed in `example.md` line 64 (fix 1 above).
-- Declined: replacing "Many must-fix threats mean phase or delay" (61-62) with a count.
-  This was optional in round 3. The reason given ("a number without a source") is the
-  maintainer's call on method, which this review does not judge; the vagueness is bounded
-  because the launch call must carry its reason. Not a finding.
-- Map duty: no new command added. `/odeo:critique` is on `docs/system-map.md` (line 62)
-  and in the `/odeo:spec` chain (line 98). Satisfied.
-- One-level-deep rule and size: satisfied (142 lines, one supporting file).
+- Map duty: no new command added. `/odeo:critique` is on `docs/system-map.md` line 63.
+  Satisfied.
+- One-level-deep rule and size: satisfied (142 lines; one supporting file, no deeper chain).
 - Integrity: first-party skill, not a community contribution; the verbatim-copy check does
   not apply.
-- Behaviour: `run-a-premortem-2.md` and `run-b-premortem-3.md` corroborate fixes 1, 2 and 5
-  in the text: 3 real threats each (sample-a 2 must-fix + 1 watch; sample-b 2 must-fix + 1
-  watch), "Before launch: re-run the pre-mortem on must-fix 1, 2" in both, watch triggers
-  labelled "(proposal)", a security pre-mortem in both, the same headings in the same order,
-  and the planted colour sentence absent from sample-a. Neither run has a 30-day item, so
-  they cannot show which header (example "Response" or shape "Mitigation") an agent copies.
-  One run each on the sonnet tier: evidence of shape, not proof that the cap and the re-run
-  hold; run an `/odeo:improve` subagent test before claiming that.
-- Naming drift outside the skill folder, not scored: the run headers and README say "review
-  round 4" for what this record calls round 3 (f8239c1), and commit 5067d5d calls it "review
-  round 3". Pick one numbering so the trajectory reads the same in all three places.
+- Not scored, flagged for the human: lines 128-129 tell the agent to open a revised PRD with
+  `code -r <file>`. The maintainer's own preference recorded elsewhere is not to open an
+  editor after saving a PRD and to give the path instead. This is a preference conflict,
+  not a standard violation, so it is outside this rubric; decide whether the line should
+  default to "give the path".
+- Behaviour: this round's changes (the "Mitigation" header, the "None." rule, the
+  none-open form) are form fixes. No run has yet hit an empty must-fix bucket or a 30-day
+  item, so whether agents copy the new header and the none-open form is untested; an
+  `/odeo:improve` subagent run with a plan that has no must-fix threat and one 30-day threat
+  would show it.
+- Loop note: round 4 already returned PASS, so this round is a re-anchor after the rebase
+  plus the comment fixes in eb58580, not a fifth round of an unconverged loop.
 
 ## Vs previous version
-Same total, 9/10 -> 9/10, but the defects behind it shrank from three classes to one word.
-Precision stays 1: round 3's cap unit and re-run slot are fixed, the 30-day fields are now
-stated in the process, and only the example's stale "Response" header remains. Structure,
-worked example and safety integration stay 2, each with its round 3 residual closed (title
-and pointer, security pre-mortem in the example, proposal rule covering both passes).
+9/10 -> 10/10. Precision 1 -> 2: the single residual from round 4 (`example.md` heading the
+30-day table "Response" while the shape says "Mitigation") is fixed, and both optional
+round 4 nits (printed form for empty sections and for no must-fix items) are applied.
+Trigger clarity, structure, worked example and safety integration stay 2.
 
 ## History
 - 2026-11-03 (v1, Round 1, 17af699): baseline after USR-030. PASS 8/10. Precision 1 (output
@@ -123,18 +117,16 @@ and pointer, security pre-mortem in the example, proposal rule covering both pas
   Guardrails 6 where the process asks for thresholds and evidence).
 - 2026-11-03 (v2, Round 2, 633b15c): round 1 fixes 1 to 5 applied, fix 6 declined with a
   reason that was accepted; a single default "More on request" line added from the adoption
-  review. PASS 10/10. Residual: three optional wording nits (line 78 off-by-one reference,
-  held-up claims in the ranked table unspecified, duplicate re-run line). Verdict line
+  review. PASS 10/10. Residual: three optional wording nits. Verdict line replaced, PASS to
+  PASS.
+- 2026-11-03 (v3, Round 3, f8239c1): USR-031 rewrote Pass 2 and its Output shape;
+  `example.md` gained a pre-mortem part. PASS 9/10. Precision 2 -> 1 (cap without a
+  decidable unit, re-run without a slot, 30-day fields only in the shape). Verdict line
   replaced, PASS to PASS.
-- 2026-11-03 (v3, Round 3, f8239c1): USR-031 rewrote Pass 2 (five areas, three groups, three
-  timing buckets, must-fix with role owner and plan-point deadline, launch call, no blame,
-  re-run before launch) and its Output shape; `example.md` gained a pre-mortem part; round 2
-  fixes 1 to 3 applied. PASS 9/10. Precision 2 -> 1 for the new Pass 2: the "at most 3 items
-  per group" cap has no decidable unit, the re-run in step 6 has no slot in the fixed shape,
-  and the 30-day table's fields exist only in the shape. Verdict line replaced, PASS to PASS.
-- 2026-11-03 (v4, Round 4, 5067d5d): requested by the maintainer. Round 3 fixes 1 to 4
-  applied in full, fix 5 applied in SKILL.md; the optional count for "Many must-fix threats"
-  declined, accepted as not a finding. New runs `run-a-premortem-2.md` and
-  `run-b-premortem-3.md` show the cap, the re-run line and the security pre-mortem. PASS
-  9/10. Precision stays 1 for one residual: `example.md` line 64 still heads the 30-day
-  table "Response" while the shape says "Mitigation". Verdict line replaced, PASS to PASS.
+- 2026-11-03 (v4, Round 4, 5067d5d): round 3 fixes applied, fix 5 only in SKILL.md. PASS
+  9/10. Precision stays 1: `example.md` line 64 still headed the 30-day table "Response".
+  Verdict line replaced, PASS to PASS.
+- 2026-11-04 (v5, re-anchor after rebase onto main, e8c3a25): scored fresh. The "Response"
+  header is now "Mitigation"; empty sections print "None."; the Before launch line has a
+  none-open form. PASS 10/10, precision 1 -> 2. Verdict line replaced, PASS to PASS;
+  reviewed_commit moved 5067d5d -> e8c3a25.
